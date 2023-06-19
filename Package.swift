@@ -6,14 +6,11 @@ import PackageDescription
 let package = Package(
     name: "swift-winrt",
     dependencies: [
-        .package(url: "https://github.com/tristanlabelle/swift-dotnetmd", branch: "main"),
-        .package(url: "https://github.com/apple/swift-syntax", exact: "508.0.0")
+        .package(url: "https://github.com/tristanlabelle/swift-dotnetmd", branch: "main")
     ],
     targets: [
         .executableTarget(name: "swift-winrt", dependencies: [
-            .product(name: "DotNetMD", package: "swift-dotnetmd"),
-            .product(name: "SwiftSyntax", package: "swift-syntax"),
-            .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
+            .product(name: "DotNetMD", package: "swift-dotnetmd")
         ])
     ]
 )
