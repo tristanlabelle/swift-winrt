@@ -1,4 +1,4 @@
-class CodeWriter {
+public class CodeWriter {
     private enum LineState {
         case start
         case middle
@@ -10,16 +10,16 @@ class CodeWriter {
     private var indentLevel = 0
     private var lineState: LineState = .start
 
-    init(output: some TextOutputStream, indent: String = "    ") {
+    public init(output: some TextOutputStream, indent: String = "    ") {
         self.output = output
         self.indentToken = indent
     }
 
-    func endLine() {
+    public func endLine() {
         lineState = .end
     }
 
-    func write(_ str: String, endLine: Bool = false) {
+    public func write(_ str: String, endLine: Bool = false) {
         if lineState == .end {
             output.write("\n")
             lineState = .start
@@ -41,12 +41,12 @@ class CodeWriter {
         }
     }
 
-    func writeLine(_ str: String) {
+    public func writeLine(_ str: String) {
         precondition(lineState != .middle)
         write(str, endLine: true)
     }
 
-    func writeMultilineBlock(_ str: String = "", body: (CodeWriter) -> Void) {
+    public func writeMultilineBlock(_ str: String = "", body: (CodeWriter) -> Void) {
         write(str)
         write(" {", endLine: true)
         indentLevel += 1

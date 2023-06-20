@@ -1,10 +1,10 @@
-protocol SwiftSyntaxWriter {
+public protocol SyntaxWriter {
     var codeWriter: CodeWriter { get }
 }
 
-protocol SwiftTypeDeclarationWriter: SwiftSyntaxWriter {}
-extension SwiftTypeDeclarationWriter {
-    func writeClass(visibility: SwiftVisibility = .implicit, name: String, body: (SwiftRecordBodyWriter) -> Void) {
+public protocol TypeDeclarationWriter: SyntaxWriter {}
+extension TypeDeclarationWriter {
+    public func writeClass(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
         writeVisibility(visibility)
         codeWriter.write("class ")
         writeIdentifier(name)
@@ -13,7 +13,7 @@ extension SwiftTypeDeclarationWriter {
         }
     }
 
-    func writeStruct(visibility: SwiftVisibility = .implicit, name: String, body: (SwiftRecordBodyWriter) -> Void) {
+    public func writeStruct(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
         writeVisibility(visibility)
         codeWriter.write("struct ")
         writeIdentifier(name)
@@ -22,7 +22,7 @@ extension SwiftTypeDeclarationWriter {
         }
     }
 
-    func writeEnum(visibility: SwiftVisibility = .implicit, name: String, body: (SwiftEnumBodyWriter) -> Void) {
+    public func writeEnum(visibility: Visibility = .implicit, name: String, body: (EnumBodyWriter) -> Void) {
         writeVisibility(visibility)
         codeWriter.write("enum ")
         writeIdentifier(name)
@@ -31,7 +31,7 @@ extension SwiftTypeDeclarationWriter {
         }
     }
 
-    func writeTypeAlias(visibility: SwiftVisibility = .implicit, name: String, target: String) {
+    public func writeTypeAlias(visibility: Visibility = .implicit, name: String, target: String) {
         writeVisibility(visibility)
         codeWriter.write("typealias ")
         writeIdentifier(name)
@@ -40,15 +40,19 @@ extension SwiftTypeDeclarationWriter {
     }
 }
 
-struct SwiftFileWriter: SwiftTypeDeclarationWriter {
-    var codeWriter: CodeWriter
+public struct FileWriter: TypeDeclarationWriter {
+    public let codeWriter: CodeWriter
 
-    func writeImport(module: String) {
+    public init(codeWriter: CodeWriter) {
+        self.codeWriter = codeWriter
+    }
+
+    public func writeImport(module: String) {
         codeWriter.write("import ")
         codeWriter.write(module, endLine: true)
     }
 
-    func writeProtocol(visibility: SwiftVisibility = .implicit, name: String, members: (SwiftProtocolBodyWriter) -> Void) {
+    public func writeProtocol(visibility: Visibility = .implicit, name: String, members: (ProtocolBodyWriter) -> Void) {
         writeVisibility(visibility)
         codeWriter.write("protocol ")
         writeIdentifier(name)
@@ -58,10 +62,10 @@ struct SwiftFileWriter: SwiftTypeDeclarationWriter {
     }
 }
 
-struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
-    let codeWriter: CodeWriter
+public struct ProtocolBodyWriter: SyntaxWriter {
+    public let codeWriter: CodeWriter
 
-    func writeProperty(
+    public func writeProperty(
         static: Bool = false,
         name: String,
         type: String,
@@ -77,10 +81,10 @@ struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         codeWriter.write(" }", endLine: true)
     }
 
-    func writeFunc(
+    public func writeFunc(
         static: Bool = false,
         name: String,
-        parameters: (inout SwiftParameterListWriter) -> Void = { _ in },
+        parameters: (inout ParameterListWriter) -> Void = { _ in },
         throws: Bool = false,
         returnType: String? = nil) {
 
@@ -95,11 +99,15 @@ struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     }
 }
 
-struct SwiftParameterListWriter: SwiftSyntaxWriter {
-    let codeWriter: CodeWriter
-    var first: Bool = true
+public struct ParameterListWriter: SyntaxWriter {
+    public let codeWriter: CodeWriter
+    private var first: Bool = true
 
-    mutating func writeParameter(label: String? = nil, name: String, type: String, defaultValue: String? = nil) {
+    init(codeWriter: CodeWriter) {
+        self.codeWriter = codeWriter
+    }
+
+    public mutating func writeParameter(label: String? = nil, name: String, type: String, defaultValue: String? = nil) {
         if first {
             first = false
         } else {
@@ -119,12 +127,12 @@ struct SwiftParameterListWriter: SwiftSyntaxWriter {
     }
 }
 
-struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
-    var codeWriter: CodeWriter
+public struct RecordBodyWriter: TypeDeclarationWriter {
+    public let codeWriter: CodeWriter
 
-    func writeStoredProperty(
-        visibility: SwiftVisibility = .implicit,
-        privateVisibility: SwiftVisibility = .implicit,
+    public func writeStoredProperty(
+        visibility: Visibility = .implicit,
+        privateVisibility: Visibility = .implicit,
         static: Bool = false,
         `let`: Bool,
         name: String,
@@ -151,11 +159,11 @@ struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         codeWriter.endLine()
     }
 
-    func writeProperty(
-        visibility: SwiftVisibility = .implicit, static: Bool = false,
+    public func writeProperty(
+        visibility: Visibility = .implicit, static: Bool = false,
         name: String, type: String,
-        get: (inout SwiftStatementWriter) -> Void,
-        set: ((inout SwiftStatementWriter) -> Void)? = nil) {
+        get: (inout StatementWriter) -> Void,
+        set: ((inout StatementWriter) -> Void)? = nil) {
 
         writeVisibility(visibility)
         if `static` { codeWriter.write("static ") }
@@ -166,29 +174,29 @@ struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         codeWriter.writeMultilineBlock() {
             if let set {
                 $0.writeMultilineBlock("get") {
-                    var statementWriter = SwiftStatementWriter(codeWriter: $0)
+                    var statementWriter = StatementWriter(codeWriter: $0)
                     get(&statementWriter)
                 }
                 $0.writeMultilineBlock("set") {
-                    var statementWriter = SwiftStatementWriter(codeWriter: $0)
+                    var statementWriter = StatementWriter(codeWriter: $0)
                     set(&statementWriter)
                 }
             }
             else {
-                var statementWriter = SwiftStatementWriter(codeWriter: $0)
+                var statementWriter = StatementWriter(codeWriter: $0)
                 get(&statementWriter)
             }
         }
     }
 
-    func writeFunc(
-        visibility: SwiftVisibility = .implicit,
+    public func writeFunc(
+        visibility: Visibility = .implicit,
         static: Bool = false,
         name: String,
-        parameters: (inout SwiftParameterListWriter) -> Void = { _ in },
+        parameters: (inout ParameterListWriter) -> Void = { _ in },
         throws: Bool = false,
         returnType: String? = nil,
-        body: (inout SwiftStatementWriter) -> Void) {
+        body: (inout StatementWriter) -> Void) {
 
         writeFuncHeader(
             visibility: visibility,
@@ -198,16 +206,16 @@ struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             throws: `throws`,
             returnType: returnType)
         codeWriter.writeMultilineBlock() {
-            var statementWriter = SwiftStatementWriter(codeWriter: $0)
+            var statementWriter = StatementWriter(codeWriter: $0)
             body(&statementWriter)
         }
     }
 }
 
-struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
-    let codeWriter: CodeWriter
+public struct EnumBodyWriter: TypeDeclarationWriter {
+    public let codeWriter: CodeWriter
 
-    func writeCase(name: String, defaultValue: String? = nil) {
+    public func writeCase(name: String, defaultValue: String? = nil) {
         codeWriter.write("case ")
         writeIdentifier(name)
 
@@ -220,10 +228,10 @@ struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
     }
 }
 
-struct SwiftStatementWriter: SwiftSyntaxWriter {
-    let codeWriter: CodeWriter
+public struct StatementWriter: SyntaxWriter {
+    public let codeWriter: CodeWriter
 
-    func writeFatalError(_ message: String? = nil) {
+    public func writeFatalError(_ message: String? = nil) {
         codeWriter.write("fatalError(")
         if let message {
             codeWriter.write("\"")
@@ -234,7 +242,7 @@ struct SwiftStatementWriter: SwiftSyntaxWriter {
     }
 }
 
-enum SwiftVisibility {
+public enum Visibility {
     case implicit
     case `internal`
     case `private`
@@ -243,12 +251,12 @@ enum SwiftVisibility {
     case `open`
 }
 
-extension SwiftSyntaxWriter {
-    func writeFuncHeader(
-        visibility: SwiftVisibility = .implicit,
+extension SyntaxWriter {
+    public func writeFuncHeader(
+        visibility: Visibility = .implicit,
         static: Bool = false,
         name: String,
-        parameters: (inout SwiftParameterListWriter) -> Void = { _ in },
+        parameters: (inout ParameterListWriter) -> Void = { _ in },
         throws: Bool = false,
         returnType: String? = nil) {
 
@@ -258,7 +266,7 @@ extension SwiftSyntaxWriter {
         writeIdentifier(name)
         codeWriter.write("(")
 
-        var parameterListWriter = SwiftParameterListWriter(codeWriter: codeWriter)
+        var parameterListWriter = ParameterListWriter(codeWriter: codeWriter)
         parameters(&parameterListWriter)
 
         codeWriter.write(")")
@@ -271,7 +279,7 @@ extension SwiftSyntaxWriter {
         }
     }
 
-    fileprivate func writeVisibility(_ visibility: SwiftVisibility?, trailingSpace: Bool = true) {
+    fileprivate func writeVisibility(_ visibility: Visibility?, trailingSpace: Bool = true) {
         switch visibility {
             case .implicit: return
             case .internal: codeWriter.write("internal")

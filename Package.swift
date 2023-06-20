@@ -4,13 +4,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-winrt",
+    name: "SwiftWinRT",
     dependencies: [
         .package(url: "https://github.com/tristanlabelle/swift-dotnetmd", branch: "main")
     ],
     targets: [
-        .executableTarget(name: "swift-winrt", dependencies: [
-            .product(name: "DotNetMD", package: "swift-dotnetmd")
-        ])
+        .executableTarget(name: "SwiftWinRT", dependencies: [
+            .product(name: "DotNetMD", package: "swift-dotnetmd"),
+            .target(name: "SwiftWriter")
+        ]),
+        .target(
+            name: "SwiftWriter"),
     ]
 )

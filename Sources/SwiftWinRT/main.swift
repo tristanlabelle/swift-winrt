@@ -1,7 +1,5 @@
-// import SwiftSyntax
-// import SwiftBasicFormat
-// import SwiftSyntaxBuilder
 import DotNetMD
+import SwiftWriter
 import Foundation
 
 let namespace = CommandLine.arguments.dropFirst().first ?? "Windows.Storage"
@@ -14,7 +12,7 @@ public struct StdoutOutputStream: TextOutputStream {
     public mutating func write(_ str: String) { fputs(str, stdout) }
 }
 
-let fileWriter = SwiftFileWriter(codeWriter: CodeWriter(output: StdoutOutputStream()))
+let fileWriter = FileWriter(codeWriter: CodeWriter(output: StdoutOutputStream()))
 for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace && $0.visibility == .public }) {
     if typeDefinition is ClassDefinition || typeDefinition is StructDefinition {
         writeStructOrClass(typeDefinition, to: fileWriter)
@@ -30,7 +28,7 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
     // }
 }
 
-func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
+func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
     if typeDefinition is StructDefinition {
         writer.writeStruct(name: typeDefinition.name) {
             writeMembers(of: typeDefinition, to: $0)
@@ -43,7 +41,7 @@ func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some SwiftT
     }
 }
 
-func writeMembers(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) {
+func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter) {
     for field in typeDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
         writer.writeStoredProperty(
             visibility: .public,
@@ -77,7 +75,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyW
     }
 }
 
-func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftFileWriter) {
+func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
     writer.writeProtocol(name: interface.name) {
         for property in interface.properties.filter({ $0.visibility == .public }) {
             $0.writeProperty(
@@ -104,7 +102,7 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftFileWriter)
     writer.writeTypeAlias(name: interface.name, target: "Any" + interface.name)
 }
 
-func writeEnum(_ enumDefinition: EnumDefinition, to writer: some SwiftTypeDeclarationWriter) {
+func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclarationWriter) {
     writer.writeEnum(name: enumDefinition.name) {
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             $0.writeCase(name: pascalToCamelCase(field.name))
