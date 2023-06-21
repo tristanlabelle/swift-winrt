@@ -1,15 +1,36 @@
 // See https://docs.swift.org/swift-book/documentation/the-swift-programming-language/types
 public enum SwiftType {
-    case identifierChain(items: [Identifier])
-    indirect case existential(protocol: SwiftType)
-    indirect case opaque(protocol: SwiftType)
-    indirect case `optional`(element: SwiftType, forceUnwrap: Bool = false)
+    case identifierChain(IdentifierChain)
+    indirect case `optional`(wrapped: SwiftType, implicitUnwrap: Bool = false)
+    indirect case tuple(elements: [SwiftType])
     indirect case array(element: SwiftType)
     indirect case dictionary(key: SwiftType, value: SwiftType)
+    indirect case function(params: [SwiftType], throws: Bool = false, returnType: SwiftType)
+
+    public struct IdentifierChain {
+        public let protocolModifier: ProtocolModifier?
+        public let items: [Identifier]
+
+        public init(protocolModifier: ProtocolModifier? = nil, items: [Identifier]) {
+            precondition(!items.isEmpty)
+            self.protocolModifier = protocolModifier
+            self.items = items
+        }
+    }
+
+    public enum ProtocolModifier {
+        case existential // any
+        case opaque // some
+    }
 
     public struct Identifier {
-        let name: String
-        let genericArgs: [SwiftType]
+        public let name: String
+        public let genericArgs: [SwiftType]
+
+        public init(name: String, genericArgs: [SwiftType] = []) {
+            self.name = name
+            self.genericArgs = genericArgs
+        }
     }
 }
 
@@ -37,6 +58,10 @@ extension SwiftType {
     }
 
     public static func identifier(name: String, genericArgs: [SwiftType] = []) -> SwiftType {
-        .identifierChain(items: [.init(name: name, genericArgs: genericArgs)])
+        .identifierChain(
+            IdentifierChain(items: [
+                Identifier(name: name, genericArgs: genericArgs)
+            ])
+        )
     }
 }

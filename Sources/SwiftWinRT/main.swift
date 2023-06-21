@@ -23,9 +23,16 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
     else if let enumDefinition = typeDefinition as? EnumDefinition {
         writeEnum(enumDefinition, to: fileWriter)
     }
-    // else if let delegateDefinition = typeDefinition as? DelegateDefinition {
-    //     MemberDeclListItem(decl: ProtocolDecl(identifier: interfaceDefinition.name))
-    // }
+    else if let delegateDefinition = typeDefinition as? DelegateDefinition {
+        fileWriter.writeTypeAlias(
+            name: typeDefinition.name,
+            target: .function(
+                params: delegateDefinition.invokeMethod.params.map { toSwiftType($0.type) },
+                throws: true,
+                returnType: toSwiftType(delegateDefinition.invokeMethod.returnType)
+            )
+        )
+    }
 }
 
 func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
@@ -65,11 +72,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
             visibility: .public,
             static: method.isStatic,
             name: pascalToCamelCase(method.name),
-            parameters: {
-                for param in method.params {
-                    $0.writeParameter(name: param.name!, type: toSwiftType(param.type))
-                }
-            },
+            parameters: method.params.map { Parameter(label: "_", name: $0.name!, type: toSwiftType($0.type)) },
             throws: true,
             returnType: toSwiftType(method.returnType)) { $0.writeFatalError("Not implemented") }
     }
@@ -89,60 +92,45 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
             $0.writeFunc(
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
-                parameters: {
-                    for param in method.params {
-                        $0.writeParameter(name: param.name!, type: toSwiftType(param.type))
-                    }
-                },
+                parameters: method.params.map { Parameter(label: "_", name: $0.name!, type: toSwiftType($0.type)) },
                 throws: true,
                 returnType: toSwiftType(method.returnType))
         }
     }
 
-    writer.writeTypeAlias(name: interface.name, target: "Any" + interface.name)
+    writer.writeTypeAlias(name: "Any" + interface.name, target: .identifier(name: interface.name))
 }
 
 func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclarationWriter) {
     writer.writeEnum(name: enumDefinition.name) {
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-            $0.writeCase(name: pascalToCamelCase(field.name))
+            $0.writeCase(
+                name: pascalToCamelCase(field.name),
+                rawValue: toSwiftConstant(field.literalValue!))
         }
     }
 }
 
-func toSwiftType(_ type: BoundType) -> String {
+func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType {
     switch type {
         case let .definition(type):
-            var result = ""
-            if type.definition is InterfaceDefinition {
-                result += "Any"
-            }
+            let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
+            let name = namePrefix + trimGenericParamCount(type.definition.name)
 
-            result += trimGenericParamCount(type.definition.name)
-
-            if !type.genericArgs.isEmpty {
-                result += "<"
-                for (i, arg) in type.genericArgs.enumerated() {
-                    if i > 0 {
-                        result += ", "
-                    }
-                    result += toSwiftType(arg)
-                }
-                result += ">"
-            }
-
-            if (type.definition is InterfaceDefinition || type.definition is ClassDefinition)
+            let genericArgs = type.genericArgs.map { toSwiftType($0) }
+            var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
+            if type.definition is InterfaceDefinition || type.definition is ClassDefinition
                 && type.definition.fullName != "System.String" {
-                result += "?"
+                result = .optional(wrapped: result, implicitUnwrap: allowImplicitUnwrap)
             }
 
             return result
 
         case let .array(element):
-            return "[\(toSwiftType(element))]"
+            return .array(element: toSwiftType(element))
 
         case let .genericArg(param):
-            return param.name
+            return .identifier(name: param.name)
 
         default:
             fatalError()
@@ -185,4 +173,20 @@ func pascalToCamelCase(_ str: String) -> String {
 
     // UIElement -> uiElement
     return str[...lastUpperCaseIndex].lowercased() + str[firstNonUpperCaseIndex...]
+}
+
+func toSwiftConstant(_ constant: Constant) -> String {
+    switch constant {
+        case let .boolean(value): return value ? "true" : "false"
+        case let .int8(value): return String(value)
+        case let .int16(value): return String(value)
+        case let .int32(value): return String(value)
+        case let .int64(value): return String(value)
+        case let .uint8(value): return String(value)
+        case let .uint16(value): return String(value)
+        case let .uint32(value): return String(value)
+        case let .uint64(value): return String(value)
+        case .null: return "nil"
+        default: fatalError("Not implemented")
+    }
 }
