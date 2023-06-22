@@ -4,37 +4,61 @@ public protocol SyntaxWriter {
 
 public protocol TypeDeclarationWriter: SyntaxWriter {}
 extension TypeDeclarationWriter {
-    public func writeClass(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
+    public func writeClass(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        body: (RecordBodyWriter) -> Void) {
+
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("class ")
         writeIdentifier(name)
+        writeTypeParameters(typeParameters)
         codeWriter.writeMultilineBlock() {
             body(.init(codeWriter: $0))
         }
     }
 
-    public func writeStruct(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
+    public func writeStruct(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        body: (RecordBodyWriter) -> Void) {
+
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("struct ")
         writeIdentifier(name)
+        writeTypeParameters(typeParameters)
         codeWriter.writeMultilineBlock() {
             body(.init(codeWriter: $0))
         }
     }
 
-    public func writeEnum(visibility: Visibility = .implicit, name: String, body: (EnumBodyWriter) -> Void) {
+    public func writeEnum(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        body: (EnumBodyWriter) -> Void) {
+
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("enum ")
         writeIdentifier(name)
+        writeTypeParameters(typeParameters)
         codeWriter.writeMultilineBlock() {
             body(.init(codeWriter: $0))
         }
     }
 
-    public func writeTypeAlias(visibility: Visibility = .implicit, name: String, target: SwiftType) {
+    public func writeTypeAlias(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        target: SwiftType) {
+
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("typealias ")
         writeIdentifier(name)
+        writeTypeParameters(typeParameters)
         codeWriter.write(" = ")
         writeType(target)
         codeWriter.endLine()
@@ -53,10 +77,16 @@ public struct FileWriter: TypeDeclarationWriter {
         codeWriter.write(module, endLine: true)
     }
 
-    public func writeProtocol(visibility: Visibility = .implicit, name: String, members: (ProtocolBodyWriter) -> Void) {
+    public func writeProtocol(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        members: (ProtocolBodyWriter) -> Void) {
+
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("protocol ")
         writeIdentifier(name)
+        writeTypeParameters(typeParameters)
         codeWriter.writeMultilineBlock() {
             members(.init(codeWriter: $0))
         }
@@ -65,6 +95,12 @@ public struct FileWriter: TypeDeclarationWriter {
 
 public struct ProtocolBodyWriter: SyntaxWriter {
     public let codeWriter: CodeWriter
+
+    public func writeAssociatedType(name: String) {
+        codeWriter.write("associatedtype ")
+        writeIdentifier(name)
+        codeWriter.endLine()
+    }
 
     public func writeProperty(
         static: Bool = false,
@@ -85,6 +121,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
     public func writeFunc(
         static: Bool = false,
         name: String,
+        typeParameters: [String] = [],
         parameters: [Parameter],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
@@ -93,6 +130,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
             visibility: .implicit,
             static: `static`,
             name: name,
+            typeParameters: typeParameters,
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
@@ -182,6 +220,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         visibility: Visibility = .implicit,
         static: Bool = false,
         name: String,
+        typeParameters: [String] = [],
         parameters: [Parameter],
         throws: Bool = false,
         returnType: SwiftType? = nil,
@@ -191,6 +230,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
             visibility: visibility,
             static: `static`,
             name: name,
+            typeParameters: typeParameters,
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
@@ -211,9 +251,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("init")
         if failable { codeWriter.write("?") }
-        codeWriter.write("(")
-        writeParameterList(parameters)
-        codeWriter.write(")")
+        writeParameters(parameters)
         if `throws` {
             codeWriter.write(" throws")
         }
@@ -265,7 +303,18 @@ public enum Visibility {
 }
 
 extension SyntaxWriter {
-    public func writeParameterList(_ parameters: [Parameter]) {
+    public func writeTypeParameters(_ typeParameters: [String]) {
+        guard !typeParameters.isEmpty else { return }
+        codeWriter.write("<")
+        for (index, typeParameter) in typeParameters.enumerated() {
+            if index > 0 { codeWriter.write(", ") }
+            writeIdentifier(typeParameter)
+        }
+        codeWriter.write(">")
+    }
+
+    public func writeParameters(_ parameters: [Parameter]) {
+        codeWriter.write("(")
         for (index, parameter) in parameters.enumerated() {
             if index > 0 { codeWriter.write(", ") }
             if let label = parameter.label {
@@ -281,12 +330,14 @@ extension SyntaxWriter {
                 codeWriter.write(defaultValue)
             }
         }
+        codeWriter.write(")")
     }
 
     public func writeFuncHeader(
         visibility: Visibility = .implicit,
         static: Bool = false,
         name: String,
+        typeParameters: [String] = [],
         parameters: [Parameter],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
@@ -295,9 +346,8 @@ extension SyntaxWriter {
         if `static` { codeWriter.write("static ") }
         codeWriter.write("func ")
         writeIdentifier(name)
-        codeWriter.write("(")
-        writeParameterList(parameters)
-        codeWriter.write(")")
+        writeTypeParameters(typeParameters)
+        writeParameters(parameters)
         if `throws` {
             codeWriter.write(" throws")
         }

@@ -25,7 +25,9 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
     }
     else if let delegateDefinition = typeDefinition as? DelegateDefinition {
         fileWriter.writeTypeAlias(
+            visibility: .public,
             name: trimGenericParamCount(typeDefinition.name),
+            typeParameters: delegateDefinition.genericParams.map { $0.name },
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { toSwiftType($0.type) },
                 throws: true,
@@ -37,12 +39,18 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
 
 func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
     if typeDefinition is StructDefinition {
-        writer.writeStruct(name: trimGenericParamCount(typeDefinition.name)) {
+        writer.writeStruct(
+            visibility: .public,
+            name: trimGenericParamCount(typeDefinition.name),
+            typeParameters: typeDefinition.genericParams.map { $0.name }) {
             writeMembers(of: typeDefinition, to: $0)
         }
     }
     else if typeDefinition is ClassDefinition {
-        writer.writeClass(name: trimGenericParamCount(typeDefinition.name)) {
+        writer.writeClass(
+            visibility: .public,
+            name: trimGenericParamCount(typeDefinition.name),
+            typeParameters: typeDefinition.genericParams.map { $0.name }) {
             writeMembers(of: typeDefinition, to: $0)
         }
     }
@@ -72,6 +80,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
             visibility: .public,
             static: method.isStatic,
             name: pascalToCamelCase(method.name),
+            typeParameters: method.genericParams.map { $0.name },
             parameters: method.params.map(toSwiftParameter),
             throws: true,
             returnType: toSwiftTypeUnlessVoid(method.returnType)) { $0.writeFatalError("Not implemented") }
@@ -79,7 +88,15 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
 }
 
 func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
-    writer.writeProtocol(name: trimGenericParamCount(interface.name)) {
+    writer.writeProtocol(
+        visibility: .public,
+        name: trimGenericParamCount(interface.name),
+        typeParameters: interface.genericParams.map { $0.name }) {
+
+        for genericParam in interface.genericParams {
+            $0.writeAssociatedType(name: genericParam.name)
+        }
+
         for property in interface.properties.filter({ $0.visibility == .public }) {
             $0.writeProperty(
                 name: pascalToCamelCase(property.name),
@@ -92,6 +109,7 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
             $0.writeFunc(
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
+                typeParameters: method.genericParams.map { $0.name },
                 parameters: method.params.map(toSwiftParameter),
                 throws: true,
                 returnType: toSwiftTypeUnlessVoid(method.returnType))
@@ -99,14 +117,19 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
     }
 
     writer.writeTypeAlias(
+        visibility: .public,
         name: "Any" + trimGenericParamCount(interface.name),
+        typeParameters: interface.genericParams.map { $0.name },
         target: .identifier(
             protocolModifier: .existential,
-            name: trimGenericParamCount(interface.name)))
+            name: trimGenericParamCount(interface.name),
+            genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
 }
 
 func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclarationWriter) {
-    writer.writeEnum(name: enumDefinition.name) {
+    writer.writeEnum(
+        visibility: .public,
+        name: enumDefinition.name) {
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             $0.writeCase(
                 name: pascalToCamelCase(field.name),
