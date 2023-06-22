@@ -25,7 +25,7 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
     }
     else if let delegateDefinition = typeDefinition as? DelegateDefinition {
         fileWriter.writeTypeAlias(
-            name: typeDefinition.name,
+            name: trimGenericParamCount(typeDefinition.name),
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { toSwiftType($0.type) },
                 throws: true,
@@ -37,12 +37,12 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
 
 func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
     if typeDefinition is StructDefinition {
-        writer.writeStruct(name: typeDefinition.name) {
+        writer.writeStruct(name: trimGenericParamCount(typeDefinition.name)) {
             writeMembers(of: typeDefinition, to: $0)
         }
     }
     else if typeDefinition is ClassDefinition {
-        writer.writeClass(name: typeDefinition.name) {
+        writer.writeClass(name: trimGenericParamCount(typeDefinition.name)) {
             writeMembers(of: typeDefinition, to: $0)
         }
     }
@@ -72,14 +72,14 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
             visibility: .public,
             static: method.isStatic,
             name: pascalToCamelCase(method.name),
-            parameters: method.params.map { Parameter(label: "_", name: $0.name!, type: toSwiftType($0.type)) },
+            parameters: method.params.map(toSwiftParameter),
             throws: true,
-            returnType: toSwiftType(method.returnType)) { $0.writeFatalError("Not implemented") }
+            returnType: toSwiftTypeUnlessVoid(method.returnType)) { $0.writeFatalError("Not implemented") }
     }
 }
 
 func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
-    writer.writeProtocol(name: interface.name) {
+    writer.writeProtocol(name: trimGenericParamCount(interface.name)) {
         for property in interface.properties.filter({ $0.visibility == .public }) {
             $0.writeProperty(
                 name: pascalToCamelCase(property.name),
@@ -92,13 +92,17 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
             $0.writeFunc(
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
-                parameters: method.params.map { Parameter(label: "_", name: $0.name!, type: toSwiftType($0.type)) },
+                parameters: method.params.map(toSwiftParameter),
                 throws: true,
-                returnType: toSwiftType(method.returnType))
+                returnType: toSwiftTypeUnlessVoid(method.returnType))
         }
     }
 
-    writer.writeTypeAlias(name: "Any" + interface.name, target: .identifier(name: interface.name))
+    writer.writeTypeAlias(
+        name: "Any" + trimGenericParamCount(interface.name),
+        target: .identifier(
+            protocolModifier: .existential,
+            name: trimGenericParamCount(interface.name)))
 }
 
 func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclarationWriter) {
@@ -127,7 +131,9 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
             return result
 
         case let .array(element):
-            return .array(element: toSwiftType(element))
+            return .optional(
+                wrapped: .array(element: toSwiftType(element)),
+                implicitUnwrap: allowImplicitUnwrap)
 
         case let .genericArg(param):
             return .identifier(name: param.name)
@@ -135,6 +141,18 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
         default:
             fatalError()
     }
+}
+
+func toSwiftTypeUnlessVoid(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
+    if case let .definition(type) = type,
+        type.definition === context.mscorlib?.specialTypes.void {
+        return nil
+    }
+    return toSwiftType(type, allowImplicitUnwrap: allowImplicitUnwrap)
+}
+
+func toSwiftParameter(_ param: Param) -> Parameter {
+    .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toSwiftType(param.type))
 }
 
 func isAccessor(_ method: Method) -> Bool {

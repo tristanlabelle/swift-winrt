@@ -57,11 +57,15 @@ extension SwiftType {
         }
     }
 
-    public static func identifier(name: String, genericArgs: [SwiftType] = []) -> SwiftType {
+    public static func identifier(
+        protocolModifier: SwiftType.ProtocolModifier? = nil,
+        name: String,
+        genericArgs: [SwiftType] = []) -> SwiftType {
+
         .identifierChain(
-            IdentifierChain(items: [
-                Identifier(name: name, genericArgs: genericArgs)
-            ])
+            IdentifierChain(
+                protocolModifier: protocolModifier,
+                items: [ Identifier(name: name, genericArgs: genericArgs) ])
         )
     }
 }

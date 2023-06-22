@@ -5,7 +5,7 @@ public protocol SyntaxWriter {
 public protocol TypeDeclarationWriter: SyntaxWriter {}
 extension TypeDeclarationWriter {
     public func writeClass(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("class ")
         writeIdentifier(name)
         codeWriter.writeMultilineBlock() {
@@ -14,7 +14,7 @@ extension TypeDeclarationWriter {
     }
 
     public func writeStruct(visibility: Visibility = .implicit, name: String, body: (RecordBodyWriter) -> Void) {
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("struct ")
         writeIdentifier(name)
         codeWriter.writeMultilineBlock() {
@@ -23,7 +23,7 @@ extension TypeDeclarationWriter {
     }
 
     public func writeEnum(visibility: Visibility = .implicit, name: String, body: (EnumBodyWriter) -> Void) {
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("enum ")
         writeIdentifier(name)
         codeWriter.writeMultilineBlock() {
@@ -32,7 +32,7 @@ extension TypeDeclarationWriter {
     }
 
     public func writeTypeAlias(visibility: Visibility = .implicit, name: String, target: SwiftType) {
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("typealias ")
         writeIdentifier(name)
         codeWriter.write(" = ")
@@ -54,7 +54,7 @@ public struct FileWriter: TypeDeclarationWriter {
     }
 
     public func writeProtocol(visibility: Visibility = .implicit, name: String, members: (ProtocolBodyWriter) -> Void) {
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         codeWriter.write("protocol ")
         writeIdentifier(name)
         codeWriter.writeMultilineBlock() {
@@ -103,12 +103,14 @@ public struct ProtocolBodyWriter: SyntaxWriter {
 public struct Parameter {
     public var label: String?
     public var name: String
+    public var `inout`: Bool
     public var type: SwiftType
     public var defaultValue: String?
 
-    public init(label: String? = nil, name: String, type: SwiftType, defaultValue: String? = nil) {
+    public init(label: String? = nil, name: String, `inout`: Bool = false, type: SwiftType, defaultValue: String? = nil) {
         self.label = label
         self.name = name
+        self.inout = `inout`
         self.type = type
         self.defaultValue = defaultValue
     }
@@ -126,10 +128,10 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         type: SwiftType,
         defaultValue: String? = nil) {
 
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         if privateVisibility != .implicit {
             codeWriter.write("private(")
-            writeVisibility(privateVisibility)
+            writeVisibility(privateVisibility, trailingSpace: true)
             codeWriter.write(") ")
         }
         if `static` {
@@ -152,7 +154,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         get: (inout StatementWriter) -> Void,
         set: ((inout StatementWriter) -> Void)? = nil) {
 
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         if `static` { codeWriter.write("static ") }
         codeWriter.write("var ")
         writeIdentifier(name)
@@ -192,6 +194,30 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
+        codeWriter.writeMultilineBlock() {
+            var statementWriter = StatementWriter(codeWriter: $0)
+            body(&statementWriter)
+        }
+    }
+
+
+    public func writeInit(
+        visibility: Visibility = .implicit,
+        failable: Bool = false,
+        parameters: [Parameter],
+        throws: Bool = false,
+        body: (inout StatementWriter) -> Void) {
+
+        writeVisibility(visibility, trailingSpace: true)
+        codeWriter.write("init")
+        if failable { codeWriter.write("?") }
+        codeWriter.write("(")
+        writeParameterList(parameters)
+        codeWriter.write(")")
+        if `throws` {
+            codeWriter.write(" throws")
+        }
+
         codeWriter.writeMultilineBlock() {
             var statementWriter = StatementWriter(codeWriter: $0)
             body(&statementWriter)
@@ -248,6 +274,7 @@ extension SyntaxWriter {
             }
             writeIdentifier(parameter.name)
             codeWriter.write(": ")
+            if parameter.`inout` { codeWriter.write("inout ") }
             writeType(parameter.type)
             if let defaultValue = parameter.defaultValue {
                 codeWriter.write(" = ")
@@ -264,7 +291,7 @@ extension SyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
-        writeVisibility(visibility)
+        writeVisibility(visibility, trailingSpace: true)
         if `static` { codeWriter.write("static ") }
         codeWriter.write("func ")
         writeIdentifier(name)
@@ -280,7 +307,7 @@ extension SyntaxWriter {
         }
     }
 
-    fileprivate func writeVisibility(_ visibility: Visibility?, trailingSpace: Bool = true) {
+    fileprivate func writeVisibility(_ visibility: Visibility?, trailingSpace: Bool) {
         switch visibility {
             case .implicit: return
             case .internal: codeWriter.write("internal")
