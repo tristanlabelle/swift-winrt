@@ -2,31 +2,34 @@ public class CodeWriter {
     private enum LineState {
         case start
         case middle
-        case end
+        case end(smartBlankLine: Bool = false)
     }
 
     private var output: any TextOutputStream
-    private let indentToken: String
-    private var indentLevel = 0
     private var lineState: LineState = .start
+    public let indentToken: String
+    public var indentLevel = 0
 
     public init(output: some TextOutputStream, indent: String = "    ") {
         self.output = output
         self.indentToken = indent
     }
 
-    public func endLine() {
-        lineState = .end
+    public func endLine(smartBlankLine: Bool = false) {
+        lineState = .end(smartBlankLine: smartBlankLine)
     }
 
-    public func write(_ str: String, endLine: Bool = false) {
-        if lineState == .end {
+    public func write(_ str: String, inhibitSmartBlankLine: Bool = false, endLine: Bool = false) {
+        if case let .end(smartBlankLine) = lineState {
+            if smartBlankLine && !inhibitSmartBlankLine {
+                output.write("\n")
+            }
             output.write("\n")
             lineState = .start
         }
 
         if !str.isEmpty {
-            if lineState == .start {
+            if case .start = lineState {
                 for _ in 0..<indentLevel {
                     output.write(indentToken)
                 }
@@ -42,17 +45,31 @@ public class CodeWriter {
     }
 
     public func writeLine(_ str: String) {
-        precondition(lineState != .middle)
         write(str, endLine: true)
     }
 
-    public func writeMultilineBlock(_ str: String = "", body: (CodeWriter) -> Void) {
+    public func indented(by levels: Int = 1, _ body: () -> Void) {
+        indentLevel += levels
+        body()
+        indentLevel -= levels
+    }
+
+    public func indented(at level: Int, _ body: () -> Void) {
+        let previousLevel = indentLevel
+        indentLevel += level
+        body()
+        indentLevel -= previousLevel
+    }
+
+    public func writeMultilineBlock(_ str: String = "", smartTrailingBlankLine: Bool = true, body: (CodeWriter) -> Void) {
         write(str)
-        write(" {", endLine: true)
-        indentLevel += 1
-        body(self)
-        endLine();
-        indentLevel -= 1
-        writeLine("}")
+        writeLine(" {")
+        indented {
+            body(self)
+            if case .end = lineState {}
+            else { endLine() }
+        }
+        write("}", inhibitSmartBlankLine: true)
+        endLine(smartBlankLine: smartTrailingBlankLine)
     }
 }
