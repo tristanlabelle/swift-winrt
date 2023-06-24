@@ -3,50 +3,32 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
-            "name": "Debug swift-winrt",
+            "sourceLanguages": [ "swift" ],
+            "name": "Windows.Foundation",
             "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
-            "args": [],
-            "cwd": "${workspaceFolder:swift-winrt}",
-            "preLaunchTask": "swift: Build Debug swift-winrt"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
-            "name": "Release swift-winrt",
-            "program": "${workspaceFolder:swift-winrt}\\.build/release/swift-winrt",
-            "args": [],
-            "cwd": "${workspaceFolder:swift-winrt}",
-            "preLaunchTask": "swift: Build Release swift-winrt"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
-            "name": "Debug SwiftWinRT",
-            "program": "${workspaceFolder:swift-winrt}\\.build/debug/SwiftWinRT",
-            "args": [],
+            "args": [ "Windows.Foundation" ],
             "cwd": "${workspaceFolder:swift-winrt}",
             "preLaunchTask": "swift: Build Debug SwiftWinRT"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
-            "name": "Release SwiftWinRT",
-            "program": "${workspaceFolder:swift-winrt}\\.build/release/SwiftWinRT",
-            "args": [],
+            "sourceLanguages": [ "swift" ],
+            "name": "Windows.Foundation.Collections",
+            "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
+            "args": [ "Windows.Foundation.Collections" ],
             "cwd": "${workspaceFolder:swift-winrt}",
-            "preLaunchTask": "swift: Build Release SwiftWinRT"
-        }
+            "preLaunchTask": "swift: Build Debug SwiftWinRT"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [ "swift" ],
+            "name": "Windows.UI.Xaml",
+            "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
+            "args": [ "Windows.UI.Xaml" ],
+            "cwd": "${workspaceFolder:swift-winrt}",
+            "preLaunchTask": "swift: Build Debug SwiftWinRT"
+        },
     ]
 }
