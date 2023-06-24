@@ -40,6 +40,7 @@ extension TypeDeclarationWriter {
         visibility: Visibility = .implicit,
         name: String,
         typeParameters: [String] = [],
+        rawValueType: SwiftType? = nil,
         body: (EnumBodyWriter) -> Void) {
 
         var output = output
@@ -47,6 +48,10 @@ extension TypeDeclarationWriter {
         output.write("enum ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
+        if let rawValueType {
+            output.write(": ")
+            rawValueType.write(to: &output)
+        }
         output.writeBracedIndentedBlock() {
             body(.init(output: output))
         }

@@ -14,18 +14,49 @@ public struct StdoutOutputStream: TextOutputStream {
 
 let fileWriter = FileWriter(output: StdoutOutputStream())
 for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace && $0.visibility == .public }) {
-    if typeDefinition is ClassDefinition || typeDefinition is StructDefinition {
-        writeStructOrClass(typeDefinition, to: fileWriter)
-    }
-    else if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
+    if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
         writeProtocol(interfaceDefinition, to: fileWriter)
     }
+    else {
+        writeTypeDefinition(typeDefinition, to: fileWriter)
+    }
+}
+
+func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
+    let visibility = toSwiftVisibility(typeDefinition.visibility)
+    if typeDefinition is ClassDefinition {
+        writer.writeClass(
+            visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
+            name: trimGenericParamCount(typeDefinition.name),
+            typeParameters: typeDefinition.genericParams.map { $0.name }) {
+
+            writeMembers(of: typeDefinition, to: $0)
+        }
+    }
+    else if typeDefinition is StructDefinition {
+        writer.writeStruct(
+            visibility: visibility,
+            name: trimGenericParamCount(typeDefinition.name),
+            typeParameters: typeDefinition.genericParams.map { $0.name }) {
+
+            writeMembers(of: typeDefinition, to: $0)
+        }
+    }
     else if let enumDefinition = typeDefinition as? EnumDefinition {
-        writeEnum(enumDefinition, to: fileWriter)
+        writer.writeEnum(
+            visibility: visibility,
+            name: enumDefinition.name,
+            rawValueType: toSwiftType(enumDefinition.underlyingType.bindNonGeneric())) {
+            for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
+                $0.writeCase(
+                    name: pascalToCamelCase(field.name),
+                    rawValue: toSwiftConstant(field.literalValue!))
+            }
+        }
     }
     else if let delegateDefinition = typeDefinition as? DelegateDefinition {
-        fileWriter.writeTypeAlias(
-            visibility: .public,
+        writer.writeTypeAlias(
+            visibility: visibility,
             name: trimGenericParamCount(typeDefinition.name),
             typeParameters: delegateDefinition.genericParams.map { $0.name },
             target: .function(
@@ -37,29 +68,10 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
     }
 }
 
-func writeStructOrClass(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
-    if typeDefinition is StructDefinition {
-        writer.writeStruct(
-            visibility: .public,
-            name: trimGenericParamCount(typeDefinition.name),
-            typeParameters: typeDefinition.genericParams.map { $0.name }) {
-            writeMembers(of: typeDefinition, to: $0)
-        }
-    }
-    else if typeDefinition is ClassDefinition {
-        writer.writeClass(
-            visibility: .public,
-            name: trimGenericParamCount(typeDefinition.name),
-            typeParameters: typeDefinition.genericParams.map { $0.name }) {
-            writeMembers(of: typeDefinition, to: $0)
-        }
-    }
-}
-
 func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter) {
     for field in typeDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
         writer.writeStoredProperty(
-            visibility: .public,
+            visibility: toSwiftVisibility(field.visibility),
             static: field.isStatic,
             let: false,
             name: pascalToCamelCase(field.name),
@@ -68,7 +80,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
 
     for property in typeDefinition.properties.filter({ $0.visibility == .public }) {
         writer.writeProperty(
-            visibility: .public,
+            visibility: toSwiftVisibility(property.visibility),
             name: pascalToCamelCase(property.name),
             type: toSwiftType(property.type),
             get: { $0.writeFatalError("Not implemented") })
@@ -78,13 +90,13 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
         guard !isAccessor(method) else { continue }
         if method is Constructor {
             writer.writeInit(
-                visibility: .public,
+            visibility: toSwiftVisibility(method.visibility),
                 parameters: method.params.map(toSwiftParameter),
                 throws: true) { $0.writeFatalError("Not implemented") }
         }
         else {
             writer.writeFunc(
-                visibility: .public,
+            visibility: toSwiftVisibility(method.visibility),
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
                 typeParameters: method.genericParams.map { $0.name },
@@ -97,7 +109,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
 
 func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
     writer.writeProtocol(
-        visibility: .public,
+            visibility: toSwiftVisibility(interface.visibility),
         name: trimGenericParamCount(interface.name),
         typeParameters: interface.genericParams.map { $0.name }) {
 
@@ -125,7 +137,7 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
     }
 
     writer.writeTypeAlias(
-        visibility: .public,
+        visibility: toSwiftVisibility(interface.visibility),
         name: "Any" + trimGenericParamCount(interface.name),
         typeParameters: interface.genericParams.map { $0.name },
         target: .identifier(
@@ -134,15 +146,15 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
             genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
 }
 
-func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclarationWriter) {
-    writer.writeEnum(
-        visibility: .public,
-        name: enumDefinition.name) {
-        for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-            $0.writeCase(
-                name: pascalToCamelCase(field.name),
-                rawValue: toSwiftConstant(field.literalValue!))
-        }
+func toSwiftVisibility(_ visibility: DotNetMD.Visibility) -> SwiftWriter.Visibility {
+    switch visibility {
+        case .compilerControlled: return .fileprivate
+        case .private: return .private
+        case .assembly: return .internal
+        case .familyAndAssembly: return .internal
+        case .familyOrAssembly: return .public
+        case .family: return .public
+        case .public: return .public
     }
 }
 
