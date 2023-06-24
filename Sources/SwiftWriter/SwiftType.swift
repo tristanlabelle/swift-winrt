@@ -9,12 +9,12 @@ public enum SwiftType {
 
     public struct IdentifierChain {
         public let protocolModifier: ProtocolModifier?
-        public let items: [Identifier]
+        public let identifiers: [Identifier]
 
-        public init(protocolModifier: ProtocolModifier? = nil, items: [Identifier]) {
-            precondition(!items.isEmpty)
+        public init(protocolModifier: ProtocolModifier? = nil, _ identifiers: [Identifier]) {
+            precondition(!identifiers.isEmpty)
             self.protocolModifier = protocolModifier
-            self.items = items
+            self.identifiers = identifiers
         }
     }
 
@@ -27,7 +27,7 @@ public enum SwiftType {
         public let name: String
         public let genericArgs: [SwiftType]
 
-        public init(name: String, genericArgs: [SwiftType] = []) {
+        public init(_ name: String, genericArgs: [SwiftType] = []) {
             self.name = name
             self.genericArgs = genericArgs
         }
@@ -65,8 +65,22 @@ extension SwiftType {
         .identifierChain(
             IdentifierChain(
                 protocolModifier: protocolModifier,
-                items: [ Identifier(name: name, genericArgs: genericArgs) ])
+                [ Identifier(name, genericArgs: genericArgs) ])
         )
+    }
+
+    public static func identifierChain(
+        protocolModifier: SwiftType.ProtocolModifier? = nil,
+        _ identifiers: [Identifier]) -> SwiftType {
+
+        .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers))
+    }
+    
+    public static func identifierChain(
+        protocolModifier: SwiftType.ProtocolModifier? = nil,
+        _ identifiers: String...) -> SwiftType {
+        
+        .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers.map { Identifier($0) }))
     }
 }
 
@@ -87,12 +101,12 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
                     output.write("some ")
                 }
 
-                for (index, item) in chain.items.enumerated() {
+                for (index, identifier) in chain.identifiers.enumerated() {
                     if index > 0 { output.write(".") }
-                    writeIdentifier(item.name, to: &output)
-                    guard !item.genericArgs.isEmpty else { continue }
+                    writeIdentifier(identifier.name, to: &output)
+                    guard !identifier.genericArgs.isEmpty else { continue }
                     output.write("<")
-                    for (index, arg) in item.genericArgs.enumerated() {
+                    for (index, arg) in identifier.genericArgs.enumerated() {
                         if index > 0 { output.write(", ") }
                         arg.write(to: &output)
                     }

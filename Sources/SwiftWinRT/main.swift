@@ -76,14 +76,22 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
 
     for method in typeDefinition.methods.filter({ $0.visibility == .public }) {
         guard !isAccessor(method) else { continue }
-        writer.writeFunc(
-            visibility: .public,
-            static: method.isStatic,
-            name: pascalToCamelCase(method.name),
-            typeParameters: method.genericParams.map { $0.name },
-            parameters: method.params.map(toSwiftParameter),
-            throws: true,
-            returnType: toSwiftTypeUnlessVoid(method.returnType)) { $0.writeFatalError("Not implemented") }
+        if method is Constructor {
+            writer.writeInit(
+                visibility: .public,
+                parameters: method.params.map(toSwiftParameter),
+                throws: true) { $0.writeFatalError("Not implemented") }
+        }
+        else {
+            writer.writeFunc(
+                visibility: .public,
+                static: method.isStatic,
+                name: pascalToCamelCase(method.name),
+                typeParameters: method.genericParams.map { $0.name },
+                parameters: method.params.map(toSwiftParameter),
+                throws: true,
+                returnType: toSwiftTypeUnlessVoid(method.returnType)) { $0.writeFatalError("Not implemented") }
+        }
     }
 }
 
@@ -138,9 +146,41 @@ func writeEnum(_ enumDefinition: EnumDefinition, to writer: some TypeDeclaration
     }
 }
 
+func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType]) -> SwiftType? {
+    guard mscorlibType.namespace == "System" else { return nil }
+    if genericArgs.isEmpty {
+        switch mscorlibType.name {
+            case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double", "String", "Void":
+                return .identifier(name: mscorlibType.name)
+
+            case "Boolean": return .identifier(name: "Bool")
+            case "SByte": return .identifier(name: "Int8")
+            case "Byte": return .identifier(name: "UInt8")
+            case "IntPtr": return .identifier(name: "Int")
+            case "UIntPtr": return .identifier(name: "UInt")
+            case "Single": return .identifier(name: "Float")
+            case "Char": return .identifierChain("Unicode", "UTF16", "CodeUnit")
+
+            default: return nil
+        }
+    }
+    else if mscorlibType.name == "IReference`1" && genericArgs.count == 1 {
+        return .optional(wrapped: toSwiftType(genericArgs[0]))
+    }
+    else {
+        return nil
+    }
+}
+
 func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType {
     switch type {
         case let .definition(type):
+            // Remap primitive types
+            if type.definition.assembly === context.mscorlib,
+                let result = toSwiftType(mscorlibType: type.definition, genericArgs: type.genericArgs) {
+                return result
+            }
+
             let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
             let name = namePrefix + trimGenericParamCount(type.definition.name)
 
