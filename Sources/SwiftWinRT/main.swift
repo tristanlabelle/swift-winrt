@@ -12,7 +12,7 @@ public struct StdoutOutputStream: TextOutputStream {
     public mutating func write(_ str: String) { fputs(str, stdout) }
 }
 
-let fileWriter = FileWriter(codeWriter: CodeWriter(output: StdoutOutputStream()))
+let fileWriter = FileWriter(output: StdoutOutputStream())
 for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace && $0.visibility == .public }) {
     if typeDefinition is ClassDefinition || typeDefinition is StructDefinition {
         writeStructOrClass(typeDefinition, to: fileWriter)

@@ -1,5 +1,5 @@
 public protocol SyntaxWriter {
-    var codeWriter: CodeWriter { get }
+    var output: CodeOutputStream { get }
 }
 
 public protocol TypeDeclarationWriter: SyntaxWriter {}
@@ -10,12 +10,13 @@ extension TypeDeclarationWriter {
         typeParameters: [String] = [],
         body: (RecordBodyWriter) -> Void) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("class ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("class ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        codeWriter.writeMultilineBlock() {
-            body(.init(codeWriter: $0))
+        output.writeBracedIndentedBlock() {
+            body(.init(output: output))
         }
     }
 
@@ -25,12 +26,13 @@ extension TypeDeclarationWriter {
         typeParameters: [String] = [],
         body: (RecordBodyWriter) -> Void) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("struct ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("struct ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        codeWriter.writeMultilineBlock() {
-            body(.init(codeWriter: $0))
+        output.writeBracedIndentedBlock() {
+            body(.init(output: output))
         }
     }
 
@@ -40,12 +42,13 @@ extension TypeDeclarationWriter {
         typeParameters: [String] = [],
         body: (EnumBodyWriter) -> Void) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("enum ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("enum ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        codeWriter.writeMultilineBlock() {
-            body(.init(codeWriter: $0))
+        output.writeBracedIndentedBlock() {
+            body(.init(output: output))
         }
     }
 
@@ -55,26 +58,27 @@ extension TypeDeclarationWriter {
         typeParameters: [String] = [],
         target: SwiftType) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("typealias ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("typealias ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        codeWriter.write(" = ")
-        writeType(target)
-        codeWriter.endLine()
+        output.write(" = ")
+        target.write(to: &output)
+        output.endLine()
     }
 }
 
 public struct FileWriter: TypeDeclarationWriter {
-    public let codeWriter: CodeWriter
+    public let output: CodeOutputStream
 
-    public init(codeWriter: CodeWriter) {
-        self.codeWriter = codeWriter
+    public init(output: some TextOutputStream, indent: String = "    ") {
+        self.output = CodeOutputStream(inner: output, indent: indent)
     }
 
     public func writeImport(module: String) {
-        codeWriter.write("import ")
-        codeWriter.write(module, endLine: true)
+        output.write("import ")
+        output.write(module, endLine: true)
     }
 
     public func writeProtocol(
@@ -83,23 +87,25 @@ public struct FileWriter: TypeDeclarationWriter {
         typeParameters: [String] = [],
         members: (ProtocolBodyWriter) -> Void) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("protocol ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("protocol ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        codeWriter.writeMultilineBlock() {
-            members(.init(codeWriter: $0))
+        output.writeBracedIndentedBlock() {
+            members(.init(output: output))
         }
     }
 }
 
 public struct ProtocolBodyWriter: SyntaxWriter {
-    public let codeWriter: CodeWriter
+    public let output: CodeOutputStream
 
     public func writeAssociatedType(name: String) {
-        codeWriter.write("associatedtype ")
-        writeIdentifier(name)
-        codeWriter.endLine()
+        var output = output
+        output.write("associatedtype ")
+        writeIdentifier(name, to: &output)
+        output.endLine()
     }
 
     public func writeProperty(
@@ -108,14 +114,15 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         type: SwiftType,
         set: Bool = false) {
 
-        if `static` { codeWriter.write("static ") }
-        codeWriter.write("var ")
-        writeIdentifier(name)
-        codeWriter.write(": ")
-        writeType(type)
-        codeWriter.write(" { get")
-        if set { codeWriter.write(" set") }
-        codeWriter.write(" }", endLine: true)
+        var output = output
+        if `static` { output.write("static ") }
+        output.write("var ")
+        writeIdentifier(name, to: &output)
+        output.write(": ")
+        type.write(to: &output)
+        output.write(" { get")
+        if set { output.write(" set") }
+        output.write(" }", endLine: true)
     }
 
     public func writeFunc(
@@ -134,28 +141,12 @@ public struct ProtocolBodyWriter: SyntaxWriter {
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
-        codeWriter.endLine()
-    }
-}
-
-public struct Parameter {
-    public var label: String?
-    public var name: String
-    public var `inout`: Bool
-    public var type: SwiftType
-    public var defaultValue: String?
-
-    public init(label: String? = nil, name: String, `inout`: Bool = false, type: SwiftType, defaultValue: String? = nil) {
-        self.label = label
-        self.name = name
-        self.inout = `inout`
-        self.type = type
-        self.defaultValue = defaultValue
+        output.endLine()
     }
 }
 
 public struct RecordBodyWriter: TypeDeclarationWriter {
-    public let codeWriter: CodeWriter
+    public let output: CodeOutputStream
 
     public func writeStoredProperty(
         visibility: Visibility = .implicit,
@@ -166,24 +157,24 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         type: SwiftType,
         defaultValue: String? = nil) {
 
-        writeVisibility(visibility, trailingSpace: true)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
         if privateVisibility != .implicit {
-            codeWriter.write("private(")
-            writeVisibility(privateVisibility, trailingSpace: true)
-            codeWriter.write(") ")
+            privateVisibility.write(to: &output, trailingSpace: false)
+            output.write("(set) ")
         }
         if `static` {
-            codeWriter.write("static ")
+            output.write("static ")
         }
-        codeWriter.write("var ")
-        writeIdentifier(name)
-        codeWriter.write(": ")
-        writeType(type)
+        output.write("var ")
+        writeIdentifier(name, to: &output)
+        output.write(": ")
+        type.write(to: &output)
         if let defaultValue {
-            codeWriter.write(" = ")
-            codeWriter.write(defaultValue)
+            output.write(" = ")
+            output.write(defaultValue)
         }
-        codeWriter.endLine()
+        output.endLine()
     }
 
     public func writeProperty(
@@ -192,25 +183,26 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         get: (inout StatementWriter) -> Void,
         set: ((inout StatementWriter) -> Void)? = nil) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        if `static` { codeWriter.write("static ") }
-        codeWriter.write("var ")
-        writeIdentifier(name)
-        codeWriter.write(": ")
-        writeType(type)
-        codeWriter.writeMultilineBlock() {
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        if `static` { output.write("static ") }
+        output.write("var ")
+        writeIdentifier(name, to: &output)
+        output.write(": ")
+        type.write(to: &output)
+        output.writeBracedIndentedBlock() {
             if let set {
-                $0.writeMultilineBlock("get") {
-                    var statementWriter = StatementWriter(codeWriter: $0)
+                output.writeBracedIndentedBlock("get") {
+                    var statementWriter = StatementWriter(output: output)
                     get(&statementWriter)
                 }
-                $0.writeMultilineBlock("set") {
-                    var statementWriter = StatementWriter(codeWriter: $0)
+                output.writeBracedIndentedBlock("set") {
+                    var statementWriter = StatementWriter(output: output)
                     set(&statementWriter)
                 }
             }
             else {
-                var statementWriter = StatementWriter(codeWriter: $0)
+                var statementWriter = StatementWriter(output: output)
                 get(&statementWriter)
             }
         }
@@ -234,8 +226,8 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
-        codeWriter.writeMultilineBlock() {
-            var statementWriter = StatementWriter(codeWriter: $0)
+        output.writeBracedIndentedBlock() {
+            var statementWriter = StatementWriter(output: output)
             body(&statementWriter)
         }
     }
@@ -248,92 +240,84 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         throws: Bool = false,
         body: (inout StatementWriter) -> Void) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        codeWriter.write("init")
-        if failable { codeWriter.write("?") }
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("init")
+        if failable { output.write("?") }
         writeParameters(parameters)
         if `throws` {
-            codeWriter.write(" throws")
+            output.write(" throws")
         }
 
-        codeWriter.writeMultilineBlock() {
-            var statementWriter = StatementWriter(codeWriter: $0)
+        output.writeBracedIndentedBlock() {
+            var statementWriter = StatementWriter(output: output)
             body(&statementWriter)
         }
     }
 }
 
 public struct EnumBodyWriter: TypeDeclarationWriter {
-    public let codeWriter: CodeWriter
+    public let output: CodeOutputStream
 
     public func writeCase(name: String, rawValue: String? = nil) {
-        codeWriter.write("case ")
-        writeIdentifier(name)
+        var output = output
+        output.write("case ")
+        writeIdentifier(name, to: &output)
 
         if let rawValue {
-            codeWriter.write(" = ")
-            codeWriter.write(rawValue)
+            output.write(" = ")
+            output.write(rawValue)
         }
 
-        codeWriter.endLine()
+        output.endLine()
     }
 }
 
 public struct StatementWriter: SyntaxWriter {
-    public let codeWriter: CodeWriter
+    public let output: CodeOutputStream
 
     public func writeFatalError(_ message: String? = nil) {
-        codeWriter.write("fatalError(")
+        output.write("fatalError(")
         if let message {
-            codeWriter.write("\"")
-            codeWriter.write(message)
-            codeWriter.write("\"")
+            output.write("\"")
+            output.write(message)
+            output.write("\"")
         }
-        codeWriter.write(")", endLine: true)
+        output.write(")", endLine: true)
     }
 }
 
-public enum Visibility {
-    case implicit
-    case `internal`
-    case `private`
-    case `fileprivate`
-    case `public`
-    case `open`
+extension CodeOutputStream {
+    public func writeBracedIndentedBlock(_ str: String = "", body: () -> Void) {
+        self.writeIndentedBlock(header: str + " {", footer: "}", smartTrailingBlankLine: true) {
+            body()
+        }
+    }
 }
 
 extension SyntaxWriter {
-    public func writeTypeParameters(_ typeParameters: [String]) {
+    fileprivate func writeTypeParameters(_ typeParameters: [String]) {
         guard !typeParameters.isEmpty else { return }
-        codeWriter.write("<")
+        var output = output
+        output.write("<")
         for (index, typeParameter) in typeParameters.enumerated() {
-            if index > 0 { codeWriter.write(", ") }
-            writeIdentifier(typeParameter)
+            if index > 0 { output.write(", ") }
+            writeIdentifier(typeParameter, to: &output)
         }
-        codeWriter.write(">")
+        output.write(">")
     }
 
-    public func writeParameters(_ parameters: [Parameter]) {
-        codeWriter.write("(")
+    fileprivate func writeParameters(_ parameters: [Parameter]) {
+        var output = output
+        output.write("(")
         for (index, parameter) in parameters.enumerated() {
-            if index > 0 { codeWriter.write(", ") }
-            if let label = parameter.label {
-                writeIdentifier(label)
-                codeWriter.write(" ")
-            }
-            writeIdentifier(parameter.name)
-            codeWriter.write(": ")
-            if parameter.`inout` { codeWriter.write("inout ") }
-            writeType(parameter.type)
-            if let defaultValue = parameter.defaultValue {
-                codeWriter.write(" = ")
-                codeWriter.write(defaultValue)
-            }
+            if index > 0 { output.write(", ") }
+            parameter.write(to: &output)
         }
-        codeWriter.write(")")
+        output.write(")")
     }
 
-    public func writeFuncHeader(
+    fileprivate func writeFuncHeader(
         visibility: Visibility = .implicit,
         static: Bool = false,
         name: String,
@@ -342,122 +326,19 @@ extension SyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
-        writeVisibility(visibility, trailingSpace: true)
-        if `static` { codeWriter.write("static ") }
-        codeWriter.write("func ")
-        writeIdentifier(name)
+        var output = output
+        visibility.write(to: &output, trailingSpace: true)
+        if `static` { output.write("static ") }
+        output.write("func ")
+        writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
         writeParameters(parameters)
         if `throws` {
-            codeWriter.write(" throws")
+            output.write(" throws")
         }
         if let returnType {
-            codeWriter.write(" -> ")
-            writeType(returnType)
-        }
-    }
-
-    fileprivate func writeVisibility(_ visibility: Visibility?, trailingSpace: Bool) {
-        switch visibility {
-            case .implicit: return
-            case .internal: codeWriter.write("internal")
-            case .private: codeWriter.write("private")
-            case .fileprivate: codeWriter.write("fileprivate")
-            case .public: codeWriter.write("public")
-            default: break
-        }
-
-        if trailingSpace { codeWriter.write(" ") }
-    }
-
-    fileprivate func writeIdentifier(_ identifier: String) {
-        let keywords = [
-            // Keywords used in declarations:
-            "associatedtype", "class", "deinit", "enum", "extension", "fileprivate", "func",
-            "import", "init", "inout", "internal", "let", "open", "operator", "private",
-            "precedencegroup", "protocol", "public", "rethrows", "static", "struct", "subscript", "typealias", "var",
-            // Keywords used in statements:
-            "break", "case", "catch", "continue", "default", "defer", "do", "else", "fallthrough",
-            "for", "guard", "if", "in", "repeat", "return", "throw", "switch", "where", "while",
-            // Keywords used in expressions and types:
-            "Any", "as", "await", "catch", "false", "is", "nil", "rethrows",
-            "self", "Self", "super", "throw", "throws", "true", "try"
-        ]
-
-        if keywords.contains(identifier) {
-            codeWriter.write("`")
-            codeWriter.write(identifier)
-            codeWriter.write("`")
-        } else {
-            codeWriter.write(identifier)
-        }
-    }
-
-    fileprivate func writeType(_ type: SwiftType) {
-        switch type {
-            case let .identifierChain(chain):
-                if chain.protocolModifier == .existential {
-                    codeWriter.write("any ")
-                }
-                else if chain.protocolModifier == .opaque {
-                    codeWriter.write("some ")
-                }
-
-                for (index, item) in chain.items.enumerated() {
-                    if index > 0 { codeWriter.write(".") }
-                    writeIdentifier(item.name)
-                    guard !item.genericArgs.isEmpty else { continue }
-                    codeWriter.write("<")
-                    for (index, arg) in item.genericArgs.enumerated() {
-                        if index > 0 { codeWriter.write(", ") }
-                        writeType(arg)
-                    }
-                    codeWriter.write(">")
-                }
-
-            case let .`optional`(wrapped, forceUnwrap):
-                let parenthesized: Bool
-                if case let .identifierChain(chain) = wrapped, chain.protocolModifier != nil {
-                    codeWriter.write("(")
-                    parenthesized = true
-                }
-                else {
-                    parenthesized = false
-                }
-                writeType(wrapped)
-                if parenthesized { codeWriter.write(")") }
-                codeWriter.write(forceUnwrap ? "!" : "?")
-
-            case let .tuple(elements):
-                codeWriter.write("(")
-                for (index, element) in elements.enumerated() {
-                    if index > 0 { codeWriter.write(", ") }
-                    writeType(element)
-                }
-                codeWriter.write(")")
-
-            case let .array(element):
-                codeWriter.write("[")
-                writeType(element)
-                codeWriter.write("]")
-
-            case let .dictionary(key, value):
-                codeWriter.write("[")
-                writeType(key)
-                codeWriter.write(": ")
-                writeType(value)
-                codeWriter.write("]")
-
-            case let .function(params, `throws`, returnType):
-                codeWriter.write("(")
-                for (index, param) in params.enumerated() {
-                    if index > 0 { codeWriter.write(", ") }
-                    writeType(param)
-                }
-                codeWriter.write(")")
-                if `throws` { codeWriter.write(" throws") }
-                codeWriter.write(" -> ")
-                writeType(returnType)
+            output.write(" -> ")
+            returnType.write(to: &output)
         }
     }
 }
