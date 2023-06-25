@@ -25,10 +25,12 @@ public enum SwiftType {
 
     public struct Identifier {
         public let name: String
+        public let allowKeyword: Bool
         public let genericArgs: [SwiftType]
 
-        public init(_ name: String, genericArgs: [SwiftType] = []) {
+        public init(_ name: String, allowKeyword: Bool = false, genericArgs: [SwiftType] = []) {
             self.name = name
+            self.allowKeyword = allowKeyword
             self.genericArgs = genericArgs
         }
     }
@@ -36,12 +38,14 @@ public enum SwiftType {
 
 extension SwiftType {
     public static let void = SwiftType.identifier(name: "Void")
-    public static let any = SwiftType.identifier(name: "Any")
+    public static let any = SwiftType.identifier(name: "Any", allowKeyword: true)
     public static let never = SwiftType.identifier(name: "Never")
     public static let bool = SwiftType.identifier(name: "Bool")
     public static let float = SwiftType.identifier(name: "Float")
     public static let double = SwiftType.identifier(name: "Double")
     public static let string = SwiftType.identifier(name: "String")
+    public static let int = SwiftType.identifier(name: "Int")
+    public static let uint = SwiftType.identifier(name: "UInt")
 
     public static func int(bits: Int, signed: Bool) -> SwiftType {
         switch (bits, signed) {
@@ -60,12 +64,13 @@ extension SwiftType {
     public static func identifier(
         protocolModifier: SwiftType.ProtocolModifier? = nil,
         name: String,
+        allowKeyword: Bool = false,
         genericArgs: [SwiftType] = []) -> SwiftType {
 
         .identifierChain(
             IdentifierChain(
                 protocolModifier: protocolModifier,
-                [ Identifier(name, genericArgs: genericArgs) ])
+                [ Identifier(name, allowKeyword: allowKeyword, genericArgs: genericArgs) ])
         )
     }
 
@@ -103,7 +108,8 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
 
                 for (index, identifier) in chain.identifiers.enumerated() {
                     if index > 0 { output.write(".") }
-                    writeIdentifier(identifier.name, to: &output)
+                    if identifier.allowKeyword { output.write(identifier.name) }
+                    else { writeIdentifier(identifier.name, to: &output) }
                     guard !identifier.genericArgs.isEmpty else { continue }
                     output.write("<")
                     for (index, arg) in identifier.genericArgs.enumerated() {

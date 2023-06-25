@@ -3,32 +3,44 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [ "swift" ],
+            "sourceLanguages": [
+                "swift"
+            ],
             "name": "Windows.Foundation",
-            "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
-            "args": [ "Windows.Foundation" ],
+            "program": "${workspaceFolder:swift-winrt}\\.build\\debug\\SwiftWinrt.exe",
+            "args": [
+                "Windows.Foundation"
+            ],
             "cwd": "${workspaceFolder:swift-winrt}",
             "preLaunchTask": "swift: Build Debug SwiftWinRT"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [ "swift" ],
+            "sourceLanguages": [
+                "swift"
+            ],
             "name": "Windows.Foundation.Collections",
-            "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
-            "args": [ "Windows.Foundation.Collections" ],
+            "program": "${workspaceFolder:swift-winrt}\\.build\\debug\\SwiftWinrt.exe",
+            "args": [
+                "Windows.Foundation.Collections"
+            ],
             "cwd": "${workspaceFolder:swift-winrt}",
             "preLaunchTask": "swift: Build Debug SwiftWinRT"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [ "swift" ],
+            "sourceLanguages": [
+                "swift"
+            ],
             "name": "Windows.UI.Xaml",
-            "program": "${workspaceFolder:swift-winrt}\\.build/debug/swift-winrt",
-            "args": [ "Windows.UI.Xaml" ],
+            "program": "${workspaceFolder:swift-winrt}\\.build\\debug\\SwiftWinrt.exe",
+            "args": [
+                "Windows.UI.Xaml"
+            ],
             "cwd": "${workspaceFolder:swift-winrt}",
             "preLaunchTask": "swift: Build Debug SwiftWinRT"
-        },
+        }
     ]
 }

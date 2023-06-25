@@ -13,6 +13,8 @@ public struct StdoutOutputStream: TextOutputStream {
 }
 
 let fileWriter = FileWriter(output: StdoutOutputStream())
+fileWriter.writeImport(module: "Foundation") // For Foundation.UUID
+
 for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace && $0.visibility == .public }) {
     if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
         writeProtocol(interfaceDefinition, to: fileWriter)
@@ -43,19 +45,20 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
         }
     }
     else if let enumDefinition = typeDefinition as? EnumDefinition {
-        writer.writeEnum(
+        try? writer.writeEnum(
             visibility: visibility,
             name: enumDefinition.name,
             rawValueType: toSwiftType(enumDefinition.underlyingType.bindNonGeneric())) {
+            writer in
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-                $0.writeCase(
+                try? writer.writeCase(
                     name: pascalToCamelCase(field.name),
                     rawValue: toSwiftConstant(field.literalValue!))
             }
         }
     }
     else if let delegateDefinition = typeDefinition as? DelegateDefinition {
-        writer.writeTypeAlias(
+        try? writer.writeTypeAlias(
             visibility: visibility,
             name: trimGenericParamCount(typeDefinition.name),
             typeParameters: delegateDefinition.genericParams.map { $0.name },
@@ -70,7 +73,7 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
 
 func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter) {
     for field in typeDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-        writer.writeStoredProperty(
+        try? writer.writeStoredProperty(
             visibility: toSwiftVisibility(field.visibility),
             static: field.isStatic,
             let: false,
@@ -78,8 +81,8 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
             type: toSwiftType(field.type))
     }
 
-    for property in typeDefinition.properties.filter({ $0.visibility == .public }) {
-        writer.writeProperty(
+    for property in typeDefinition.properties.filter({ (try? $0.visibility) == .public }) {
+        try? writer.writeProperty(
             visibility: toSwiftVisibility(property.visibility),
             name: pascalToCamelCase(property.name),
             type: toSwiftType(property.type),
@@ -89,14 +92,14 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
     for method in typeDefinition.methods.filter({ $0.visibility == .public }) {
         guard !isAccessor(method) else { continue }
         if method is Constructor {
-            writer.writeInit(
-            visibility: toSwiftVisibility(method.visibility),
+            try? writer.writeInit(
+                visibility: toSwiftVisibility(method.visibility),
                 parameters: method.params.map(toSwiftParameter),
                 throws: true) { $0.writeFatalError("Not implemented") }
         }
         else {
-            writer.writeFunc(
-            visibility: toSwiftVisibility(method.visibility),
+            try? writer.writeFunc(
+                visibility: toSwiftVisibility(method.visibility),
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
                 typeParameters: method.genericParams.map { $0.name },
@@ -112,13 +115,13 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
             visibility: toSwiftVisibility(interface.visibility),
         name: trimGenericParamCount(interface.name),
         typeParameters: interface.genericParams.map { $0.name }) {
-
+        writer in
         for genericParam in interface.genericParams {
-            $0.writeAssociatedType(name: genericParam.name)
+            writer.writeAssociatedType(name: genericParam.name)
         }
 
-        for property in interface.properties.filter({ $0.visibility == .public }) {
-            $0.writeProperty(
+        for property in interface.properties.filter({ (try? $0.visibility) == .public }) {
+            try? writer.writeProperty(
                 name: pascalToCamelCase(property.name),
                 type: toSwiftType(property.type),
                 set: property.setter != nil)
@@ -126,7 +129,7 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
 
         for method in interface.methods.filter({ $0.visibility == .public }) {
             guard !isAccessor(method) else { continue }
-            $0.writeFunc(
+            try? writer.writeFunc(
                 static: method.isStatic,
                 name: pascalToCamelCase(method.name),
                 typeParameters: method.genericParams.map { $0.name },
@@ -165,13 +168,15 @@ func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType]) -> Swif
             case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double", "String", "Void":
                 return .identifier(name: mscorlibType.name)
 
-            case "Boolean": return .identifier(name: "Bool")
-            case "SByte": return .identifier(name: "Int8")
-            case "Byte": return .identifier(name: "UInt8")
-            case "IntPtr": return .identifier(name: "Int")
-            case "UIntPtr": return .identifier(name: "UInt")
-            case "Single": return .identifier(name: "Float")
+            case "Boolean": return .bool
+            case "SByte": return .int(bits: 8, signed: true)
+            case "Byte": return .int(bits: 8, signed: false)
+            case "IntPtr": return .int
+            case "UIntPtr": return .uint
+            case "Single": return .float
             case "Char": return .identifierChain("Unicode", "UTF16", "CodeUnit")
+            case "Guid": return .identifierChain("Foundation", "UUID")
+            case "Object": return .any
 
             default: return nil
         }

@@ -70,7 +70,7 @@ extension TypeDeclarationWriter {
         writeTypeParameters(typeParameters)
         output.write(" = ")
         target.write(to: &output)
-        output.endLine()
+        output.endLine(smartTrailingBlankLine: true)
     }
 }
 
@@ -83,7 +83,7 @@ public struct FileWriter: TypeDeclarationWriter {
 
     public func writeImport(module: String) {
         output.write("import ")
-        output.write(module, endLine: true)
+        output.write(module, endLine: true, smartTrailingBlankLine: true)
     }
 
     public func writeProtocol(
