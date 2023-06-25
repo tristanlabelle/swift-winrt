@@ -29,7 +29,7 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
     if typeDefinition is ClassDefinition {
         writer.writeClass(
             visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
-            name: trimGenericParamCount(typeDefinition.name),
+            name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: typeDefinition.genericParams.map { $0.name }) {
 
             writeMembers(of: typeDefinition, to: $0)
@@ -38,7 +38,7 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
     else if typeDefinition is StructDefinition {
         writer.writeStruct(
             visibility: visibility,
-            name: trimGenericParamCount(typeDefinition.name),
+            name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: typeDefinition.genericParams.map { $0.name }) {
 
             writeMembers(of: typeDefinition, to: $0)
@@ -60,7 +60,7 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
     else if let delegateDefinition = typeDefinition as? DelegateDefinition {
         try? writer.writeTypeAlias(
             visibility: visibility,
-            name: trimGenericParamCount(typeDefinition.name),
+            name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: delegateDefinition.genericParams.map { $0.name },
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { toSwiftType($0.type) },
@@ -84,8 +84,9 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
     for property in typeDefinition.properties.filter({ (try? $0.visibility) == .public }) {
         try? writer.writeProperty(
             visibility: toSwiftVisibility(property.visibility),
+            static: property.isStatic,
             name: pascalToCamelCase(property.name),
-            type: toSwiftType(property.type),
+            type: toSwiftType(property.type, allowImplicitUnwrap: true),
             get: { $0.writeFatalError("Not implemented") })
     }
 
@@ -105,7 +106,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
                 typeParameters: method.genericParams.map { $0.name },
                 parameters: method.params.map(toSwiftParameter),
                 throws: true,
-                returnType: toSwiftTypeUnlessVoid(method.returnType)) { $0.writeFatalError("Not implemented") }
+                returnType: toSwiftReturnType(method.returnType)) { $0.writeFatalError("Not implemented") }
         }
     }
 }
@@ -113,7 +114,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
 func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
     writer.writeProtocol(
             visibility: toSwiftVisibility(interface.visibility),
-        name: trimGenericParamCount(interface.name),
+        name: interface.nameWithoutGenericSuffix,
         typeParameters: interface.genericParams.map { $0.name }) {
         writer in
         for genericParam in interface.genericParams {
@@ -122,8 +123,9 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
 
         for property in interface.properties.filter({ (try? $0.visibility) == .public }) {
             try? writer.writeProperty(
+                static: property.isStatic,
                 name: pascalToCamelCase(property.name),
-                type: toSwiftType(property.type),
+                type: toSwiftType(property.type, allowImplicitUnwrap: true),
                 set: property.setter != nil)
         }
 
@@ -135,17 +137,17 @@ func writeProtocol(_ interface: InterfaceDefinition, to writer: FileWriter) {
                 typeParameters: method.genericParams.map { $0.name },
                 parameters: method.params.map(toSwiftParameter),
                 throws: true,
-                returnType: toSwiftTypeUnlessVoid(method.returnType))
+                returnType: toSwiftReturnType(method.returnType))
         }
     }
 
     writer.writeTypeAlias(
         visibility: toSwiftVisibility(interface.visibility),
-        name: "Any" + trimGenericParamCount(interface.name),
+        name: "Any" + interface.nameWithoutGenericSuffix,
         typeParameters: interface.genericParams.map { $0.name },
         target: .identifier(
             protocolModifier: .existential,
-            name: trimGenericParamCount(interface.name),
+            name: interface.nameWithoutGenericSuffix,
             genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
 }
 
@@ -181,9 +183,6 @@ func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType]) -> Swif
             default: return nil
         }
     }
-    else if mscorlibType.name == "IReference`1" && genericArgs.count == 1 {
-        return .optional(wrapped: toSwiftType(genericArgs[0]))
-    }
     else {
         return nil
     }
@@ -197,9 +196,16 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
                 let result = toSwiftType(mscorlibType: type.definition, genericArgs: type.genericArgs) {
                 return result
             }
+            else if type.definition.assembly.name == "Windows",
+                type.definition.assembly.version == .all255,
+                type.definition.namespace == "Windows.Foundation",
+                type.definition.name == "IReference`1"
+                && type.genericArgs.count == 1 {
+                return .optional(wrapped: toSwiftType(type.genericArgs[0]), implicitUnwrap: allowImplicitUnwrap)
+            }
 
             let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
-            let name = namePrefix + trimGenericParamCount(type.definition.name)
+            let name = namePrefix + type.definition.nameWithoutGenericSuffix
 
             let genericArgs = type.genericArgs.map { toSwiftType($0) }
             var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
@@ -223,12 +229,12 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
     }
 }
 
-func toSwiftTypeUnlessVoid(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
+func toSwiftReturnType(_ type: BoundType) -> SwiftType? {
     if case let .definition(type) = type,
         type.definition === context.mscorlib?.specialTypes.void {
         return nil
     }
-    return toSwiftType(type, allowImplicitUnwrap: allowImplicitUnwrap)
+    return toSwiftType(type, allowImplicitUnwrap: true)
 }
 
 func toSwiftParameter(_ param: Param) -> Parameter {
@@ -238,11 +244,6 @@ func toSwiftParameter(_ param: Param) -> Parameter {
 func isAccessor(_ method: Method) -> Bool {
     let prefixes = ["get_", "set_", "put_", "add_", "remove_"]
     return prefixes.contains(where: { method.name.starts(with: $0) })
-}
-
-func trimGenericParamCount(_ str: String) -> String {
-    guard let index = str.firstIndex(of: "`") else { return str }
-    return String(str[..<index])
 }
 
 func pascalToCamelCase(_ str: String) -> String {
