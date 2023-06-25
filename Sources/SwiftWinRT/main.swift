@@ -72,7 +72,7 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
 }
 
 func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter) {
-    for field in typeDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
+    for field in typeDefinition.fields.filter({ $0.visibility == .public }) {
         try? writer.writeStoredProperty(
             visibility: toSwiftVisibility(field.visibility),
             static: field.isStatic,
