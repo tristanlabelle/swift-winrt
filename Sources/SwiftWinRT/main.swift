@@ -2,10 +2,9 @@ import DotNetMD
 import SwiftWriter
 import Foundation
 
-let namespace = CommandLine.arguments.dropFirst().first ?? "Windows.Storage"
+let namespace = CommandLine.arguments.dropFirst().first ?? "Windows.Foundation"
 
-struct AssemblyNotFound: Error {}
-let context = MetadataContext(assemblyResolver: { _ in throw AssemblyNotFound() })
+let context = MetadataContext()
 let assembly = try context.loadAssembly(path: #"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22000.0\Windows.winmd"#)
 
 public struct StdoutOutputStream: TextOutputStream {
