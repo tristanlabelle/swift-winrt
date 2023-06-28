@@ -30,7 +30,9 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
         writer.writeClass(
             visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
             name: typeDefinition.nameWithoutGenericSuffix,
-            typeParameters: typeDefinition.genericParams.map { $0.name }) {
+            typeParameters: typeDefinition.genericParams.map { $0.name },
+            base: toSwiftBaseType(typeDefinition.base),
+            protocolConformances: typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }) {
 
             writeMembers(of: typeDefinition, to: $0)
         }
@@ -39,7 +41,8 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
         writer.writeStruct(
             visibility: visibility,
             name: typeDefinition.nameWithoutGenericSuffix,
-            typeParameters: typeDefinition.genericParams.map { $0.name }) {
+            typeParameters: typeDefinition.genericParams.map { $0.name },
+            protocolConformances: typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }) {
 
             writeMembers(of: typeDefinition, to: $0)
         }
@@ -163,7 +166,7 @@ func toSwiftVisibility(_ visibility: DotNetMD.Visibility) -> SwiftWriter.Visibil
     }
 }
 
-func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType]) -> SwiftType? {
+func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType], allowImplicitUnwrap: Bool = false) -> SwiftType? {
     guard mscorlibType.namespace == "System" else { return nil }
     if genericArgs.isEmpty {
         switch mscorlibType.name {
@@ -178,7 +181,7 @@ func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType]) -> Swif
             case "Single": return .float
             case "Char": return .identifierChain("Unicode", "UTF16", "CodeUnit")
             case "Guid": return .identifierChain("Foundation", "UUID")
-            case "Object": return .any
+            case "Object": return .optional(wrapped: .any, implicitUnwrap: allowImplicitUnwrap)
 
             default: return nil
         }
@@ -193,7 +196,10 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
         case let .definition(type):
             // Remap primitive types
             if type.definition.assembly === context.mscorlib,
-                let result = toSwiftType(mscorlibType: type.definition, genericArgs: type.genericArgs) {
+                let result = toSwiftType(
+                    mscorlibType: type.definition,
+                    genericArgs: type.genericArgs,
+                    allowImplicitUnwrap: allowImplicitUnwrap) {
                 return result
             }
             else if type.definition.assembly.name == "Windows",
@@ -235,6 +241,15 @@ func toSwiftReturnType(_ type: BoundType) -> SwiftType? {
         return nil
     }
     return toSwiftType(type, allowImplicitUnwrap: true)
+}
+
+func toSwiftBaseType(_ type: BoundType?) -> SwiftType? {
+    guard let type else { return nil }
+    guard case let .definition(type) = type else { return nil }
+    guard type.definition !== context.mscorlib?.specialTypes.object else { return nil }
+    return .identifier(
+        name: type.definition.nameWithoutGenericSuffix,
+        genericArgs: type.genericArgs.map { toSwiftType($0) })
 }
 
 func toSwiftParameter(_ param: Param) -> Parameter {

@@ -8,6 +8,8 @@ extension TypeDeclarationWriter {
         visibility: Visibility = .implicit,
         name: String,
         typeParameters: [String] = [],
+        base: SwiftType? = nil,
+        protocolConformances: [SwiftType] = [],
         body: (RecordBodyWriter) -> Void) {
 
         var output = output
@@ -15,6 +17,7 @@ extension TypeDeclarationWriter {
         output.write("class ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
+        writeInheritanceClause([base].compactMap { $0 } + protocolConformances)
         output.writeBracedIndentedBlock() {
             body(.init(output: output))
         }
@@ -24,6 +27,7 @@ extension TypeDeclarationWriter {
         visibility: Visibility = .implicit,
         name: String,
         typeParameters: [String] = [],
+        protocolConformances: [SwiftType] = [],
         body: (RecordBodyWriter) -> Void) {
 
         var output = output
@@ -31,6 +35,7 @@ extension TypeDeclarationWriter {
         output.write("struct ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
+        writeInheritanceClause(protocolConformances)
         output.writeBracedIndentedBlock() {
             body(.init(output: output))
         }
@@ -49,8 +54,7 @@ extension TypeDeclarationWriter {
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
         if let rawValueType {
-            output.write(": ")
-            rawValueType.write(to: &output)
+            writeInheritanceClause([ rawValueType ])
         }
         output.writeBracedIndentedBlock() {
             body(.init(output: output))
@@ -90,6 +94,7 @@ public struct FileWriter: TypeDeclarationWriter {
         visibility: Visibility = .implicit,
         name: String,
         typeParameters: [String] = [],
+        bases: [SwiftType] = [],
         members: (ProtocolBodyWriter) -> Void) {
 
         var output = output
@@ -97,6 +102,7 @@ public struct FileWriter: TypeDeclarationWriter {
         output.write("protocol ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
+        writeInheritanceClause(bases)
         output.writeBracedIndentedBlock() {
             members(.init(output: output))
         }
@@ -310,6 +316,16 @@ extension SyntaxWriter {
             writeIdentifier(typeParameter, to: &output)
         }
         output.write(">")
+    }
+
+    fileprivate func writeInheritanceClause(_ bases: [SwiftType]) {
+        guard !bases.isEmpty else { return }
+        var output = output
+        output.write(": ")
+        for (index, base) in bases.enumerated() {
+            if index > 0 { output.write(", ") }
+            base.write(to: &output)
+        }
     }
 
     fileprivate func writeParameters(_ parameters: [Parameter]) {
