@@ -46,6 +46,7 @@ extension TypeDeclarationWriter {
         name: String,
         typeParameters: [String] = [],
         rawValueType: SwiftType? = nil,
+        protocolConformances: [SwiftType] = [],
         body: (EnumBodyWriter) -> Void) {
 
         var output = output
@@ -53,9 +54,7 @@ extension TypeDeclarationWriter {
         output.write("enum ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
-        if let rawValueType {
-            writeInheritanceClause([ rawValueType ])
-        }
+        writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
         output.writeBracedIndentedBlock() {
             body(.init(output: output))
         }

@@ -33,25 +33,28 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
             typeParameters: typeDefinition.genericParams.map { $0.name },
             base: toSwiftBaseType(typeDefinition.base),
             protocolConformances: typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }) {
-
-            writeMembers(of: typeDefinition, to: $0)
+            writer in
+            writeMembers(of: typeDefinition, to: writer)
         }
     }
     else if typeDefinition is StructDefinition {
+        let protocolConformances = typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }
+            + [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]
         writer.writeStruct(
             visibility: visibility,
             name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: typeDefinition.genericParams.map { $0.name },
-            protocolConformances: typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }) {
-
-            writeMembers(of: typeDefinition, to: $0)
+            protocolConformances: protocolConformances) {
+            writer in
+            writeMembers(of: typeDefinition, to: writer)
         }
     }
     else if let enumDefinition = typeDefinition as? EnumDefinition {
         try? writer.writeEnum(
             visibility: visibility,
             name: enumDefinition.name,
-            rawValueType: toSwiftType(enumDefinition.underlyingType.bindNonGeneric())) {
+            rawValueType: toSwiftType(enumDefinition.underlyingType.bindNonGeneric()),
+            protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) {
             writer in
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                 try? writer.writeCase(
