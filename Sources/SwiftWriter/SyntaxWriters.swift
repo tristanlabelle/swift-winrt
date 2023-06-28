@@ -6,6 +6,7 @@ public protocol TypeDeclarationWriter: SyntaxWriter {}
 extension TypeDeclarationWriter {
     public func writeClass(
         visibility: Visibility = .implicit,
+        final: Bool = false,
         name: String,
         typeParameters: [String] = [],
         base: SwiftType? = nil,
@@ -14,6 +15,7 @@ extension TypeDeclarationWriter {
 
         var output = output
         visibility.write(to: &output, trailingSpace: true)
+        if final { output.write("final ") }
         output.write("class ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)

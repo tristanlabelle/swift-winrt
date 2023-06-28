@@ -26,27 +26,28 @@ for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace &
 
 func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
     let visibility = toSwiftVisibility(typeDefinition.visibility)
-    if typeDefinition is ClassDefinition {
+    if let classDefinition = typeDefinition as? ClassDefinition {
         writer.writeClass(
             visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
+            final: typeDefinition.isSealed,
             name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: typeDefinition.genericParams.map { $0.name },
             base: toSwiftBaseType(typeDefinition.base),
-            protocolConformances: typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }) {
+            protocolConformances: typeDefinition.baseInterfaces.compactMap { toSwiftBaseType($0.interface) }) {
             writer in
-            writeMembers(of: typeDefinition, to: writer)
+            writeFields(of: classDefinition, to: writer, defaultInit: false)
+            writeMembers(of: classDefinition, to: writer)
         }
     }
     else if typeDefinition is StructDefinition {
-        let protocolConformances = typeDefinition.baseInterfaces.map { toSwiftBaseType($0.interface)! }
+        let protocolConformances = typeDefinition.baseInterfaces.compactMap { toSwiftBaseType($0.interface) }
             + [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]
         writer.writeStruct(
             visibility: visibility,
             name: typeDefinition.nameWithoutGenericSuffix,
             typeParameters: typeDefinition.genericParams.map { $0.name },
             protocolConformances: protocolConformances) {
-            writer in
-            writeMembers(of: typeDefinition, to: writer)
+            writer in writeFields(of: typeDefinition, to: writer, defaultInit: true)
         }
     }
     else if let enumDefinition = typeDefinition as? EnumDefinition {
@@ -77,17 +78,35 @@ func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeD
     }
 }
 
-func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter) {
+func writeFields(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter, defaultInit: Bool) {
+    // FIXME: Rather switch on TypeDefinition to properly handle enum cases
+    func getDefaultValue(_ type: SwiftType) -> String? {
+        if case .optional = type { return "nil" }
+        guard case .identifierChain(let chain) = type,
+            chain.identifiers.count == 1 else { return nil }
+        switch chain.identifiers[0].name {
+            case "Bool": return "false"
+            case "Int", "UInt", "Int8", "UInt8", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64": return "0"
+            case "Float", "Double": return "0.0"
+            case "String": return "\"\""
+            default: return ".init()"
+        }
+    }
+
     for field in typeDefinition.fields.filter({ $0.visibility == .public }) {
-        try? writer.writeStoredProperty(
+        let type = try! toSwiftType(field.type)
+        writer.writeStoredProperty(
             visibility: toSwiftVisibility(field.visibility),
             static: field.isStatic,
             let: false,
             name: pascalToCamelCase(field.name),
-            type: toSwiftType(field.type))
+            type: type,
+            defaultValue: defaultInit ? getDefaultValue(type) : nil)
     }
+}
 
-    for property in typeDefinition.properties.filter({ (try? $0.visibility) == .public }) {
+func writeMembers(of classDefinition: ClassDefinition, to writer: RecordBodyWriter) {
+    for property in classDefinition.properties.filter({ (try? $0.visibility) == .public }) {
         try? writer.writeProperty(
             visibility: toSwiftVisibility(property.visibility),
             static: property.isStatic,
@@ -96,7 +115,7 @@ func writeMembers(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter
             get: { $0.writeFatalError("Not implemented") })
     }
 
-    for method in typeDefinition.methods.filter({ $0.visibility == .public }) {
+    for method in classDefinition.methods.filter({ $0.visibility == .public }) {
         guard !isAccessor(method) else { continue }
         if method is Constructor {
             try? writer.writeInit(
@@ -250,6 +269,7 @@ func toSwiftBaseType(_ type: BoundType?) -> SwiftType? {
     guard let type else { return nil }
     guard case let .definition(type) = type else { return nil }
     guard type.definition !== context.mscorlib?.specialTypes.object else { return nil }
+    guard type.definition.visibility == .public else { return nil }
     return .identifier(
         name: type.definition.nameWithoutGenericSuffix,
         genericArgs: type.genericArgs.map { toSwiftType($0) })
