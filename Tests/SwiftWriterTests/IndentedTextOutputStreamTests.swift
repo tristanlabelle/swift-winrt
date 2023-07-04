@@ -23,18 +23,18 @@ class IndentedTextOutputStreamTests: XCTestCase {
 
     func testLineGrouping() {
         let stream = IndentedTextOutputStream(inner: "")
-        stream.writeLine(grouping: .default, "d")
-        stream.writeLine(grouping: .default, "d")
-        stream.writeLine(grouping: .with("a"), "a")
-        stream.writeLine(grouping: .with("a"), "a")
-        stream.writeLine(grouping: .with("b"), "b")
-        stream.writeLine(grouping: .with("b"), "b")
-        stream.writeLine(grouping: .default, "d")
-        stream.writeLine(grouping: .default, "d")
+        stream.writeLine("d")
+        stream.writeLine("d")
+        stream.writeLine(grouping: .withName("a"), "a")
+        stream.writeLine(grouping: .withName("a"), "a")
+        stream.writeLine(grouping: .withName("b"), "b")
+        stream.writeLine(grouping: .withName("b"), "b")
+        stream.writeLine("d")
+        stream.writeLine("d")
         stream.writeLine(grouping: .never, "n")
         stream.writeLine(grouping: .never, "n")
-        stream.writeLine(grouping: .default, "d")
-        stream.writeLine(grouping: .default, "d")
+        stream.writeLine("d")
+        stream.writeLine("d")
         XCTAssertEqual(stream.inner as? String, [ "d\nd", "a\na", "b\nb", "d\nd", "n", "n", "d\nd" ].joined(separator: "\n\n"))
     }
 
@@ -42,20 +42,20 @@ class IndentedTextOutputStreamTests: XCTestCase {
         let stream = IndentedTextOutputStream(inner: "", indent: "  ")
         stream.writeIndentedBlock(header: "{", footer: "}") {
             stream.writeLine("foo")
-            stream.writeLine(grouping: .with("b"), "bar")
+            stream.writeLine(grouping: .withName("b"), "bar")
         }
         XCTAssertEqual(stream.inner as? String, "{\n  foo\n\n  bar\n}")
     }
 
     func testIndentedBlockGrouping() {
         let stream = IndentedTextOutputStream(inner: "", indent: "  ")
-        stream.writeIndentedBlock(grouping: .with("1"), header: "{", footer: "}") {
+        stream.writeIndentedBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeLine("a")
         }
-        stream.writeIndentedBlock(grouping: .with("1"), header: "{", footer: "}") {
+        stream.writeIndentedBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeLine("b")
         }
-        stream.writeIndentedBlock(grouping: .with("2"), header: "{", footer: "}") {
+        stream.writeIndentedBlock(grouping: .withName("2"), header: "{", footer: "}") {
             stream.writeLine("c")
         }
         XCTAssertEqual(stream.inner as? String, "{\n  a\n}\n{\n  b\n}\n\n{\n  c\n}")

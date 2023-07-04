@@ -26,7 +26,6 @@ extension Visibility: CustomStringConvertible, TextOutputStreamable {
             case .fileprivate: output.write("fileprivate")
             case .public: output.write("public")
             case .open: output.write("open")
-            default: break
         }
 
         if trailingSpace { output.write(" ") }

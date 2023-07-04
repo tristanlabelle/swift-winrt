@@ -1,3 +1,5 @@
+import struct Foundation.UUID
+
 public class IndentedTextOutputStream: TextOutputStream {
     private enum LineState {
         case preIndent
@@ -9,13 +11,20 @@ public class IndentedTextOutputStream: TextOutputStream {
     // between lines of different groups.
     public enum VerticalGrouping {
         case never
-        case `default`
-        case with(String)
+        case withDefault
+        case withName(String)
+        case withGroup(AnonymousVerticalGroup)
+    }
+
+    public struct AnonymousVerticalGroup: Equatable {
+        fileprivate let id: Int
+        fileprivate init(id: Int) { self.id = id }
     }
 
     public private(set) var inner: any TextOutputStream
     private var lineState: LineState = .preIndent
     private var lineGrouping: VerticalGrouping? = nil
+    private var lastAllocatedGroupID = 0
     public let indentToken: String
     public let lineEnding: String
     public private(set) var indentLevel = 0
@@ -35,7 +44,7 @@ public class IndentedTextOutputStream: TextOutputStream {
             endLine()
 
             let secondLineStart = str.index(after: firstLineEnd)
-            beginLine(grouping: self.lineGrouping ?? .default)
+            beginLine(grouping: self.lineGrouping ?? .withDefault)
             write(str[secondLineStart...])
         }
         else {
@@ -49,7 +58,12 @@ public class IndentedTextOutputStream: TextOutputStream {
         if endLine { self.endLine() }
     }
 
-    public func writeLine(grouping: VerticalGrouping = .default, _ str: String) {
+    public func allocateVerticalGrouping() -> VerticalGrouping {
+        lastAllocatedGroupID += 1
+        return .withGroup(AnonymousVerticalGroup(id: lastAllocatedGroupID))
+    }
+
+    public func writeLine(grouping: VerticalGrouping = .withDefault, _ str: String) {
         beginLine(grouping: grouping)
         write(str, endLine: true)
     }
@@ -62,7 +76,7 @@ public class IndentedTextOutputStream: TextOutputStream {
 
         let nextLineStart = str.index(after: lineEnd)
         if nextLineStart != str.endIndex {
-            beginLine(grouping: self.lineGrouping ?? .default)
+            beginLine(grouping: self.lineGrouping ?? .withDefault)
             write(str[nextLineStart...])
         }
     }
@@ -70,7 +84,7 @@ public class IndentedTextOutputStream: TextOutputStream {
     // Writes a string known to not contain newlines
     private func writeInline(_ str: String) {
         if lineState == .end {
-            beginLine(grouping: .default)
+            beginLine(grouping: .withDefault)
         }
 
         guard !str.isEmpty else { return }
@@ -85,7 +99,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         inner.write(str)
     }
 
-    public func beginLine(grouping: VerticalGrouping = .default) {
+    public func beginLine(grouping: VerticalGrouping = .withDefault) {
         if lineState != .preIndent {
             inner.write(lineEnding)
         }
@@ -103,10 +117,12 @@ public class IndentedTextOutputStream: TextOutputStream {
         switch (lhs, rhs) {
             case (.never, _), (_, .never):
                 return false
-            case (.default, .default):
+            case (.withDefault, .withDefault):
                 return true
-            case let (.with(lhsStr), .with(rhsStr)):
-                return lhsStr == rhsStr
+            case let (.withName(lhs), .withName(rhs)):
+                return lhs == rhs
+            case let (.withGroup(lhs), .withGroup(rhs)):
+                return lhs == rhs
             default:
                 return false
         }
@@ -125,7 +141,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         if let grouping {
             beginLine(grouping: grouping)
         }
-        let grouping = grouping ?? self.lineGrouping ?? .default
+        let grouping = grouping ?? self.lineGrouping ?? .withDefault
 
         if let header {
             write(header, endLine: true)

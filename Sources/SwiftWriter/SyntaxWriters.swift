@@ -10,7 +10,7 @@ public struct SourceFileWriter: TypeDeclarationWriter {
     }
 
     public func writeImport(module: String) {
-        output.beginLine(grouping: .with("import"))
+        output.beginLine(grouping: .withName("import"))
         output.write("import ")
         output.write(module, endLine: true)
     }
@@ -105,7 +105,7 @@ extension TypeDeclarationWriter {
         target: SwiftType) {
 
         var output = output
-        output.beginLine(grouping: .with("typealias"))
+        output.beginLine(grouping: .withName("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
         writeIdentifier(name, to: &output)
@@ -121,7 +121,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
 
     public func writeAssociatedType(name: String) {
         var output = output
-        output.beginLine(grouping: .with("associatedtype"))
+        output.beginLine(grouping: .withName("associatedtype"))
         output.write("associatedtype ")
         writeIdentifier(name, to: &output)
         output.endLine()
@@ -134,7 +134,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         set: Bool = false) {
 
         var output = output
-        output.beginLine(grouping: .with("protocolProperty"))
+        output.beginLine(grouping: .withName("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
         writeIdentifier(name, to: &output)
@@ -153,7 +153,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
-        output.beginLine(grouping: .with("protocolFunc"))
+        output.beginLine(grouping: .withName("protocolFunc"))
         writeFuncHeader(
             visibility: .implicit,
             static: `static`,
@@ -179,7 +179,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         defaultValue: String? = nil) {
 
         var output = output
-        output.beginLine(grouping: .with("storedProperty"))
+        output.beginLine(grouping: .withName("storedProperty"))
         visibility.write(to: &output, trailingSpace: true)
         if privateVisibility != .implicit {
             privateVisibility.write(to: &output, trailingSpace: false)
@@ -286,7 +286,7 @@ public struct EnumBodyWriter: TypeDeclarationWriter {
 
     public func writeCase(name: String, rawValue: String? = nil) {
         var output = output
-        output.beginLine(grouping: .with("case"))
+        output.beginLine(grouping: .withName("case"))
         output.write("case ")
         writeIdentifier(name, to: &output)
 

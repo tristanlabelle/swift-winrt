@@ -10,57 +10,21 @@ struct CAbiWriter {
         self.output.writeLine(grouping: .never, "#pragma once")
     }
 
-    func write(typeDefinition: TypeDefinition, genericArgs: [BoundType]) {
-        if typeDefinition is InterfaceDefinition {
-            let mangledName = CNameMangling.mangle(typeDefinition: typeDefinition, genericArgs: genericArgs)
-
-            var functions = [Function]()
-            functions.append(Function(name: "QueryInterface", params: [
-                Param(type: .pointer(to: mangledName), name: "This"),
-                Param(type: .init(name: "REFIID"), name: "riid"),
-                Param(type: .init(name: "void", pointerIndirections: 2), name: "ppvObject")
-            ]))
-            functions.append(Function(returnType: "ULONG", name: "AddRef", params: [
-                Param(type: .pointer(to: mangledName), name: "This")
-            ]))
-            functions.append(Function(returnType: "ULONG", name: "Release", params: [
-                Param(type: .pointer(to: mangledName), name: "This")
-            ]))
-            functions.append(Function(name: "GetIids", params: [
-                Param(type: .pointer(to: mangledName), name: "This"),
-                Param(type: .pointer(to: "ULONG"), name: "iidCount"),
-                Param(type: .init(name: "IID", pointerIndirections: 2), name: "iids")
-            ]))
-            functions.append(Function(name: "GetRuntimeClassName", params: [
-                Param(type: .pointer(to: mangledName), name: "This"),
-                Param(type: .pointer(to: "HSTRING"), name: "className")
-            ]))
-            functions.append(Function(name: "GetTrustLevel", params: [
-                Param(type: .pointer(to: mangledName), name: "This"),
-                Param(type: .pointer(to: "TrustLevel"), name: "trustLevel")
-            ]))
-
-            writeInterface(
-                mangledName: mangledName,
-                functions: functions)
-        }
-    }
-
     func writeInterface(mangledName: String, functions: [Function]) {
         writeIID(mangledName: mangledName)
         writeVTable(mangledName: mangledName, functions: functions)
-        writeInterface(mangledName: mangledName)
+        writeInterfaceWithVTable(mangledName: mangledName)
     }
 
     private func writeIID(mangledName: String) {
-        output.beginLine(grouping: .with("iid"))
+        output.beginLine(grouping: .withName("iid"))
         output.write("EXTERN_C const IID IID_")
         output.write(mangledName)
         output.write(";", endLine: true)
     }
 
     private func writeVTable(mangledName: String, functions: [Function]) {
-        let lineGrouping = IndentedTextOutputStream.VerticalGrouping.with("vtable")
+        let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         output.write("typedef struct ")
         output.write(mangledName)
@@ -107,8 +71,8 @@ struct CAbiWriter {
         }
     }
 
-    private func writeInterface(mangledName: String) {
-        let lineGrouping = IndentedTextOutputStream.VerticalGrouping.with("interface")
+    private func writeInterfaceWithVTable(mangledName: String) {
+        let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         output.write("interface ")
         output.write(mangledName, endLine: true)
@@ -125,10 +89,10 @@ struct CAbiWriter {
     struct Function {
         var returnType: CType = .hresult
         var name: String
-        var params: [Param]
+        var params: [Variable]
     }
 
-    struct Param {
+    struct Variable {
         var type: CType
         var name: String
     }
@@ -150,6 +114,44 @@ struct CAbiWriter {
         init(name: String, pointerIndirections: Int = 0) {
             self.name = name
             self.pointerIndirections = pointerIndirections
+        }
+    }
+}
+
+extension CAbiWriter {
+    func write(typeDefinition: TypeDefinition, genericArgs: [BoundType]) {
+        if typeDefinition is InterfaceDefinition {
+            let mangledName = CNameMangling.mangle(typeDefinition: typeDefinition, genericArgs: genericArgs)
+
+            var functions = [Function]()
+            functions.append(Function(name: "QueryInterface", params: [
+                Variable(type: .pointer(to: mangledName), name: "This"),
+                Variable(type: .init(name: "REFIID"), name: "riid"),
+                Variable(type: .init(name: "void", pointerIndirections: 2), name: "ppvObject")
+            ]))
+            functions.append(Function(returnType: "ULONG", name: "AddRef", params: [
+                Variable(type: .pointer(to: mangledName), name: "This")
+            ]))
+            functions.append(Function(returnType: "ULONG", name: "Release", params: [
+                Variable(type: .pointer(to: mangledName), name: "This")
+            ]))
+            functions.append(Function(name: "GetIids", params: [
+                Variable(type: .pointer(to: mangledName), name: "This"),
+                Variable(type: .pointer(to: "ULONG"), name: "iidCount"),
+                Variable(type: .init(name: "IID", pointerIndirections: 2), name: "iids")
+            ]))
+            functions.append(Function(name: "GetRuntimeClassName", params: [
+                Variable(type: .pointer(to: mangledName), name: "This"),
+                Variable(type: .pointer(to: "HSTRING"), name: "className")
+            ]))
+            functions.append(Function(name: "GetTrustLevel", params: [
+                Variable(type: .pointer(to: mangledName), name: "This"),
+                Variable(type: .pointer(to: "TrustLevel"), name: "trustLevel")
+            ]))
+
+            writeInterface(
+                mangledName: mangledName,
+                functions: functions)
         }
     }
 }
