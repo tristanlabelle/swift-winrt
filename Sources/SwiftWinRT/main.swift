@@ -10,4 +10,13 @@ public struct StdoutOutputStream: TextOutputStream {
     public mutating func write(_ str: String) { fputs(str, stdout) }
 }
 
-writeProjectionSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
+//writeProjectionSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
+
+let cabiWriter = CAbiWriter(output: StdoutOutputStream())
+
+for typeDefinition in assembly.definedTypes {
+    guard typeDefinition.namespace == namespace,
+        typeDefinition.visibility == .public,
+        typeDefinition.genericParams.isEmpty else { continue }
+    cabiWriter.write(typeDefinition: typeDefinition, genericArgs: [])
+}
