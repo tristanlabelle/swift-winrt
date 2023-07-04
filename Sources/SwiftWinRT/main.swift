@@ -200,7 +200,7 @@ func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType], allowIm
             case "IntPtr": return .int
             case "UIntPtr": return .uint
             case "Single": return .float
-            case "Char": return .identifierChain("Unicode", "UTF16", "CodeUnit")
+            case "Char": return .identifierChain("UTF16", "CodeUnit")
             case "Guid": return .identifierChain("Foundation", "UUID")
             case "Object": return .optional(wrapped: .any, implicitUnwrap: allowImplicitUnwrap)
 
