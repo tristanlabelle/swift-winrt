@@ -12,11 +12,20 @@ public struct StdoutOutputStream: TextOutputStream {
 
 //writeProjectionSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
 
-let cabiWriter = CAbiWriter(output: StdoutOutputStream())
+let cabiWriter = CAbi.SourceFileWriter(output: StdoutOutputStream())
 
 for typeDefinition in assembly.definedTypes {
     guard typeDefinition.namespace == namespace,
         typeDefinition.visibility == .public,
         typeDefinition.genericParams.isEmpty else { continue }
-    cabiWriter.write(typeDefinition: typeDefinition, genericArgs: [])
+
+    if let structDefinition = typeDefinition as? StructDefinition {
+        try? cabiWriter.writeStruct(structDefinition)
+    }
+    else if let enumDefinition = typeDefinition as? EnumDefinition {
+        try? cabiWriter.writeEnum(enumDefinition)
+    }
+    else if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
+        try? cabiWriter.writeInterface(interfaceDefinition, genericArgs: [])
+    }
 }

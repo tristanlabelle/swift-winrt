@@ -163,7 +163,8 @@ public class IndentedTextOutputStream: TextOutputStream {
             // Force the footer to be grouped with the line above
             self.lineGrouping = nil
             write(footer, endLine: true)
-            self.lineGrouping = grouping
         }
+
+        self.lineGrouping = grouping
     }
 }
