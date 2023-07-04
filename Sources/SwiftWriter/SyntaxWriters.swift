@@ -1,5 +1,5 @@
 public protocol SyntaxWriter {
-    var output: CodeOutputStream { get }
+    var output: IndentedTextOutputStream { get }
 }
 
 public protocol TypeDeclarationWriter: SyntaxWriter {}
@@ -14,6 +14,7 @@ extension TypeDeclarationWriter {
         body: (RecordBodyWriter) -> Void) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if final { output.write("final ") }
         output.write("class ")
@@ -33,6 +34,7 @@ extension TypeDeclarationWriter {
         body: (RecordBodyWriter) -> Void) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
         writeIdentifier(name, to: &output)
@@ -52,6 +54,7 @@ extension TypeDeclarationWriter {
         body: (EnumBodyWriter) -> Void) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
         writeIdentifier(name, to: &output)
@@ -69,26 +72,28 @@ extension TypeDeclarationWriter {
         target: SwiftType) {
 
         var output = output
+        output.beginLine(grouping: .with("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
         writeIdentifier(name, to: &output)
         writeTypeParameters(typeParameters)
         output.write(" = ")
         target.write(to: &output)
-        output.endLine(smartTrailingBlankLine: true)
+        output.endLine()
     }
 }
 
 public struct FileWriter: TypeDeclarationWriter {
-    public let output: CodeOutputStream
+    public let output: IndentedTextOutputStream
 
     public init(output: some TextOutputStream, indent: String = "    ") {
-        self.output = CodeOutputStream(inner: output, indent: indent)
+        self.output = IndentedTextOutputStream(inner: output, indent: indent)
     }
 
     public func writeImport(module: String) {
+        output.beginLine(grouping: .with("import"))
         output.write("import ")
-        output.write(module, endLine: true, smartTrailingBlankLine: true)
+        output.write(module, endLine: true)
     }
 
     public func writeProtocol(
@@ -99,6 +104,7 @@ public struct FileWriter: TypeDeclarationWriter {
         members: (ProtocolBodyWriter) -> Void) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
         writeIdentifier(name, to: &output)
@@ -111,10 +117,11 @@ public struct FileWriter: TypeDeclarationWriter {
 }
 
 public struct ProtocolBodyWriter: SyntaxWriter {
-    public let output: CodeOutputStream
+    public let output: IndentedTextOutputStream
 
     public func writeAssociatedType(name: String) {
         var output = output
+        output.beginLine(grouping: .with("associatedtype"))
         output.write("associatedtype ")
         writeIdentifier(name, to: &output)
         output.endLine()
@@ -127,6 +134,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         set: Bool = false) {
 
         var output = output
+        output.beginLine(grouping: .with("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
         writeIdentifier(name, to: &output)
@@ -145,6 +153,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
+        output.beginLine(grouping: .with("protocolFunc"))
         writeFuncHeader(
             visibility: .implicit,
             static: `static`,
@@ -158,7 +167,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
 }
 
 public struct RecordBodyWriter: TypeDeclarationWriter {
-    public let output: CodeOutputStream
+    public let output: IndentedTextOutputStream
 
     public func writeStoredProperty(
         visibility: Visibility = .implicit,
@@ -170,6 +179,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         defaultValue: String? = nil) {
 
         var output = output
+        output.beginLine(grouping: .with("storedProperty"))
         visibility.write(to: &output, trailingSpace: true)
         if privateVisibility != .implicit {
             privateVisibility.write(to: &output, trailingSpace: false)
@@ -196,6 +206,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         set: ((inout StatementWriter) -> Void)? = nil) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         output.write("var ")
@@ -230,6 +241,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         returnType: SwiftType? = nil,
         body: (inout StatementWriter) -> Void) {
 
+        output.beginLine(grouping: .never)
         writeFuncHeader(
             visibility: visibility,
             static: `static`,
@@ -253,6 +265,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         body: (inout StatementWriter) -> Void) {
 
         var output = output
+        output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("init")
         if failable { output.write("?") }
@@ -269,10 +282,11 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
 }
 
 public struct EnumBodyWriter: TypeDeclarationWriter {
-    public let output: CodeOutputStream
+    public let output: IndentedTextOutputStream
 
     public func writeCase(name: String, rawValue: String? = nil) {
         var output = output
+        output.beginLine(grouping: .with("case"))
         output.write("case ")
         writeIdentifier(name, to: &output)
 
@@ -286,7 +300,7 @@ public struct EnumBodyWriter: TypeDeclarationWriter {
 }
 
 public struct StatementWriter: SyntaxWriter {
-    public let output: CodeOutputStream
+    public let output: IndentedTextOutputStream
 
     public func writeFatalError(_ message: String? = nil) {
         output.write("fatalError(")
@@ -299,9 +313,9 @@ public struct StatementWriter: SyntaxWriter {
     }
 }
 
-extension CodeOutputStream {
+extension IndentedTextOutputStream {
     public func writeBracedIndentedBlock(_ str: String = "", body: () -> Void) {
-        self.writeIndentedBlock(header: str + " {", footer: "}", smartTrailingBlankLine: true) {
+        self.writeIndentedBlock(header: str + " {", footer: "}") {
             body()
         }
     }

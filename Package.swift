@@ -15,5 +15,8 @@ let package = Package(
         ]),
         .target(
             name: "SwiftWriter"),
+        .testTarget(
+            name: "SwiftWriterTests",
+            dependencies: ["SwiftWriter"]),
     ]
 )
