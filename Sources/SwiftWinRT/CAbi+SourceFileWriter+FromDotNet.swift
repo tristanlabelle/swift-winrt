@@ -55,6 +55,9 @@ extension CAbi.SourceFileWriter {
 
         for method in interface.methods {
             var params = [CAbi.SourceFileWriter.Param]()
+
+            params.append(.init(type: .pointer(to: mangledName), name: "This"))
+
             for param in try! method.params {
                 var type = CAbi.toCType(param.type)
                 if param.isByRef { type = type.pointerIndirected }
@@ -63,7 +66,7 @@ extension CAbi.SourceFileWriter {
 
             let returnType = try method.returnType
             if !(returnType.asUnbound?.fullName == "System.Void") {
-                params.append(.init(type: CAbi.toCType(returnType), name: nil))
+                params.append(.init(type: CAbi.toCType(returnType).pointerIndirected, name: nil))
             }
 
             functions.append(Function(name: method.name, params: params))

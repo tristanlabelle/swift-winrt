@@ -25,6 +25,8 @@ extension CAbi {
 
     public static func toCType(_ type: BoundType) -> CType {
         if case let .definition(definition) = type {
+            // TODO: Handle special system types
+
             return CType(
                 name: mangleName(typeDefinition: definition.definition, genericArgs: definition.genericArgs),
                 pointerIndirections: definition.definition is EnumDefinition || definition.definition is StructDefinition ? 0 : 1)
