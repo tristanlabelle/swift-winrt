@@ -2,6 +2,39 @@ public protocol SyntaxWriter {
     var output: IndentedTextOutputStream { get }
 }
 
+public struct SourceFileWriter: TypeDeclarationWriter {
+    public let output: IndentedTextOutputStream
+
+    public init(output: some TextOutputStream, indent: String = "    ") {
+        self.output = IndentedTextOutputStream(inner: output, indent: indent)
+    }
+
+    public func writeImport(module: String) {
+        output.beginLine(grouping: .with("import"))
+        output.write("import ")
+        output.write(module, endLine: true)
+    }
+
+    public func writeProtocol(
+        visibility: Visibility = .implicit,
+        name: String,
+        typeParameters: [String] = [],
+        bases: [SwiftType] = [],
+        members: (ProtocolBodyWriter) -> Void) {
+
+        var output = output
+        output.beginLine(grouping: .never)
+        visibility.write(to: &output, trailingSpace: true)
+        output.write("protocol ")
+        writeIdentifier(name, to: &output)
+        writeTypeParameters(typeParameters)
+        writeInheritanceClause(bases)
+        output.writeBracedIndentedBlock() {
+            members(.init(output: output))
+        }
+    }
+}
+
 public protocol TypeDeclarationWriter: SyntaxWriter {}
 extension TypeDeclarationWriter {
     public func writeClass(
@@ -80,39 +113,6 @@ extension TypeDeclarationWriter {
         output.write(" = ")
         target.write(to: &output)
         output.endLine()
-    }
-}
-
-public struct FileWriter: TypeDeclarationWriter {
-    public let output: IndentedTextOutputStream
-
-    public init(output: some TextOutputStream, indent: String = "    ") {
-        self.output = IndentedTextOutputStream(inner: output, indent: indent)
-    }
-
-    public func writeImport(module: String) {
-        output.beginLine(grouping: .with("import"))
-        output.write("import ")
-        output.write(module, endLine: true)
-    }
-
-    public func writeProtocol(
-        visibility: Visibility = .implicit,
-        name: String,
-        typeParameters: [String] = [],
-        bases: [SwiftType] = [],
-        members: (ProtocolBodyWriter) -> Void) {
-
-        var output = output
-        output.beginLine(grouping: .never)
-        visibility.write(to: &output, trailingSpace: true)
-        output.write("protocol ")
-        writeIdentifier(name, to: &output)
-        writeTypeParameters(typeParameters)
-        writeInheritanceClause(bases)
-        output.writeBracedIndentedBlock() {
-            members(.init(output: output))
-        }
     }
 }
 
