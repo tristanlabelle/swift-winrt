@@ -46,7 +46,7 @@ fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer
         try? writer.writeEnum(
             visibility: visibility,
             name: enumDefinition.name,
-            rawValueType: toSwiftType(enumDefinition.underlyingType.bindNonGeneric()),
+            rawValueType: toSwiftType(enumDefinition.underlyingType.bindNode()),
             protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) {
             writer in
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {

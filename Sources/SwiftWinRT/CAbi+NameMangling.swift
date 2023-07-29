@@ -3,21 +3,21 @@ import DotNetMD
 extension CAbi {
     public static let vtableSuffix = "Vtbl"
 
-    public static func mangleName(typeDefinition: TypeDefinition, genericArgs: [BoundType] = []) -> String {
-        var output = String()
-        writeMangledName(typeDefinition: typeDefinition, genericArgs: genericArgs, to: &output)
-        return output
-    }
-
     public static func mangleName(type: BoundType) -> String {
         var output = String()
         writeMangledName(type: type, to: &output)
         return output
     }
 
-    public static func writeMangledName(typeDefinition: TypeDefinition, genericArgs: [BoundType] = [], to output: inout some TextOutputStream) {
+    public static func mangleName(type: TypeNode) -> String {
+        var output = String()
+        writeMangledName(type: type, to: &output)
+        return output
+    }
+
+    public static func writeMangledName(type: BoundType, to output: inout some TextOutputStream) {
         output.write("__x_ABI_")
-        if let namespace = Optional(typeDefinition.namespace) {
+        if let namespace = type.definition.namespace {
             for namespaceComponent in namespace.split(separator: ".") {
                 output.write("C")
                 output.write(String(namespaceComponent.replacing("_", with: "__z")))
@@ -25,17 +25,17 @@ extension CAbi {
             }
         }
 
-        if genericArgs.isEmpty {
+        if type.genericArgs.isEmpty {
             output.write("C")
-            output.write(typeDefinition.name)
+            output.write(type.definition.name)
         }
         else {
             output.write("F")
-            output.write(typeDefinition.nameWithoutGenericSuffix)
+            output.write(type.definition.nameWithoutGenericSuffix)
             output.write("_")
-            output.write(String(genericArgs.count))
+            output.write(String(type.genericArgs.count))
             output.write("_")
-            for (index, genericArg) in genericArgs.enumerated() {
+            for (index, genericArg) in type.genericArgs.enumerated() {
                 if index > 0 {
                     output.write("_")
                 }
@@ -44,9 +44,9 @@ extension CAbi {
         }
     }
 
-    public static func writeMangledName(type: BoundType, to output: inout some TextOutputStream) {
-        if case let .definition(definition) = type {
-            writeMangledName(typeDefinition: definition.definition, genericArgs: definition.genericArgs, to: &output)
+    public static func writeMangledName(type: TypeNode, to output: inout some TextOutputStream) {
+        if case let .bound(boundType) = type {
+            writeMangledName(type: boundType, to: &output)
         }
         else {
             fatalError("Not implemented")

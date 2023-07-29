@@ -2,7 +2,7 @@ import DotNetMD
 
 extension CAbi.SourceFileWriter {
     func writeEnum(_ enumDefinition: EnumDefinition) throws {
-        let mangledName = CAbi.mangleName(typeDefinition: enumDefinition)
+        let mangledName = CAbi.mangleName(type: enumDefinition.bind())
 
         func toValue(_ constant: Constant) -> Int {
             guard case let .int32(value) = constant else { fatalError() }
@@ -16,7 +16,7 @@ extension CAbi.SourceFileWriter {
     }
 
     func writeStruct(_ structDefinition: StructDefinition) throws {
-        let mangledName = CAbi.mangleName(typeDefinition: structDefinition)
+        let mangledName = CAbi.mangleName(type: structDefinition.bind())
 
         let members = try structDefinition.fields.filter { !$0.isStatic && $0.visibility == .public  }
             .map { DataMember(type: CAbi.toCType(try $0.type), name: $0.name) }
@@ -24,8 +24,8 @@ extension CAbi.SourceFileWriter {
         writeStruct(mangledName: mangledName, members: members)
     }
 
-    func writeInterface(_ interface: InterfaceDefinition, genericArgs: [BoundType]) throws {
-        let mangledName = CAbi.mangleName(typeDefinition: interface, genericArgs: genericArgs)
+    func writeInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode]) throws {
+        let mangledName = CAbi.mangleName(type: interface.bind(genericArgs: genericArgs))
 
         var functions = [Function]()
         functions.append(Function(name: "QueryInterface", params: [
@@ -65,7 +65,7 @@ extension CAbi.SourceFileWriter {
             }
 
             let returnType = try method.returnType
-            if !(returnType.asUnbound?.fullName == "System.Void") {
+            if !(returnType.asDefinition?.fullName == "System.Void") {
                 params.append(.init(type: CAbi.toCType(returnType).pointerIndirected, name: nil))
             }
 

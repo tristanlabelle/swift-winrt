@@ -23,13 +23,13 @@ extension CAbi {
         public var pointerIndirected: CType { .init(name: name, pointerIndirections: pointerIndirections + 1) }
     }
 
-    public static func toCType(_ type: BoundType) -> CType {
-        if case let .definition(definition) = type {
+    public static func toCType(_ type: TypeNode) -> CType {
+        if case let .bound(type) = type {
             // TODO: Handle special system types
 
             return CType(
-                name: mangleName(typeDefinition: definition.definition, genericArgs: definition.genericArgs),
-                pointerIndirections: definition.definition is EnumDefinition || definition.definition is StructDefinition ? 0 : 1)
+                name: mangleName(type: type),
+                pointerIndirections: type.definition.isReferenceType ? 1 : 0)
         }
         else {
             fatalError("Not implemented")

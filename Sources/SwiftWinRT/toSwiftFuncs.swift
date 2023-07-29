@@ -13,12 +13,12 @@ func toSwiftVisibility(_ visibility: DotNetMD.Visibility) -> SwiftWriter.Visibil
     }
 }
 
-func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType], allowImplicitUnwrap: Bool = false) -> SwiftType? {
-    guard mscorlibType.namespace == "System" else { return nil }
-    if genericArgs.isEmpty {
-        switch mscorlibType.name {
+func toSwiftType(mscorlibType: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
+    guard mscorlibType.definition.namespace == "System" else { return nil }
+    if mscorlibType.genericArgs.isEmpty {
+        switch mscorlibType.definition.name {
             case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double", "String", "Void":
-                return .identifier(name: mscorlibType.name)
+                return .identifier(name: mscorlibType.definition.name)
 
             case "Boolean": return .bool
             case "SByte": return .int(bits: 8, signed: true)
@@ -38,17 +38,15 @@ func toSwiftType(mscorlibType: TypeDefinition, genericArgs: [BoundType], allowIm
     }
 }
 
-func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType {
+func toSwiftType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftType {
     switch type {
-        case let .definition(type):
+        case let .bound(type):
             // Remap primitive types
             if type.definition.assembly === context.mscorlib,
-                let result = toSwiftType(
-                    mscorlibType: type.definition,
-                    genericArgs: type.genericArgs,
-                    allowImplicitUnwrap: allowImplicitUnwrap) {
+                let result = toSwiftType(mscorlibType: type, allowImplicitUnwrap: allowImplicitUnwrap) {
                 return result
             }
+
             else if type.definition.assembly.name == "Windows",
                 type.definition.assembly.version == .all255,
                 type.definition.namespace == "Windows.Foundation",
@@ -82,8 +80,8 @@ func toSwiftType(_ type: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftT
     }
 }
 
-func toSwiftReturnType(_ type: BoundType) -> SwiftType? {
-    if case let .definition(type) = type,
+func toSwiftReturnType(_ type: TypeNode) -> SwiftType? {
+    if case let .bound(type) = type,
         type.definition === context.mscorlib?.specialTypes.void {
         return nil
     }
@@ -92,7 +90,6 @@ func toSwiftReturnType(_ type: BoundType) -> SwiftType? {
 
 func toSwiftBaseType(_ type: BoundType?) -> SwiftType? {
     guard let type else { return nil }
-    guard case let .definition(type) = type else { return nil }
     guard type.definition !== context.mscorlib?.specialTypes.object else { return nil }
     guard type.definition.visibility == .public else { return nil }
     return .identifier(
