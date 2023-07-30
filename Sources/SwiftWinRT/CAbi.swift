@@ -2,8 +2,8 @@ import DotNetMD
 import CodeWriters
 
 enum CAbi {
-    public static let iidPrefix = "IID_"
-    public static let vtableSuffix = "Vtbl"
+    public static let interfaceIDPrefix = "IID_"
+    public static let interfaceVTableSuffix = "Vtbl"
 
     public static func mangleName(type: BoundType) -> String {
         var output = String()

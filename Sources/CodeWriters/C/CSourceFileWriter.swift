@@ -1,4 +1,4 @@
-public struct CAbiSourceFileWriter {
+public struct CSourceFileWriter {
     private let output: IndentedTextOutputStream
 
     public init(output: some TextOutputStream) {
@@ -55,20 +55,20 @@ public struct CAbiSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeCOMInterface(name: String, functions: [CFunctionSignature], iidName: String, vtableName: String) {
-        writeIID(name: iidName)
-        writeVTable(name: vtableName, functions: functions)
-        writeInterfaceWithVTable(name: name, vtableName: vtableName)
+    public func writeCOMInterface(name: String, functions: [CFunctionSignature], idName: String, vtableName: String) {
+        writeCOMInterfaceID(name: idName)
+        writeCOMVTable(name: vtableName, functions: functions)
+        writeCOMInterfaceStruct(name: name, vtableName: vtableName)
     }
 
-    private func writeIID(name: String) {
+    private func writeCOMInterfaceID(name: String) {
         output.beginLine(grouping: .withName("iid"))
         output.write("EXTERN_C const IID IID_")
         output.write(name)
         output.write(";", endLine: true)
     }
 
-    private func writeVTable(name: String, functions: [CFunctionSignature]) {
+    private func writeCOMVTable(name: String, functions: [CFunctionSignature]) {
         let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         output.write("typedef struct ")
@@ -77,7 +77,7 @@ public struct CAbiSourceFileWriter {
             output.writeLine(grouping: .never, "BEGIN_INTERFACE")
 
             for function in functions {
-                writeFunction(function)
+                writeCOMInterfaceFunction(function)
             }
 
             output.writeLine(grouping: .never, "END_INTERFACE")
@@ -88,7 +88,7 @@ public struct CAbiSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    private func writeFunction(_ function: CFunctionSignature) {
+    private func writeCOMInterfaceFunction(_ function: CFunctionSignature) {
         writeType(function.returnType)
         output.write(" (STDMETHODCALLTYPE* ")
         output.write(function.name)
@@ -109,14 +109,7 @@ public struct CAbiSourceFileWriter {
         output.write(");", endLine: true)
     }
 
-    private func writeType(_ type: CType) {
-        output.write(type.name)
-        for _ in 0..<type.pointerIndirections {
-            output.write("*")
-        }
-    }
-
-    private func writeInterfaceWithVTable(name: String, vtableName: String) {
+    private func writeCOMInterfaceStruct(name: String, vtableName: String) {
         let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         output.write("interface ")
@@ -128,5 +121,12 @@ public struct CAbiSourceFileWriter {
         }
         output.beginLine(grouping: lineGrouping)
         output.write("};", endLine: true)
+    }
+
+    private func writeType(_ type: CType) {
+        output.write(type.name)
+        for _ in 0..<type.pointerIndirections {
+            output.write("*")
+        }
     }
 }
