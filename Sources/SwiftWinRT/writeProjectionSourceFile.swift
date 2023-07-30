@@ -2,7 +2,7 @@ import DotNetMD
 import CodeWriters
 
 func writeProjectionSourceFile(assembly: Assembly, namespace: String, to output: some TextOutputStream) {
-    let sourceFileWriter = SourceFileWriter(output: output)
+    let sourceFileWriter = SwiftSourceFileWriter(output: output)
 
     sourceFileWriter.writeImport(module: "Foundation") // For Foundation.UUID
 
