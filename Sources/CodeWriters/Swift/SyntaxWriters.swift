@@ -1,8 +1,8 @@
-public protocol SyntaxWriter {
+public protocol SwiftSyntaxWriter {
     var output: IndentedTextOutputStream { get }
 }
 
-public struct SourceFileWriter: TypeDeclarationWriter {
+public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
     public let output: IndentedTextOutputStream
 
     public init(output: some TextOutputStream, indent: String = "    ") {
@@ -16,17 +16,17 @@ public struct SourceFileWriter: TypeDeclarationWriter {
     }
 
     public func writeProtocol(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
         bases: [SwiftType] = [],
-        members: (ProtocolBodyWriter) -> Void) {
+        members: (SwiftProtocolBodyWriter) -> Void) {
 
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(bases)
         output.writeBracedIndentedBlock() {
@@ -35,23 +35,24 @@ public struct SourceFileWriter: TypeDeclarationWriter {
     }
 }
 
-public protocol TypeDeclarationWriter: SyntaxWriter {}
-extension TypeDeclarationWriter {
+public protocol SwiftTypeDeclarationWriter: SwiftSyntaxWriter {}
+
+extension SwiftTypeDeclarationWriter {
     public func writeClass(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         final: Bool = false,
         name: String,
         typeParameters: [String] = [],
         base: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
-        body: (RecordBodyWriter) -> Void) {
+        body: (SwiftRecordBodyWriter) -> Void) {
 
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if final { output.write("final ") }
         output.write("class ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([base].compactMap { $0 } + protocolConformances)
         output.writeBracedIndentedBlock() {
@@ -60,17 +61,17 @@ extension TypeDeclarationWriter {
     }
 
     public func writeStruct(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
         protocolConformances: [SwiftType] = [],
-        body: (RecordBodyWriter) -> Void) {
+        body: (SwiftRecordBodyWriter) -> Void) {
 
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(protocolConformances)
         output.writeBracedIndentedBlock() {
@@ -79,18 +80,18 @@ extension TypeDeclarationWriter {
     }
 
     public func writeEnum(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
         rawValueType: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
-        body: (EnumBodyWriter) -> Void) {
+        body: (SwiftEnumBodyWriter) -> Void) {
 
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
         output.writeBracedIndentedBlock() {
@@ -99,7 +100,7 @@ extension TypeDeclarationWriter {
     }
 
     public func writeTypeAlias(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
         target: SwiftType) {
@@ -108,7 +109,7 @@ extension TypeDeclarationWriter {
         output.beginLine(grouping: .withName("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         output.write(" = ")
         target.write(to: &output)
@@ -116,14 +117,14 @@ extension TypeDeclarationWriter {
     }
 }
 
-public struct ProtocolBodyWriter: SyntaxWriter {
+public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     public let output: IndentedTextOutputStream
 
     public func writeAssociatedType(name: String) {
         var output = output
         output.beginLine(grouping: .withName("associatedtype"))
         output.write("associatedtype ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         output.endLine()
     }
 
@@ -137,7 +138,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         output.beginLine(grouping: .withName("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
         output.write(" { get")
@@ -149,7 +150,7 @@ public struct ProtocolBodyWriter: SyntaxWriter {
         static: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [Parameter],
+        parameters: [SwiftParameter],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -166,12 +167,12 @@ public struct ProtocolBodyWriter: SyntaxWriter {
     }
 }
 
-public struct RecordBodyWriter: TypeDeclarationWriter {
+public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
     public let output: IndentedTextOutputStream
 
     public func writeStoredProperty(
-        visibility: Visibility = .implicit,
-        privateVisibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
+        privateVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
         `let`: Bool,
         name: String,
@@ -189,7 +190,7 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
             output.write("static ")
         }
         output.write("var ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
         if let defaultValue {
@@ -200,46 +201,46 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
     }
 
     public func writeProperty(
-        visibility: Visibility = .implicit, static: Bool = false,
+        visibility: SwiftVisibility = .implicit, static: Bool = false,
         name: String, type: SwiftType,
-        get: (inout StatementWriter) -> Void,
-        set: ((inout StatementWriter) -> Void)? = nil) {
+        get: (inout SwiftStatementWriter) -> Void,
+        set: ((inout SwiftStatementWriter) -> Void)? = nil) {
 
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         output.write("var ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
         output.writeBracedIndentedBlock() {
             if let set {
                 output.writeBracedIndentedBlock("get") {
-                    var statementWriter = StatementWriter(output: output)
+                    var statementWriter = SwiftStatementWriter(output: output)
                     get(&statementWriter)
                 }
                 output.writeBracedIndentedBlock("set") {
-                    var statementWriter = StatementWriter(output: output)
+                    var statementWriter = SwiftStatementWriter(output: output)
                     set(&statementWriter)
                 }
             }
             else {
-                var statementWriter = StatementWriter(output: output)
+                var statementWriter = SwiftStatementWriter(output: output)
                 get(&statementWriter)
             }
         }
     }
 
     public func writeFunc(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [Parameter],
+        parameters: [SwiftParameter],
         throws: Bool = false,
         returnType: SwiftType? = nil,
-        body: (inout StatementWriter) -> Void) {
+        body: (inout SwiftStatementWriter) -> Void) {
 
         output.beginLine(grouping: .never)
         writeFuncHeader(
@@ -251,18 +252,17 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
             throws: `throws`,
             returnType: returnType)
         output.writeBracedIndentedBlock() {
-            var statementWriter = StatementWriter(output: output)
+            var statementWriter = SwiftStatementWriter(output: output)
             body(&statementWriter)
         }
     }
 
-
     public func writeInit(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         failable: Bool = false,
-        parameters: [Parameter],
+        parameters: [SwiftParameter],
         throws: Bool = false,
-        body: (inout StatementWriter) -> Void) {
+        body: (inout SwiftStatementWriter) -> Void) {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -275,20 +275,20 @@ public struct RecordBodyWriter: TypeDeclarationWriter {
         }
 
         output.writeBracedIndentedBlock() {
-            var statementWriter = StatementWriter(output: output)
+            var statementWriter = SwiftStatementWriter(output: output)
             body(&statementWriter)
         }
     }
 }
 
-public struct EnumBodyWriter: TypeDeclarationWriter {
+public struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
     public let output: IndentedTextOutputStream
 
     public func writeCase(name: String, rawValue: String? = nil) {
         var output = output
         output.beginLine(grouping: .withName("case"))
         output.write("case ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
 
         if let rawValue {
             output.write(" = ")
@@ -299,7 +299,7 @@ public struct EnumBodyWriter: TypeDeclarationWriter {
     }
 }
 
-public struct StatementWriter: SyntaxWriter {
+public struct SwiftStatementWriter: SwiftSyntaxWriter {
     public let output: IndentedTextOutputStream
 
     public func writeFatalError(_ message: String? = nil) {
@@ -314,21 +314,21 @@ public struct StatementWriter: SyntaxWriter {
 }
 
 extension IndentedTextOutputStream {
-    public func writeBracedIndentedBlock(_ str: String = "", body: () -> Void) {
+    fileprivate func writeBracedIndentedBlock(_ str: String = "", body: () -> Void) {
         self.writeIndentedBlock(header: str + " {", footer: "}") {
             body()
         }
     }
 }
 
-extension SyntaxWriter {
+extension SwiftSyntaxWriter {
     fileprivate func writeTypeParameters(_ typeParameters: [String]) {
         guard !typeParameters.isEmpty else { return }
         var output = output
         output.write("<")
         for (index, typeParameter) in typeParameters.enumerated() {
             if index > 0 { output.write(", ") }
-            writeIdentifier(typeParameter, to: &output)
+            SwiftIdentifiers.write(typeParameter, to: &output)
         }
         output.write(">")
     }
@@ -343,7 +343,7 @@ extension SyntaxWriter {
         }
     }
 
-    fileprivate func writeParameters(_ parameters: [Parameter]) {
+    fileprivate func writeParameters(_ parameters: [SwiftParameter]) {
         var output = output
         output.write("(")
         for (index, parameter) in parameters.enumerated() {
@@ -354,11 +354,11 @@ extension SyntaxWriter {
     }
 
     fileprivate func writeFuncHeader(
-        visibility: Visibility = .implicit,
+        visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [Parameter],
+        parameters: [SwiftParameter],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -366,7 +366,7 @@ extension SyntaxWriter {
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         output.write("func ")
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeParameters(parameters)
         if `throws` {

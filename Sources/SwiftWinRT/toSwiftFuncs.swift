@@ -1,7 +1,7 @@
 import DotNetMD
-import SwiftWriter
+import CodeWriters
 
-func toSwiftVisibility(_ visibility: DotNetMD.Visibility) -> SwiftWriter.Visibility {
+func toSwiftVisibility(_ visibility: DotNetMD.Visibility) -> SwiftVisibility {
     switch visibility {
         case .compilerControlled: return .fileprivate
         case .private: return .private
@@ -100,7 +100,7 @@ func toSwiftBaseType(_ type: BoundType?) -> SwiftType? {
         genericArgs: type.genericArgs.map { toSwiftType($0) })
 }
 
-func toSwiftParameter(_ param: Param) -> Parameter {
+func toSwiftParameter(_ param: Param) -> SwiftParameter {
     .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toSwiftType(param.type))
 }
 

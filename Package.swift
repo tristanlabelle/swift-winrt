@@ -15,12 +15,12 @@ let package = Package(
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             .product(name: "Collections", package: "swift-collections"),
             .product(name: "DotNetMD", package: "swift-dotnetmd"),
-            .target(name: "SwiftWriter")
+            .target(name: "CodeWriters")
         ]),
         .target(
-            name: "SwiftWriter"),
+            name: "CodeWriters"),
         .testTarget(
-            name: "SwiftWriterTests",
-            dependencies: ["SwiftWriter"]),
+            name: "CodeWritersTests",
+            dependencies: ["CodeWriters"]),
     ]
 )

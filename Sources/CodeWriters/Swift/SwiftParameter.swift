@@ -1,4 +1,4 @@
-public struct Parameter: CustomStringConvertible, TextOutputStreamable {
+public struct SwiftParameter: CustomStringConvertible, TextOutputStreamable {
     public var label: String?
     public var name: String
     public var `inout`: Bool
@@ -21,11 +21,11 @@ public struct Parameter: CustomStringConvertible, TextOutputStreamable {
 
     public func write(to output: inout some TextOutputStream) {
         if let label {
-            writeIdentifier(label, to: &output)
+            SwiftIdentifiers.write(label, to: &output)
             output.write(" ")
         }
 
-        writeIdentifier(name, to: &output)
+        SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         if `inout` { output.write("inout ") }
         type.write(to: &output)

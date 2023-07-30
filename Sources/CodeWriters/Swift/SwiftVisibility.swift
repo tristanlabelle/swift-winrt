@@ -1,4 +1,4 @@
-public enum Visibility {
+public enum SwiftVisibility {
     case implicit
     case `internal`
     case `private`
@@ -7,7 +7,7 @@ public enum Visibility {
     case `open`
 }
 
-extension Visibility: CustomStringConvertible, TextOutputStreamable {
+extension SwiftVisibility: CustomStringConvertible, TextOutputStreamable {
     public var description: String {
         var result = ""
         write(to: &result, trailingSpace: false)

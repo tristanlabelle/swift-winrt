@@ -18,7 +18,7 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
                 for (index, identifier) in chain.identifiers.enumerated() {
                     if index > 0 { output.write(".") }
                     if identifier.allowKeyword { output.write(identifier.name) }
-                    else { writeIdentifier(identifier.name, to: &output) }
+                    else { SwiftIdentifiers.write(identifier.name, to: &output) }
                     guard !identifier.genericArgs.isEmpty else { continue }
                     output.write("<")
                     for (index, arg) in identifier.genericArgs.enumerated() {

@@ -1,5 +1,5 @@
 import DotNetMD
-import SwiftWriter
+import CodeWriters
 
 func writeProjectionSourceFile(assembly: Assembly, namespace: String, to output: some TextOutputStream) {
     let sourceFileWriter = SourceFileWriter(output: output)
@@ -16,7 +16,7 @@ func writeProjectionSourceFile(assembly: Assembly, namespace: String, to output:
     }
 }
 
-fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some TypeDeclarationWriter) {
+fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
     let visibility = toSwiftVisibility(typeDefinition.visibility)
     if let classDefinition = typeDefinition as? ClassDefinition {
         writer.writeClass(
@@ -70,7 +70,7 @@ fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer
     }
 }
 
-fileprivate func writeFields(of typeDefinition: TypeDefinition, to writer: RecordBodyWriter, defaultInit: Bool) {
+fileprivate func writeFields(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter, defaultInit: Bool) {
     // FIXME: Rather switch on TypeDefinition to properly handle enum cases
     func getDefaultValue(_ type: SwiftType) -> String? {
         if case .optional = type { return "nil" }
@@ -97,7 +97,7 @@ fileprivate func writeFields(of typeDefinition: TypeDefinition, to writer: Recor
     }
 }
 
-fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: RecordBodyWriter) {
+fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) {
     for property in classDefinition.properties.filter({ (try? $0.visibility) == .public }) {
         try? writer.writeProperty(
             visibility: toSwiftVisibility(property.visibility),
@@ -128,7 +128,7 @@ fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: Re
     }
 }
 
-fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SourceFileWriter) {
+fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) {
     writer.writeProtocol(
             visibility: toSwiftVisibility(interface.visibility),
         name: interface.nameWithoutGenericSuffix,
