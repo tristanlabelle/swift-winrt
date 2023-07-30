@@ -42,7 +42,7 @@ func toSwiftType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftTy
     switch type {
         case let .bound(type):
             // Remap primitive types
-            if type.definition.assembly === context.mscorlib,
+            if type.definition.assembly is Mscorlib,
                 let result = toSwiftType(mscorlibType: type, allowImplicitUnwrap: allowImplicitUnwrap) {
                 return result
             }
@@ -82,7 +82,8 @@ func toSwiftType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftTy
 
 func toSwiftReturnType(_ type: TypeNode) -> SwiftType? {
     if case let .bound(type) = type,
-        type.definition === context.mscorlib?.specialTypes.void {
+        let mscorlib = type.definition.assembly as? Mscorlib,
+        type.definition === mscorlib.specialTypes.void {
         return nil
     }
     return toSwiftType(type, allowImplicitUnwrap: true)
@@ -90,7 +91,9 @@ func toSwiftReturnType(_ type: TypeNode) -> SwiftType? {
 
 func toSwiftBaseType(_ type: BoundType?) -> SwiftType? {
     guard let type else { return nil }
-    guard type.definition !== context.mscorlib?.specialTypes.object else { return nil }
+    if let mscorlib = type.definition.assembly as? Mscorlib {
+        guard type.definition !== mscorlib.specialTypes.object else { return nil }
+    }
     guard type.definition.visibility == .public else { return nil }
     return .identifier(
         name: type.definition.nameWithoutGenericSuffix,
