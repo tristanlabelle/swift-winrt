@@ -67,7 +67,7 @@ struct TypeWalker {
         enqueue(type.definition)
 
         var openOrClosed = OpenOrClosed.closed
-        for genericArg in type.genericArgs {
+        for genericArg in type.fullGenericArgs {
             if enqueue(genericArg, genericContext: genericContext) == .open {
                 openOrClosed = .open
             }
@@ -104,8 +104,8 @@ struct TypeWalker {
                     enqueueMembers(type, genericContext: nil)
 
                 case let .closedGenericType(type):
-                    for i in 0..<type.genericArgs.count {
-                        genericArgs[type.definition.genericParams[i]] = type.genericArgs[i]
+                    for i in 0..<type.fullGenericArgs.count {
+                        genericArgs[type.definition.genericParams[i]] = type.fullGenericArgs[i]
                     }
                     enqueueMembers(type.definition, genericContext: genericArgs)
                     genericArgs.removeAll()

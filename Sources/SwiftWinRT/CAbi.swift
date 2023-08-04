@@ -27,7 +27,7 @@ enum CAbi {
             }
         }
 
-        if type.genericArgs.isEmpty {
+        if type.fullGenericArgs.isEmpty {
             output.write("C")
             output.write(type.definition.name)
         }
@@ -35,9 +35,9 @@ enum CAbi {
             output.write("F")
             output.write(type.definition.nameWithoutGenericSuffix)
             output.write("_")
-            output.write(String(type.genericArgs.count))
+            output.write(String(type.fullGenericArgs.count))
             output.write("_")
-            for (index, genericArg) in type.genericArgs.enumerated() {
+            for (index, genericArg) in type.fullGenericArgs.enumerated() {
                 if index > 0 {
                     output.write("_")
                 }

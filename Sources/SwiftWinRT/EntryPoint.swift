@@ -18,7 +18,7 @@ struct EntryPoint: ParsableCommand {
             public mutating func write(_ str: String) { fputs(str, stdout) }
         }
 
-        writeProjectionSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
+        SwiftProjection.writeSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
     }
 }
 
