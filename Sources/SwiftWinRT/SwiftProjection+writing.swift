@@ -2,12 +2,12 @@ import DotNetMD
 import CodeWriters
 
 extension SwiftProjection {
-    static func writeSourceFile(assembly: Assembly, namespace: String, to output: some TextOutputStream) {
+    static func writeSourceFile(assembly: Assembly, filter: (TypeDefinition) -> Bool, to output: some TextOutputStream) {
         let sourceFileWriter = SwiftSourceFileWriter(output: output)
 
         sourceFileWriter.writeImport(module: "Foundation") // For Foundation.UUID
 
-        for typeDefinition in assembly.definedTypes.filter({ $0.namespace == namespace && $0.visibility == .public }) {
+        for typeDefinition in assembly.definedTypes.filter({ filter($0) && $0.visibility == .public }) {
             if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
                 writeProtocol(interfaceDefinition, to: sourceFileWriter)
             }

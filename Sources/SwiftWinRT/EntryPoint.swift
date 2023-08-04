@@ -4,21 +4,100 @@ import ArgumentParser
 
 @main
 struct EntryPoint: ParsableCommand {
-    @Option(help: "A path to the .winmd file to parse.")
-    var winmd: String = #"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22000.0\Windows.winmd"#
+    @Option(name: .customLong("reference"), help: "A path to a .winmd file with the APIs to project.")
+    var references: [String] = []
 
-    @Option(help: "The namespace for which to generate bindings.")
-    var namespace: String = "Windows.Foundation"
+    @Option(help: "A Windows SDK version with the APIs to project.")
+    var sdk: String? = nil
+
+    @Option(name: .customLong("module-map"), help: "A path to a module map json file to use.")
+    var moduleMap: String? = nil
+
+    @Option(help: "A path to the output directory.")
+    var out: String
 
     mutating func run() throws {
-        let context = MetadataContext()
-        let assembly = try context.loadAssembly(path: #"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22000.0\Windows.winmd"#)
-
-        struct StdoutOutputStream: TextOutputStream {
-            public mutating func write(_ str: String) { fputs(str, stdout) }
+        var allReferences = Set(references)
+        if let sdk {
+            allReferences.insert("C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\\(sdk)\\Windows.winmd")
         }
 
-        SwiftProjection.writeSourceFile(assembly: assembly, namespace: namespace, to: StdoutOutputStream())
+        let moduleMap: ModuleMapFile?
+        if let moduleMapPath = self.moduleMap {
+            moduleMap = try JSONDecoder().decode(ModuleMapFile.self, from: Data(contentsOf: URL(fileURLWithPath: moduleMapPath)))
+        }
+        else {
+            moduleMap = nil
+        }
+
+        let context = MetadataContext()
+
+        for reference in allReferences {
+            let assembly = try context.loadAssembly(path: reference)
+
+            let (moduleName, includeFilters) = Self.getModuleNameAndIncludeFilters(assemblyName: assembly.name, moduleMapFile: moduleMap)
+
+            var typeWalker = TypeWalker(publicMembersOnly: true)
+            for typeDefinition in assembly.definedTypes {
+                if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: includeFilters) {
+                    typeWalker.walk(typeDefinition)
+                }
+            }
+
+            let outputDirectoryPath = "\(out)\\\(moduleName)"
+            try FileManager.default.createDirectory(atPath: outputDirectoryPath, withIntermediateDirectories: true)
+
+            SwiftProjection.writeSourceFile(
+                assembly: assembly,
+                filter: { typeWalker.definitions.contains($0) },
+                to: FileTextOutputStream(path: "\(outputDirectoryPath)\\\(assembly.name).swift"))
+        }
+    }
+
+    static func getModuleNameAndIncludeFilters(assemblyName: String, moduleMapFile: ModuleMapFile?) -> (moduleName: String, includeFilters: [String]?) {
+        if let moduleMapFile {
+            for (moduleName, module) in moduleMapFile.modules {
+                if module.assemblies.contains(assemblyName) {
+                    return (moduleName, module.includeFilters)
+                }
+            }
+        }
+
+        return (assemblyName, nil)
+    }
+
+    static func isIncluded(fullName: String, filters: [String]?) -> Bool {
+        guard let filters else { return true }
+
+        for filter in filters {
+            if filter.last == "*" {
+                if fullName.starts(with: filter.dropLast()) {
+                    return true
+                }
+            }
+            else if fullName == filter {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    class FileTextOutputStream: TextOutputStream {
+        let path: String
+        var text: String = String()
+
+        init(path: String) {
+            self.path = path
+        }
+
+        func write(_ string: String) {
+            text.write(string)
+        }
+
+        deinit {
+            try? text.write(toFile: path, atomically: true, encoding: .utf8)
+        }
     }
 }
 

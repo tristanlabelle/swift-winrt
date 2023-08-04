@@ -1,5 +1,5 @@
 import XCTest
-@testable import SwiftWriter
+@testable import CodeWriters
 
 class IndentedTextOutputStreamTests: XCTestCase {
     func testSingleNonEndedLine() {
