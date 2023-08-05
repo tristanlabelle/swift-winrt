@@ -5,7 +5,7 @@ import DotNetMD
 /// - Non-generic type definitions
 /// - Generic type definitions
 /// - Closed generic types (with all type parameters bound)
-struct TypeWalker {
+struct TypeGraphWalker {
     enum OpenOrClosed {
         case open
         case closed

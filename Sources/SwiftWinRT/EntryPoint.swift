@@ -37,10 +37,10 @@ struct EntryPoint: ParsableCommand {
 
             let (moduleName, includeFilters) = Self.getModuleNameAndIncludeFilters(assemblyName: assembly.name, moduleMapFile: moduleMap)
 
-            var typeWalker = TypeWalker(publicMembersOnly: true)
+            var typeGraphWalker = TypeGraphWalker(publicMembersOnly: true)
             for typeDefinition in assembly.definedTypes {
                 if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: includeFilters) {
-                    typeWalker.walk(typeDefinition)
+                    typeGraphWalker.walk(typeDefinition)
                 }
             }
 
@@ -49,7 +49,7 @@ struct EntryPoint: ParsableCommand {
 
             SwiftProjection.writeSourceFile(
                 assembly: assembly,
-                filter: { typeWalker.definitions.contains($0) },
+                filter: { typeGraphWalker.definitions.contains($0) },
                 to: FileTextOutputStream(path: "\(outputDirectoryPath)\\\(assembly.name).swift"))
         }
     }
