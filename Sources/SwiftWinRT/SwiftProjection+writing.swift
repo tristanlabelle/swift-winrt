@@ -1,5 +1,6 @@
 import DotNetMD
 import CodeWriters
+import Collections
 
 extension SwiftProjection {
     static func writeSourceFile(assembly: Assembly, filter: (TypeDefinition) -> Bool, to output: some TextOutputStream) {
@@ -20,14 +21,20 @@ extension SwiftProjection {
     fileprivate static func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
         let visibility = toVisibility(typeDefinition.visibility)
         if let classDefinition = typeDefinition as? ClassDefinition {
+            // Do not generate Attribute classes since they are compile-time constructs
+            if classDefinition.base?.definition.fullName == "System.Attribute" {
+                return
+            }
+
             writer.writeClass(
                 visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
                 final: typeDefinition.isSealed,
-                name: typeDefinition.nameWithoutGenericSuffix,
+                name: toTypeName(typeDefinition),
                 typeParameters: typeDefinition.genericParams.map { $0.name },
                 base: toBaseType(typeDefinition.base),
                 protocolConformances: typeDefinition.baseInterfaces.compactMap { toBaseType($0.interface) }) {
                 writer in
+                writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
                 writeFields(of: classDefinition, to: writer, defaultInit: false)
                 writeMembers(of: classDefinition, to: writer)
             }
@@ -37,7 +44,7 @@ extension SwiftProjection {
                 + [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]
             writer.writeStruct(
                 visibility: visibility,
-                name: typeDefinition.nameWithoutGenericSuffix,
+                name: toTypeName(typeDefinition),
                 typeParameters: typeDefinition.genericParams.map { $0.name },
                 protocolConformances: protocolConformances) {
                 writer in writeFields(of: typeDefinition, to: writer, defaultInit: true)
@@ -46,7 +53,7 @@ extension SwiftProjection {
         else if let enumDefinition = typeDefinition as? EnumDefinition {
             try? writer.writeEnum(
                 visibility: visibility,
-                name: enumDefinition.name,
+                name: toTypeName(enumDefinition),
                 rawValueType: toType(enumDefinition.underlyingType.bindNode()),
                 protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) {
                 writer in
@@ -60,7 +67,7 @@ extension SwiftProjection {
         else if let delegateDefinition = typeDefinition as? DelegateDefinition {
             try? writer.writeTypeAlias(
                 visibility: visibility,
-                name: typeDefinition.nameWithoutGenericSuffix,
+                name: toTypeName(typeDefinition),
                 typeParameters: delegateDefinition.genericParams.map { $0.name },
                 target: .function(
                     params: delegateDefinition.invokeMethod.params.map { toType($0.type) },
@@ -68,6 +75,24 @@ extension SwiftProjection {
                     returnType: toType(delegateDefinition.invokeMethod.returnType)
                 )
             )
+        }
+    }
+
+    fileprivate static func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) {
+        var baseTypes = typeDefinition.baseInterfaces.map { $0.interface }
+        if let base = typeDefinition.base {
+            baseTypes.insert(base, at: 0)
+        }
+
+        var typeAliases: Collections.OrderedDictionary<String, SwiftType> = .init()
+        for baseType in baseTypes {
+            for (i, genericArg) in baseType.fullGenericArgs.enumerated() {
+                typeAliases[baseType.definition.fullGenericParams[i].name] = toType(genericArg)
+            }
+        }
+
+        for entry in typeAliases {
+            writer.writeTypeAlias(visibility: .public, name: entry.key, typeParameters: [], target: entry.value)
         }
     }
 
@@ -132,7 +157,7 @@ extension SwiftProjection {
     fileprivate static func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) {
         writer.writeProtocol(
                 visibility: toVisibility(interface.visibility),
-            name: interface.nameWithoutGenericSuffix,
+            name: toTypeName(interface),
             typeParameters: interface.genericParams.map { $0.name }) {
             writer in
             for genericParam in interface.genericParams {
@@ -161,11 +186,11 @@ extension SwiftProjection {
 
         writer.writeTypeAlias(
             visibility: toVisibility(interface.visibility),
-            name: "Any" + interface.nameWithoutGenericSuffix,
+            name: "Any" + toTypeName(interface),
             typeParameters: interface.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
-                name: interface.nameWithoutGenericSuffix,
+                name: toTypeName(interface),
                 genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
     }
 }

@@ -57,7 +57,7 @@ enum SwiftProjection {
                 }
 
                 let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
-                let name = namePrefix + type.definition.nameWithoutGenericSuffix
+                let name = namePrefix + toTypeName(type.definition)
 
                 let genericArgs = type.fullGenericArgs.map { toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
@@ -95,10 +95,20 @@ enum SwiftProjection {
         if let mscorlib = type.definition.assembly as? Mscorlib {
             guard type.definition !== mscorlib.specialTypes.object else { return nil }
         }
+
         guard type.definition.visibility == .public else { return nil }
-        return .identifier(
-            name: type.definition.nameWithoutGenericSuffix,
-            genericArgs: type.fullGenericArgs.map { toType($0) })
+        // Generic arguments do not appear on base types in Swift, but as separate typealiases
+        return .identifier(name: toTypeName(type.definition))
+    }
+
+    static func toTypeName(_ type: TypeDefinition) -> String {
+        var fullName = type.fullName
+        fullName.replace(".", with: "_")
+        fullName.replace("/", with: "_")
+        if let genericSuffixStartIndex = fullName.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
+            fullName.removeSubrange(genericSuffixStartIndex...)
+        }
+        return fullName
     }
 
     static func toParameter(_ param: Param) -> SwiftParameter {
