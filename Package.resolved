@@ -19,12 +19,12 @@
       }
     },
     {
-      "identity" : "swift-dotnetmd",
+      "identity" : "swift-dotnetmetadata",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tristanlabelle/swift-dotnetmd",
+      "location" : "https://github.com/tristanlabelle/swift-dotnetmetadata",
       "state" : {
         "branch" : "main",
-        "revision" : "dee2a482a4165bf4aca2c5fae5a299b18f7e2779"
+        "revision" : "4beb697eccbd91a2cb931607c70fc3cc7d385c56"
       }
     }
   ],

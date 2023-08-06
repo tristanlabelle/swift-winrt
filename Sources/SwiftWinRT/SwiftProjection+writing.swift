@@ -1,4 +1,4 @@
-import DotNetMD
+import DotNetMetadata
 import CodeWriters
 import Collections
 
@@ -124,7 +124,7 @@ extension SwiftProjection {
     }
 
     fileprivate static func writeMembers(of classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) {
-        for property in classDefinition.properties.filter({ (try? $0.visibility) == .public }) {
+        for property in classDefinition.properties.filter({ $0.visibility == .public }) {
             try? writer.writeProperty(
                 visibility: toVisibility(property.visibility),
                 static: property.isStatic,
@@ -164,7 +164,7 @@ extension SwiftProjection {
                 writer.writeAssociatedType(name: genericParam.name)
             }
 
-            for property in interface.properties.filter({ (try? $0.visibility) == .public }) {
+            for property in interface.properties.filter({ $0.visibility == .public }) {
                 try? writer.writeProperty(
                     static: property.isStatic,
                     name: Casing.pascalToCamel(property.name),

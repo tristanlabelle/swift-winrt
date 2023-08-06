@@ -1,4 +1,4 @@
-import DotNetMD
+import DotNetMetadata
 
 class SwiftProjection {
     private(set) var modulesByName: [String: Module] = .init()

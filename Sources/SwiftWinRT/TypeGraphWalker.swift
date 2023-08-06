@@ -1,5 +1,5 @@
 import Collections
-import DotNetMD
+import DotNetMetadata
 
 /// Walks graph of type nodes and definitions to find leaf items:
 /// - Non-generic type definitions
@@ -129,13 +129,13 @@ struct TypeGraphWalker {
         }
 
         for property in type.properties {
-            guard !publicMembersOnly || (try? property.visibility) == .public else { continue }
+            guard !publicMembersOnly || property.visibility == .public else { continue }
             guard let type = try? property.type else { continue }
             enqueue(type, genericContext: genericContext)
         }
 
         for event in type.events {
-            guard !publicMembersOnly || (try? event.visibility) == .public else { continue }
+            guard !publicMembersOnly || event.visibility == .public else { continue }
             guard let handlerType = try? event.handlerType else { continue }
             enqueue(handlerType, genericContext: genericContext)
         }

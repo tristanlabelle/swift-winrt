@@ -8,13 +8,13 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.2.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.4")),
-        .package(url: "https://github.com/tristanlabelle/swift-dotnetmd", branch: "main")
+        .package(url: "https://github.com/tristanlabelle/swift-dotnetmetadata", branch: "main")
     ],
     targets: [
         .executableTarget(name: "SwiftWinRT", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             .product(name: "Collections", package: "swift-collections"),
-            .product(name: "DotNetMD", package: "swift-dotnetmd"),
+            .product(name: "DotNetMetadata", package: "swift-dotnetmetadata"),
             .target(name: "CodeWriters")
         ]),
         .target(

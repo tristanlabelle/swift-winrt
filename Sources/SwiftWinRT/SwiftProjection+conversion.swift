@@ -1,8 +1,8 @@
-import DotNetMD
+import DotNetMetadata
 import CodeWriters
 
 extension SwiftProjection {
-    static func toVisibility(_ visibility: DotNetMD.Visibility) -> SwiftVisibility {
+    static func toVisibility(_ visibility: DotNetMetadata.Visibility) -> SwiftVisibility {
         switch visibility {
             case .compilerControlled: return .fileprivate
             case .private: return .private

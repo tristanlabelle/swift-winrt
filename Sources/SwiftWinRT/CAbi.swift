@@ -1,4 +1,4 @@
-import DotNetMD
+import DotNetMetadata
 import CodeWriters
 
 enum CAbi {
