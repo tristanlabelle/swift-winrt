@@ -39,21 +39,25 @@ extension SwiftProjection {
         }
     }
 
-    static func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftType {
+    static func tryGetIReferenceType(_ type: BoundType) -> TypeNode? {
+        guard type.definition.assembly.name == "Windows",
+            type.definition.assembly.version == .all255,
+            type.definition.namespace == "Windows.Foundation",
+            type.definition.name == "IReference`1",
+            type.fullGenericArgs.count == 1 else { return nil }
+        return type.fullGenericArgs[0]
+    }
+
+    func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftType {
         switch type {
             case let .bound(type):
                 // Remap primitive types
                 if type.definition.assembly is Mscorlib,
-                    let result = toType(mscorlibType: type, allowImplicitUnwrap: allowImplicitUnwrap) {
+                    let result = Self.toType(mscorlibType: type, allowImplicitUnwrap: allowImplicitUnwrap) {
                     return result
                 }
-
-                else if type.definition.assembly.name == "Windows",
-                    type.definition.assembly.version == .all255,
-                    type.definition.namespace == "Windows.Foundation",
-                    type.definition.name == "IReference`1"
-                    && type.fullGenericArgs.count == 1 {
-                    return .optional(wrapped: toType(type.fullGenericArgs[0]), implicitUnwrap: allowImplicitUnwrap)
+                else if let optionalType = Self.tryGetIReferenceType(type) {
+                    return .optional(wrapped: toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
                 }
 
                 let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
@@ -81,7 +85,7 @@ extension SwiftProjection {
         }
     }
 
-    static func toReturnType(_ type: TypeNode) -> SwiftType? {
+    func toReturnType(_ type: TypeNode) -> SwiftType? {
         if case let .bound(type) = type,
             let mscorlib = type.definition.assembly as? Mscorlib,
             type.definition === mscorlib.specialTypes.void {
@@ -90,7 +94,7 @@ extension SwiftProjection {
         return toType(type, allowImplicitUnwrap: true)
     }
 
-    static func toBaseType(_ type: BoundType?) -> SwiftType? {
+    func toBaseType(_ type: BoundType?) -> SwiftType? {
         guard let type else { return nil }
         if let mscorlib = type.definition.assembly as? Mscorlib {
             guard type.definition !== mscorlib.specialTypes.object else { return nil }
@@ -101,17 +105,11 @@ extension SwiftProjection {
         return .identifier(name: toTypeName(type.definition))
     }
 
-    static func toTypeName(_ type: TypeDefinition) -> String {
-        var fullName = type.fullName
-        fullName.replace(".", with: "_")
-        fullName.replace("/", with: "_")
-        if let genericSuffixStartIndex = fullName.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
-            fullName.removeSubrange(genericSuffixStartIndex...)
-        }
-        return fullName
+    func toTypeName(_ type: TypeDefinition) -> String {
+        assembliesToModules[type.assembly]!.getLocalName(type)
     }
 
-    static func toParameter(_ param: Param) -> SwiftParameter {
+    func toParameter(_ param: Param) -> SwiftParameter {
         .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toType(param.type))
     }
 

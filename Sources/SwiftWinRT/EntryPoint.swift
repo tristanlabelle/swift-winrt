@@ -39,12 +39,12 @@ struct EntryPoint: ParsableCommand {
         for reference in allReferences {
             let assembly = try context.loadAssembly(path: reference)
 
-            let (moduleName, includeFilters) = Self.getModuleNameAndIncludeFilters(assemblyName: assembly.name, moduleMapFile: moduleMap)
-            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName, baseNamespace: nil)
+            let (moduleName, moduleMapping) = Self.getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
+            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName, baseNamespace: moduleMapping?.baseNamespace)
             module.addAssembly(assembly)
 
             for typeDefinition in assembly.definedTypes {
-                if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: includeFilters) {
+                if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) {
                     typeGraphWalker.walk(typeDefinition)
                 }
             }
@@ -57,8 +57,8 @@ struct EntryPoint: ParsableCommand {
                 module = existingModule
             }
             else {
-                let (moduleName, _) = Self.getModuleNameAndIncludeFilters(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
-                module = swiftProjection.addModule(moduleName, baseNamespace: nil)
+                let (moduleName, mapping) = Self.getModule(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
+                module = swiftProjection.addModule(moduleName, baseNamespace: mapping?.baseNamespace)
                 module.addAssembly(typeDefinition.assembly)
             }
 
@@ -81,34 +81,15 @@ struct EntryPoint: ParsableCommand {
         for module in swiftProjection.modulesByName.values {
             let outputDirectoryPath = "\(out)\\\(module.name)"
             try FileManager.default.createDirectory(atPath: outputDirectoryPath, withIntermediateDirectories: true)
-
-            for (shortNamespace, types) in module.typesByShortNamespace {
-                let sourceFileWriter = SwiftSourceFileWriter(
-                    output: FileTextOutputStream(path: "\(outputDirectoryPath)\\\(shortNamespace).swift"))
-
-                for reference in module.references {
-                    sourceFileWriter.writeImport(module: reference.target.name)
-                }
-
-                sourceFileWriter.writeImport(module: "Foundation") // For Foundation.UUID
-
-                for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
-                    if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
-                        SwiftProjection.writeProtocol(interfaceDefinition, to: sourceFileWriter)
-                    }
-                    else {
-                        SwiftProjection.writeTypeDefinition(typeDefinition, to: sourceFileWriter)
-                    }
-                }
-            }
+            swiftProjection.writeModule(module, outputDirectoryPath: outputDirectoryPath)
         }
     }
 
-    static func getModuleNameAndIncludeFilters(assemblyName: String, moduleMapFile: ModuleMapFile?) -> (moduleName: String, includeFilters: [String]?) {
+    static func getModule(assemblyName: String, moduleMapFile: ModuleMapFile?) -> (name: String, mapping: ModuleMapFile.Module?) {
         if let moduleMapFile {
             for (moduleName, module) in moduleMapFile.modules {
                 if module.assemblies.contains(assemblyName) {
-                    return (moduleName, module.includeFilters)
+                    return (moduleName, module)
                 }
             }
         }
@@ -131,23 +112,6 @@ struct EntryPoint: ParsableCommand {
         }
 
         return false
-    }
-
-    class FileTextOutputStream: TextOutputStream {
-        let path: String
-        var text: String = String()
-
-        init(path: String) {
-            self.path = path
-        }
-
-        func write(_ string: String) {
-            text.write(string)
-        }
-
-        deinit {
-            try? text.write(toFile: path, atomically: true, encoding: .utf8)
-        }
     }
 }
 

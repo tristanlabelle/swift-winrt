@@ -30,6 +30,17 @@ class SwiftProjection {
             }
         }
 
+        func getLocalName(_ type: TypeDefinition) -> String {
+            var localName = type.fullName
+            localName.trimPrefix(baseNamespacePrefix)
+            localName.replace(".", with: "_")
+            localName.replace("/", with: "_")
+            if let genericSuffixStartIndex = localName.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
+                localName.removeSubrange(genericSuffixStartIndex...)
+            }
+            return localName
+        }
+
         func addAssembly(_ assembly: Assembly) {
             projection.assembliesToModules[assembly] = self
         }
