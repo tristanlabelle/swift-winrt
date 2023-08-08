@@ -18,7 +18,7 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate static func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
+    static func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
         let visibility = toVisibility(typeDefinition.visibility)
         if let classDefinition = typeDefinition as? ClassDefinition {
             // Do not generate Attribute classes since they are compile-time constructs
@@ -154,7 +154,7 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate static func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) {
+    static func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) {
         writer.writeProtocol(
                 visibility: toVisibility(interface.visibility),
             name: toTypeName(interface),

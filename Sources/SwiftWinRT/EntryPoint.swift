@@ -1,3 +1,4 @@
+import CodeWriters
 import DotNetMetadata
 import Foundation
 import ArgumentParser
@@ -31,26 +32,75 @@ struct EntryPoint: ParsableCommand {
         }
 
         let context = MetadataContext()
+        let swiftProjection = SwiftProjection()
+        var typeGraphWalker = TypeGraphWalker(publicMembersOnly: true)
 
+        // Gather types from all referenced assemblies
         for reference in allReferences {
             let assembly = try context.loadAssembly(path: reference)
 
             let (moduleName, includeFilters) = Self.getModuleNameAndIncludeFilters(assemblyName: assembly.name, moduleMapFile: moduleMap)
+            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName, baseNamespace: nil)
+            module.addAssembly(assembly)
 
-            var typeGraphWalker = TypeGraphWalker(publicMembersOnly: true)
             for typeDefinition in assembly.definedTypes {
                 if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: includeFilters) {
                     typeGraphWalker.walk(typeDefinition)
                 }
             }
+        }
 
-            let outputDirectoryPath = "\(out)\\\(moduleName)"
+        // Classify types into modules
+        for typeDefinition in typeGraphWalker.definitions {
+            let module: SwiftProjection.Module
+            if let existingModule = swiftProjection.assembliesToModules[typeDefinition.assembly] {
+                module = existingModule
+            }
+            else {
+                let (moduleName, _) = Self.getModuleNameAndIncludeFilters(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
+                module = swiftProjection.addModule(moduleName, baseNamespace: nil)
+                module.addAssembly(typeDefinition.assembly)
+            }
+
+            module.addType(typeDefinition)
+        }
+
+        // Establish references between modules
+        for assembly in context.loadedAssemblies {
+            guard !(assembly is Mscorlib) else { continue }
+
+            if let sourceModule = swiftProjection.assembliesToModules[assembly] {
+                for reference in assembly.references {
+                    if let targetModule = swiftProjection.assembliesToModules[try reference.resolve()] {
+                        sourceModule.addReference(targetModule)
+                    }
+                }
+            }
+        }
+
+        for module in swiftProjection.modulesByName.values {
+            let outputDirectoryPath = "\(out)\\\(module.name)"
             try FileManager.default.createDirectory(atPath: outputDirectoryPath, withIntermediateDirectories: true)
 
-            SwiftProjection.writeSourceFile(
-                assembly: assembly,
-                filter: { typeGraphWalker.definitions.contains($0) },
-                to: FileTextOutputStream(path: "\(outputDirectoryPath)\\\(assembly.name).swift"))
+            for (shortNamespace, types) in module.typesByShortNamespace {
+                let sourceFileWriter = SwiftSourceFileWriter(
+                    output: FileTextOutputStream(path: "\(outputDirectoryPath)\\\(shortNamespace).swift"))
+
+                for reference in module.references {
+                    sourceFileWriter.writeImport(module: reference.target.name)
+                }
+
+                sourceFileWriter.writeImport(module: "Foundation") // For Foundation.UUID
+
+                for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
+                    if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
+                        SwiftProjection.writeProtocol(interfaceDefinition, to: sourceFileWriter)
+                    }
+                    else {
+                        SwiftProjection.writeTypeDefinition(typeDefinition, to: sourceFileWriter)
+                    }
+                }
+            }
         }
     }
 
