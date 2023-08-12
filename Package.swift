@@ -11,16 +11,22 @@ let package = Package(
         .package(url: "https://github.com/tristanlabelle/swift-dotnetmetadata", branch: "main")
     ],
     targets: [
-        .executableTarget(name: "SwiftWinRT", dependencies: [
-            .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            .product(name: "Collections", package: "swift-collections"),
-            .product(name: "DotNetMetadata", package: "swift-dotnetmetadata"),
-            .target(name: "CodeWriters")
-        ]),
+        .executableTarget(
+            name: "SwiftWinRT",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Collections", package: "swift-collections"),
+                .product(name: "DotNetMetadata", package: "swift-dotnetmetadata"),
+                .target(name: "CodeWriters")
+            ],
+            // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
+            linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
         .target(
             name: "CodeWriters"),
         .testTarget(
             name: "CodeWritersTests",
-            dependencies: ["CodeWriters"]),
+            dependencies: ["CodeWriters"],
+            // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
+            linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
     ]
 )
