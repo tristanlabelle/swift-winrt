@@ -15,6 +15,14 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         output.write(module, endLine: true)
     }
 
+    public func writeImport(module: String, struct: String) {
+        output.beginLine(grouping: .withName("import"))
+        output.write("import struct ")
+        output.write(module)
+        output.write(".")
+        output.write(`struct`, endLine: true)
+    }
+
     public func writeProtocol(
         visibility: SwiftVisibility = .implicit,
         name: String,
@@ -177,7 +185,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         `let`: Bool,
         name: String,
         type: SwiftType,
-        defaultValue: String? = nil) {
+        initializer: String? = nil) {
 
         var output = output
         output.beginLine(grouping: .withName("storedProperty"))
@@ -193,9 +201,9 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
-        if let defaultValue {
+        if let initializer {
             output.write(" = ")
-            output.write(defaultValue)
+            output.write(initializer)
         }
         output.endLine()
     }

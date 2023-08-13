@@ -60,9 +60,7 @@ extension SwiftProjection {
                     return .optional(wrapped: toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
                 }
 
-                let namePrefix = type.definition is InterfaceDefinition ? "Any" : ""
-                let name = namePrefix + toTypeName(type.definition)
-
+                let name = toTypeName(type.definition, any: type.definition is InterfaceDefinition)
                 let genericArgs = type.fullGenericArgs.map { toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
                 if type.definition is InterfaceDefinition || type.definition is ClassDefinition
@@ -105,8 +103,9 @@ extension SwiftProjection {
         return .identifier(name: toTypeName(type.definition))
     }
 
-    func toTypeName(_ type: TypeDefinition) -> String {
-        assembliesToModules[type.assembly]!.getLocalName(type)
+    func toTypeName(_ type: TypeDefinition, any: Bool = false) -> String {
+        precondition(!any || type is InterfaceDefinition)
+        return assembliesToModules[type.assembly]!.getName(type, any: any)
     }
 
     func toParameter(_ param: Param) -> SwiftParameter {

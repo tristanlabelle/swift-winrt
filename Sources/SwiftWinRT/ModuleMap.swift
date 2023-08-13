@@ -3,7 +3,6 @@ struct ModuleMapFile: Codable {
 
     struct Module: Codable {
         var assemblies: [String] = []
-        var baseNamespace: String? = nil
         var includeFilters: [String]? = nil
     }
 }

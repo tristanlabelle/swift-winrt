@@ -4,8 +4,8 @@ class SwiftProjection {
     private(set) var modulesByName: [String: Module] = .init()
     private(set) var assembliesToModules: [Assembly: Module] = .init()
 
-    func addModule(_ name: String, baseNamespace: String?) -> Module {
-        let module = Module(projection: self, name: name, baseNamespace: baseNamespace)
+    func addModule(_ name: String) -> Module {
+        let module = Module(projection: self, name: name)
         modulesByName[name] = module
         return module
     }
@@ -13,32 +13,27 @@ class SwiftProjection {
     class Module {
         private unowned let projection: SwiftProjection
         let name: String
-        let baseNamespace: String?
-        private let baseNamespacePrefix: String
-        private(set) var typesByShortNamespace: [String: Set<TypeDefinition>] = .init()
+        private(set) var typesByNamespace: [String: Set<TypeDefinition>] = .init()
         private(set) var references: Set<Reference> = []
 
-        init(projection: SwiftProjection, name: String, baseNamespace: String?) {
+        init(projection: SwiftProjection, name: String) {
             self.projection = projection
             self.name = name
-            self.baseNamespace = baseNamespace
-            if let baseNamespace {
-                baseNamespacePrefix = baseNamespace + "."
-            }
-            else {
-                baseNamespacePrefix = ""
-            }
         }
 
-        func getLocalName(_ type: TypeDefinition) -> String {
-            var localName = type.fullName
-            localName.trimPrefix(baseNamespacePrefix)
-            localName.replace(".", with: "_")
-            localName.replace("/", with: "_")
-            if let genericSuffixStartIndex = localName.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
-                localName.removeSubrange(genericSuffixStartIndex...)
+        func getName(_ type: TypeDefinition, any: Bool = false) -> String {
+            precondition(!type.isNested)
+            precondition(!any || type is InterfaceDefinition)
+
+            let namespacePrefix = type.namespace.flatMap { $0.replacing(".", with: "") + "_" } ?? ""
+            var result = namespacePrefix
+            if any { result += "Any" }
+            result += type.name
+            // TODO: Only remove the generic suffix if it won't cause clashes
+            if let genericSuffixStartIndex = result.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
+                result.removeSubrange(genericSuffixStartIndex...)
             }
-            return localName
+            return result
         }
 
         func addAssembly(_ assembly: Assembly) {
@@ -47,12 +42,7 @@ class SwiftProjection {
 
         func addType(_ type: TypeDefinition) {
             precondition(projection.assembliesToModules[type.assembly] === self)
-            var shortNamespace = type.namespace ?? ""
-            shortNamespace.trimPrefix(baseNamespacePrefix)
-            if typesByShortNamespace[shortNamespace] == nil {
-                typesByShortNamespace[shortNamespace] = .init()
-            }
-            typesByShortNamespace[shortNamespace]!.insert(type)
+            typesByNamespace[type.namespace ?? "", default: Set()].insert(type)
         }
 
         func addReference(_ other: Module) {

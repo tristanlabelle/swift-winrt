@@ -40,7 +40,7 @@ struct EntryPoint: ParsableCommand {
             let assembly = try context.loadAssembly(path: reference)
 
             let (moduleName, moduleMapping) = Self.getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
-            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName, baseNamespace: moduleMapping?.baseNamespace)
+            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName)
             module.addAssembly(assembly)
 
             for typeDefinition in assembly.definedTypes {
@@ -57,8 +57,8 @@ struct EntryPoint: ParsableCommand {
                 module = existingModule
             }
             else {
-                let (moduleName, mapping) = Self.getModule(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
-                module = swiftProjection.addModule(moduleName, baseNamespace: mapping?.baseNamespace)
+                let (moduleName, _) = Self.getModule(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
+                module = swiftProjection.addModule(moduleName)
                 module.addAssembly(typeDefinition.assembly)
             }
 
