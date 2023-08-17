@@ -1,5 +1,6 @@
 import CodeWriters
 import DotNetMetadata
+import DotNetMetadataFormat
 import Foundation
 import ArgumentParser
 
@@ -31,7 +32,13 @@ struct EntryPoint: ParsableCommand {
             moduleMap = nil
         }
 
-        let context = MetadataContext()
+        // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
+        struct AssemblyLoadError: Error {}
+        let context = MetadataContext(assemblyResolver: {
+            guard $0.name == "mscorlib", let fx4Path = SystemAssemblyPaths.framework4 else { throw AssemblyLoadError() }
+            return try ModuleFile(path: "\(fx4Path)\\mscorlib.dll")
+        })
+
         let swiftProjection = SwiftProjection()
         var typeGraphWalker = TypeGraphWalker(publicMembersOnly: true)
 

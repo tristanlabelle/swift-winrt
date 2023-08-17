@@ -62,28 +62,30 @@ extension SwiftProjection {
             }
         }
         else if let enumDefinition = typeDefinition as? EnumDefinition {
-            // Curently crashes
-            // writer.writeStruct(
-            //     visibility: visibility,
-            //     name: toTypeName(enumDefinition),
-            //     protocolConformances: [
-            //         .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
-            //         .identifier(name: "Hashable"),
-            //         .identifier(name: "Codable") ]) { writer in
+            writer.writeStruct(
+                visibility: visibility,
+                name: toTypeName(enumDefinition),
+                protocolConformances: [
+                    .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
+                    .identifier(name: "Hashable"),
+                    .identifier(name: "Codable") ]) { writer in
 
-            //     writer.writeTypeAlias(name: "RawValue", target: try! toType(enumDefinition.underlyingType.bindNode()))
+                writer.writeTypeAlias(
+                    visibility: .public,
+                    name: "RawValue",
+                    target: try! toType(enumDefinition.underlyingType.bindNode()))
 
-            //     for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-            //         let value = Self.toConstant(try! field.literalValue!)
-            //         writer.writeStoredProperty(
-            //             visibility: .public,
-            //             static: true,
-            //             let: true,
-            //             name: Casing.pascalToCamel(field.name),
-            //             type: .identifier(name: "Self"),
-            //             initializer: "Self(\(value))")
-            //     }
-            // }
+                for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
+                    let value = Self.toConstant(try! field.literalValue!)
+                    writer.writeStoredProperty(
+                        visibility: .public,
+                        static: true,
+                        let: true,
+                        name: Casing.pascalToCamel(field.name),
+                        type: .identifier(name: "Self", allowKeyword: true),
+                        initializer: "Self(\(value))")
+                }
+            }
         }
         else if let delegateDefinition = typeDefinition as? DelegateDefinition {
             try? writer.writeTypeAlias(
@@ -107,8 +109,8 @@ extension SwiftProjection {
 
         var typeAliases: Collections.OrderedDictionary<String, SwiftType> = .init()
         for baseType in baseTypes {
-            for (i, genericArg) in baseType.fullGenericArgs.enumerated() {
-                typeAliases[baseType.definition.fullGenericParams[i].name] = toType(genericArg)
+            for (i, genericArg) in baseType.genericArgs.enumerated() {
+                typeAliases[baseType.definition.genericParams[i].name] = toType(genericArg)
             }
         }
 

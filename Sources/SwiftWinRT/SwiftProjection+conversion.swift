@@ -16,7 +16,7 @@ extension SwiftProjection {
 
     static func toType(mscorlibType: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
         guard mscorlibType.definition.namespace == "System" else { return nil }
-        if mscorlibType.fullGenericArgs.isEmpty {
+        if mscorlibType.genericArgs.isEmpty {
             switch mscorlibType.definition.name {
                 case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double", "String", "Void":
                     return .identifier(name: mscorlibType.definition.name)
@@ -44,8 +44,8 @@ extension SwiftProjection {
             type.definition.assembly.version == .all255,
             type.definition.namespace == "Windows.Foundation",
             type.definition.name == "IReference`1",
-            type.fullGenericArgs.count == 1 else { return nil }
-        return type.fullGenericArgs[0]
+            type.genericArgs.count == 1 else { return nil }
+        return type.genericArgs[0]
     }
 
     func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftType {
@@ -61,7 +61,7 @@ extension SwiftProjection {
                 }
 
                 let name = toTypeName(type.definition, any: type.definition is InterfaceDefinition)
-                let genericArgs = type.fullGenericArgs.map { toType($0) }
+                let genericArgs = type.genericArgs.map { toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
                 if type.definition is InterfaceDefinition || type.definition is ClassDefinition
                     && type.definition.fullName != "System.String" {

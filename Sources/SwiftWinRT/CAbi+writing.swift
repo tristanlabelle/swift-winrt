@@ -26,7 +26,7 @@ extension CAbi {
     }
 
     func writeInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: inout CSourceFileWriter) throws {
-        let mangledName = CAbi.mangleName(type: interface.bind(fullGenericArgs: genericArgs))
+        let mangledName = CAbi.mangleName(type: interface.bind(genericArgs: genericArgs))
 
         var functions = [CFunctionSignature]()
 

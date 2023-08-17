@@ -22,13 +22,24 @@ class SwiftProjection {
         }
 
         func getName(_ type: TypeDefinition, any: Bool = false) -> String {
-            precondition(!type.isNested)
+            // Map: Namespace.TypeName
+            // To: Namespace_TypeName
+            // Map: Namespace.Subnamespace.TypeName/NestedTypeName
+            // To: NamespaceSubnamespace_TypeName_NestedTypeName
             precondition(!any || type is InterfaceDefinition)
 
-            let namespacePrefix = type.namespace.flatMap { $0.replacing(".", with: "") + "_" } ?? ""
-            var result = namespacePrefix
+            var result: String = {
+                if let enclosingType = type.enclosingType {
+                    return getName(enclosingType, any: false) + "_"
+                }
+                else {
+                    return type.namespace.flatMap { $0.replacing(".", with: "") + "_" } ?? ""
+                }
+            }()
+
             if any { result += "Any" }
             result += type.name
+
             // TODO: Only remove the generic suffix if it won't cause clashes
             if let genericSuffixStartIndex = result.firstIndex(of: TypeDefinition.genericParamCountSeparator) {
                 result.removeSubrange(genericSuffixStartIndex...)
