@@ -140,7 +140,10 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         static: Bool = false,
         name: String,
         type: SwiftType,
+        throws: Bool = false,
         set: Bool = false) {
+
+        precondition(!set || !`throws`)
 
         var output = output
         output.beginLine(grouping: .withName("protocolProperty"))
@@ -150,6 +153,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         output.write(": ")
         type.write(to: &output)
         output.write(" { get")
+        if `throws` { output.write(" throws") }
         if set { output.write(" set") }
         output.write(" }", endLine: true)
     }
@@ -194,10 +198,8 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             privateVisibility.write(to: &output, trailingSpace: false)
             output.write("(set) ")
         }
-        if `static` {
-            output.write("static ")
-        }
-        output.write("var ")
+        if `static` { output.write("static ") }
+        output.write(`let` ? "let " : "var ")
         SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
@@ -208,11 +210,15 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         output.endLine()
     }
 
-    public func writeProperty(
-        visibility: SwiftVisibility = .implicit, static: Bool = false,
+    public func writeComputedProperty(
+        visibility: SwiftVisibility = .implicit,
+        static: Bool = false,
         name: String, type: SwiftType,
+        throws: Bool = false,
         get: (inout SwiftStatementWriter) -> Void,
         set: ((inout SwiftStatementWriter) -> Void)? = nil) {
+
+        precondition(set == nil || !`throws`)
 
         var output = output
         output.beginLine(grouping: .never)
@@ -231,6 +237,12 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
                 output.writeBracedIndentedBlock("set") {
                     var statementWriter = SwiftStatementWriter(output: output)
                     set(&statementWriter)
+                }
+            }
+            else if `throws` {
+                output.writeBracedIndentedBlock("get throws") {
+                    var statementWriter = SwiftStatementWriter(output: output)
+                    get(&statementWriter)
                 }
             }
             else {

@@ -1,4 +1,4 @@
-enum SwiftIdentifiers {
+public enum SwiftIdentifiers {
     fileprivate static let keywords: Set<String> = [
         // Keywords used in declarations:
         "associatedtype", "class", "deinit", "enum", "extension", "fileprivate", "func",
@@ -20,8 +20,8 @@ enum SwiftIdentifiers {
             : identifier == "Any" || identifier == "Self"
     }
 
-    public static func write(_ identifier: String, to output: inout some TextOutputStream) {
-        let mustEscape = isKeyword(identifier)
+    public static func write(_ identifier: String, allowKeyword: Bool = false, to output: inout some TextOutputStream) {
+        let mustEscape = !allowKeyword && isKeyword(identifier)
 
         if mustEscape { output.write("`") }
         output.write(identifier)

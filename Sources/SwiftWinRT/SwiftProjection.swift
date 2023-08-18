@@ -33,7 +33,7 @@ class SwiftProjection {
                     return getName(enclosingType, any: false) + "_"
                 }
                 else {
-                    return type.namespace.flatMap { $0.replacing(".", with: "") + "_" } ?? ""
+                    return type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
                 }
             }()
 
@@ -53,7 +53,14 @@ class SwiftProjection {
 
         func addType(_ type: TypeDefinition) {
             precondition(projection.assembliesToModules[type.assembly] === self)
-            typesByNamespace[type.namespace ?? "", default: Set()].insert(type)
+
+            // The namespace comes from the topmost enclosing type
+            var namespacedType = type
+            while namespacedType.namespace == nil, let enclosingType = namespacedType.enclosingType {
+                namespacedType = enclosingType
+            }
+
+            typesByNamespace[namespacedType.namespace ?? "", default: Set()].insert(type)
         }
 
         func addReference(_ other: Module) {

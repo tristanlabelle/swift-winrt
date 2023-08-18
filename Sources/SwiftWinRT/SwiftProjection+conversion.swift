@@ -14,6 +14,11 @@ extension SwiftProjection {
         }
     }
 
+    // Windows.Foundation.Collections to WindowsFoundationCollections
+    static func toCompactNamespace(_ namespace: String) -> String {
+        namespace.replacing(".", with: "")
+    }
+
     static func toType(mscorlibType: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
         guard mscorlibType.definition.namespace == "System" else { return nil }
         if mscorlibType.genericArgs.isEmpty {
@@ -108,13 +113,16 @@ extension SwiftProjection {
         return assembliesToModules[type.assembly]!.getName(type, any: any)
     }
 
+    func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
+
     func toParameter(_ param: Param) -> SwiftParameter {
-        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toType(param.type))
+        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toType(param.type, allowImplicitUnwrap: true))
     }
 
     static func toConstant(_ constant: Constant) -> String {
         switch constant {
             case let .boolean(value): return value ? "true" : "false"
+            case let .char(value): return String(UInt16(value))
             case let .int8(value): return String(value)
             case let .int16(value): return String(value)
             case let .int32(value): return String(value)
@@ -123,6 +131,19 @@ extension SwiftProjection {
             case let .uint16(value): return String(value)
             case let .uint32(value): return String(value)
             case let .uint64(value): return String(value)
+
+            case let .single(value):
+                if value == Float.infinity { return "Float.infinity" }
+                if value == -Float.infinity { return "-Float.infinity" }
+                if value.isNaN { return "Float.nan" }
+                return String(describing: value)
+
+            case let .double(value):
+                if value == Double.infinity { return "Double.infinity" }
+                if value == -Double.infinity { return "-Double.infinity" }
+                if value.isNaN { return "Double.nan" }
+                return String(describing: value)
+
             case .null: return "nil"
             default: fatalError("Not implemented")
         }
