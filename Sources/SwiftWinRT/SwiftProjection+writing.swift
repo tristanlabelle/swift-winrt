@@ -65,18 +65,22 @@ extension SwiftProjection {
             }
         }
         else if let enumDefinition = typeDefinition as? EnumDefinition {
+            // Enums are syntactic sugar for integers in .NET,
+            // so we cannot guarantee that the enumerants are exhaustive,
+            // therefore we cannot project them to Swift enums
+            // since they would be unable to represent unknown values.
+            let isOptionSet = enumDefinition.isFlags
             writer.writeStruct(
                 visibility: visibility,
                 name: toTypeName(enumDefinition),
                 protocolConformances: [
-                    .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
+                    .identifier(name: isOptionSet ? "OptionSet" : "RawRepresentable"),
                     .identifier(name: "Hashable"),
                     .identifier(name: "Codable") ]) { writer in
 
-                writer.writeTypeAlias(
-                    visibility: .public,
-                    name: "RawValue",
-                    target: try! toType(enumDefinition.underlyingType.bindNode()))
+                let rawValueType = try! toType(enumDefinition.underlyingType.bindNode())
+                writer.writeTypeAlias(visibility: .public, name: "RawValue", target: rawValueType)
+                writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType)
 
                 for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                     let value = Self.toConstant(try! field.literalValue!)
@@ -86,7 +90,7 @@ extension SwiftProjection {
                         let: true,
                         name: toMemberName(field),
                         type: .identifier(name: "Self", allowKeyword: true),
-                        initializer: "Self(\(value))")
+                        initializer: "Self(rawValue: \(value))")
                 }
             }
         }

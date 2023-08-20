@@ -186,7 +186,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         visibility: SwiftVisibility = .implicit,
         privateVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
-        `let`: Bool,
+        `let`: Bool = false,
         name: String,
         type: SwiftType,
         initializer: String? = nil) {
