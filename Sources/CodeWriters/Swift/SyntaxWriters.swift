@@ -213,6 +213,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
     public func writeComputedProperty(
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
+        override: Bool = false,
         name: String, type: SwiftType,
         throws: Bool = false,
         get: (inout SwiftStatementWriter) -> Void,
@@ -224,6 +225,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
+        if `override` { output.write("override ") }
         output.write("var ")
         SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
@@ -255,6 +257,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
     public func writeFunc(
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
+        override: Bool = false,
         name: String,
         typeParameters: [String] = [],
         parameters: [SwiftParameter],
@@ -266,6 +269,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         writeFuncHeader(
             visibility: visibility,
             static: `static`,
+            override: `override`,
             name: name,
             typeParameters: typeParameters,
             parameters: parameters,
@@ -376,6 +380,7 @@ extension SwiftSyntaxWriter {
     fileprivate func writeFuncHeader(
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
+        override: Bool = false,
         name: String,
         typeParameters: [String] = [],
         parameters: [SwiftParameter],
@@ -385,6 +390,7 @@ extension SwiftSyntaxWriter {
         var output = output
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
+        if `override` { output.write("override ") }
         output.write("func ")
         SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)

@@ -51,13 +51,12 @@ extension SwiftProjection {
             }
         }
         else if let structDefinition = typeDefinition as? StructDefinition {
-            let protocolConformances = structDefinition.baseInterfaces.compactMap { toBaseType($0.interface) }
-                + [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]
+            // WinRT structs are PODs and cannot implement interfaces
             writer.writeStruct(
                 visibility: visibility,
                 name: toTypeName(structDefinition),
                 typeParameters: structDefinition.genericParams.map { $0.name },
-                protocolConformances: protocolConformances) { writer in
+                protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) { writer in
 
                 writeFields(of: structDefinition, defaultInit: true, to: writer)
                 writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
@@ -69,18 +68,23 @@ extension SwiftProjection {
             // so we cannot guarantee that the enumerants are exhaustive,
             // therefore we cannot project them to Swift enums
             // since they would be unable to represent unknown values.
-            let isOptionSet = enumDefinition.isFlags
             writer.writeStruct(
                 visibility: visibility,
                 name: toTypeName(enumDefinition),
                 protocolConformances: [
-                    .identifier(name: isOptionSet ? "OptionSet" : "RawRepresentable"),
+                    .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
                     .identifier(name: "Hashable"),
                     .identifier(name: "Codable") ]) { writer in
 
                 let rawValueType = try! toType(enumDefinition.underlyingType.bindNode())
                 writer.writeTypeAlias(visibility: .public, name: "RawValue", target: rawValueType)
                 writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType)
+
+                writer.writeInit(
+                    visibility: .public,
+                    parameters: [ .init(name: "rawValue", type:rawValueType) ]) {
+                    $0.output.write("self.rawValue = rawValue")
+                }
 
                 for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                     let value = Self.toConstant(try! field.literalValue!)
@@ -146,7 +150,7 @@ extension SwiftProjection {
 
             // We can't generate non-const static fields
             let literalValue = try? field.literalValue
-            guard !field.isStatic || literalValue != nil else { continue }
+            guard field.isInstance || literalValue != nil else { continue }
 
             let type = try! toType(field.type)
             writer.writeStoredProperty(
@@ -155,13 +159,13 @@ extension SwiftProjection {
                 let: literalValue != nil,
                 name: toMemberName(field),
                 type: type,
-                initializer: literalValue.flatMap(Self.toConstant) ?? (!field.isStatic && defaultInit ? getDefaultValue(type) : nil))
+                initializer: literalValue.flatMap(Self.toConstant) ?? (field.isInstance && defaultInit ? getDefaultValue(type) : nil))
         }
     }
 
     fileprivate func writeFieldwiseInitializer(of structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) {
         let params = try! structDefinition.fields
-            .filter { $0.visibility == .public && !$0.isStatic }
+            .filter { $0.visibility == .public && $0.isInstance }
             .map { SwiftParameter(name: toMemberName($0), type: toType(try $0.type)) }
         guard !params.isEmpty else { return }
 
@@ -184,6 +188,7 @@ extension SwiftProjection {
             try? writer.writeComputedProperty(
                 visibility: Self.toVisibility(property.visibility),
                 static: property.isStatic,
+                override: (try? property.getter)?.isOverride ?? false,
                 name: toMemberName(property),
                 type: toType(property.type, allowImplicitUnwrap: true),
                 throws: setter == nil, // Swift has no syntax for get + set with throws
@@ -204,6 +209,7 @@ extension SwiftProjection {
                 try? writer.writeFunc(
                     visibility: Self.toVisibility(method.visibility),
                     static: method.isStatic,
+                    override: method.isOverride,
                     name: toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },
                     parameters: method.params.map(toParameter),
