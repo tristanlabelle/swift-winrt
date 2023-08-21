@@ -119,6 +119,28 @@ extension SwiftProjection {
         .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toType(param.type, allowImplicitUnwrap: true))
     }
 
+    func isOverriding(_ constructor: Constructor) throws -> Bool {
+        var type = constructor.definingType
+        let paramTypes = try constructor.params.map { $0.type }
+        while let baseType = type.base {
+            // We don't generate mscorlib types, so we can't shadow their constructors
+            guard !(baseType.definition.assembly is Mscorlib) else { break }
+
+            // Base classes should not be generic, see:
+            // https://learn.microsoft.com/en-us/uwp/winrt-cref/winrt-type-system
+            // "WinRT supports parameterization of interfaces and delegates."
+            assert(baseType.genericArgs.isEmpty)
+            if let matchingConstructor = baseType.definition.findMethod(name: Constructor.name, paramTypes: paramTypes),
+                Self.toVisibility(matchingConstructor.visibility) == .public {
+                return true
+            }
+
+            type = baseType.definition
+        }
+
+        return false
+    }
+
     static func toConstant(_ constant: Constant) -> String {
         switch constant {
             case let .boolean(value): return value ? "true" : "false"

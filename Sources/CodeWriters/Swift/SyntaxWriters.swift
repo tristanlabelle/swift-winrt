@@ -283,6 +283,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
 
     public func writeInit(
         visibility: SwiftVisibility = .implicit,
+        override: Bool = false,
         failable: Bool = false,
         parameters: [SwiftParameter],
         throws: Bool = false,
@@ -291,6 +292,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
+        if `override` { output.write("override ") }
         output.write("init")
         if failable { output.write("?") }
         writeParameters(parameters)

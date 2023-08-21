@@ -50,6 +50,7 @@ struct EntryPoint: ParsableCommand {
             let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName)
             module.addAssembly(assembly)
 
+            print("Gathering types from \(assembly.name)...")
             for typeDefinition in assembly.definedTypes {
                 if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) {
                     typeGraphWalker.walk(typeDefinition)
@@ -58,7 +59,10 @@ struct EntryPoint: ParsableCommand {
         }
 
         // Classify types into modules
+        print("Classifying types into modules...")
         for typeDefinition in typeGraphWalker.definitions {
+            guard !(typeDefinition.assembly is Mscorlib) else { continue }
+
             let module: SwiftProjection.Module
             if let existingModule = swiftProjection.assembliesToModules[typeDefinition.assembly] {
                 module = existingModule
