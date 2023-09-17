@@ -186,17 +186,30 @@ extension SwiftProjection {
 
     fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) {
         for property in classDefinition.properties {
-            guard Self.toVisibility(property.visibility) == .public else { continue }
-            let setter = try? property.setter
-            try? writer.writeComputedProperty(
-                visibility: .public,
-                static: property.isStatic,
-                override: (try? property.getter)?.isOverride ?? false,
-                name: toMemberName(property),
-                type: toType(property.type, allowImplicitUnwrap: true),
-                throws: setter == nil, // Swift has no syntax for get + set with throws
-                get: { $0.writeFatalError("Not implemented") },
-                set: setter == nil ? nil : { $0.writeFatalError("Not implemented") })
+            if let getter = try? property.getter, getter.isPublic {
+                try? writer.writeComputedProperty(
+                    visibility: .public,
+                    static: property.isStatic,
+                    override: getter.isOverride,
+                    name: toMemberName(property),
+                    type: toType(property.type, allowImplicitUnwrap: true),
+                    throws: true,
+                    get: { $0.writeFatalError("Not implemented") },
+                    set: nil)
+            }
+
+            if let setter = try? property.setter, setter.isPublic {
+                // Swift does not support throwing setters, so generate a method
+                try? writer.writeFunc(
+                    visibility: .public,
+                    static: property.isStatic,
+                    override: setter.isOverride,
+                    name: toMemberName(property),
+                    parameters: [.init(label: "_", name: "newValue", type: toType(property.type, allowImplicitUnwrap: true))],
+                    throws: true) {
+                        $0.writeFatalError("Not implemented")
+                    }
+            }
         }
 
         for method in classDefinition.methods {
@@ -232,13 +245,24 @@ extension SwiftProjection {
                 writer.writeAssociatedType(name: genericParam.name)
             }
 
-            for property in interface.properties.filter({ $0.visibility == .public }) {
-                try? writer.writeProperty(
-                    static: property.isStatic,
-                    name: toMemberName(property),
-                    type: toType(property.type, allowImplicitUnwrap: true),
-                    throws: property.setter == nil,
-                    set: property.setter != nil)
+            for property in interface.properties {
+                if let getter = try? property.getter, getter.isPublic {
+                    try? writer.writeProperty(
+                        static: property.isStatic,
+                        name: toMemberName(property),
+                        type: toType(property.type, allowImplicitUnwrap: true),
+                        throws: true,
+                        set: false)
+                }
+
+                if let setter = try? property.setter, setter.isPublic {
+                    try? writer.writeFunc(
+                        isPropertySetter: true,
+                        static: property.isStatic,
+                        name: toMemberName(property),
+                        parameters: [.init(label: "_", name: "newValue", type: toType(property.type, allowImplicitUnwrap: true))],
+                        throws: true)
+                }
             }
 
             for method in interface.methods.filter({ $0.visibility == .public }) {

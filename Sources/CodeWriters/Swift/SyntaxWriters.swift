@@ -159,6 +159,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     }
 
     public func writeFunc(
+        isPropertySetter: Bool = false,
         static: Bool = false,
         name: String,
         typeParameters: [String] = [],
@@ -166,7 +167,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
-        output.beginLine(grouping: .withName("protocolFunc"))
+        output.beginLine(grouping: .withName(isPropertySetter ? "protocolProperty" : "protocolFunc"))
         writeFuncHeader(
             visibility: .implicit,
             static: `static`,
