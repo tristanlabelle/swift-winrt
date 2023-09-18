@@ -92,7 +92,7 @@ struct EntryPoint: ParsableCommand {
         for module in swiftProjection.modulesByName.values {
             let outputDirectoryPath = "\(out)\\\(module.name)"
             try FileManager.default.createDirectory(atPath: outputDirectoryPath, withIntermediateDirectories: true)
-            swiftProjection.writeModule(module, outputDirectoryPath: outputDirectoryPath)
+            try swiftProjection.writeModule(module, outputDirectoryPath: outputDirectoryPath)
         }
     }
 

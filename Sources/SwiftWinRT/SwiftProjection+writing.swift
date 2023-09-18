@@ -3,7 +3,7 @@ import CodeWriters
 import Collections
 
 extension SwiftProjection {
-    func writeModule(_ module: Module, outputDirectoryPath: String) {
+    func writeModule(_ module: Module, outputDirectoryPath: String) throws {
         for (namespace, types) in module.typesByNamespace {
             let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
             print("Writing \(module.name)/compactNamespace.swift...")
@@ -23,16 +23,16 @@ extension SwiftProjection {
             for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
                 guard typeDefinition.visibility == .public else { continue }
                 if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
-                    writeProtocol(interfaceDefinition, to: sourceFileWriter)
+                    try writeProtocol(interfaceDefinition, to: sourceFileWriter)
                 }
                 else {
-                    writeTypeDefinition(typeDefinition, to: sourceFileWriter)
+                    try writeTypeDefinition(typeDefinition, to: sourceFileWriter)
                 }
             }
         }
     }
 
-    fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) {
+    fileprivate func writeTypeDefinition(_ typeDefinition: TypeDefinition, to writer: some SwiftTypeDeclarationWriter) throws {
         let visibility = Self.toVisibility(typeDefinition.visibility)
         if let classDefinition = typeDefinition as? ClassDefinition {
             // Do not generate Attribute classes since they are compile-time constructs
@@ -40,30 +40,30 @@ extension SwiftProjection {
                 return
             }
 
-            writer.writeClass(
+            try writer.writeClass(
                 visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
                 final: typeDefinition.isSealed,
                 name: toTypeName(typeDefinition),
                 typeParameters: typeDefinition.genericParams.map { $0.name },
                 base: toBaseType(typeDefinition.base),
-                protocolConformances: typeDefinition.baseInterfaces.compactMap { toBaseType($0.interface) }) { writer in
+                protocolConformances: typeDefinition.baseInterfaces.compactMap { toBaseType($0.interface) }) { writer throws in
 
-                writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
-                writeFields(of: classDefinition, defaultInit: false, to: writer)
-                writeMembers(of: classDefinition, to: writer)
+                try writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
+                try writeFields(of: classDefinition, defaultInit: false, to: writer)
+                try writeMembers(of: classDefinition, to: writer)
             }
         }
         else if let structDefinition = typeDefinition as? StructDefinition {
             // WinRT structs are PODs and cannot implement interfaces
-            writer.writeStruct(
+            try writer.writeStruct(
                 visibility: visibility,
                 name: toTypeName(structDefinition),
                 typeParameters: structDefinition.genericParams.map { $0.name },
-                protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) { writer in
+                protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) { writer throws in
 
-                writeFields(of: structDefinition, defaultInit: true, to: writer)
+                try writeFields(of: structDefinition, defaultInit: true, to: writer)
                 writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
-                writeFieldwiseInitializer(of: structDefinition, to: writer)
+                try writeFieldwiseInitializer(of: structDefinition, to: writer)
             }
         }
         else if let enumDefinition = typeDefinition as? EnumDefinition {
@@ -71,15 +71,15 @@ extension SwiftProjection {
             // so we cannot guarantee that the enumerants are exhaustive,
             // therefore we cannot project them to Swift enums
             // since they would be unable to represent unknown values.
-            writer.writeStruct(
+            try writer.writeStruct(
                 visibility: visibility,
                 name: toTypeName(enumDefinition),
                 protocolConformances: [
                     .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
                     .identifier(name: "Hashable"),
-                    .identifier(name: "Codable") ]) { writer in
+                    .identifier(name: "Codable") ]) { writer throws in
 
-                let rawValueType = try! toType(enumDefinition.underlyingType.bindNode())
+                let rawValueType = try toType(enumDefinition.underlyingType.bindNode())
                 writer.writeTypeAlias(visibility: .public, name: "RawValue", target: rawValueType)
                 writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType, initializer: "0")
                 writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
@@ -90,7 +90,7 @@ extension SwiftProjection {
                 }
 
                 for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
-                    let value = Self.toConstant(try! field.literalValue!)
+                    let value = Self.toConstant(try field.literalValue!)
                     writer.writeStoredProperty(
                         visibility: .public,
                         static: true,
@@ -102,7 +102,7 @@ extension SwiftProjection {
             }
         }
         else if let delegateDefinition = typeDefinition as? DelegateDefinition {
-            try? writer.writeTypeAlias(
+            try writer.writeTypeAlias(
                 visibility: visibility,
                 name: toTypeName(typeDefinition),
                 typeParameters: delegateDefinition.genericParams.map { $0.name },
@@ -115,7 +115,7 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) {
+    fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
         var baseTypes = typeDefinition.baseInterfaces.map { $0.interface }
         if let base = typeDefinition.base {
             baseTypes.insert(base, at: 0)
@@ -133,7 +133,7 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate func writeFields(of typeDefinition: TypeDefinition, defaultInit: Bool, to writer: SwiftRecordBodyWriter) {
+    fileprivate func writeFields(of typeDefinition: TypeDefinition, defaultInit: Bool, to writer: SwiftRecordBodyWriter) throws {
         // FIXME: Rather switch on TypeDefinition to properly handle enum cases
         func getDefaultValue(_ type: SwiftType) -> String? {
             if case .optional = type { return "nil" }
@@ -152,10 +152,10 @@ extension SwiftProjection {
             guard field.visibility == .public else { continue }
 
             // We can't generate non-const static fields
-            let literalValue = try? field.literalValue
+            let literalValue = try field.literalValue
             guard field.isInstance || literalValue != nil else { continue }
 
-            let type = try! toType(field.type)
+            let type = try toType(field.type)
             writer.writeStoredProperty(
                 visibility: Self.toVisibility(field.visibility),
                 static: field.isStatic,
@@ -166,8 +166,8 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate func writeFieldwiseInitializer(of structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) {
-        let params = try! structDefinition.fields
+    fileprivate func writeFieldwiseInitializer(of structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+        let params = try structDefinition.fields
             .filter { $0.visibility == .public && $0.isInstance }
             .map { SwiftParameter(name: toMemberName($0), type: toType(try $0.type)) }
         guard !params.isEmpty else { return }
@@ -184,10 +184,10 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) {
+    fileprivate func writeMembers(of classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) throws {
         for property in classDefinition.properties {
-            if let getter = try? property.getter, getter.isPublic {
-                try? writer.writeComputedProperty(
+            if let getter = try property.getter, getter.isPublic {
+                try writer.writeComputedProperty(
                     visibility: .public,
                     static: property.isStatic,
                     override: getter.isOverride,
@@ -198,9 +198,9 @@ extension SwiftProjection {
                     set: nil)
             }
 
-            if let setter = try? property.setter, setter.isPublic {
+            if let setter = try property.setter, setter.isPublic {
                 // Swift does not support throwing setters, so generate a method
-                try? writer.writeFunc(
+                try writer.writeFunc(
                     visibility: .public,
                     static: property.isStatic,
                     override: setter.isOverride,
@@ -216,14 +216,14 @@ extension SwiftProjection {
             guard Self.toVisibility(method.visibility) == .public else { continue }
             guard !method.isAccessor else { continue }
             if let constructor = method as? Constructor {
-                try? writer.writeInit(
+                try writer.writeInit(
                     visibility: .public,
-                    override: (try? isOverriding(constructor)) ?? false,
+                    override: try isOverriding(constructor),
                     parameters: method.params.map(toParameter),
                     throws: true) { $0.writeFatalError("Not implemented") }
             }
             else {
-                try? writer.writeFunc(
+                try writer.writeFunc(
                     visibility: .public,
                     static: method.isStatic,
                     override: method.isOverride,
@@ -236,18 +236,18 @@ extension SwiftProjection {
         }
     }
 
-    fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) {
-        writer.writeProtocol(
+    fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
+        try writer.writeProtocol(
             visibility: Self.toVisibility(interface.visibility),
             name: toTypeName(interface),
-            typeParameters: interface.genericParams.map { $0.name }) { writer in
+            typeParameters: interface.genericParams.map { $0.name }) { writer throws in
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
             }
 
             for property in interface.properties {
-                if let getter = try? property.getter, getter.isPublic {
-                    try? writer.writeProperty(
+                if let getter = try property.getter, getter.isPublic {
+                    try writer.writeProperty(
                         static: property.isStatic,
                         name: toMemberName(property),
                         type: toType(property.type, allowImplicitUnwrap: true),
@@ -255,8 +255,8 @@ extension SwiftProjection {
                         set: false)
                 }
 
-                if let setter = try? property.setter, setter.isPublic {
-                    try? writer.writeFunc(
+                if let setter = try property.setter, setter.isPublic {
+                    try writer.writeFunc(
                         isPropertySetter: true,
                         static: property.isStatic,
                         name: toMemberName(property),
@@ -267,7 +267,7 @@ extension SwiftProjection {
 
             for method in interface.methods.filter({ $0.visibility == .public }) {
                 guard !method.isAccessor else { continue }
-                try? writer.writeFunc(
+                try writer.writeFunc(
                     static: method.isStatic,
                     name: toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },

@@ -136,7 +136,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         grouping: VerticalGrouping? = nil,
         header: String? = nil,
         footer: String? = nil,
-        body: () -> Void) {
+        body: () throws -> Void) rethrows {
 
         if let grouping {
             beginLine(grouping: grouping)
@@ -154,7 +154,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         self.lineGrouping = nil
 
         indentLevel += 1
-        body()
+        try body()
         if case .end = lineState {}
         else { endLine() }
         indentLevel -= 1

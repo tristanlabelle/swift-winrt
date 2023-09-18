@@ -28,7 +28,7 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         name: String,
         typeParameters: [String] = [],
         bases: [SwiftType] = [],
-        members: (SwiftProtocolBodyWriter) -> Void) {
+        members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -37,8 +37,8 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(bases)
-        output.writeBracedIndentedBlock() {
-            members(.init(output: output))
+        try output.writeBracedIndentedBlock() {
+            try members(.init(output: output))
         }
     }
 }
@@ -53,7 +53,7 @@ extension SwiftTypeDeclarationWriter {
         typeParameters: [String] = [],
         base: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
-        body: (SwiftRecordBodyWriter) -> Void) {
+        body: (SwiftRecordBodyWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -63,8 +63,8 @@ extension SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([base].compactMap { $0 } + protocolConformances)
-        output.writeBracedIndentedBlock() {
-            body(.init(output: output))
+        try output.writeBracedIndentedBlock() {
+            try body(.init(output: output))
         }
     }
 
@@ -73,7 +73,7 @@ extension SwiftTypeDeclarationWriter {
         name: String,
         typeParameters: [String] = [],
         protocolConformances: [SwiftType] = [],
-        body: (SwiftRecordBodyWriter) -> Void) {
+        body: (SwiftRecordBodyWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -82,8 +82,8 @@ extension SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(protocolConformances)
-        output.writeBracedIndentedBlock() {
-            body(.init(output: output))
+        try output.writeBracedIndentedBlock() {
+            try body(.init(output: output))
         }
     }
 
@@ -93,7 +93,7 @@ extension SwiftTypeDeclarationWriter {
         typeParameters: [String] = [],
         rawValueType: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
-        body: (SwiftEnumBodyWriter) -> Void) {
+        body: (SwiftEnumBodyWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -102,8 +102,8 @@ extension SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
-        output.writeBracedIndentedBlock() {
-            body(.init(output: output))
+        try output.writeBracedIndentedBlock() {
+            try body(.init(output: output))
         }
     }
 
@@ -217,8 +217,8 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         override: Bool = false,
         name: String, type: SwiftType,
         throws: Bool = false,
-        get: (inout SwiftStatementWriter) -> Void,
-        set: ((inout SwiftStatementWriter) -> Void)? = nil) {
+        get: (inout SwiftStatementWriter) throws -> Void,
+        set: ((inout SwiftStatementWriter) throws -> Void)? = nil) rethrows {
 
         precondition(set == nil || !`throws`)
 
@@ -231,26 +231,26 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         SwiftIdentifiers.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
-        output.writeBracedIndentedBlock() {
+        try output.writeBracedIndentedBlock() {
             if let set {
-                output.writeBracedIndentedBlock("get") {
+                try output.writeBracedIndentedBlock("get") {
                     var statementWriter = SwiftStatementWriter(output: output)
-                    get(&statementWriter)
+                    try get(&statementWriter)
                 }
-                output.writeBracedIndentedBlock("set") {
+                try output.writeBracedIndentedBlock("set") {
                     var statementWriter = SwiftStatementWriter(output: output)
-                    set(&statementWriter)
+                    try set(&statementWriter)
                 }
             }
             else if `throws` {
-                output.writeBracedIndentedBlock("get throws") {
+                try output.writeBracedIndentedBlock("get throws") {
                     var statementWriter = SwiftStatementWriter(output: output)
-                    get(&statementWriter)
+                    try get(&statementWriter)
                 }
             }
             else {
                 var statementWriter = SwiftStatementWriter(output: output)
-                get(&statementWriter)
+                try get(&statementWriter)
             }
         }
     }
@@ -264,7 +264,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         parameters: [SwiftParameter],
         throws: Bool = false,
         returnType: SwiftType? = nil,
-        body: (inout SwiftStatementWriter) -> Void) {
+        body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
         output.beginLine(grouping: .never)
         writeFuncHeader(
@@ -276,9 +276,9 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             parameters: parameters,
             throws: `throws`,
             returnType: returnType)
-        output.writeBracedIndentedBlock() {
+        try output.writeBracedIndentedBlock() {
             var statementWriter = SwiftStatementWriter(output: output)
-            body(&statementWriter)
+            try body(&statementWriter)
         }
     }
 
@@ -288,7 +288,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         failable: Bool = false,
         parameters: [SwiftParameter],
         throws: Bool = false,
-        body: (inout SwiftStatementWriter) -> Void) {
+        body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -301,9 +301,9 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             output.write(" throws")
         }
 
-        output.writeBracedIndentedBlock() {
+        try output.writeBracedIndentedBlock() {
             var statementWriter = SwiftStatementWriter(output: output)
-            body(&statementWriter)
+            try body(&statementWriter)
         }
     }
 }
@@ -341,9 +341,9 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
 }
 
 extension IndentedTextOutputStream {
-    fileprivate func writeBracedIndentedBlock(_ str: String = "", body: () -> Void) {
-        self.writeIndentedBlock(header: str + " {", footer: "}") {
-            body()
+    fileprivate func writeBracedIndentedBlock(_ str: String = "", body: () throws -> Void) rethrows {
+        try self.writeIndentedBlock(header: str + " {", footer: "}") {
+            try body()
         }
     }
 }
