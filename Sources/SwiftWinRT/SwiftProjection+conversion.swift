@@ -68,8 +68,7 @@ extension SwiftProjection {
                 let name = toTypeName(type.definition, any: type.definition is InterfaceDefinition)
                 let genericArgs = type.genericArgs.map { toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
-                if type.definition is InterfaceDefinition || type.definition is ClassDefinition
-                    && type.definition.fullName != "System.String" {
+                if type.definition.isReferenceType && type.definition.fullName != "System.String" {
                     result = .optional(wrapped: result, implicitUnwrap: allowImplicitUnwrap)
                 }
 
