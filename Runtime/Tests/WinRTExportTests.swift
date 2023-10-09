@@ -1,5 +1,4 @@
 import XCTest
-import COM
 import WindowsRuntime
 
 internal final class WinRTExportTests: XCTestCase {

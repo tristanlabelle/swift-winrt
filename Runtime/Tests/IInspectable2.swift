@@ -1,5 +1,4 @@
 import CABI
-import COM
 import WindowsRuntime
 
 internal protocol IInspectable2Protocol: IInspectableProtocol {}
