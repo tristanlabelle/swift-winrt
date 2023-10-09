@@ -5,12 +5,21 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftWinRT",
+    products: [
+        .executable(
+            name: "Generator",
+            targets: ["SwiftWinRT"]),
+        .library(
+            name: "Runtime",
+            targets: ["COM", "WindowsRuntime"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.2.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.4")),
         .package(url: "https://github.com/tristanlabelle/swift-dotnetmetadata", branch: "main")
     ],
     targets: [
+        // Code generator
         .executableTarget(
             name: "SwiftWinRT",
             dependencies: [
@@ -19,13 +28,35 @@ let package = Package(
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata"),
                 .target(name: "CodeWriters")
             ],
+            path: "Generator/Sources/SwiftWinRT",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
         .target(
-            name: "CodeWriters"),
+            name: "CodeWriters",
+            path: "Generator/Sources/CodeWriters"),
         .testTarget(
-            name: "CodeWritersTests",
+            name: "GeneratorTests",
             dependencies: ["CodeWriters"],
+            path: "Generator/Tests",
+            // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
+            linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
+
+        // Runtime libraries
+        .target(
+            name: "CABI",
+            path: "Runtime/Sources/CABI"),
+        .target(
+            name: "COM",
+            dependencies: ["CABI"],
+            path: "Runtime/Sources/COM"),
+        .target(
+            name: "WindowsRuntime",
+            dependencies: ["CABI", "COM"],
+            path: "Runtime/Sources/WindowsRuntime"),
+        .testTarget(
+            name: "RuntimeTests",
+            dependencies: ["COM", "WindowsRuntime"],
+            path: "Runtime/Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
     ]
