@@ -29,29 +29,29 @@ struct TypeGraphWalker {
         self.publicMembersOnly = publicMembersOnly
     }
 
-    public mutating func walk(_ type: TypeDefinition) {
+    public mutating func walk(_ type: TypeDefinition) throws {
         enqueue(type)
-        drainQueue()
+        try drainQueue()
     }
 
-    public mutating func walk(_ type: BoundType) {
-        enqueue(type, genericContext: nil)
-        drainQueue()
+    public mutating func walk(_ type: BoundType) throws {
+        try enqueue(type, genericContext: nil)
+        try drainQueue()
     }
 
-    public mutating func walk(_ type: TypeNode) {
-        enqueue(type, genericContext: nil)
-        drainQueue()
+    public mutating func walk(_ type: TypeNode) throws {
+        try enqueue(type, genericContext: nil)
+        try drainQueue()
     }
 
-    public mutating func walk(_ assembly: Assembly, namespace: String? = nil) {
+    public mutating func walk(_ assembly: Assembly, namespace: String? = nil) throws {
         for type in assembly.definedTypes {
             guard type.visibility == .public else { continue }
             guard namespace == nil || type.namespace == namespace else { continue }
             enqueue(type)
         }
 
-        drainQueue()
+        try drainQueue()
     }
 
     private mutating func enqueue(_ type: TypeDefinition) {
@@ -61,14 +61,14 @@ struct TypeGraphWalker {
     }
 
     @discardableResult
-    private mutating func enqueue(_ type: BoundType, genericContext: Dictionary<GenericParam, TypeNode>?) -> OpenOrClosed {
+    private mutating func enqueue(_ type: BoundType, genericContext: Dictionary<GenericParam, TypeNode>?) throws -> OpenOrClosed {
         guard !closedGenericTypes.contains(type) else { return .closed }
 
         enqueue(type.definition)
 
         var openOrClosed = OpenOrClosed.closed
         for genericArg in type.genericArgs {
-            if enqueue(genericArg, genericContext: genericContext) == .open {
+            if try enqueue(genericArg, genericContext: genericContext) == .open {
                 openOrClosed = .open
             }
         }
@@ -81,14 +81,14 @@ struct TypeGraphWalker {
     }
 
     @discardableResult
-    private mutating func enqueue(_ type: TypeNode, genericContext: Dictionary<GenericParam, TypeNode>?) -> OpenOrClosed {
+    private mutating func enqueue(_ type: TypeNode, genericContext: Dictionary<GenericParam, TypeNode>?) throws -> OpenOrClosed {
         switch type {
-            case let .bound(bound): return enqueue(bound, genericContext: genericContext)
-            case let .array(element): return enqueue(element, genericContext: genericContext)
-            case let .pointer(element): return enqueue(element, genericContext: genericContext)
-            case let .genericArg(genericParam):
+            case let .bound(bound): return try enqueue(bound, genericContext: genericContext)
+            case let .array(element): return try enqueue(element, genericContext: genericContext)
+            case let .pointer(element): return try enqueue(element, genericContext: genericContext)
+            case let .genericParam(genericParam):
                 if let genericContext, let genericArg = genericContext[genericParam] {
-                    return enqueue(genericArg, genericContext: genericContext)
+                    return try enqueue(genericArg, genericContext: genericContext)
                 }
                 else {
                     return .open
@@ -96,61 +96,54 @@ struct TypeGraphWalker {
         }
     }
 
-    private mutating func drainQueue() {
+    private mutating func drainQueue() throws {
         var genericArgs = Dictionary<GenericParam, TypeNode>()
         while let entry = memberVisitingQueue.popFirst() {
             switch entry {
                 case let .definition(type):
-                    enqueueMembers(type, genericContext: nil)
+                    try enqueueMembers(type, genericContext: nil)
 
                 case let .closedGenericType(type):
                     for i in 0..<type.genericArgs.count {
                         genericArgs[type.definition.genericParams[i]] = type.genericArgs[i]
                     }
-                    enqueueMembers(type.definition, genericContext: genericArgs)
+                    try enqueueMembers(type.definition, genericContext: genericArgs)
                     genericArgs.removeAll()
             }
         }
     }
 
-    private mutating func enqueueMembers(_ type: TypeDefinition, genericContext: Dictionary<GenericParam, TypeNode>?) {
-        if let base = type.base {
-            enqueue(base, genericContext: genericContext)
+    private mutating func enqueueMembers(_ type: TypeDefinition, genericContext: Dictionary<GenericParam, TypeNode>?) throws {
+        if let base = try type.base {
+            try enqueue(base, genericContext: genericContext)
         }
 
         for baseInterface in type.baseInterfaces {
-            enqueue(baseInterface.interface, genericContext: genericContext)
+            try enqueue(baseInterface.interface, genericContext: genericContext)
         }
 
         for field in type.fields {
             guard !publicMembersOnly || field.visibility == .public else { continue }
-            guard let type = try? field.type else { continue }
-            enqueue(type, genericContext: genericContext)
+            try enqueue(field.type, genericContext: genericContext)
         }
 
         for property in type.properties {
-            guard !publicMembersOnly || property.visibility == .public else { continue }
-            guard let type = try? property.type else { continue }
-            enqueue(type, genericContext: genericContext)
+            guard try !publicMembersOnly || property.getter?.visibility == .public else { continue }
+            try enqueue(property.type, genericContext: genericContext)
         }
 
         for event in type.events {
-            guard !publicMembersOnly || event.visibility == .public else { continue }
-            guard let handlerType = try? event.handlerType else { continue }
-            enqueue(handlerType, genericContext: genericContext)
+            guard try !publicMembersOnly || event.addAccessor?.visibility == .public else { continue }
+            try enqueue(event.handlerType, genericContext: genericContext)
         }
 
         for method in type.methods {
             guard !publicMembersOnly || method.visibility == .public else { continue }
-            if let params = try? method.params {
-                for param in params {
-                    enqueue(param.type, genericContext: genericContext)
-                }
+            for param in try method.params {
+                try enqueue(param.type, genericContext: genericContext)
             }
 
-            if let returnType = try? method.returnType {
-                enqueue(returnType, genericContext: genericContext)
-            }
+            try enqueue(method.returnType, genericContext: genericContext)
         }
     }
 }

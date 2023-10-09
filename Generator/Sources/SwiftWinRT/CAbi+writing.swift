@@ -65,7 +65,7 @@ extension CAbi {
             params.append(.init(type: .pointer(to: mangledName), name: "This"))
 
             for param in try method.params {
-                var type = CAbi.toCType(param.type)
+                var type = CAbi.toCType(try param.type)
                 if param.isByRef { type = type.withPointerIndirection() }
                 params.append(.init(type: type, name: param.name))
             }

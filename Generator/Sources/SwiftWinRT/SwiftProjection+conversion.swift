@@ -53,7 +53,7 @@ extension SwiftProjection {
         return type.genericArgs[0]
     }
 
-    func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) -> SwiftType {
+    func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) throws -> SwiftType {
         switch type {
             case let .bound(type):
                 // Remap primitive types
@@ -62,11 +62,11 @@ extension SwiftProjection {
                     return result
                 }
                 else if let optionalType = Self.tryGetIReferenceType(type) {
-                    return .optional(wrapped: toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
+                    return .optional(wrapped: try toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
                 }
 
-                let name = toTypeName(type.definition, any: type.definition is InterfaceDefinition)
-                let genericArgs = type.genericArgs.map { toType($0) }
+                let name = try toTypeName(type.definition, any: type.definition is InterfaceDefinition)
+                let genericArgs = try type.genericArgs.map { try toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
                 if type.definition.isReferenceType && type.definition.fullName != "System.String" {
                     result = .optional(wrapped: result, implicitUnwrap: allowImplicitUnwrap)
@@ -76,10 +76,10 @@ extension SwiftProjection {
 
             case let .array(element):
                 return .optional(
-                    wrapped: .array(element: toType(element)),
+                    wrapped: .array(element: try toType(element)),
                     implicitUnwrap: allowImplicitUnwrap)
 
-            case let .genericArg(param):
+            case let .genericParam(param):
                 return .identifier(name: param.name)
 
             default:
@@ -87,16 +87,16 @@ extension SwiftProjection {
         }
     }
 
-    func toReturnType(_ type: TypeNode) -> SwiftType? {
+    func toReturnType(_ type: TypeNode) throws -> SwiftType? {
         if case let .bound(type) = type,
             let mscorlib = type.definition.assembly as? Mscorlib,
             type.definition === mscorlib.specialTypes.void {
             return nil
         }
-        return toType(type, allowImplicitUnwrap: true)
+        return try toType(type, allowImplicitUnwrap: true)
     }
 
-    func toBaseType(_ type: BoundType?) -> SwiftType? {
+    func toBaseType(_ type: BoundType?) throws -> SwiftType? {
         guard let type else { return nil }
         if let mscorlib = type.definition.assembly as? Mscorlib {
             guard type.definition !== mscorlib.specialTypes.object else { return nil }
@@ -104,24 +104,24 @@ extension SwiftProjection {
 
         guard type.definition.visibility == .public else { return nil }
         // Generic arguments do not appear on base types in Swift, but as separate typealiases
-        return .identifier(name: toTypeName(type.definition))
+        return .identifier(name: try toTypeName(type.definition))
     }
 
-    func toTypeName(_ type: TypeDefinition, any: Bool = false) -> String {
+    func toTypeName(_ type: TypeDefinition, any: Bool = false) throws -> String {
         precondition(!any || type is InterfaceDefinition)
-        return assembliesToModules[type.assembly]!.getName(type, any: any)
+        return try assembliesToModules[type.assembly]!.getName(type, any: any)
     }
 
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
 
-    func toParameter(_ param: Param) -> SwiftParameter {
-        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: toType(param.type, allowImplicitUnwrap: true))
+    func toParameter(_ param: Param) throws -> SwiftParameter {
+        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: try toType(param.type, allowImplicitUnwrap: true))
     }
 
     func isOverriding(_ constructor: Constructor) throws -> Bool {
         var type = constructor.definingType
-        let paramTypes = try constructor.params.map { $0.type }
-        while let baseType = type.base {
+        let paramTypes = try constructor.params.map { try $0.type }
+        while let baseType = try type.base {
             // We don't generate mscorlib types, so we can't shadow their constructors
             guard !(baseType.definition.assembly is Mscorlib) else { break }
 

@@ -25,16 +25,16 @@ class SwiftProjection {
             self.name = name
         }
 
-        func getName(_ type: TypeDefinition, any: Bool = false) -> String {
+        func getName(_ type: TypeDefinition, any: Bool = false) throws -> String {
             // Map: Namespace.TypeName
             // To: Namespace_TypeName
             // Map: Namespace.Subnamespace.TypeName/NestedTypeName
             // To: NamespaceSubnamespace_TypeName_NestedTypeName
             precondition(!any || type is InterfaceDefinition)
 
-            var result: String = {
-                if let enclosingType = type.enclosingType {
-                    return getName(enclosingType, any: false) + "_"
+            var result: String = try {
+                if let enclosingType = try type.enclosingType {
+                    return try getName(enclosingType, any: false) + "_"
                 }
                 else {
                     return type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
@@ -67,7 +67,7 @@ class SwiftProjection {
 
         private static func getNamespaceOrEmpty(_ type: TypeDefinition) -> String {
             var namespacedType = type
-            while namespacedType.namespace == nil, let enclosingType = namespacedType.enclosingType {
+            while namespacedType.namespace == nil, let enclosingType = try? namespacedType.enclosingType {
                 namespacedType = enclosingType
             }
             return namespacedType.namespace ?? ""

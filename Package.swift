@@ -7,10 +7,10 @@ let package = Package(
     name: "SwiftWinRT",
     products: [
         .executable(
-            name: "Generator",
+            name: "SwiftWinRT",
             targets: ["SwiftWinRT"]),
         .library(
-            name: "Runtime",
+            name: "WindowsRuntime",
             targets: ["COM", "WindowsRuntime"]),
     ],
     dependencies: [

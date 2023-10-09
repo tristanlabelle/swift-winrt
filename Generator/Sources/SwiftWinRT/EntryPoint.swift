@@ -34,9 +34,9 @@ struct EntryPoint: ParsableCommand {
 
         // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
         struct AssemblyLoadError: Error {}
-        let context = MetadataContext(assemblyResolver: {
+        let context = AssemblyLoadContext(resolver: {
             guard $0.name == "mscorlib", let fx4Path = SystemAssemblyPaths.framework4 else { throw AssemblyLoadError() }
-            return try ModuleFile(path: "\(fx4Path)\\mscorlib.dll")
+            return try ModuleFile(path: "\(fx4Path)\\\(Mscorlib.filename)")
         })
 
         let swiftProjection = SwiftProjection()
@@ -44,7 +44,7 @@ struct EntryPoint: ParsableCommand {
 
         // Gather types from all referenced assemblies
         for reference in allReferences {
-            let assembly = try context.loadAssembly(path: reference)
+            let assembly = try context.load(path: reference)
 
             let (moduleName, moduleMapping) = Self.getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
             let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName)
@@ -53,7 +53,7 @@ struct EntryPoint: ParsableCommand {
             print("Gathering types from \(assembly.name)...")
             for typeDefinition in assembly.definedTypes {
                 if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) {
-                    typeGraphWalker.walk(typeDefinition)
+                    try typeGraphWalker.walk(typeDefinition)
                 }
             }
         }
@@ -77,7 +77,7 @@ struct EntryPoint: ParsableCommand {
         }
 
         // Establish references between modules
-        for assembly in context.loadedAssemblies {
+        for assembly in context.loadedAssembliesByName.values {
             guard !(assembly is Mscorlib) else { continue }
 
             if let sourceModule = swiftProjection.assembliesToModules[assembly] {

@@ -36,18 +36,18 @@ extension SwiftProjection {
         let visibility = Self.toVisibility(typeDefinition.visibility)
         if let classDefinition = typeDefinition as? ClassDefinition {
             // Do not generate Attribute classes since they are compile-time constructs
-            if classDefinition.base?.definition.fullName == "System.Attribute" {
+            if try classDefinition.base?.definition.fullName == "System.Attribute" {
                 return
             }
 
             try writer.writeClass(
                 visibility: visibility == .public && !typeDefinition.isSealed ? .open : .public,
                 final: typeDefinition.isSealed,
-                name: toTypeName(typeDefinition),
+                name: try toTypeName(typeDefinition),
                 typeParameters: typeDefinition.genericParams.map { $0.name },
-                base: toBaseType(typeDefinition.base),
-                protocolConformances: typeDefinition.baseInterfaces.compactMap { toBaseType($0.interface) }) { writer throws in
-
+                base: try toBaseType(typeDefinition.base),
+                protocolConformances: try typeDefinition.baseInterfaces.compactMap { try toBaseType($0.interface) }) {
+                writer throws in
                 try writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
                 try writeFields(of: classDefinition, defaultInit: false, to: writer)
                 try writeMembers(of: classDefinition, to: writer)
@@ -57,7 +57,7 @@ extension SwiftProjection {
             // WinRT structs are PODs and cannot implement interfaces
             try writer.writeStruct(
                 visibility: visibility,
-                name: toTypeName(structDefinition),
+                name: try toTypeName(structDefinition),
                 typeParameters: structDefinition.genericParams.map { $0.name },
                 protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) { writer throws in
 
@@ -73,7 +73,7 @@ extension SwiftProjection {
             // since they would be unable to represent unknown values.
             try writer.writeStruct(
                 visibility: visibility,
-                name: toTypeName(enumDefinition),
+                name: try toTypeName(enumDefinition),
                 protocolConformances: [
                     .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
                     .identifier(name: "Hashable"),
@@ -104,10 +104,10 @@ extension SwiftProjection {
         else if let delegateDefinition = typeDefinition as? DelegateDefinition {
             try writer.writeTypeAlias(
                 visibility: visibility,
-                name: toTypeName(typeDefinition),
+                name: try toTypeName(typeDefinition),
                 typeParameters: delegateDefinition.genericParams.map { $0.name },
                 target: .function(
-                    params: delegateDefinition.invokeMethod.params.map { toType($0.type) },
+                    params: delegateDefinition.invokeMethod.params.map { try toType($0.type) },
                     throws: true,
                     returnType: toType(delegateDefinition.invokeMethod.returnType)
                 )
@@ -116,15 +116,15 @@ extension SwiftProjection {
     }
 
     fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
-        var baseTypes = typeDefinition.baseInterfaces.map { $0.interface }
-        if let base = typeDefinition.base {
+        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface }
+        if let base = try typeDefinition.base {
             baseTypes.insert(base, at: 0)
         }
 
         var typeAliases: Collections.OrderedDictionary<String, SwiftType> = .init()
         for baseType in baseTypes {
             for (i, genericArg) in baseType.genericArgs.enumerated() {
-                typeAliases[baseType.definition.genericParams[i].name] = toType(genericArg)
+                typeAliases[baseType.definition.genericParams[i].name] = try toType(genericArg)
             }
         }
 
@@ -169,7 +169,7 @@ extension SwiftProjection {
     fileprivate func writeFieldwiseInitializer(of structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
         let params = try structDefinition.fields
             .filter { $0.visibility == .public && $0.isInstance }
-            .map { SwiftParameter(name: toMemberName($0), type: toType(try $0.type)) }
+            .map { SwiftParameter(name: toMemberName($0), type: try toType($0.type)) }
         guard !params.isEmpty else { return }
 
         writer.writeInit(visibility: .public, parameters: params) {
@@ -239,7 +239,7 @@ extension SwiftProjection {
     fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
         try writer.writeProtocol(
             visibility: Self.toVisibility(interface.visibility),
-            name: toTypeName(interface),
+            name: try toTypeName(interface),
             typeParameters: interface.genericParams.map { $0.name }) { writer throws in
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
@@ -281,11 +281,11 @@ extension SwiftProjection {
         // This enables the shorter "AnyIFoo?" syntax instead of "(any IFoo)?" or "Optional<any IFoo>"
         writer.writeTypeAlias(
             visibility: Self.toVisibility(interface.visibility),
-            name: toTypeName(interface, any: true),
+            name: try toTypeName(interface, any: true),
             typeParameters: interface.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
-                name: toTypeName(interface),
+                name: try toTypeName(interface),
                 genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
     }
 }
