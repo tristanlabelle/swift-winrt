@@ -8,21 +8,37 @@ Each assembly (or group of assemblies) is mapped to a Swift module.
 
 **Rationale**: Assemblies can have cyclical dependencies between internal types and form a DAG of dependencies between one another, which maps to how dependencies are handled in Swift modules.
 
-**Example**: The `UWP` module maps to the `Windows.winmd` union metadata assembly.
+**Example**: The `Windows.winmd` union metadata assembly could map to a single UWP module.
 
 ### Qualified type names
 Swift types include a namespace prefix.
 
 **Rationale**: Type names in assemblies are only unique when fully qualified by their namespace. For example, `Windows.winmd` has 15 non-unique short type names, including `AnimationDirection` under both `Windows.UI.Composition` and `Windows.UI.Xaml.Controls`, and `Panel` under both `Windows.Devices.Enumeration` and `Windows.UI.Xaml.Controls`.
 
-**Example**: `WindowsStorageStreams_IBuffer`
+**Example**: `WindowsUIComposition_AnimationDirection` and `WindowsUIXamlControls_AnimationDirection`
 
 ### Namespace modules
-One Swift module is declared for each namespace of an assembly module to provide typealias shorthands.
+One Swift module is declared for each namespace of an assembly module to provide typealias shorthands. Protocols cannot be typealiased so shorthand protocols are defined as conforming to the original qualified name protocol.
 
 **Rationale**: Importing those modules mimics "using namespace" declarations in C#, makes type names shorter, makes dependencies clearer, and allows for disambiguation using module name qualification.
 
-**Example**: `import UWP_WindowsStorageStreams`
+**Example**: 
+```swift
+// In UWP_Assembly module
+public struct WindowsFoundation_AsyncStatus { /* ... */ }
+public protocol WindowsFoundation_IClosableProtocol { /* .. */ }
+
+// In UWP_WindowsFoundation module
+import UWP_Assembly
+public typealias AsyncStatus = WindowsFoundation_AsyncStatus
+public protocol IClosableProtocol: WindowsFoundation_IClosableProtocol {}
+
+// In app module
+import UWP_WindowsFoundation
+class MyClosable: IClosableProtocol {
+    var status: AsyncStatus = .started
+}
+```
 
 ## Types
 ### Enums as structs
