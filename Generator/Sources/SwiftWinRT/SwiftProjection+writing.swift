@@ -237,9 +237,11 @@ extension SwiftProjection {
     }
 
     fileprivate func writeProtocol(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
+        let protocolName = try toProtocolName(interface)
+
         try writer.writeProtocol(
             visibility: Self.toVisibility(interface.visibility),
-            name: try toTypeName(interface),
+            name: protocolName,
             typeParameters: interface.genericParams.map { $0.name }) { writer throws in
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
@@ -281,11 +283,11 @@ extension SwiftProjection {
         // This enables the shorter "AnyIFoo?" syntax instead of "(any IFoo)?" or "Optional<any IFoo>"
         writer.writeTypeAlias(
             visibility: Self.toVisibility(interface.visibility),
-            name: try toTypeName(interface, any: true),
+            name: try toTypeName(interface),
             typeParameters: interface.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
-                name: try toTypeName(interface),
+                name: try protocolName,
                 genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
     }
 }

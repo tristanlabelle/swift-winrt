@@ -65,7 +65,7 @@ extension SwiftProjection {
                     return .optional(wrapped: try toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
                 }
 
-                let name = try toTypeName(type.definition, any: type.definition is InterfaceDefinition)
+                let name = try toTypeName(type.definition)
                 let genericArgs = try type.genericArgs.map { try toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
                 if type.definition.isReferenceType && type.definition.fullName != "System.String" {
@@ -107,9 +107,12 @@ extension SwiftProjection {
         return .identifier(name: try toTypeName(type.definition))
     }
 
-    func toTypeName(_ type: TypeDefinition, any: Bool = false) throws -> String {
-        precondition(!any || type is InterfaceDefinition)
-        return try assembliesToModules[type.assembly]!.getName(type, any: any)
+    func toTypeName(_ type: TypeDefinition) throws -> String {
+        try assembliesToModules[type.assembly]!.getName(type)
+    }
+
+    func toProtocolName(_ type: InterfaceDefinition) throws -> String {
+        try toTypeName(type) + "Protocol"
     }
 
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }

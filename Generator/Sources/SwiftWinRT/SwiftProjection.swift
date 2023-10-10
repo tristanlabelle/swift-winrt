@@ -25,23 +25,19 @@ class SwiftProjection {
             self.name = name
         }
 
-        func getName(_ type: TypeDefinition, any: Bool = false) throws -> String {
+        func getName(_ type: TypeDefinition) throws -> String {
             // Map: Namespace.TypeName
             // To: Namespace_TypeName
             // Map: Namespace.Subnamespace.TypeName/NestedTypeName
             // To: NamespaceSubnamespace_TypeName_NestedTypeName
-            precondition(!any || type is InterfaceDefinition)
-
             var result: String = try {
                 if let enclosingType = try type.enclosingType {
-                    return try getName(enclosingType, any: false) + "_"
+                    return try getName(enclosingType) + "_"
                 }
                 else {
                     return type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
                 }
             }()
-
-            if any { result += "Any" }
 
             result += canTrimGenericSuffix(type)
                 ? type.nameWithoutGenericSuffix
