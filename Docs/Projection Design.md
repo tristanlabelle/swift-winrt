@@ -13,7 +13,7 @@ Each assembly (or group of assemblies) is mapped to a Swift module.
 ### Qualified type names
 Swift types include a namespace prefix.
 
-**Rationale**: Type names in assemblies are only unique when fully qualified by their namespace. For example, the UWP declares multiple types with the same short name.
+**Rationale**: Type names in assemblies are only unique when fully qualified by their namespace. For example, `Windows.winmd` has 15 non-unique short type names, including `AnimationDirection` under both `Windows.UI.Composition` and `Windows.UI.Xaml.Controls`, and `Panel` under both `Windows.Devices.Enumeration` and `Windows.UI.Xaml.Controls`.
 
 **Example**: `WindowsStorageStreams_IBuffer`
 
