@@ -53,7 +53,8 @@ struct SwiftAssemblyModuleFileWriter {
         try sourceFileWriter.writeProtocol(
             visibility: SwiftProjection.toVisibility(interface.visibility),
             name: try projection.toProtocolName(interface),
-            typeParameters: interface.genericParams.map { $0.name }) { writer throws in
+            typeParameters: interface.genericParams.map { $0.name },
+            bases: [ .identifier(name: "IInspectableProtocol") ]) { writer throws in
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
             }
