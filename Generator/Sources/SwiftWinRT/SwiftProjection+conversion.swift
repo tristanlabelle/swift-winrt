@@ -96,7 +96,7 @@ extension SwiftProjection {
         guard let type else { return nil }
         if let mscorlib = type.definition.assembly as? Mscorlib,
             type.definition === mscorlib.specialTypes.object {
-            return SwiftType.anyObject
+            return nil
         }
 
         guard type.definition.visibility == .public else { return nil }
