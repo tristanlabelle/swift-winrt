@@ -85,7 +85,9 @@ struct TypeGraphWalker {
         switch type {
             case let .bound(bound): return try enqueue(bound, genericContext: genericContext)
             case let .array(element): return try enqueue(element, genericContext: genericContext)
-            case let .pointer(element): return try enqueue(element, genericContext: genericContext)
+            case let .pointer(element):
+                if let element { return try enqueue(element, genericContext: genericContext) }
+                else { return .closed }
             case let .genericParam(genericParam):
                 if let genericContext, let genericArg = genericContext[genericParam] {
                     return try enqueue(genericArg, genericContext: genericContext)

@@ -287,7 +287,7 @@ extension SwiftProjection {
             typeParameters: interface.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
-                name: try protocolName,
+                name: protocolName,
                 genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
     }
 }

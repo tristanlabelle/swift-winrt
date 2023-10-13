@@ -35,8 +35,8 @@ struct EntryPoint: ParsableCommand {
         // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
         struct AssemblyLoadError: Error {}
         let context = AssemblyLoadContext(resolver: {
-            guard $0.name == "mscorlib", let fx4Path = SystemAssemblyPaths.framework4 else { throw AssemblyLoadError() }
-            return try ModuleFile(path: "\(fx4Path)\\\(Mscorlib.filename)")
+            guard $0.name == "mscorlib", let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
+            return try ModuleFile(path: mscorlibPath)
         })
 
         let swiftProjection = SwiftProjection()
