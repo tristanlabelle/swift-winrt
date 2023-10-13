@@ -41,6 +41,12 @@ struct SwiftAssemblyModuleFileWriter {
         else if let enumDefinition = typeDefinition as? EnumDefinition {
             try writeEnumStruct(enumDefinition)
         }
+        else if let delegateDefinition = typeDefinition as? DelegateDefinition {
+            try writeFunctionTypeAlias(delegateDefinition)
+        }
+        else {
+            assertionFailure("Unexpected TypeDefinition kind: \(typeDefinition.kind)")
+        }
     }
 
     private func writeProtocol(_ interface: InterfaceDefinition) throws {
