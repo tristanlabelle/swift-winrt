@@ -145,6 +145,15 @@ extension SwiftProjection {
         return false
     }
 
+    func toAbiType(_ type: BoundType) -> SwiftType {
+        .identifierChain(abiModuleName, CAbi.mangleName(type: type))
+    }
+
+    func toAbiVTableType(_ type: BoundType) -> SwiftType {
+        guard type.definition is InterfaceDefinition else { fatalError("\(type) has no VTable") }
+        return .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix)
+    }
+
     static func toConstant(_ constant: Constant) -> String {
         switch constant {
             case let .boolean(value): return value ? "true" : "false"

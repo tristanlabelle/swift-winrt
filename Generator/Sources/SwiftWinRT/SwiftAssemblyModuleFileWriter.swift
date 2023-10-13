@@ -3,9 +3,9 @@ import CodeWriters
 import DotNetMetadata
 
 struct SwiftAssemblyModuleFileWriter {
-    private let sourceFileWriter: SwiftSourceFileWriter
-    private let module: SwiftProjection.Module
-    private var projection: SwiftProjection { module.projection }
+    internal let sourceFileWriter: SwiftSourceFileWriter
+    internal let module: SwiftProjection.Module
+    internal var projection: SwiftProjection { module.projection }
 
     init(path: String, module: SwiftProjection.Module) {
         self.sourceFileWriter = SwiftSourceFileWriter(output: FileTextOutputStream(path: path))
@@ -21,6 +21,10 @@ struct SwiftAssemblyModuleFileWriter {
         }
 
         sourceFileWriter.writeImport(module: "Foundation", struct: "UUID")
+    }
+
+    public func importCAbi() {
+        sourceFileWriter.writeImport(module: "CAbi")
     }
 
     public func writeTypeDefinition(_ typeDefinition: TypeDefinition) throws {

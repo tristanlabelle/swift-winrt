@@ -41,6 +41,21 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
             try members(.init(output: output))
         }
     }
+
+    public func writeExtension(
+        name: String,
+        protocolConformances: [SwiftType] = [],
+        members: (SwiftRecordBodyWriter) throws -> Void) rethrows {
+
+        var output = output
+        output.beginLine(grouping: .never)
+        output.write("extension ")
+        SwiftIdentifiers.write(name, to: &output)
+        writeInheritanceClause(protocolConformances)
+        try output.writeBracedIndentedBlock() {
+            try members(.init(output: output))
+        }
+    }
 }
 
 public protocol SwiftTypeDeclarationWriter: SwiftSyntaxWriter {}
@@ -185,25 +200,27 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
 
     public func writeStoredProperty(
         visibility: SwiftVisibility = .implicit,
-        privateVisibility: SwiftVisibility = .implicit,
+        setVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
         `let`: Bool = false,
         name: String,
-        type: SwiftType,
+        type: SwiftType? = nil,
         initializer: String? = nil) {
 
         var output = output
         output.beginLine(grouping: .withName("storedProperty"))
         visibility.write(to: &output, trailingSpace: true)
-        if privateVisibility != .implicit {
-            privateVisibility.write(to: &output, trailingSpace: false)
+        if setVisibility != .implicit {
+            setVisibility.write(to: &output, trailingSpace: false)
             output.write("(set) ")
         }
         if `static` { output.write("static ") }
         output.write(`let` ? "let " : "var ")
         SwiftIdentifiers.write(name, to: &output)
-        output.write(": ")
-        type.write(to: &output)
+        if let type {
+            output.write(": ")
+            type.write(to: &output)
+        }
         if let initializer {
             output.write(" = ")
             output.write(initializer)

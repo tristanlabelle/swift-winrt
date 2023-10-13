@@ -110,10 +110,11 @@ struct EntryPoint: ParsableCommand {
                 try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
 
                 let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module)
-                let _ = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module)
+                let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module)
                 let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
                 for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
+                    try projectionsWriter.writeProjection(typeDefinition)
                     try aliasesWriter.writeAlias(typeDefinition)
                 }
             }

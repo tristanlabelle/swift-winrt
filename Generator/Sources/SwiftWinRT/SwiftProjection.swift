@@ -4,6 +4,8 @@ class SwiftProjection {
     private(set) var modulesByName: [String: Module] = .init()
     private(set) var assembliesToModules: [Assembly: Module] = .init()
 
+    var abiModuleName: String { "CAbi" }
+
     func addModule(_ name: String) -> Module {
         let module = Module(projection: self, name: name)
         modulesByName[name] = module
