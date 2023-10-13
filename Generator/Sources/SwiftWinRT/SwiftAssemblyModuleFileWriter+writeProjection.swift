@@ -59,15 +59,28 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private static func toIIDInitializer(_ guidAttribute: GuidAttribute) throws -> String {
+        func toPrefixedPaddedHex<Value: UnsignedInteger & FixedWidthInteger>(
+            _ value: Value,
+            minimumLength: Int = MemoryLayout<Value>.size * 2) -> String {
+
+            var hex = String(value, radix: 16, uppercase: true)
+            if hex.count < minimumLength {
+                hex.insert(contentsOf: String(repeating: "0", count: minimumLength - hex.count), at: hex.startIndex)
+            }
+            hex.insert(contentsOf: "0x", at: hex.startIndex)
+            return hex
+        }
+
         let arguments = [
-            String(format: "0x%08X", guidAttribute.a),
-            String(format: "0x%04X", guidAttribute.b),
-            String(format: "0x%04X", guidAttribute.c),
-            String(format: "0x%04X", (UInt16(guidAttribute.d) << 8) | UInt16(guidAttribute.e)),
-            String(format: "0x%012X",
+            toPrefixedPaddedHex(guidAttribute.a),
+            toPrefixedPaddedHex(guidAttribute.b),
+            toPrefixedPaddedHex(guidAttribute.c),
+            toPrefixedPaddedHex((UInt16(guidAttribute.d) << 8) | UInt16(guidAttribute.e)),
+            toPrefixedPaddedHex(
                 (UInt64(guidAttribute.f) << 40) | (UInt64(guidAttribute.g) << 32)
-                | (UInt64(guidAttribute.h) << 40) | (UInt64(guidAttribute.i) << 32)
-                | (UInt64(guidAttribute.j) << 40) | (UInt64(guidAttribute.k) << 32))
+                | (UInt64(guidAttribute.h) << 24) | (UInt64(guidAttribute.i) << 16)
+                | (UInt64(guidAttribute.j) << 8) | (UInt64(guidAttribute.k) << 0),
+                minimumLength: 12)
         ]
         return "IID(\(arguments.joined(separator: ", ")))"
     }
