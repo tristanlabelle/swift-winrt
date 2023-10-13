@@ -19,7 +19,7 @@ extension SwiftProjection {
         namespace.replacing(".", with: "")
     }
 
-    static func toType(mscorlibType: BoundType, allowImplicitUnwrap: Bool = false) -> SwiftType? {
+    static func toType(mscorlibType: BoundType, referenceNullability: ReferenceNullability) -> SwiftType? {
         guard mscorlibType.definition.namespace == "System" else { return nil }
         if mscorlibType.genericArgs.isEmpty {
             switch mscorlibType.definition.name {
@@ -34,7 +34,7 @@ extension SwiftProjection {
                 case "Single": return .float
                 case "Char": return .identifierChain("UTF16", "CodeUnit")
                 case "Guid": return .identifierChain("Foundation", "UUID")
-                case "Object": return .optional(wrapped: .any, implicitUnwrap: allowImplicitUnwrap)
+                case "Object": return referenceNullability.applyTo(type: .any)
 
                 default: return nil
             }
@@ -53,31 +53,29 @@ extension SwiftProjection {
         return type.genericArgs[0]
     }
 
-    func toType(_ type: TypeNode, allowImplicitUnwrap: Bool = false) throws -> SwiftType {
+    func toType(_ type: TypeNode, referenceNullability: ReferenceNullability = .explicit) throws -> SwiftType {
         switch type {
             case let .bound(type):
                 // Remap primitive types
                 if type.definition.assembly is Mscorlib,
-                    let result = Self.toType(mscorlibType: type, allowImplicitUnwrap: allowImplicitUnwrap) {
+                    let result = Self.toType(mscorlibType: type, referenceNullability: referenceNullability) {
                     return result
                 }
                 else if let optionalType = Self.tryGetIReferenceType(type) {
-                    return .optional(wrapped: try toType(optionalType), implicitUnwrap: allowImplicitUnwrap)
+                    return .optional(wrapped: try toType(optionalType, referenceNullability: .none), implicitUnwrap: false)
                 }
 
                 let name = try toTypeName(type.definition)
                 let genericArgs = try type.genericArgs.map { try toType($0) }
                 var result: SwiftType = .identifier(name: name, genericArgs: genericArgs)
                 if type.definition.isReferenceType && type.definition.fullName != "System.String" {
-                    result = .optional(wrapped: result, implicitUnwrap: allowImplicitUnwrap)
+                    result = referenceNullability.applyTo(type: result)
                 }
 
                 return result
 
             case let .array(element):
-                return .optional(
-                    wrapped: .array(element: try toType(element)),
-                    implicitUnwrap: allowImplicitUnwrap)
+                return referenceNullability.applyTo(type: .array(element: try toType(element)))
 
             case let .genericParam(param):
                 return .identifier(name: param.name)
@@ -93,7 +91,7 @@ extension SwiftProjection {
             type.definition === mscorlib.specialTypes.void {
             return nil
         }
-        return try toType(type, allowImplicitUnwrap: true)
+        return try toType(type, referenceNullability: .none)
     }
 
     func toBaseType(_ type: BoundType?) throws -> SwiftType? {
@@ -118,7 +116,7 @@ extension SwiftProjection {
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
 
     func toParameter(_ param: Param) throws -> SwiftParameter {
-        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: try toType(param.type, allowImplicitUnwrap: true))
+        .init(label: "_", name: param.name!, `inout`: param.isByRef, type: try toType(param.type))
     }
 
     func isOverriding(_ constructor: Constructor) throws -> Bool {

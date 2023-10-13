@@ -40,7 +40,9 @@ struct EntryPoint: ParsableCommand {
         })
 
         let swiftProjection = SwiftProjection()
-        var typeGraphWalker = TypeGraphWalker(publicMembersOnly: true)
+        var typeGraphWalker = TypeGraphWalker(
+            filter: { $0.namespace?.starts(with: "System.") != true },
+            publicMembersOnly: true)
 
         // Gather types from all referenced assemblies
         for reference in allReferences {

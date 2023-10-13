@@ -192,7 +192,7 @@ extension SwiftProjection {
                     static: property.isStatic,
                     override: getter.isOverride,
                     name: toMemberName(property),
-                    type: toType(property.type, allowImplicitUnwrap: true),
+                    type: toType(property.type, referenceNullability: .none),
                     throws: true,
                     get: { $0.writeFatalError("Not implemented") },
                     set: nil)
@@ -205,7 +205,7 @@ extension SwiftProjection {
                     static: property.isStatic,
                     override: setter.isOverride,
                     name: toMemberName(property),
-                    parameters: [.init(label: "_", name: "newValue", type: toType(property.type, allowImplicitUnwrap: true))],
+                    parameters: [.init(label: "_", name: "newValue", type: toType(property.type, referenceNullability: .none))],
                     throws: true) {
                         $0.writeFatalError("Not implemented")
                     }
@@ -252,7 +252,7 @@ extension SwiftProjection {
                     try writer.writeProperty(
                         static: property.isStatic,
                         name: toMemberName(property),
-                        type: toType(property.type, allowImplicitUnwrap: true),
+                        type: toType(property.type, referenceNullability: .none),
                         throws: true,
                         set: false)
                 }
@@ -262,7 +262,7 @@ extension SwiftProjection {
                         isPropertySetter: true,
                         static: property.isStatic,
                         name: toMemberName(property),
-                        parameters: [.init(label: "_", name: "newValue", type: toType(property.type, allowImplicitUnwrap: true))],
+                        parameters: [.init(label: "_", name: "newValue", type: toType(property.type))],
                         throws: true)
                 }
             }
