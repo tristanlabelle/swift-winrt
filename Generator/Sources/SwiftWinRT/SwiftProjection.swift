@@ -11,7 +11,7 @@ class SwiftProjection {
     }
 
     class Module {
-        private unowned let projection: SwiftProjection
+        public unowned let projection: SwiftProjection
         public let name: String
         private(set) var typesByNamespace: [String: Set<TypeDefinition>] = .init()
         private(set) var references: Set<Reference> = []
@@ -25,19 +25,18 @@ class SwiftProjection {
             self.name = name
         }
 
-        func getName(_ type: TypeDefinition) throws -> String {
+        func getName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
             // Map: Namespace.TypeName
             // To: Namespace_TypeName
             // Map: Namespace.Subnamespace.TypeName/NestedTypeName
             // To: NamespaceSubnamespace_TypeName_NestedTypeName
-            var result: String = try {
-                if let enclosingType = try type.enclosingType {
-                    return try getName(enclosingType) + "_"
-                }
-                else {
-                    return type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
-                }
-            }()
+            var result: String = ""
+            if let enclosingType = try type.enclosingType {
+                result += try getName(enclosingType, namespaced: namespaced) + "_"
+            }
+            else if namespaced {
+                result += type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
+            }
 
             result += canTrimGenericSuffix(type)
                 ? type.nameWithoutGenericSuffix

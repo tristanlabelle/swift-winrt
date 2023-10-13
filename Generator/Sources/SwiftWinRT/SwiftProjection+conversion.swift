@@ -2,15 +2,13 @@ import DotNetMetadata
 import CodeWriters
 
 extension SwiftProjection {
-    static func toVisibility(_ visibility: DotNetMetadata.Visibility) -> SwiftVisibility {
+    static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
         switch visibility {
             case .compilerControlled: return .fileprivate
             case .private: return .private
-            case .assembly: return .internal
-            case .familyAndAssembly: return .internal
-            case .familyOrAssembly: return .public
-            case .family: return .public
-            case .public: return .public
+            case .assembly, .familyAndAssembly: return .internal
+            case .familyOrAssembly, .family, .public:
+                return inheritableClass ? .open : .public
         }
     }
 
@@ -96,21 +94,27 @@ extension SwiftProjection {
 
     func toBaseType(_ type: BoundType?) throws -> SwiftType? {
         guard let type else { return nil }
-        if let mscorlib = type.definition.assembly as? Mscorlib {
-            guard type.definition !== mscorlib.specialTypes.object else { return nil }
+        if let mscorlib = type.definition.assembly as? Mscorlib,
+            type.definition === mscorlib.specialTypes.object {
+            return SwiftType.anyObject
         }
 
         guard type.definition.visibility == .public else { return nil }
         // Generic arguments do not appear on base types in Swift, but as separate typealiases
-        return .identifier(name: try toTypeName(type.definition))
+        if let interfaceDefinition = type.definition as? InterfaceDefinition {
+            return .identifier(name: try toProtocolName(interfaceDefinition))
+        }
+        else {
+            return .identifier(name: try toTypeName(type.definition))
+        }
     }
 
-    func toTypeName(_ type: TypeDefinition) throws -> String {
-        try assembliesToModules[type.assembly]!.getName(type)
+    func toTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
+        try assembliesToModules[type.assembly]!.getName(type, namespaced: namespaced)
     }
 
-    func toProtocolName(_ type: InterfaceDefinition) throws -> String {
-        try toTypeName(type) + "Protocol"
+    func toProtocolName(_ type: InterfaceDefinition, namespaced: Bool = true) throws -> String {
+        try toTypeName(type, namespaced: namespaced) + "Protocol"
     }
 
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }

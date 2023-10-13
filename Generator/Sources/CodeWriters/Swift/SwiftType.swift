@@ -39,6 +39,7 @@ public enum SwiftType {
 extension SwiftType {
     public static let void = SwiftType.identifier(name: "Void")
     public static let any = SwiftType.identifier(name: "Any", allowKeyword: true)
+    public static let anyObject = SwiftType.identifier(name: "AnyObject")
     public static let never = SwiftType.identifier(name: "Never")
     public static let bool = SwiftType.identifier(name: "Bool")
     public static let float = SwiftType.identifier(name: "Float")

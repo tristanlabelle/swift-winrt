@@ -41,7 +41,9 @@ struct EntryPoint: ParsableCommand {
 
         let swiftProjection = SwiftProjection()
         var typeGraphWalker = TypeGraphWalker(
-            filter: { $0.namespace?.starts(with: "System.") != true },
+            filter: {
+                $0.namespace?.starts(with: "System.") != true && (try? $0.base?.definition.fullName) != "System.Attribute"
+            },
             publicMembersOnly: true)
 
         // Gather types from all referenced assemblies
@@ -92,9 +94,29 @@ struct EntryPoint: ParsableCommand {
         }
 
         for module in swiftProjection.modulesByName.values {
-            let outputDirectoryPath = "\(out)\\\(module.name)"
-            try FileManager.default.createDirectory(atPath: outputDirectoryPath, withIntermediateDirectories: true)
-            try swiftProjection.writeModule(module, outputDirectoryPath: outputDirectoryPath)
+            let moduleRootPath = "\(out)\\\(module.name)"
+            let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
+            try FileManager.default.createDirectory(atPath: assemblyModuleDirectoryPath, withIntermediateDirectories: true)
+
+            // For each namespace
+            for (namespace, types) in module.typesByNamespace {
+                let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
+                print("Writing \(module.name)/\(compactNamespace).swift...")
+
+                let definitionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace).swift"
+                let projectionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)+Projections.swift"
+                let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
+                let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
+                try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
+
+                let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module)
+                let _ = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module)
+                let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
+                for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
+                    try definitionsWriter.writeTypeDefinition(typeDefinition)
+                    try aliasesWriter.writeAlias(typeDefinition)
+                }
+            }
         }
     }
 
