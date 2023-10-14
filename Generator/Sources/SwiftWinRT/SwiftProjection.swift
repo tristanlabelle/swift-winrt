@@ -3,8 +3,11 @@ import DotNetMetadata
 class SwiftProjection {
     private(set) var modulesByName: [String: Module] = .init()
     private(set) var assembliesToModules: [Assembly: Module] = .init()
+    let abiModuleName: String
 
-    var abiModuleName: String { "CAbi" }
+    init(abiModuleName: String) {
+        self.abiModuleName = abiModuleName
+    }
 
     func addModule(_ name: String) -> Module {
         let module = Module(projection: self, name: name)

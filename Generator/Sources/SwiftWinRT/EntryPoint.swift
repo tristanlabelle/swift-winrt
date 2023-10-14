@@ -15,6 +15,9 @@ struct EntryPoint: ParsableCommand {
     @Option(name: .customLong("module-map"), help: "A path to a module map json file to use.")
     var moduleMap: String? = nil
 
+    @Option(name: .customLong("abi-module"), help: "The name of the C ABI module.")
+    var abiModuleName: String = "CAbi"
+
     @Option(help: "A path to the output directory.")
     var out: String
 
@@ -39,10 +42,11 @@ struct EntryPoint: ParsableCommand {
             return try ModuleFile(path: mscorlibPath)
         })
 
-        let swiftProjection = SwiftProjection()
+        let swiftProjection = SwiftProjection(abiModuleName: abiModuleName)
         var typeGraphWalker = TypeGraphWalker(
             filter: {
-                $0.namespace?.starts(with: "System.") != true && (try? $0.base?.definition.fullName) != "System.Attribute"
+                $0.namespace != "System" && $0.namespace?.starts(with: "System.") != true
+                    && $0.namespace != "Windows.Foundation.Metadata"
             },
             publicMembersOnly: true)
 
@@ -109,8 +113,8 @@ struct EntryPoint: ParsableCommand {
                 let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
                 try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
 
-                let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module)
-                let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module)
+                let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module, importAbiModule: false)
+                let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module, importAbiModule: true)
                 let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
                 for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
