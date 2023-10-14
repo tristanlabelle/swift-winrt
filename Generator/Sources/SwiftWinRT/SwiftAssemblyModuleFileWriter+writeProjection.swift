@@ -93,7 +93,7 @@ extension SwiftAssemblyModuleFileWriter {
                     name: projection.toMemberName(property),
                     parameters: [SwiftParameter(
                         label: "_", name: "newValue",
-                        type: projection.toType(property.type, referenceNullability: .explicit))],
+                        type: projection.toType(property.type))],
                     throws: true) { writer throws in
 
                     writer.writeNotImplemented()

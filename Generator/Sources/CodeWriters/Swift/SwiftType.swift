@@ -81,11 +81,18 @@ extension SwiftType {
 
         .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers))
     }
-    
+
     public static func identifierChain(
         protocolModifier: SwiftType.ProtocolModifier? = nil,
         _ identifiers: String...) -> SwiftType {
         
         .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers.map { Identifier($0) }))
+    }
+
+    public func unwrapOptional() -> SwiftType {
+        switch self {
+            case let .optional(wrapped, _): return wrapped
+            default: return self
+        }
     }
 }

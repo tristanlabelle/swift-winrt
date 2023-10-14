@@ -269,7 +269,7 @@ struct SwiftAssemblyModuleFileWriter {
                     static: property.isStatic,
                     override: setter.isOverride,
                     name: projection.toMemberName(property),
-                    parameters: [.init(label: "_", name: "newValue", type: projection.toType(property.type, referenceNullability: .explicit))],
+                    parameters: [.init(label: "_", name: "newValue", type: projection.toType(property.type))],
                     throws: true) { $0.writeNotImplemented() }
             }
         }
