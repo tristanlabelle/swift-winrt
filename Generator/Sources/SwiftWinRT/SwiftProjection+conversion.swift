@@ -83,13 +83,17 @@ extension SwiftProjection {
         }
     }
 
-    func toReturnType(_ type: TypeNode) throws -> SwiftType? {
+    func toReturnType(_ type: TypeNode) throws -> SwiftType {
+        try toType(type, referenceNullability: referenceReturnNullability)
+    }
+
+    func toReturnTypeUnlessVoid(_ type: TypeNode) throws -> SwiftType? {
         if case let .bound(type) = type,
             let mscorlib = type.definition.assembly as? Mscorlib,
             type.definition === mscorlib.specialTypes.void {
             return nil
         }
-        return try toType(type, referenceNullability: .none)
+        return try toReturnType(type)
     }
 
     func toBaseType(_ type: BoundType?) throws -> SwiftType? {
@@ -115,6 +119,10 @@ extension SwiftProjection {
 
     func toProtocolName(_ type: InterfaceDefinition, namespaced: Bool = true) throws -> String {
         try toTypeName(type, namespaced: namespaced) + "Protocol"
+    }
+
+    func toProjectionTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
+        try toTypeName(type, namespaced: namespaced) + "Projection"
     }
 
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
@@ -145,13 +153,15 @@ extension SwiftProjection {
         return false
     }
 
-    func toAbiType(_ type: BoundType) -> SwiftType {
-        .identifierChain(abiModuleName, CAbi.mangleName(type: type))
+    func toAbiType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
+        referenceNullability.applyTo(type:
+            .identifierChain(abiModuleName, CAbi.mangleName(type: type)))
     }
 
-    func toAbiVTableType(_ type: BoundType) -> SwiftType {
+    func toAbiVTableType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
         guard type.definition is InterfaceDefinition else { fatalError("\(type) has no VTable") }
-        return .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix)
+        return referenceNullability.applyTo(type:
+            .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
     }
 
     static func toConstant(_ constant: Constant) -> String {

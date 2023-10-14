@@ -355,6 +355,10 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
         }
         output.write(")", endLine: true)
     }
+
+    public func writeNotImplemented() {
+        writeFatalError("Not implemented: \\(#function)")
+    }
 }
 
 extension IndentedTextOutputStream {

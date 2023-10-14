@@ -15,47 +15,36 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeInterfaceProjection(_ interfaceDefinition: InterfaceDefinition) throws {
-        let swiftTypeName = try projection.toTypeName(interfaceDefinition)
-        let projectionName = swiftTypeName + "Projection"
+        let projectionTypeName = try projection.toProjectionTypeName(interfaceDefinition)
         try sourceFileWriter.writeClass(
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             final: true,
-            name: projectionName,
+            name: projectionTypeName,
             base: .identifier(
                 name: "WinRTProjectionBase",
-                genericArgs: [.identifier(name: projectionName)]),
+                genericArgs: [.identifier(name: projectionTypeName)]),
             protocolConformances: [
                 .identifier(name: "WinRTProjection"),
                 .identifier(name: try projection.toProtocolName(interfaceDefinition))
-            ]) { writer in
+            ]) { writer throws in
 
-            writer.writeTypeAlias(
-                visibility: .public,
-                name: "SwiftValue",
-                target: .identifier(name: swiftTypeName))
-            writer.writeTypeAlias(
-                visibility: .public,
-                name: "CStruct",
-                target: projection.toAbiType(interfaceDefinition.bind()))
-            writer.writeTypeAlias(
-                visibility: .public,
-                name: "CVTableStruct",
-                target: projection.toAbiVTableType(interfaceDefinition.bind()))
-
-            let guidAttribute = try GuidAttribute.get(from: interfaceDefinition)
-            writer.writeStoredProperty(
-                visibility: .public,
-                static: true,
-                let: true,
-                name: "iid",
-                initializer: try Self.toIIDInitializer(guidAttribute))
-            writer.writeStoredProperty(
-                visibility: .public,
-                static: true,
-                let: true,
-                name: "runtimeClassName",
-                initializer: "\"\(interfaceDefinition.fullName)\"")
+            try writeWinRTProjectionConformance(interfaceDefinition, to: writer)
+            try writeInterfaceMembersProjection(interfaceDefinition, to: writer)
         }
+    }
+
+    private func writeWinRTProjectionConformance(_ interfaceDefinition: InterfaceDefinition, to writer: SwiftRecordBodyWriter) throws {
+        writer.writeTypeAlias(visibility: .public, name: "SwiftValue",
+            target: try projection.toType(interfaceDefinition.bindNode(), referenceNullability: .none))
+        writer.writeTypeAlias(visibility: .public, name: "CStruct",
+            target: projection.toAbiType(interfaceDefinition.bind(), referenceNullability: .none))
+        writer.writeTypeAlias(visibility: .public, name: "CVTableStruct",
+            target: projection.toAbiVTableType(interfaceDefinition.bind(), referenceNullability: .none))
+
+        writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
+            initializer: try Self.toIIDInitializer(GuidAttribute.get(from: interfaceDefinition)))
+        writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
+            initializer: "\"\(interfaceDefinition.fullName)\"")
     }
 
     private static func toIIDInitializer(_ guidAttribute: GuidAttribute) throws -> String {
@@ -85,15 +74,55 @@ extension SwiftAssemblyModuleFileWriter {
         return "IID(\(arguments.joined(separator: ", ")))"
     }
 
+    private func writeInterfaceMembersProjection(_ interfaceDefinition: InterfaceDefinition, to writer: SwiftRecordBodyWriter) throws {
+        for property in interfaceDefinition.properties {
+            if let getter = try property.getter, getter.isPublic {
+                try writer.writeComputedProperty(
+                    visibility: .public,
+                    name: projection.toMemberName(property),
+                    type: projection.toReturnType(property.type),
+                    throws: true) { writer throws in
+
+                    writer.writeNotImplemented()
+                }
+            }
+
+            if let setter = try property.setter, setter.isPublic {
+                try writer.writeFunc(
+                    visibility: .public,
+                    name: projection.toMemberName(property),
+                    parameters: [SwiftParameter(
+                        label: "_", name: "newValue",
+                        type: projection.toType(interfaceDefinition.bindNode(), referenceNullability: .explicit))],
+                    throws: true) { writer throws in
+
+                    writer.writeNotImplemented()
+                }
+            }
+        }
+
+        for method in interfaceDefinition.methods {
+            if method.isPublic {
+                try writer.writeFunc(
+                    visibility: .public,
+                    name: projection.toMemberName(method),
+                    parameters: method.params.map(projection.toParameter),
+                    throws: true,
+                    returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
+
+                    writer.writeNotImplemented()
+                }
+            }
+        }
+    }
+
     private func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
         sourceFileWriter.writeExtension(
             name: try projection.toTypeName(enumDefinition),
             protocolConformances: [SwiftType.identifierChain("WindowsRuntime", "EnumProjection")]) { writer in
 
-            writer.writeTypeAlias(
-                visibility: .public,
-                name: "CEnum",
-                target: projection.toAbiType(enumDefinition.bind()))
+            writer.writeTypeAlias(visibility: .public, name: "CEnum",
+                target: projection.toAbiType(enumDefinition.bind(), referenceNullability: .none))
         }
     }
 }

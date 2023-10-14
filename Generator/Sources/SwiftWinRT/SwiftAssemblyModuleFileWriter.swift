@@ -63,7 +63,7 @@ struct SwiftAssemblyModuleFileWriter {
                     try writer.writeProperty(
                         static: property.isStatic,
                         name: projection.toMemberName(property),
-                        type: projection.toType(property.type, referenceNullability: .none),
+                        type: projection.toReturnType(property.type),
                         throws: true,
                         set: false)
                 }
@@ -86,7 +86,7 @@ struct SwiftAssemblyModuleFileWriter {
                     typeParameters: method.genericParams.map { $0.name },
                     parameters: method.params.map(projection.toParameter),
                     throws: true,
-                    returnType: projection.toReturnType(method.returnType))
+                    returnType: projection.toReturnTypeUnlessVoid(method.returnType))
             }
         }
     }
@@ -176,7 +176,7 @@ struct SwiftAssemblyModuleFileWriter {
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { try projection.toType($0.type) },
                 throws: true,
-                returnType: projection.toReturnType(delegateDefinition.invokeMethod.returnType) ?? SwiftType.void
+                returnType: projection.toReturnType(delegateDefinition.invokeMethod.returnType)
             )
         )
     }
@@ -258,9 +258,9 @@ struct SwiftAssemblyModuleFileWriter {
                     static: property.isStatic,
                     override: getter.isOverride,
                     name: projection.toMemberName(property),
-                    type: projection.toType(property.type, referenceNullability: .none),
+                    type: projection.toReturnType(property.type),
                     throws: true,
-                    get: { $0.writeFatalError("Not implemented") },
+                    get: { $0.writeNotImplemented() },
                     set: nil)
             }
 
@@ -271,10 +271,8 @@ struct SwiftAssemblyModuleFileWriter {
                     static: property.isStatic,
                     override: setter.isOverride,
                     name: projection.toMemberName(property),
-                    parameters: [.init(label: "_", name: "newValue", type: projection.toType(property.type, referenceNullability: .none))],
-                    throws: true) {
-                        $0.writeFatalError("Not implemented")
-                    }
+                    parameters: [.init(label: "_", name: "newValue", type: projection.toType(property.type, referenceNullability: .explicit))],
+                    throws: true) { $0.writeNotImplemented() }
             }
         }
 
@@ -286,7 +284,7 @@ struct SwiftAssemblyModuleFileWriter {
                     visibility: .public,
                     override: try projection.isOverriding(constructor),
                     parameters: method.params.map(projection.toParameter),
-                    throws: true) { $0.writeFatalError("Not implemented") }
+                    throws: true) { $0.writeNotImplemented() }
             }
             else {
                 try writer.writeFunc(
@@ -297,7 +295,7 @@ struct SwiftAssemblyModuleFileWriter {
                     typeParameters: method.genericParams.map { $0.name },
                     parameters: method.params.map(projection.toParameter),
                     throws: true,
-                    returnType: projection.toReturnType(method.returnType)) { $0.writeFatalError("Not implemented") }
+                    returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { $0.writeNotImplemented() }
             }
         }
     }
