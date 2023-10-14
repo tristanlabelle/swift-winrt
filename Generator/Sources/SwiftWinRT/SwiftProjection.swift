@@ -1,7 +1,7 @@
 import DotNetMetadata
 
 class SwiftProjection {
-    private(set) var modulesByName: [String: Module] = .init()
+    private(set) var modulesByShortName: [String: Module] = .init()
     private(set) var assembliesToModules: [Assembly: Module] = .init()
     let abiModuleName: String
     var referenceReturnNullability: ReferenceNullability { .none } 
@@ -10,15 +10,15 @@ class SwiftProjection {
         self.abiModuleName = abiModuleName
     }
 
-    func addModule(_ name: String) -> Module {
-        let module = Module(projection: self, name: name)
-        modulesByName[name] = module
+    func addModule(shortName: String) -> Module {
+        let module = Module(projection: self, shortName: shortName)
+        modulesByShortName[shortName] = module
         return module
     }
 
     class Module {
         public unowned let projection: SwiftProjection
-        public let name: String
+        public let shortName: String
         private(set) var typesByNamespace: [String: Set<TypeDefinition>] = .init()
         private(set) var references: Set<Reference> = []
 
@@ -26,10 +26,12 @@ class SwiftProjection {
         // we trim the arity suffix iff it wouldn't cause a name clash.
         private var fullNameToGenericPrefixTrimmabilityCache: [String: Bool] = .init()
 
-        init(projection: SwiftProjection, name: String) {
+        init(projection: SwiftProjection, shortName: String) {
             self.projection = projection
-            self.name = name
+            self.shortName = shortName
         }
+
+        var assemblyModuleName: String { shortName + "Assembly" }
 
         func getName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
             // Map: Namespace.TypeName

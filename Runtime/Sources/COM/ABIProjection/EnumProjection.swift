@@ -1,13 +1,12 @@
-public protocol EnumProjection: Hashable, ABIInertProjection 
-    where ABIValue == CEnum, SwiftValue == Self {
-    associatedtype CEnum: RawRepresentable where CEnum.RawValue: FixedWidthInteger & Hashable
+public protocol EnumProjection: RawRepresentable, ABIInertProjection 
+    where ABIValue == CEnum, SwiftValue == Self, RawValue: FixedWidthInteger & Hashable {
+    associatedtype CEnum: RawRepresentable where CEnum.RawValue == RawValue
 
-    var value: CEnum.RawValue { get }
-    init(_ value: CEnum.RawValue)
+    init(rawValue value: RawValue)
 }
 
 extension EnumProjection {
-    public init(_ value: CEnum) { self.init(value.rawValue) }
+    public init(_ value: CEnum) { self.init(rawValue: value.rawValue) }
     public static func toSwift(_ value: CEnum) -> Self { Self(value) }
-    public static func toABI(_ value: Self) throws -> CEnum { CEnum(rawValue: value.value)! }
+    public static func toABI(_ value: Self) throws -> CEnum { CEnum(rawValue: value.rawValue)! }
 }

@@ -55,7 +55,7 @@ struct EntryPoint: ParsableCommand {
             let assembly = try context.load(path: reference)
 
             let (moduleName, moduleMapping) = Self.getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
-            let module = swiftProjection.modulesByName[moduleName] ?? swiftProjection.addModule(moduleName)
+            let module = swiftProjection.modulesByShortName[moduleName] ?? swiftProjection.addModule(shortName: moduleName)
             module.addAssembly(assembly)
 
             print("Gathering types from \(assembly.name)...")
@@ -77,7 +77,7 @@ struct EntryPoint: ParsableCommand {
             }
             else {
                 let (moduleName, _) = Self.getModule(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
-                module = swiftProjection.addModule(moduleName)
+                module = swiftProjection.addModule(shortName: moduleName)
                 module.addAssembly(typeDefinition.assembly)
             }
 
@@ -97,15 +97,15 @@ struct EntryPoint: ParsableCommand {
             }
         }
 
-        for module in swiftProjection.modulesByName.values {
-            let moduleRootPath = "\(out)\\\(module.name)"
+        for module in swiftProjection.modulesByShortName.values {
+            let moduleRootPath = "\(out)\\\(module.shortName)"
             let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
             try FileManager.default.createDirectory(atPath: assemblyModuleDirectoryPath, withIntermediateDirectories: true)
 
             // For each namespace
             for (namespace, types) in module.typesByNamespace {
                 let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
-                print("Writing \(module.name)/\(compactNamespace).swift...")
+                print("Writing \(module.shortName)/\(compactNamespace).swift...")
 
                 let definitionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace).swift"
                 let projectionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)+Projections.swift"

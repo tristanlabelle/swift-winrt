@@ -20,7 +20,7 @@ struct SwiftAssemblyModuleFileWriter {
         sourceFileWriter.writeImport(module: "WindowsRuntime")
 
         for reference in module.references {
-            sourceFileWriter.writeImport(module: reference.target.name)
+            sourceFileWriter.writeImport(module: reference.target.assemblyModuleName)
         }
 
         sourceFileWriter.writeImport(module: "Foundation", struct: "UUID")
@@ -32,7 +32,8 @@ struct SwiftAssemblyModuleFileWriter {
             try writeProtocolTypeAlias(interfaceDefinition)
         }
         else if let classDefinition = typeDefinition as? ClassDefinition {
-            try writeClass(classDefinition)
+            // Skip until we can generate interface members correctly
+            // try writeClass(classDefinition)
         }
         else if let structDefinition = typeDefinition as? StructDefinition {
             try writeStruct(structDefinition)
@@ -146,12 +147,9 @@ struct SwiftAssemblyModuleFileWriter {
                 .identifier(name: "Codable") ]) { writer throws in
 
             let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
-            writer.writeTypeAlias(visibility: .public, name: "RawValue", target: rawValueType)
-            writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType, initializer: "0")
-            writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
-            writer.writeInit(
-                visibility: .public,
-                parameters: [ .init(name: "rawValue", type:rawValueType) ]) {
+            writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType)
+            writer.writeInit(visibility: .public,
+                parameters: [ .init(name: "rawValue", type: rawValueType, defaultValue: "0") ]) {
                 $0.output.write("self.rawValue = rawValue")
             }
 
