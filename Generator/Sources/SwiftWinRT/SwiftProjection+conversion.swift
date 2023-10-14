@@ -96,6 +96,11 @@ extension SwiftProjection {
         return try toReturnType(type)
     }
 
+    func toBaseProtocol(_ interface: InterfaceDefinition) throws -> SwiftType {
+        // Protocols have no generic arguments in base type lists
+        .identifier(name: try toProtocolName(interface))
+    }
+
     func toBaseType(_ type: BoundType?) throws -> SwiftType? {
         guard let type else { return nil }
         if let mscorlib = type.definition.assembly as? Mscorlib,
@@ -106,7 +111,7 @@ extension SwiftProjection {
         guard type.definition.visibility == .public else { return nil }
         // Generic arguments do not appear on base types in Swift, but as separate typealiases
         if let interfaceDefinition = type.definition as? InterfaceDefinition {
-            return .identifier(name: try toProtocolName(interfaceDefinition))
+            return try toBaseProtocol(interfaceDefinition)
         }
         else {
             return .identifier(name: try toTypeName(type.definition))

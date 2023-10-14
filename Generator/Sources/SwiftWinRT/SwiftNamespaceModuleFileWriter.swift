@@ -18,21 +18,19 @@ struct SwiftNamespaceModuleFileWriter {
 
     func writeAlias(_ typeDefinition: TypeDefinition) throws {
         if let interface = typeDefinition as? InterfaceDefinition {
-            sourceFileWriter.writeProtocol(
+            try sourceFileWriter.writeProtocol(
                 visibility: SwiftProjection.toVisibility(interface.visibility),
-                name: try projection.toProtocolName(interface, namespaced: false),
+                name: projection.toProtocolName(interface, namespaced: false),
                 typeParameters: interface.genericParams.map { $0.name },
-                bases: [SwiftType.identifier(
-                    name: try projection.toProtocolName(interface),
-                    genericArgs: interface.genericParams.map { SwiftType.identifier(name: $0.name) })]) { _ in }
+                bases: [projection.toBaseProtocol(interface)]) { _ in }
         }
 
-        sourceFileWriter.writeTypeAlias(
+        try sourceFileWriter.writeTypeAlias(
             visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
-            name: try projection.toTypeName(typeDefinition, namespaced: false),
+            name: projection.toTypeName(typeDefinition, namespaced: false),
             typeParameters: typeDefinition.genericParams.map { $0.name },
             target: SwiftType.identifier(
-                name: try projection.toTypeName(typeDefinition),
+                name: projection.toTypeName(typeDefinition),
                 genericArgs: typeDefinition.genericParams.map { SwiftType.identifier(name: $0.name) }))
     }
 }
