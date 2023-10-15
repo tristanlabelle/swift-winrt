@@ -118,7 +118,9 @@ struct EntryPoint: ParsableCommand {
                 let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
                 for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
-                    try projectionsWriter.writeProjection(typeDefinition)
+                    if typeDefinition.genericArity == 0 {
+                        try projectionsWriter.writeProjection(typeDefinition.bind())
+                    }
                     try aliasesWriter.writeAlias(typeDefinition)
                 }
             }

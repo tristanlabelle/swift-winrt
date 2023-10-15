@@ -178,7 +178,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         static: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [SwiftParameter],
+        parameters: [SwiftParameter] = [],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -232,7 +232,8 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
-        name: String, type: SwiftType,
+        name: String,
+        type: SwiftType,
         throws: Bool = false,
         get: (inout SwiftStatementWriter) throws -> Void,
         set: ((inout SwiftStatementWriter) throws -> Void)? = nil) rethrows {
@@ -278,7 +279,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         override: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [SwiftParameter],
+        parameters: [SwiftParameter] = [],
         throws: Bool = false,
         returnType: SwiftType? = nil,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
@@ -303,7 +304,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         visibility: SwiftVisibility = .implicit,
         override: Bool = false,
         failable: Bool = false,
-        parameters: [SwiftParameter],
+        parameters: [SwiftParameter] = [],
         throws: Bool = false,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
@@ -412,7 +413,7 @@ extension SwiftSyntaxWriter {
         override: Bool = false,
         name: String,
         typeParameters: [String] = [],
-        parameters: [SwiftParameter],
+        parameters: [SwiftParameter] = [],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 

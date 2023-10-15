@@ -48,7 +48,13 @@ extension SwiftProjection {
     }
 
     func toProjectionTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
-        try toTypeName(type, namespaced: namespaced) + "Projection"
+        var typeName = try toTypeName(type, namespaced: namespaced)
+        if type is InterfaceDefinition || type is DelegateDefinition {
+            // protocols and function pointers cannot serve as the projection class,
+            // so an accompanying type provides the ABIProjection conformance.
+            typeName += "Projection"
+        }
+        return typeName
     }
 
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }

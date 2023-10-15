@@ -1,21 +1,28 @@
 import DotNetMetadata
 
-struct GuidAttribute {
-    public var a: UInt32
-    public var b: UInt16
-    public var c: UInt16
-    public var d: UInt8
-    public var e: UInt8
-    public var f: UInt8
-    public var g: UInt8
-    public var h: UInt8
-    public var i: UInt8
-    public var j: UInt8
-    public var k: UInt8
+extension WinMD {
+    struct Guid {
+        public var a: UInt32
+        public var b: UInt16
+        public var c: UInt16
+        public var d: UInt8
+        public var e: UInt8
+        public var f: UInt8
+        public var g: UInt8
+        public var h: UInt8
+        public var i: UInt8
+        public var j: UInt8
+        public var k: UInt8
+    }
 
-    public static func get(from interface: InterfaceDefinition) throws -> GuidAttribute {
-        // // [Windows.Foundation.Metadata.Guid(1516535814u, 33850, 19881, 134, 91, 157, 38, 229, 223, 173, 123)]
-        guard let attribute = try interface.attributes.first(where: {
+    public static func getGuid(_ type: BoundType) throws -> Guid {
+        // TODO: Support Guids of generic interfaces/delegates
+        try getGuid(type.definition)
+    }
+
+    public static func getGuid(_ type: TypeDefinition) throws -> Guid {
+        // [Windows.Foundation.Metadata.Guid(1516535814u, 33850, 19881, 134, 91, 157, 38, 229, 223, 173, 123)]
+        guard let attribute = try type.attributes.first(where: {
             try $0.type.fullName == "Windows.Foundation.Metadata.GuidAttribute"
         }) else { throw ProjectionError.invalidGuidAttribute }
 
@@ -37,7 +44,7 @@ struct GuidAttribute {
             return value
         }
 
-        return GuidAttribute(
+        return Guid(
             a: a, b: b, c: c,
             d: rest[0], e: rest[1], f: rest[2], g: rest[3], h: rest[4], i: rest[5], j: rest[6], k: rest[7])
     }
