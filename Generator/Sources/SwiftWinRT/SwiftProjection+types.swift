@@ -32,7 +32,7 @@ extension SwiftProjection {
             .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
     }
 
-    private func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
+    func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
         switch type {
             case let .bound(type):
                 // Remap primitive types
@@ -51,7 +51,10 @@ extension SwiftProjection {
                 let swiftType = SwiftType.identifier(name: swiftTypeName, genericArgs: swiftGenericArgs)
 
                 // Open generic types have no ABI representation
-                if type.isParameterized { return .init(swiftType: swiftType) }
+                guard !type.isParameterized else { return .init(swiftType: swiftType) }
+
+                // Only return projections which we can currently produce
+                guard type.definition is EnumDefinition || type.definition is InterfaceDefinition else { return .init(swiftType: swiftType) }
 
                 let abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
                 let projectionType: SwiftType
@@ -102,7 +105,8 @@ extension SwiftProjection {
                 case "Boolean":
                     return .init(
                         swiftType: .bool,
-                        abiType: .identifier(name: "BOOL"))
+                        abiType: .identifier(name: "boolean"),
+                        projectionType: .identifier(name: "BooleanProjection"))
                 case "SByte":
                     return .init(
                         swiftType: .int(bits: 8, signed: true),
@@ -130,8 +134,7 @@ extension SwiftProjection {
                 case "Guid":
                     // TODO: Provide GUID -> UUID Projection
                     return .init(
-                        swiftType: .identifierChain("Foundation", "UUID"),
-                        abiType: .identifier(name: "GUID"))
+                        swiftType: .identifierChain("Foundation", "UUID"))
                 case "String":
                     return .init(
                         swiftType: .string,

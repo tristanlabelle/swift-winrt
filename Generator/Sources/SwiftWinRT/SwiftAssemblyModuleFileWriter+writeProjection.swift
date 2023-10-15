@@ -76,6 +76,8 @@ extension SwiftAssemblyModuleFileWriter {
 
     private func writeInterfaceMembersProjection(_ interfaceDefinition: InterfaceDefinition, to writer: SwiftRecordBodyWriter) throws {
         for property in interfaceDefinition.properties {
+            let typeProjection = try projection.getTypeProjection(property.type)
+
             if let getter = try property.getter, getter.isPublic {
                 try writer.writeComputedProperty(
                     visibility: .public,
@@ -83,7 +85,17 @@ extension SwiftAssemblyModuleFileWriter {
                     type: projection.toReturnType(property.type),
                     throws: true) { writer throws in
 
-                    writer.writeNotImplemented()
+                    if let abiProjection = typeProjection.abi {
+                        switch abiProjection {
+                            case .identity:
+                                writer.writeStatement("try _getter(_vtable.get_\(property.name))")
+                            case .simple(abiType: _, let projectionType, inert: _):
+                                writer.writeStatement("try _getter(_vtable.get_\(property.name), \(projectionType).self)")
+                        }
+                    }
+                    else {
+                        writer.writeNotImplemented()
+                    }
                 }
             }
 
@@ -96,22 +108,32 @@ extension SwiftAssemblyModuleFileWriter {
                         type: projection.toType(property.type))],
                     throws: true) { writer throws in
 
-                    writer.writeNotImplemented()
+                    if let abiProjection = typeProjection.abi {
+                        switch abiProjection {
+                            case .identity:
+                                writer.writeStatement("try _setter(_vtable.get_\(property.name), newValue)")
+                            case .simple(abiType: _, let projectionType, inert: _):
+                                writer.writeStatement("try _getter(_vtable.get_\(property.name), newValue, \(projectionType).self)")
+                        }
+                    }
+                    else {
+                        writer.writeNotImplemented()
+                    }
                 }
             }
         }
 
         for method in interfaceDefinition.methods {
-            if method.isPublic {
-                try writer.writeFunc(
-                    visibility: .public,
-                    name: projection.toMemberName(method),
-                    parameters: method.params.map(projection.toParameter),
-                    throws: true,
-                    returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
+            guard method.isPublic, method.nameKind == .regular else { continue }
 
-                    writer.writeNotImplemented()
-                }
+            try writer.writeFunc(
+                visibility: .public,
+                name: projection.toMemberName(method),
+                parameters: method.params.map(projection.toParameter),
+                throws: true,
+                returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
+
+                writer.writeNotImplemented()
             }
         }
     }
