@@ -1,4 +1,5 @@
 import CodeWriters
+import Collections
 import DotNetMetadata
 import struct Foundation.UUID
 
@@ -34,6 +35,7 @@ extension SwiftAssemblyModuleFileWriter {
                 .identifier(name: try projection.toProtocolName(interfaceDefinition))
             ]) { writer throws in
 
+            try writeGenericTypeAliases(interfaces: [interface], to: writer)
             try writeWinRTProjectionConformance(type: interface, interface: interface, to: writer)
             try writeInterfaceMembersProjection(interface, to: writer)
         }
@@ -51,6 +53,7 @@ extension SwiftAssemblyModuleFileWriter {
                     genericArgs: [.identifier(name: typeName)]),
                 protocolConformances: [.identifier(name: "WinRTProjection")]) { writer throws in
 
+                try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
                 try writeWinRTProjectionConformance(type: classDefinition.bind(), interface: defaultInterface, to: writer)
                 try writeInterfaceMembersProjection(defaultInterface, to: writer)
             }
@@ -74,6 +77,39 @@ extension SwiftAssemblyModuleFileWriter {
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
                 target: projection.toAbiType(enumDefinition.bind(), referenceNullability: .none))
+        }
+    }
+
+    // For StringMap, will write typealiases for K = String and V = String
+    private func writeGenericTypeAliases(interfaces: [BoundType], to writer: SwiftRecordBodyWriter) throws {
+        // Gather type aliases by recursively visiting base types
+        var typeAliases = OrderedDictionary<String, SwiftType>()
+        func visit(interface: BoundType) throws {
+            for genericParam in interface.definition.genericParams {
+                // TODO: Don't assume that all instances of generic params of the same name are bound to the same type
+                typeAliases[genericParam.name] = try projection.toType(interface.genericArgs[genericParam.index])
+            }
+
+            for baseInterface in interface.definition.baseInterfaces {
+                let baseInterface = try baseInterface.interface
+                try visit(interface: BoundType(baseInterface.definition,
+                    genericArgs: baseInterface.genericArgs.map {
+                        // Bind transitive generic arguments:
+                        // For IVector<String>, IIterable<T> -> IIterable<String> 
+                        if case .genericParam(let genericParam) = $0 {
+                            return interface.genericArgs[genericParam.index]
+                        }
+                        else {
+                            return $0
+                        }
+                    }))
+            }
+        }
+
+        for interface in interfaces { try visit(interface: interface) }
+
+        for (name, type) in typeAliases {
+            writer.writeTypeAlias(visibility: .public, name: name, target: type)
         }
     }
 
@@ -180,7 +216,56 @@ extension SwiftAssemblyModuleFileWriter {
                 throws: true,
                 returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
 
-                writer.writeNotImplemented()
+                var abiArgs = ["_pointer"]
+                for param in try method.params {
+                    guard let paramName = param.name else {
+                        writer.writeNotImplemented()
+                        return
+                    }
+
+                    let typeProjection = try projection.getTypeProjection(param.type)
+                    guard let abiProjection = typeProjection.abi else {
+                        writer.writeNotImplemented()
+                        return
+                    }
+
+                    if case let .simple(abiType: _, projectionType: projectionType, inert: inert) = abiProjection {
+                        writer.writeStatement("let \(paramName) = \(projectionType).toAbi(\(paramName))")
+                        if !inert { writer.writeStatement("defer { \(paramName).release() }") }
+                    }
+
+                    abiArgs.append(paramName)
+                }
+
+                func writeCall() {
+                    // TODO: Handle overload names
+                    writer.writeStatement("try HResult.throwIfFailed(_vtable.\(method.name)(\(abiArgs.joined(separator: ", "))))")
+                }
+
+                guard try method.hasReturnValue else {
+                    writeCall()
+                    return
+                }
+
+                let returnTypeProjection = try projection.getTypeProjection(method.returnType)
+                guard let returnAbiProjection = returnTypeProjection.abi else {
+                    writer.writeNotImplemented()
+                    return
+                }
+
+                switch returnAbiProjection {
+                    case .identity(abiType: let abiType):
+                        writer.writeStatement("var _result = \(abiType)()")
+                        abiArgs.append("&_result")
+                        writeCall()
+                        writer.writeStatement("return _result")
+
+                    case .simple(abiType: let abiType, let projectionType, inert: _):
+                        writer.writeStatement("var _result = \(abiType)()")
+                        abiArgs.append("&_result")
+                        writeCall()
+                        writer.writeStatement("return \(projectionType).toSwift(consuming: _result)")
+                }
             }
         }
     }

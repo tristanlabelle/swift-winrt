@@ -3,11 +3,7 @@ import CodeWriters
 
 extension SwiftProjection {
     func toType(_ type: TypeNode, referenceNullability: ReferenceNullability = .explicit) throws -> SwiftType {
-        let swiftType = try getTypeProjection(type).swiftType
-        if case .optional(let wrapped, _) = swiftType {
-            return referenceNullability.applyTo(type: wrapped)
-        }
-        return swiftType
+        try getTypeProjection(type, referenceNullability: referenceNullability).swiftType
     }
 
     func toReturnType(_ type: TypeNode) throws -> SwiftType {
@@ -32,12 +28,12 @@ extension SwiftProjection {
             .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
     }
 
-    func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
+    func getTypeProjection(_ type: TypeNode, referenceNullability: ReferenceNullability = .explicit) throws -> TypeProjection {
         switch type {
             case let .bound(type):
                 // Remap primitive types
                 if type.definition.assembly is Mscorlib {
-                    guard let result = Self.getTypeProjection(mscorlibType: type) else {
+                    guard let result = Self.getTypeProjection(mscorlibType: type, referenceNullability: referenceNullability) else {
                         fatalError("Not implemented: Unknown Mscorlib type projection")
                     }
                     return result
@@ -48,7 +44,10 @@ extension SwiftProjection {
 
                 let swiftTypeName = try toTypeName(type.definition)
                 let swiftGenericArgs = try type.genericArgs.map { try toType($0) }
-                let swiftType = SwiftType.identifier(name: swiftTypeName, genericArgs: swiftGenericArgs)
+                var swiftType = SwiftType.identifier(name: swiftTypeName, genericArgs: swiftGenericArgs)
+                if type.definition.isReferenceType {
+                    swiftType = referenceNullability.applyTo(type: swiftType)
+                }
 
                 // Open generic types have no ABI representation
                 guard !type.isParameterized else { return .init(swiftType: swiftType) }
@@ -56,7 +55,11 @@ extension SwiftProjection {
                 // Only return projections which we can currently produce
                 guard type.definition is EnumDefinition || type.definition is InterfaceDefinition else { return .init(swiftType: swiftType) }
 
-                let abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
+                var abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
+                if type.definition.isReferenceType {
+                    abiType = referenceNullability.applyTo(type: abiType)
+                }
+
                 let projectionType: SwiftType
                 if type.definition is InterfaceDefinition || type.definition is DelegateDefinition {
                     // Interfaces and delegates have an accompanying ABIProjection-conforming class
@@ -93,7 +96,7 @@ extension SwiftProjection {
         }
     }
 
-    private static func getTypeProjection(mscorlibType: BoundType) -> TypeProjection? {
+    private static func getTypeProjection(mscorlibType: BoundType, referenceNullability: ReferenceNullability) -> TypeProjection? {
         guard mscorlibType.definition.namespace == "System" else { return nil }
         if mscorlibType.genericArgs.isEmpty {
             switch mscorlibType.definition.name {
@@ -142,7 +145,7 @@ extension SwiftProjection {
                         projectionType: .identifier(name: "HStringProjection"))
                 case "Object":
                     return .init(
-                        swiftType: .optional(wrapped: .identifierChain("WindowsRuntime", "IInspectable")),
+                        swiftType: referenceNullability.applyTo(type: .identifierChain("WindowsRuntime", "IInspectable")),
                         projectionType: .identifier(name: "IInspectableProjection"))
                 case "Void":
                     return .init(swiftType: .void)

@@ -362,7 +362,6 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
     }
 
     public func writeStatement(_ code: String) {
-        output.beginLine(grouping: .never)
         output.write(code, endLine: true)
     }
 }
