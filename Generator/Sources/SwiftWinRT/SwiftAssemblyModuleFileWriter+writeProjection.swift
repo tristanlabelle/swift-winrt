@@ -1,6 +1,7 @@
 import CodeWriters
 import Collections
 import DotNetMetadata
+import WindowsMetadata
 import struct Foundation.UUID
 
 extension SwiftAssemblyModuleFileWriter {
@@ -43,7 +44,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     private func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        if let defaultInterface = try WinMD.getDefaultInterface(for: classDefinition) {
+        if let defaultInterface = try FoundationAttributes.getDefaultInterface(classDefinition) {
             try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility),
                 final: true,
@@ -121,14 +122,14 @@ extension SwiftAssemblyModuleFileWriter {
         writer.writeTypeAlias(visibility: .public, name: "CVTableStruct",
             target: projection.toAbiVTableType(interface, referenceNullability: .none))
 
-        writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
-            initializer: try Self.toIIDInitializer(WinMD.getGuid(interface)))
         // TODO: Support generic interfaces
+        writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
+            initializer: try Self.toIIDInitializer(FoundationAttributes.getGuid(interface.definition as! InterfaceDefinition)))
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
             initializer: "\"\(type.definition.fullName)\"")
     }
 
-    private static func toIIDInitializer(_ guid: WinMD.Guid) throws -> String {
+    private static func toIIDInitializer(_ uuid: UUID) throws -> String {
         func toPrefixedPaddedHex<Value: UnsignedInteger & FixedWidthInteger>(
             _ value: Value,
             minimumLength: Int = MemoryLayout<Value>.size * 2) -> String {
@@ -141,15 +142,16 @@ extension SwiftAssemblyModuleFileWriter {
             return hex
         }
 
+        let uuid = uuid.uuid
         let arguments = [
-            toPrefixedPaddedHex(guid.a),
-            toPrefixedPaddedHex(guid.b),
-            toPrefixedPaddedHex(guid.c),
-            toPrefixedPaddedHex((UInt16(guid.d) << 8) | UInt16(guid.e)),
+            toPrefixedPaddedHex((UInt32(uuid.0) << 24) | (UInt32(uuid.1) << 16) | (UInt32(uuid.2) << 8) | (UInt32(uuid.3) << 0)),
+            toPrefixedPaddedHex((UInt32(uuid.4) << 8) | (UInt32(uuid.5) << 0)),
+            toPrefixedPaddedHex((UInt32(uuid.6) << 8) | (UInt32(uuid.7) << 0)),
+            toPrefixedPaddedHex((UInt32(uuid.8) << 8) | (UInt32(uuid.9) << 0)),
             toPrefixedPaddedHex(
-                (UInt64(guid.f) << 40) | (UInt64(guid.g) << 32)
-                | (UInt64(guid.h) << 24) | (UInt64(guid.i) << 16)
-                | (UInt64(guid.j) << 8) | (UInt64(guid.k) << 0),
+                (UInt64(uuid.10) << 40) | (UInt64(uuid.11) << 32)
+                | (UInt64(uuid.12) << 24) | (UInt64(uuid.13) << 16)
+                | (UInt64(uuid.14) << 8) | (UInt64(uuid.15) << 0),
                 minimumLength: 12)
         ]
         return "IID(\(arguments.joined(separator: ", ")))"
