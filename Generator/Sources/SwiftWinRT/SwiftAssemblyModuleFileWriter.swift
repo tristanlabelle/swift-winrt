@@ -80,7 +80,7 @@ struct SwiftAssemblyModuleFileWriter {
             }
 
             for method in interface.methods.filter({ $0.visibility == .public }) {
-                guard !method.isAccessor else { continue }
+                guard method.nameKind == .regular else { continue }
                 try writer.writeFunc(
                     static: method.isStatic,
                     name: projection.toMemberName(method),
@@ -276,7 +276,7 @@ struct SwiftAssemblyModuleFileWriter {
 
         for method in classDefinition.methods {
             guard SwiftProjection.toVisibility(method.visibility) == .public else { continue }
-            guard !method.isAccessor else { continue }
+            guard method.nameKind == .regular else { continue }
             if let constructor = method as? Constructor {
                 try writer.writeInit(
                     visibility: .public,
