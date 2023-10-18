@@ -1,13 +1,15 @@
 import CABI
 
-// A type which projects a COM interface to a corresponding Swift value.
-public protocol COMProjection: ABIProjection, IUnknownProtocol where ABIValue == COMInterfacePointer {
+/// A type which projects a COM interface to a corresponding Swift object.
+public protocol COMProjection: ABIProjection, IUnknownProtocol
+        where ABIValue == COMInterfacePointer?, SwiftValue == SwiftObject? {
     associatedtype COMInterface
     associatedtype VirtualTable
+    associatedtype SwiftObject
     typealias COMInterfacePointer = UnsafeMutablePointer<COMInterface>
     typealias VirtualTablePointer = UnsafePointer<VirtualTable>
 
-    var swiftValue: SwiftValue { get }
+    var swiftObject: SwiftObject { get }
     var _pointer: COMInterfacePointer { get }
 
     init(transferringRef pointer: COMInterfacePointer)
@@ -36,14 +38,17 @@ extension COMProjection {
     }
 
     public static func toSwift(copying value: ABIValue) -> SwiftValue {
-        Self(value).swiftValue
+        guard let value else { return nil }
+        return Self(value).swiftObject
     }
 
     public static func toSwift(consuming value: ABIValue) -> SwiftValue {
-        Self(transferringRef: value).swiftValue
+        guard let value else { return nil }
+        return Self(transferringRef: value).swiftObject
     }
 
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
+        guard let value else { return nil }
         switch value {
             case let object as COMProjectionBase<Self>:
                 return IUnknownPointer.addingRef(object._pointer)
@@ -56,8 +61,8 @@ extension COMProjection {
         }
     }
 
-    public static func release(_ pointer: COMInterfacePointer) {
-        IUnknownPointer.release(pointer)
+    public static func release(_ value: ABIValue) {
+        if let value { IUnknownPointer.release(value) }
     }
 }
 

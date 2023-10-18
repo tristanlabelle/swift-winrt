@@ -6,7 +6,7 @@ internal typealias IUnknown2 = any IUnknown2Protocol
 
 internal final class IUnknown2Projection: COMProjectionBase<IUnknown2Projection>, COMTwoWayProjection,
         IUnknown2Protocol {
-    public typealias SwiftValue = IUnknown2
+    public typealias SwiftObject = IUnknown2
     public typealias COMInterface = CABI.IUnknown
     public typealias VirtualTable = CABI.IUnknownVtbl
 

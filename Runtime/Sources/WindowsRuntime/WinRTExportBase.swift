@@ -7,7 +7,7 @@ open class WinRTExportBase<Projection: WinRTTwoWayProjection>
 
     public override func _createCOMExport() -> COMExport<Projection> {
         WinRTExport<Projection>(
-            implementation: self as! Projection.SwiftValue,
+            implementation: self as! Projection.SwiftObject,
             queriableInterfaces: Self.queriableInterfaces)
     }
     

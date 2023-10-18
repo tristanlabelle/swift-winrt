@@ -2,7 +2,7 @@ import CABI
 import COM
 
 public final class IInspectableProjection: WinRTProjectionBase<IInspectableProjection>, WinRTTwoWayProjection {
-    public typealias SwiftValue = IInspectable
+    public typealias SwiftObject = IInspectable
     public typealias COMInterface = CABI.IInspectable
     public typealias VirtualTable = CABI.IInspectableVtbl
 

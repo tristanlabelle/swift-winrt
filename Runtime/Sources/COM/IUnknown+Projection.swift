@@ -1,7 +1,7 @@
 import CABI
 
 public final class IUnknownProjection: COMProjectionBase<IUnknownProjection>, COMTwoWayProjection {
-    public typealias SwiftValue = IUnknown
+    public typealias SwiftObject = IUnknown
     public typealias COMInterface = CABI.IUnknown
     public typealias VirtualTable = CABI.IUnknownVtbl
 

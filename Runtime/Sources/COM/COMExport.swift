@@ -16,7 +16,7 @@ public struct COMExportInterface {
         self.iid = TargetProjection.iid
         self.queryPointer = { identity in
             let export = COMExport<TargetProjection>(
-                implementation: identity.anyImplementation as! TargetProjection.SwiftValue,
+                implementation: identity.anyImplementation as! TargetProjection.SwiftObject,
                 identity: identity)
             return export.unknown.addingRef()
         }
@@ -37,17 +37,17 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportProtocol, IUnkno
 
     private var comInterface: COMInterface
     private let identityData: IdentityData
-    public let implementation: Projection.SwiftValue
+    public let implementation: Projection.SwiftObject
     public var anyImplementation: Any { implementation }
 
-    public init(implementation: Projection.SwiftValue, queriableInterfaces: [COMExportInterface]) {
+    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface]) {
         self.comInterface = COMInterface()
         self.identityData = .own(queriableInterfaces: queriableInterfaces)
         self.implementation = implementation
         self.comInterface.object = Unmanaged.passUnretained(self)
     }
 
-    fileprivate init(implementation: Projection.SwiftValue, identity: any COMExportProtocol) {
+    fileprivate init(implementation: Projection.SwiftObject, identity: any COMExportProtocol) {
         self.comInterface = COMInterface()
         self.identityData = .foreign(identity)
         self.implementation = implementation

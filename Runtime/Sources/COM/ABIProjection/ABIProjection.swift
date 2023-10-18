@@ -23,25 +23,6 @@ public protocol ABIProjection {
 }
 
 extension ABIProjection {
-    public static func toSwift(consuming value: ABIValue?) -> SwiftValue? {
-        guard let value else { return nil }
-        return Optional(toSwift(consuming: value))
-    }
-
-    public static func toSwift(copying value: ABIValue?) -> SwiftValue? {
-        guard let value else { return nil }
-        return Optional(toSwift(copying: value))
-    }
-
-    public static func toABI(_ value: SwiftValue?) throws -> ABIValue? {
-        guard let value else { return nil }
-        return Optional(try toABI(value))
-    }
-
-    public static func release(_ value: ABIValue?) {
-        if let value { release(value) }
-    }
-
     public static func withABI<Result>(_ value: SwiftValue, _ closure: (ABIValue) throws -> Result) throws -> Result {
         let abiValue = try toABI(value)
         defer { release(abiValue) }

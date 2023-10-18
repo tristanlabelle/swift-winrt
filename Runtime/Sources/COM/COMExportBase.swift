@@ -17,7 +17,7 @@ open class COMExportBase<Projection: COMTwoWayProjection>: IUnknownProtocol {
 
     open func _createCOMExport() -> COMExport<Projection> {
         COMExport<Projection>(
-            implementation: self as! Projection.SwiftValue,
+            implementation: self as! Projection.SwiftObject,
             queriableInterfaces: Self.queriableInterfaces)
     }
 

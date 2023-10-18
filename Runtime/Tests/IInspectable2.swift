@@ -6,7 +6,7 @@ internal typealias IInspectable2 = any IInspectable2Protocol
 
 internal final class IInspectable2Projection: WinRTProjectionBase<IInspectable2Projection>, WinRTTwoWayProjection,
         IInspectable2Protocol {
-    public typealias SwiftValue = IInspectable2
+    public typealias SwiftObject = IInspectable2
     public typealias COMInterface = CABI.IInspectable
     public typealias VirtualTable = CABI.IInspectableVtbl
 

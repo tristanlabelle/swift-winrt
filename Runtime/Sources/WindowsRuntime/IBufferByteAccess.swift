@@ -9,7 +9,7 @@ public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 public final class IBufferByteAccessProjection:
         COMProjectionBase<IBufferByteAccessProjection>, COMTwoWayProjection,
         IBufferByteAccessProtocol {
-    public typealias SwiftValue = IBufferByteAccess
+    public typealias SwiftObject = IBufferByteAccess
     public typealias COMInterface = CABI.IBufferByteAccess
     public typealias VirtualTable = CABI.IBufferByteAccessVtbl
 
