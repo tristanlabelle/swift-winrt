@@ -119,7 +119,7 @@ extension SwiftAssemblyModuleFileWriter {
             target: try projection.toType(type.asNode, referenceNullability: .none))
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
             target: projection.toAbiType(interface, referenceNullability: .none))
-        writer.writeTypeAlias(visibility: .public, name: "VirtualTable",
+        writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: projection.toAbiVTableType(interface, referenceNullability: .none))
 
         // TODO: Support generic interfaces

@@ -26,7 +26,7 @@ public struct COMExportInterface {
 open class COMExport<Projection: COMTwoWayProjection>: COMExportProtocol, IUnknownProtocol {
     private struct COMInterface {
         /// Virtual function table called by COM
-        public let vtable: Projection.VirtualTablePointer = Projection.vtable
+        public let vtable: Projection.COMVirtualTablePointer = Projection.vtable
         public var object: Unmanaged<COMExport<Projection>>! = nil
     }
 

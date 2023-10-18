@@ -8,12 +8,12 @@ internal final class IInspectable2Projection: WinRTProjectionBase<IInspectable2P
         IInspectable2Protocol {
     public typealias SwiftObject = IInspectable2
     public typealias COMInterface = CABI.IInspectable
-    public typealias VirtualTable = CABI.IInspectableVtbl
+    public typealias COMVirtualTable = CABI.IInspectableVtbl
 
     public static let iid = IID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var runtimeClassName: String { "IInspectable2" }
-    public static var vtable: VirtualTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
-    private static var vtableStruct: VirtualTable = .init(
+    public static var vtable: COMVirtualTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
+    private static var vtableStruct: COMVirtualTable = .init(
         QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
         AddRef: { this in _addRef(this) },
         Release: { this in _release(this) },

@@ -1,19 +1,31 @@
 import CABI
 
 /// A type which projects a COM interface to a corresponding Swift object.
+/// Swift and ABI values are optional types, as COM interfaces can be null.
 public protocol COMProjection: ABIProjection, IUnknownProtocol
-        where ABIValue == COMInterfacePointer?, SwiftValue == SwiftObject? {
-    associatedtype COMInterface
-    associatedtype VirtualTable
+        where SwiftValue == SwiftObject?, ABIValue == COMInterfacePointer? {
+    /// The Swift type to which the COM interface is projected.
     associatedtype SwiftObject
+    /// The COM interface structure.
+    associatedtype COMInterface
+    /// The COM interface's virtual table structure.
+    associatedtype COMVirtualTable
+    /// A pointer to the COM interface structure.
     typealias COMInterfacePointer = UnsafeMutablePointer<COMInterface>
-    typealias VirtualTablePointer = UnsafePointer<VirtualTable>
+    /// A pointer to the COM interface's virtual table structure.
+    typealias COMVirtualTablePointer = UnsafePointer<COMVirtualTable>
 
+    /// Gets the Swift object corresponding to the COM interface.
     var swiftObject: SwiftObject { get }
+
+    /// Gets the COM interface pointer.
     var _pointer: COMInterfacePointer { get }
 
+    /// Initializes a new projection from a COM interface pointer,
+    /// transferring its ownership to the newly created object.
     init(transferringRef pointer: COMInterfacePointer)
 
+    /// Gets the identifier of the COM interface.
     static var iid: IID { get }
 }
 
@@ -22,10 +34,10 @@ extension COMProjection {
         IUnknownPointer.cast(_pointer)
     }
 
-    public var _vtable: VirtualTable {
+    public var _vtable: COMVirtualTable {
         _read {
             let unknownVTable = UnsafePointer(_unknown.pointee.lpVtbl!)
-            let pointer = unknownVTable.withMemoryRebound(to: VirtualTable.self, capacity: 1) { $0 }
+            let pointer = unknownVTable.withMemoryRebound(to: COMVirtualTable.self, capacity: 1) { $0 }
             yield pointer.pointee
         }
     }
@@ -68,5 +80,5 @@ extension COMProjection {
 
 // Protocol for strongly-typed two-way COM interface projections into and from Swift.
 public protocol COMTwoWayProjection: COMProjection {
-    static var vtable: VirtualTablePointer { get }
+    static var vtable: COMVirtualTablePointer { get }
 }
