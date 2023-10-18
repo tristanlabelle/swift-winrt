@@ -57,7 +57,7 @@ public struct CSourceFileWriter {
 
     public func writeCOMInterface(name: String, functions: [CFunctionSignature], idName: String, vtableName: String) {
         writeCOMInterfaceID(name: idName)
-        writeCOMVTable(name: vtableName, functions: functions)
+        writeVirtualTable(name: vtableName, functions: functions)
         writeCOMInterfaceStruct(name: name, vtableName: vtableName)
     }
 
@@ -68,7 +68,7 @@ public struct CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    private func writeCOMVTable(name: String, functions: [CFunctionSignature]) {
+    private func writeVirtualTable(name: String, functions: [CFunctionSignature]) {
         let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         output.write("typedef struct ")

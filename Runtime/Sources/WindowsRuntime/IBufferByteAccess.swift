@@ -10,12 +10,12 @@ public final class IBufferByteAccessProjection:
         COMProjectionBase<IBufferByteAccessProjection>, COMTwoWayProjection,
         IBufferByteAccessProtocol {
     public typealias SwiftValue = IBufferByteAccess
-    public typealias CStruct = CABI.IBufferByteAccess
-    public typealias CVTableStruct = CABI.IBufferByteAccessVtbl
+    public typealias COMInterface = CABI.IBufferByteAccess
+    public typealias VirtualTable = CABI.IBufferByteAccessVtbl
 
     public static let iid = IID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
-    public static var vtable: CVTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
-    private static var vtableStruct: CVTableStruct = .init(
+    public static var vtable: VirtualTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
+    private static var vtableStruct: VirtualTable = .init(
         QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
         AddRef: { this in _addRef(this) },
         Release: { this in _release(this) },

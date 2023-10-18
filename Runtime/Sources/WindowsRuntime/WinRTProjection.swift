@@ -17,6 +17,6 @@ extension WinRTProjection {
         var factory: UnsafeMutableRawPointer?
         try HResult.throwIfFailed(CABI.RoGetActivationFactory(activatableId, &iid, &factory))
         guard let factory else { throw HResult.Error.noInterface }
-        return Factory.toSwift(consuming: factory.bindMemory(to: Factory.CStruct.self, capacity: 1))
+        return Factory.toSwift(consuming: factory.bindMemory(to: Factory.COMInterface.self, capacity: 1))
     }
 }

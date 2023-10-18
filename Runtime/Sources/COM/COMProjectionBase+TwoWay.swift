@@ -1,16 +1,16 @@
 import CABI
 
 extension COMProjectionBase where Projection: COMTwoWayProjection {
-    public static func _getImplementation(_ pointer: Projection.CPointer) -> Projection.SwiftValue {
+    public static func _getImplementation(_ pointer: Projection.COMInterfacePointer) -> Projection.SwiftValue {
         COMExport<Projection>.from(pointer).implementation
     }
 
-    public static func _getImplementation(_ pointer: Projection.CPointer?) -> Projection.SwiftValue? {
+    public static func _getImplementation(_ pointer: Projection.COMInterfacePointer?) -> Projection.SwiftValue? {
         guard let pointer else { return nil }
         return Optional(_getImplementation(pointer))
     }
 
-    public static func _implement(_ this: Projection.CPointer?, _ body: (Projection.SwiftValue) throws -> Void) -> HRESULT {
+    public static func _implement(_ this: Projection.COMInterfacePointer?, _ body: (Projection.SwiftValue) throws -> Void) -> HRESULT {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.invalidArg.value
@@ -19,7 +19,7 @@ extension COMProjectionBase where Projection: COMTwoWayProjection {
     }
 
     public static func _getter<Value>(
-            _ this: Projection.CPointer?,
+            _ this: Projection.COMInterfacePointer?,
             _ value: UnsafeMutablePointer<Value>?,
             _ code: (Projection.SwiftValue) throws -> Value) -> HRESULT {
         _implement(this) {
@@ -29,7 +29,7 @@ extension COMProjectionBase where Projection: COMTwoWayProjection {
     }
 
     public static func _queryInterface(
-        _ this: Projection.CPointer?,
+        _ this: Projection.COMInterfacePointer?,
         _ iid: UnsafePointer<IID>?,
         _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> HRESULT {
         guard let ppvObject else { return HResult.invalidArg.value }
@@ -43,12 +43,12 @@ extension COMProjectionBase where Projection: COMTwoWayProjection {
         }
     }
 
-    public static func _addRef(_ this: Projection.CPointer?) -> UInt32 {
+    public static func _addRef(_ this: Projection.COMInterfacePointer?) -> UInt32 {
         guard let this else { return 0 }
         return COMExport<Projection>.addRef(this)
     }
 
-    public static func _release(_ this: Projection.CPointer?) -> UInt32 {
+    public static func _release(_ this: Projection.COMInterfacePointer?) -> UInt32 {
         guard let this else { return 0 }
         return COMExport<Projection>.release(this)
     }

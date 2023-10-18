@@ -117,9 +117,9 @@ extension SwiftAssemblyModuleFileWriter {
     private func writeWinRTProjectionConformance(type: BoundType, interface: BoundType, to writer: SwiftRecordBodyWriter) throws {
         writer.writeTypeAlias(visibility: .public, name: "SwiftValue",
             target: try projection.toType(type.asNode, referenceNullability: .none))
-        writer.writeTypeAlias(visibility: .public, name: "CStruct",
+        writer.writeTypeAlias(visibility: .public, name: "COMInterface",
             target: projection.toAbiType(interface, referenceNullability: .none))
-        writer.writeTypeAlias(visibility: .public, name: "CVTableStruct",
+        writer.writeTypeAlias(visibility: .public, name: "VirtualTable",
             target: projection.toAbiVTableType(interface, referenceNullability: .none))
 
         // TODO: Support generic interfaces
