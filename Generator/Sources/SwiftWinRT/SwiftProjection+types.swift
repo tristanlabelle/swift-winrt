@@ -58,9 +58,7 @@ extension SwiftProjection {
                 guard !type.isParameterized else { return .noAbi(swiftType: swiftValueType) }
 
                 // Only return ABI projections which we can currently produce
-                guard type.definition is EnumDefinition
-                    || type.definition is InterfaceDefinition
-                    || type.definition is ClassDefinition else { return .noAbi(swiftType: swiftValueType) }
+                guard !(type.definition is DelegateDefinition) else { return .noAbi(swiftType: swiftValueType) }
 
                 var abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
                 if type.definition.isReferenceType {

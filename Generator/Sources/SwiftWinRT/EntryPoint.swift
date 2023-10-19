@@ -1,8 +1,9 @@
+import ArgumentParser
 import CodeWriters
 import DotNetMetadata
 import DotNetMetadataFormat
 import Foundation
-import ArgumentParser
+import WindowsMetadata
 
 @main
 struct EntryPoint: ParsableCommand {
@@ -45,8 +46,9 @@ struct EntryPoint: ParsableCommand {
         let swiftProjection = SwiftProjection(abiModuleName: abiModuleName)
         var typeGraphWalker = TypeGraphWalker(
             filter: {
-                $0.namespace != "System" && $0.namespace?.starts(with: "System.") != true
-                    && $0.namespace != "Windows.Foundation.Metadata"
+                guard $0.namespace != "System" && $0.namespace?.starts(with: "System.") != true else { return false }
+                guard $0.namespace != "Windows.Foundation.Metadata" else { return false }
+                return true
             },
             publicMembersOnly: true)
 
@@ -117,6 +119,13 @@ struct EntryPoint: ParsableCommand {
                 let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module, importAbiModule: true)
                 let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
                 for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
+                    // Some types have special handling and should not have their projection code generated
+                    guard typeDefinition.fullName != "Windows.Foundation.HResult" else { continue }
+                    guard typeDefinition.fullName != "Windows.Foundation.EventRegistrationToken" else { continue }
+                    if let structDefinition = typeDefinition as? StructDefinition {
+                        guard try !FoundationAttributes.hasApiContract(structDefinition) else { continue }
+                    }
+
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
                     if typeDefinition.genericArity == 0 {
                         try projectionsWriter.writeProjection(typeDefinition.bind())

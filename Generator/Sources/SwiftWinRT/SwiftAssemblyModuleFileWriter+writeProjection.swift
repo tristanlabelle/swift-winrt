@@ -19,6 +19,9 @@ extension SwiftAssemblyModuleFileWriter {
         else if let enumDefinition = type.definition as? EnumDefinition {
             try writeEnumProjection(enumDefinition)
         }
+        else if let structDefinition = type.definition as? StructDefinition {
+            try writeStructProjection(structDefinition)
+        }
     }
 
     private func writeInterfaceProjection(_ interfaceDefinition: InterfaceDefinition, genericArgs: [TypeNode] = []) throws {
@@ -78,6 +81,37 @@ extension SwiftAssemblyModuleFileWriter {
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
                 target: projection.toAbiType(enumDefinition.bind(), referenceNullability: .none))
+        }
+    }
+
+    private func writeStructProjection(_ structDefinition: StructDefinition) throws {
+        let typeProjection = try projection.getTypeProjection(structDefinition.bindNode())
+        let swiftType = typeProjection.swiftType
+        let abiType = typeProjection.abi!.valueType
+
+        sourceFileWriter.writeExtension(
+            name: try projection.toTypeName(structDefinition),
+            protocolConformances: [SwiftType.identifierChain("COM", "ABIInertProjection")]) { writer in
+
+            writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: swiftType)
+            writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
+
+            writer.writeComputedProperty(
+                    visibility: .public, static: true, name: "defaultAbiValue", type: abiType) { writer in
+                writer.writeStatement("\(abiType)()")
+            }
+            writer.writeFunc(
+                    visibility: .public, static: true, name: "toSwift",
+                    parameters: [.init(label: "_", name: "value", type: abiType)], 
+                    returnType: swiftType) { writer in
+                writer.writeNotImplemented()
+            }
+            writer.writeFunc(
+                    visibility: .public, static: true, name: "toABI",
+                    parameters: [.init(label: "_", name: "value", type: swiftType)],
+                    returnType: abiType) { writer in
+                writer.writeNotImplemented()
+            }
         }
     }
 
