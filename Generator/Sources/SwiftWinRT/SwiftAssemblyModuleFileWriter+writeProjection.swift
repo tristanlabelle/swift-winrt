@@ -182,9 +182,9 @@ extension SwiftAssemblyModuleFileWriter {
         let uuid = uuid.uuid
         let arguments = [
             toPrefixedPaddedHex((UInt32(uuid.0) << 24) | (UInt32(uuid.1) << 16) | (UInt32(uuid.2) << 8) | (UInt32(uuid.3) << 0)),
-            toPrefixedPaddedHex((UInt32(uuid.4) << 8) | (UInt32(uuid.5) << 0)),
-            toPrefixedPaddedHex((UInt32(uuid.6) << 8) | (UInt32(uuid.7) << 0)),
-            toPrefixedPaddedHex((UInt32(uuid.8) << 8) | (UInt32(uuid.9) << 0)),
+            toPrefixedPaddedHex((UInt16(uuid.4) << 8) | (UInt16(uuid.5) << 0)),
+            toPrefixedPaddedHex((UInt16(uuid.6) << 8) | (UInt16(uuid.7) << 0)),
+            toPrefixedPaddedHex((UInt16(uuid.8) << 8) | (UInt16(uuid.9) << 0)),
             toPrefixedPaddedHex(
                 (UInt64(uuid.10) << 40) | (UInt64(uuid.11) << 32)
                 | (UInt64(uuid.12) << 24) | (UInt64(uuid.13) << 16)
