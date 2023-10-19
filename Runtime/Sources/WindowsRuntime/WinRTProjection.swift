@@ -10,13 +10,13 @@ public protocol WinRTProjection: COMProjection, IInspectableProtocol {
 public protocol WinRTTwoWayProjection: WinRTProjection, COMTwoWayProjection {}
 
 extension WinRTProjection {
-    public static func _getActivationFactory<Factory: WinRTProjection>(_: Factory.Type) throws -> Factory.SwiftValue {
+    public static func _getActivationFactory<COMInterface>(activatableId: String, iid: IID) throws -> UnsafeMutablePointer<COMInterface> {
         let activatableId = try HSTRING.create(Self.runtimeClassName)
         defer { HSTRING.delete(activatableId) }
-        var iid = Factory.iid
+        var iid = iid
         var factory: UnsafeMutableRawPointer?
         try HResult.throwIfFailed(CABI.RoGetActivationFactory(activatableId, &iid, &factory))
         guard let factory else { throw HResult.Error.noInterface }
-        return Factory.toSwift(consuming: factory.bindMemory(to: Factory.COMInterface.self, capacity: 1))
+        return factory.bindMemory(to: COMInterface.self, capacity: 1)
     }
 }
