@@ -1,7 +1,7 @@
 import CABI
 
 extension COMProjectionBase where Projection: COMTwoWayProjection {
-    public static func _getImplementation(_ pointer: Projection.COMInterfacePointer) -> Projection.SwiftObject {
+    public static func _getImplementation(_ pointer: Projection.COMPointer) -> Projection.SwiftObject {
         COMExport<Projection>.from(pointer).implementation
     }
 

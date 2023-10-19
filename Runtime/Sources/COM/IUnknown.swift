@@ -6,7 +6,7 @@ public protocol IUnknownProtocol: AnyObject {
 public typealias IUnknown = any IUnknownProtocol
 
 extension IUnknownProtocol {
-    public func _queryInterfacePointer<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMInterfacePointer {
+    public func _queryInterfacePointer<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {
         try _queryInterfacePointer(Projection.iid).withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
     }
 

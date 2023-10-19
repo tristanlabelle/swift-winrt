@@ -239,7 +239,7 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeMethodProjection(_ method: Method, to writer: inout SwiftStatementWriter) throws {
-        var abiArgs = ["_pointer"]
+        var abiArgs = ["comPointer"]
         for param in try method.params {
             guard let paramName = param.name else {
                 writer.writeNotImplemented()
@@ -262,7 +262,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         func writeCall() throws {
             let abiMethodName = try FoundationAttributes.getOverloadName(method) ?? method.name
-            writer.writeStatement("try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
+            writer.writeStatement("try HResult.throwIfFailed(comPointer.pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
 
         if try !method.hasReturnValue {

@@ -3,7 +3,7 @@ import COM
 
 extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
     public static func _getIids(
-            _ this: Projection.COMInterfacePointer?,
+            _ this: Projection.COMPointer?,
             _ count: UnsafeMutablePointer<UInt32>?,
             _ iids: UnsafeMutablePointer<UnsafeMutablePointer<IID>?>?) -> HRESULT {
         guard let this, let count, let iids else { return HResult.invalidArg.value }
@@ -24,7 +24,7 @@ extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
     }
 
     public static func _getRuntimeClassName(
-            _ this: Projection.COMInterfacePointer?,
+            _ this: Projection.COMPointer?,
             _ className: UnsafeMutablePointer<HSTRING?>?) -> HRESULT {
         guard let this, let className else { return HResult.invalidArg.value }
         className.pointee = nil
@@ -35,7 +35,7 @@ extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
     }
 
     public static func _getTrustLevel(
-            _ this: Projection.COMInterfacePointer?,
+            _ this: Projection.COMPointer?,
             _ trustLevel: UnsafeMutablePointer<CABI.TrustLevel>?) -> HRESULT {
         guard let this, let trustLevel else { return HResult.invalidArg.value }
         let object = _getImplementation(this) as! IInspectable

@@ -13,7 +13,7 @@ extension COMProjectionBase {
             _ function: (Projection.ABIValue, UnsafeMutablePointer<Value>?) -> HRESULT) throws -> Value {
         try withUnsafeTemporaryAllocation(of: Value.self, capacity: 1) { valueBuffer in
             let valuePointer = valueBuffer.baseAddress!
-            try HResult.throwIfFailed(function(_pointer, valuePointer))
+            try HResult.throwIfFailed(function(comPointer, valuePointer))
             return valuePointer.pointee
         }
     }
@@ -27,7 +27,7 @@ extension COMProjectionBase {
     public func _setter<Value>(
             _ function: (Projection.ABIValue, Value) -> HRESULT, 
             _ value: Value) throws {
-        try HResult.throwIfFailed(function(_pointer, value))
+        try HResult.throwIfFailed(function(comPointer, value))
     }
 
     public func _setter<ValueProjection: ABIProjection>(

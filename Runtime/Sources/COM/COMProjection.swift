@@ -3,7 +3,7 @@ import CABI
 /// A type which projects a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.
 public protocol COMProjection: ABIProjection, IUnknownProtocol
-        where SwiftValue == SwiftObject?, ABIValue == COMInterfacePointer? {
+        where SwiftValue == SwiftObject?, ABIValue == COMPointer? {
     /// The Swift type to which the COM interface is projected.
     associatedtype SwiftObject
     /// The COM interface structure.
@@ -11,7 +11,7 @@ public protocol COMProjection: ABIProjection, IUnknownProtocol
     /// The COM interface's virtual table structure.
     associatedtype COMVirtualTable
     /// A pointer to the COM interface structure.
-    typealias COMInterfacePointer = UnsafeMutablePointer<COMInterface>
+    typealias COMPointer = UnsafeMutablePointer<COMInterface>
     /// A pointer to the COM interface's virtual table structure.
     typealias COMVirtualTablePointer = UnsafePointer<COMVirtualTable>
 
@@ -19,11 +19,11 @@ public protocol COMProjection: ABIProjection, IUnknownProtocol
     var swiftObject: SwiftObject { get }
 
     /// Gets the COM interface pointer.
-    var _pointer: COMInterfacePointer { get }
+    var comPointer: COMPointer { get }
 
     /// Initializes a new projection from a COM interface pointer,
     /// transferring its ownership to the newly created object.
-    init(transferringRef pointer: COMInterfacePointer)
+    init(transferringRef pointer: COMPointer)
 
     /// Gets the identifier of the COM interface.
     static var iid: IID { get }
@@ -31,7 +31,7 @@ public protocol COMProjection: ABIProjection, IUnknownProtocol
 
 extension COMProjection {
     public var _unknown: IUnknownPointer {
-        IUnknownPointer.cast(_pointer)
+        IUnknownPointer.cast(comPointer)
     }
 
     public var _vtable: COMVirtualTable {
@@ -44,7 +44,7 @@ extension COMProjection {
 
     public var _unsafeRefCount: UInt32 { _unknown._unsafeRefCount }
 
-    public init(_ pointer: COMInterfacePointer) {
+    public init(_ pointer: COMPointer) {
         IUnknownPointer.addRef(pointer)
         self.init(transferringRef: pointer)
     }
@@ -65,7 +65,7 @@ extension COMProjection {
         guard let value else { return nil }
         switch value {
             case let object as COMProjectionBase<Self>:
-                return IUnknownPointer.addingRef(object._pointer)
+                return IUnknownPointer.addingRef(object.comPointer)
 
             case let unknown as IUnknown:
                 return try unknown._queryInterfacePointer(Self.self)
