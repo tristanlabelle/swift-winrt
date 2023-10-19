@@ -28,6 +28,7 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         name: String,
         typeParameters: [String] = [],
         bases: [SwiftType] = [],
+        whereClauses: [String] = [],
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
@@ -37,6 +38,10 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(bases)
+        if !whereClauses.isEmpty {
+            output.write(" where ")
+            output.write(whereClauses.joined(separator: ", "))
+        }
         try output.writeBracedIndentedBlock() {
             try members(.init(output: output))
         }

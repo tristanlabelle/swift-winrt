@@ -50,11 +50,31 @@ struct SwiftAssemblyModuleFileWriter {
     }
 
     private func writeProtocol(_ interface: InterfaceDefinition) throws {
+        var baseProtocols = [SwiftType]()
+        var whereGenericConstraints = OrderedDictionary<String, SwiftType>()
+        for baseInterface in interface.baseInterfaces {
+            let baseInterface = try baseInterface.interface
+            baseProtocols.append(SwiftType.identifier(
+                try projection.toProtocolName(baseInterface.definition as! InterfaceDefinition)))
+            for (i, genericArg) in baseInterface.genericArgs.enumerated() {
+                let genericParam = baseInterface.definition.genericParams[i]
+                // Ignore generic arguments that are the same as the current interface's generic arguments,
+                // For example, IVector<T> : IIterable<T>, so we don't generate "where T == T"
+                if case .genericParam(let genericParamArg) = genericArg,
+                    genericParamArg.name == genericParam.name { continue }
+                whereGenericConstraints[genericParam.name] = try projection.toType(genericArg)
+            }
+        }
+
+        if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
+
         try sourceFileWriter.writeProtocol(
             visibility: SwiftProjection.toVisibility(interface.visibility),
-            name: try projection.toProtocolName(interface),
+            name: projection.toProtocolName(interface),
             typeParameters: interface.genericParams.map { $0.name },
-            bases: [ .identifier("IInspectableProtocol") ]) { writer throws in
+            bases: baseProtocols,
+            whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
+
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
             }
