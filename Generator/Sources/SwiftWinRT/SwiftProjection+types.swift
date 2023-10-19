@@ -25,13 +25,13 @@ extension SwiftProjection {
 
     func toAbiType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
         referenceNullability.applyTo(type:
-            .identifierChain(abiModuleName, CAbi.mangleName(type: type)))
+            .chain(abiModuleName, CAbi.mangleName(type: type)))
     }
 
     func toAbiVTableType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
         guard type.definition is InterfaceDefinition else { fatalError("\(type) has no VTable") }
         return referenceNullability.applyTo(type:
-            .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
+            .chain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
     }
 
     func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
@@ -69,10 +69,10 @@ extension SwiftProjection {
                 if type.definition is InterfaceDefinition || type.definition is DelegateDefinition {
                     // Interfaces and delegates have an accompanying ABIProjection-conforming class
                     if type.genericArgs.isEmpty {
-                        projectionType = .identifier(name: swiftTypeName + "Projection")
+                        projectionType = .identifier(swiftTypeName + "Projection")
                     }
                     else {
-                        projectionType = .identifierChain([
+                        projectionType = .chain([
                             .init(swiftTypeName + "Projection", genericArgs: swiftGenericArgs),
                             .init("Instance")
                         ])
@@ -112,8 +112,8 @@ extension SwiftProjection {
                 case "Boolean":
                     return TypeProjection(
                         swiftType: .bool,
-                        projectionType: .identifier(name: "BooleanProjection"),
-                        abiType: .identifier(name: "boolean"),
+                        projectionType: .identifier("BooleanProjection"),
+                        abiType: .identifier("boolean"),
                         abiDefaultValue: "0",
                         inert: true)
                 case "SByte": return .numeric(swiftType: "Int8", abiType: "INT8")
@@ -121,19 +121,19 @@ extension SwiftProjection {
                 case "IntPtr": return .numeric(swiftType: "Int", abiType: "INT_PTR")
                 case "UIntPtr": return .numeric(swiftType: "UInt", abiType: "UINT_PTR")
                 case "Single": return .numeric(swiftType: "Float", abiType: "FLOAT")
-                case "Char": return .noAbi(swiftType: .identifierChain("UTF16", "CodeUnit"))
-                case "Guid": return .noAbi(swiftType: .identifierChain("Foundation", "UUID"))
+                case "Char": return .noAbi(swiftType: .chain("UTF16", "CodeUnit"))
+                case "Guid": return .noAbi(swiftType: .chain("Foundation", "UUID"))
                 case "String":
                     return .init(
                         swiftType: .string,
-                        projectionType: .identifier(name: "HStringProjection"),
-                        abiType: .optional(wrapped: .identifier(name: "HSTRING")),
+                        projectionType: .identifier("HStringProjection"),
+                        abiType: .optional(wrapped: .identifier("HSTRING")),
                         abiDefaultValue: "nil")
                 case "Object":
                     return .init(
-                        swiftType: .optional(wrapped: .identifierChain("WindowsRuntime", "IInspectable")),
-                        projectionType: .identifier(name: "IInspectableProjection"),
-                        abiType: .optional(wrapped: .identifierChain("IInspectableProjection", "COMInterface")),
+                        swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
+                        projectionType: .identifier("IInspectableProjection"),
+                        abiType: .optional(wrapped: .chain("IInspectableProjection", "COMInterface")),
                         abiDefaultValue: "nil")
                 case "Void":
                     return .noAbi(swiftType: .void)
@@ -156,9 +156,9 @@ extension SwiftProjection {
 
             case "HResult":
                 return TypeProjection(
-                    swiftType: .identifierChain("COM", "HResult"),
-                    projectionType: .identifierChain("COM", "HResultProjection"),
-                    abiType: .identifier(name: "HRESULT"),
+                    swiftType: .chain("COM", "HResult"),
+                    projectionType: .chain("COM", "HResultProjection"),
+                    abiType: .identifier("HRESULT"),
                     abiDefaultValue: "S_OK",
                     inert: true)
 

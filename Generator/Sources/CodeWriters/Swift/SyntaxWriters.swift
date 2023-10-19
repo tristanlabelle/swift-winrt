@@ -34,7 +34,7 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(bases)
         try output.writeBracedIndentedBlock() {
@@ -50,7 +50,7 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         var output = output
         output.beginLine(grouping: .never)
         output.write("extension ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeInheritanceClause(protocolConformances)
         try output.writeBracedIndentedBlock() {
             try members(.init(output: output))
@@ -75,7 +75,7 @@ extension SwiftTypeDeclarationWriter {
         visibility.write(to: &output, trailingSpace: true)
         if final { output.write("final ") }
         output.write("class ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([base].compactMap { $0 } + protocolConformances)
         try output.writeBracedIndentedBlock() {
@@ -94,7 +94,7 @@ extension SwiftTypeDeclarationWriter {
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause(protocolConformances)
         try output.writeBracedIndentedBlock() {
@@ -114,7 +114,7 @@ extension SwiftTypeDeclarationWriter {
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
         try output.writeBracedIndentedBlock() {
@@ -132,7 +132,7 @@ extension SwiftTypeDeclarationWriter {
         output.beginLine(grouping: .withName("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         output.write(" = ")
         target.write(to: &output)
@@ -147,7 +147,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         var output = output
         output.beginLine(grouping: .withName("associatedtype"))
         output.write("associatedtype ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         output.endLine()
     }
 
@@ -164,7 +164,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         output.beginLine(grouping: .withName("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
         output.write(" { get")
@@ -216,7 +216,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         }
         if `static` { output.write("static ") }
         output.write(`let` ? "let " : "var ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         if let type {
             output.write(": ")
             type.write(to: &output)
@@ -246,7 +246,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
         output.write("var ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         output.write(": ")
         type.write(to: &output)
         try output.writeBracedIndentedBlock() {
@@ -333,7 +333,7 @@ public struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
         var output = output
         output.beginLine(grouping: .withName("case"))
         output.write("case ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
 
         if let rawValue {
             output.write(" = ")
@@ -381,7 +381,7 @@ extension SwiftSyntaxWriter {
         output.write("<")
         for (index, typeParameter) in typeParameters.enumerated() {
             if index > 0 { output.write(", ") }
-            SwiftIdentifiers.write(typeParameter, to: &output)
+            SwiftIdentifier.write(typeParameter, to: &output)
         }
         output.write(">")
     }
@@ -421,7 +421,7 @@ extension SwiftSyntaxWriter {
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
         output.write("func ")
-        SwiftIdentifiers.write(name, to: &output)
+        SwiftIdentifier.write(name, to: &output)
         writeTypeParameters(typeParameters)
         writeParameters(parameters)
         if `throws` {

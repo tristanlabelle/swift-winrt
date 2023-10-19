@@ -7,7 +7,7 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
 
     public func write(to output: inout some TextOutputStream) {
         switch self {
-            case let .identifierChain(chain):
+            case let .chain(chain):
                 if chain.protocolModifier == .existential {
                     output.write("any ")
                 }
@@ -15,12 +15,12 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
                     output.write("some ")
                 }
 
-                for (index, identifier) in chain.identifiers.enumerated() {
+                for (index, component) in chain.components.enumerated() {
                     if index > 0 { output.write(".") }
-                    SwiftIdentifiers.write(identifier.name, allowKeyword: identifier.allowKeyword, to: &output)
-                    guard !identifier.genericArgs.isEmpty else { continue }
+                    component.identifier.write(to: &output)
+                    guard !component.genericArgs.isEmpty else { continue }
                     output.write("<")
-                    for (index, arg) in identifier.genericArgs.enumerated() {
+                    for (index, arg) in component.genericArgs.enumerated() {
                         if index > 0 { output.write(", ") }
                         arg.write(to: &output)
                     }
@@ -29,7 +29,7 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
 
             case let .`optional`(wrapped, forceUnwrap):
                 let parenthesized: Bool
-                if case let .identifierChain(chain) = wrapped, chain.protocolModifier != nil {
+                if case let .chain(chain) = wrapped, chain.protocolModifier != nil {
                     output.write("(")
                     parenthesized = true
                 }
@@ -70,6 +70,9 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
                 if `throws` { output.write(" throws") }
                 output.write(" -> ")
                 returnType.write(to: &output)
+
+            case .self: output.write("Self")
+            case .any: output.write("Any")
         }
     }
 }

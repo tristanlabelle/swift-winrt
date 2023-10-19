@@ -35,7 +35,7 @@ extension SwiftAssemblyModuleFileWriter {
                 name: "WinRTProjectionBase",
                 genericArgs: [.identifier(name: projectionTypeName)]),
             protocolConformances: [
-                .identifier(name: "WinRTProjection"),
+                .identifier("WinRTProjection"),
                 .identifier(name: try projection.toProtocolName(interfaceDefinition))
             ]) { writer throws in
 
@@ -55,7 +55,7 @@ extension SwiftAssemblyModuleFileWriter {
                 base: .identifier(
                     name: "WinRTProjectionBase",
                     genericArgs: [.identifier(name: typeName)]),
-                protocolConformances: [.identifier(name: "WinRTProjection")]) { writer throws in
+                protocolConformances: [.identifier("WinRTProjection")]) { writer throws in
 
                 try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
                 try writeWinRTProjectionConformance(type: classDefinition.bind(), interface: defaultInterface, to: writer)
@@ -77,7 +77,7 @@ extension SwiftAssemblyModuleFileWriter {
     private func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
         sourceFileWriter.writeExtension(
             name: try projection.toTypeName(enumDefinition),
-            protocolConformances: [SwiftType.identifierChain("WindowsRuntime", "EnumProjection")]) { writer in
+            protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
                 target: projection.toAbiType(enumDefinition.bind(), referenceNullability: .none))
@@ -91,7 +91,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         sourceFileWriter.writeExtension(
             name: try projection.toTypeName(structDefinition),
-            protocolConformances: [SwiftType.identifierChain("COM", "ABIInertProjection")]) { writer in
+            protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: swiftType)
             writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)

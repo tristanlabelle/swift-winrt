@@ -1,4 +1,4 @@
-public enum SwiftIdentifiers {
+public struct SwiftIdentifier: Hashable, ExpressibleByStringLiteral, CustomStringConvertible, TextOutputStreamable {
     fileprivate static let keywords: Set<String> = [
         // Keywords used in declarations:
         "associatedtype", "class", "deinit", "enum", "extension", "fileprivate", "func",
@@ -12,19 +12,35 @@ public enum SwiftIdentifiers {
         "self", "Self", "super", "throw", "throws", "true", "try"
     ]
 
-    public static func isKeyword(_ identifier: String) -> Bool {
-        guard let firstChar = identifier.first else { return false }
+    public let name: String
+
+    public init(_ name: String) { self.name = name }
+    public init(stringLiteral name: String) { self.name = name }
+
+    public var isKeyword: Bool {
+        guard let firstChar = name.first else { return false }
         // Optimize since most keywords start with a lowercase letter
         return firstChar >= "a" && firstChar <= "z"
-            ? keywords.contains(identifier)
-            : identifier == "Any" || identifier == "Self"
+            ? Self.keywords.contains(name)
+            : name == "Any" || name == "Self"
     }
 
-    public static func write(_ identifier: String, allowKeyword: Bool = false, to output: inout some TextOutputStream) {
-        let mustEscape = !allowKeyword && isKeyword(identifier)
+    public var description: String {
+        var output = ""
+        write(to: &output)
+        return output
+    }
+
+    public func write(to output: inout some TextOutputStream) {
+        let mustEscape = isKeyword
 
         if mustEscape { output.write("`") }
-        output.write(identifier)
+        output.write(name)
         if mustEscape { output.write("`") }
+    }
+
+    public static func isKeyword(_ name: String) -> Bool { SwiftIdentifier(name).isKeyword }
+    public static func write(_ name: String, to output: inout some TextOutputStream) {
+        SwiftIdentifier(name).write(to: &output)
     }
 }

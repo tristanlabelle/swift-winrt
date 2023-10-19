@@ -20,11 +20,11 @@ struct TypeProjection {
     }
 
     public init(swiftType: SwiftType, projectionType: SwiftType, abiType: SwiftType? = nil, abiDefaultValue: String? = nil, identity: Bool = false, inert: Bool = false) {
-        guard case .identifierChain(let projectionTypeIdentifierChain) = projectionType else { preconditionFailure() }
+        guard case .chain(let projectionTypeChain) = projectionType else { preconditionFailure() }
         self.init(swiftType: swiftType,
             abi: ABI(
                 projectionType: projectionType,
-                valueType: abiType ?? SwiftType.identifierChain(projectionTypeIdentifierChain.identifiers + [.init("ABIValue")]),
+                valueType: abiType ?? .chain(projectionTypeChain.appending("ABIValue")),
                 defaultValue: abiDefaultValue ?? projectionType.description + ".abiDefaultValue",
                 identity: identity,
                 inert: inert))
@@ -37,7 +37,7 @@ struct TypeProjection {
     public static func numeric(swiftType: String, abiType: String) -> TypeProjection {
         TypeProjection(
             swiftType: .identifier(name: swiftType),
-            projectionType: .identifier(name: "NumericProjection", genericArgs: [.identifier(name: swiftType)]),
+            projectionType: .identifier("NumericProjection", genericArgs: [.identifier(name: swiftType)]),
             abiType: .identifier(name: abiType),
             abiDefaultValue: "0",
             identity: true,

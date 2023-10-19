@@ -54,7 +54,7 @@ struct SwiftAssemblyModuleFileWriter {
             visibility: SwiftProjection.toVisibility(interface.visibility),
             name: try projection.toProtocolName(interface),
             typeParameters: interface.genericParams.map { $0.name },
-            bases: [ .identifier(name: "IInspectableProtocol") ]) { writer throws in
+            bases: [ .identifier("IInspectableProtocol") ]) { writer throws in
             for genericParam in interface.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
             }
@@ -125,7 +125,7 @@ struct SwiftAssemblyModuleFileWriter {
             visibility: SwiftProjection.toVisibility(structDefinition.visibility),
             name: try projection.toTypeName(structDefinition),
             typeParameters: structDefinition.genericParams.map { $0.name },
-            protocolConformances: [ .identifier(name: "Hashable"), .identifier(name: "Codable") ]) { writer throws in
+            protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
 
             try writeFields(of: structDefinition, defaultInit: true, to: writer)
             writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
@@ -143,8 +143,8 @@ struct SwiftAssemblyModuleFileWriter {
             name: try projection.toTypeName(enumDefinition),
             protocolConformances: [
                 .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
-                .identifier(name: "Hashable"),
-                .identifier(name: "Codable") ]) { writer throws in
+                .identifier("Hashable"),
+                .identifier("Codable") ]) { writer throws in
 
             let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
             writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType)
@@ -156,11 +156,8 @@ struct SwiftAssemblyModuleFileWriter {
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                 let value = SwiftProjection.toConstant(try field.literalValue!)
                 writer.writeStoredProperty(
-                    visibility: .public,
-                    static: true,
-                    let: true,
+                    visibility: .public, static: true, let: true,
                     name: projection.toMemberName(field),
-                    type: .identifier(name: "Self", allowKeyword: true),
                     initializer: "Self(rawValue: \(value))")
             }
         }
@@ -201,9 +198,9 @@ struct SwiftAssemblyModuleFileWriter {
         // FIXME: Rather switch on TypeDefinition to properly handle enum cases
         func getDefaultValue(_ type: SwiftType) -> String? {
             if case .optional = type { return "nil" }
-            guard case .identifierChain(let chain) = type,
-                chain.identifiers.count == 1 else { return nil }
-            switch chain.identifiers[0].name {
+            guard case .chain(let chain) = type,
+                chain.components.count == 1 else { return nil }
+            switch chain.components[0].identifier.name {
                 case "Bool": return "false"
                 case "Int", "UInt", "Int8", "UInt8", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64": return "0"
                 case "Float", "Double": return "0.0"
@@ -238,12 +235,7 @@ struct SwiftAssemblyModuleFileWriter {
 
         writer.writeInit(visibility: .public, parameters: params) {
             for param in params {
-                var lineWriter = $0.output
-                lineWriter.write("self.")
-                SwiftIdentifiers.write(param.name, to: &lineWriter)
-                lineWriter.write(" = ")
-                SwiftIdentifiers.write(param.name, to: &lineWriter)
-                lineWriter.endLine()
+                $0.output.write("self.\(param.name) = \(param.name)", endLine: true)
             }
         }
     }
