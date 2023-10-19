@@ -115,10 +115,13 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeWinRTProjectionConformance(type: BoundType, interface: BoundType, to writer: SwiftRecordBodyWriter) throws {
-        writer.writeTypeAlias(visibility: .public, name: "SwiftValue",
-            target: try projection.toType(type.asNode, referenceNullability: .none))
+        let typeProjection = try projection.getTypeProjection(type.asNode)
+        let interfaceProjection = try projection.getTypeProjection(interface.asNode)
+
+        writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
+            target: typeProjection.swiftType.unwrapOptional())
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
-            target: projection.toAbiType(interface, referenceNullability: .none))
+            target: interfaceProjection.abi!.valueType.unwrapOptional())
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: projection.toAbiVTableType(interface, referenceNullability: .none))
 
@@ -161,8 +164,6 @@ extension SwiftAssemblyModuleFileWriter {
         // TODO: Support generic interfaces
         let interfaceDefinition = interface.definition
         for property in interfaceDefinition.properties {
-            let typeProjection = try projection.getTypeProjection(property.type)
-
             if let getter = try property.getter, getter.isPublic {
                 try writer.writeComputedProperty(
                     visibility: .public,
@@ -170,17 +171,7 @@ extension SwiftAssemblyModuleFileWriter {
                     type: projection.toReturnType(property.type),
                     throws: true) { writer throws in
 
-                    if let abiProjection = typeProjection.abi {
-                        switch abiProjection {
-                            case .identity:
-                                writer.writeStatement("try _getter(_vtable.get_\(property.name))")
-                            case .simple(abiType: _, let projectionType, inert: _):
-                                writer.writeStatement("try _getter(_vtable.get_\(property.name), \(projectionType).self)")
-                        }
-                    }
-                    else {
-                        writer.writeNotImplemented()
-                    }
+                    try writeMethodProjection(getter, to: &writer)
                 }
             }
 
@@ -193,17 +184,7 @@ extension SwiftAssemblyModuleFileWriter {
                         type: projection.toType(property.type))],
                     throws: true) { writer throws in
 
-                    if let abiProjection = typeProjection.abi {
-                        switch abiProjection {
-                            case .identity:
-                                writer.writeStatement("try _setter(_vtable.get_\(property.name), newValue)")
-                            case .simple(abiType: _, let projectionType, inert: _):
-                                writer.writeStatement("try _getter(_vtable.get_\(property.name), newValue, \(projectionType).self)")
-                        }
-                    }
-                    else {
-                        writer.writeNotImplemented()
-                    }
+                    try writeMethodProjection(setter, to: &writer)
                 }
             }
         }
@@ -218,57 +199,58 @@ extension SwiftAssemblyModuleFileWriter {
                 throws: true,
                 returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
 
-                var abiArgs = ["_pointer"]
-                for param in try method.params {
-                    guard let paramName = param.name else {
-                        writer.writeNotImplemented()
-                        return
-                    }
-
-                    let typeProjection = try projection.getTypeProjection(param.type)
-                    guard let abiProjection = typeProjection.abi else {
-                        writer.writeNotImplemented()
-                        return
-                    }
-
-                    if case let .simple(abiType: _, projectionType: projectionType, inert: inert) = abiProjection {
-                        writer.writeStatement("let \(paramName) = \(projectionType).toAbi(\(paramName))")
-                        if !inert { writer.writeStatement("defer { \(paramName).release() }") }
-                    }
-
-                    abiArgs.append(paramName)
-                }
-
-                func writeCall() {
-                    // TODO: Handle overload names
-                    writer.writeStatement("try HResult.throwIfFailed(_vtable.\(method.name)(\(abiArgs.joined(separator: ", "))))")
-                }
-
-                guard try method.hasReturnValue else {
-                    writeCall()
-                    return
-                }
-
-                let returnTypeProjection = try projection.getTypeProjection(method.returnType)
-                guard let returnAbiProjection = returnTypeProjection.abi else {
-                    writer.writeNotImplemented()
-                    return
-                }
-
-                switch returnAbiProjection {
-                    case .identity(abiType: let abiType):
-                        writer.writeStatement("var _result = \(abiType)()")
-                        abiArgs.append("&_result")
-                        writeCall()
-                        writer.writeStatement("return _result")
-
-                    case .simple(abiType: let abiType, let projectionType, inert: _):
-                        writer.writeStatement("var _result = \(abiType)()")
-                        abiArgs.append("&_result")
-                        writeCall()
-                        writer.writeStatement("return \(projectionType).toSwift(consuming: _result)")
-                }
+                try writeMethodProjection(method, to: &writer)
             }
+        }
+    }
+
+    private func writeMethodProjection(_ method: Method, to writer: inout SwiftStatementWriter) throws {
+        var abiArgs = ["_pointer"]
+        for param in try method.params {
+            guard let paramName = param.name else {
+                writer.writeNotImplemented()
+                return
+            }
+
+            let typeProjection = try projection.getTypeProjection(param.type)
+            guard let abi = typeProjection.abi else {
+                writer.writeNotImplemented()
+                return
+            }
+
+            if !abi.identity {
+                writer.writeStatement("let \(paramName) = \(abi.projectionType).toAbi(\(paramName))")
+                if !abi.inert { writer.writeStatement("defer { \(paramName).release() }") }
+            }
+
+            abiArgs.append(paramName)
+        }
+
+        func writeCall() throws {
+            let abiMethodName = try FoundationAttributes.getOverloadName(method) ?? method.name
+            writer.writeStatement("try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
+        }
+
+        if try !method.hasReturnValue {
+            try writeCall()
+            return
+        }
+
+        let returnTypeProjection = try projection.getTypeProjection(method.returnType)
+        guard let returnAbi = returnTypeProjection.abi else {
+            writer.writeNotImplemented()
+            return
+        }
+
+        writer.writeStatement("var _result: \(returnAbi.valueType) = \(returnAbi.defaultValue)")
+        abiArgs.append("&_result")
+        try writeCall()
+
+        if returnAbi.identity {
+            writer.writeStatement("return _result")
+        }
+        else {
+            writer.writeStatement("return \(returnAbi.projectionType).toSwift(consuming: _result)")
         }
     }
 }

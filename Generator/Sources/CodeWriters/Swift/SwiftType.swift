@@ -74,12 +74,25 @@ extension SwiftType {
                 [ Identifier(name, allowKeyword: allowKeyword, genericArgs: genericArgs) ])
         )
     }
-
     public static func identifierChain(
         protocolModifier: SwiftType.ProtocolModifier? = nil,
         _ identifiers: [Identifier]) -> SwiftType {
 
         .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers))
+    }
+
+    public static func identifierChain(
+        protocolModifier: SwiftType.ProtocolModifier? = nil,
+        _ identifiers: Identifier...) -> SwiftType {
+
+        .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers))
+    }
+
+    public static func identifierChain(
+        protocolModifier: SwiftType.ProtocolModifier? = nil,
+        _ identifiers: [String]) -> SwiftType {
+        
+        .identifierChain(IdentifierChain(protocolModifier: protocolModifier, identifiers.map { Identifier($0) }))
     }
 
     public static func identifierChain(

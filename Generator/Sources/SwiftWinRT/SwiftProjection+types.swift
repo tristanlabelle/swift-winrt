@@ -2,12 +2,18 @@ import DotNetMetadata
 import CodeWriters
 
 extension SwiftProjection {
-    func toType(_ type: TypeNode, referenceNullability: ReferenceNullability = .explicit) throws -> SwiftType {
-        try getTypeProjection(type, referenceNullability: referenceNullability).swiftType
+    func toType(_ type: TypeNode) throws -> SwiftType {
+        try getTypeProjection(type).swiftType
     }
 
     func toReturnType(_ type: TypeNode) throws -> SwiftType {
-        try toType(type, referenceNullability: referenceReturnNullability)
+        let swiftType = try toType(type)
+        if case .optional(let wrapped, implicitUnwrap: _) = swiftType {
+            return referenceReturnNullability.applyTo(type: wrapped)
+        }
+        else {
+            return swiftType
+        }
     }
 
     func toReturnTypeUnlessVoid(_ type: TypeNode) throws -> SwiftType? {
@@ -28,36 +34,37 @@ extension SwiftProjection {
             .identifierChain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
     }
 
-    func getTypeProjection(_ type: TypeNode, referenceNullability: ReferenceNullability = .explicit) throws -> TypeProjection {
+    func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
         switch type {
             case let .bound(type):
                 // Remap primitive types
                 if type.definition.assembly is Mscorlib {
-                    guard let result = Self.getTypeProjection(mscorlibType: type, referenceNullability: referenceNullability) else {
-                        fatalError("Not implemented: Unknown Mscorlib type projection")
+                    guard let typeProjection = getCoreLibraryTypeProjection(type) else {
+                        fatalError("Not implemented: Projection for mscorlib \(type)")
                     }
-                    return result
+                    return typeProjection
                 }
-                else if Self.tryGetIReferenceType(type) != nil {
-                    fatalError("Not implemented: IReference<T> projection")
+                else if type.definition.namespace == "Windows.Foundation",
+                        let typeProjection = try getWindowsFoundationTypeProjection(type) {
+                    return typeProjection
                 }
 
                 let swiftTypeName = try toTypeName(type.definition)
                 let swiftGenericArgs = try type.genericArgs.map { try toType($0) }
-                var swiftType = SwiftType.identifier(name: swiftTypeName, genericArgs: swiftGenericArgs)
-                if type.definition.isReferenceType {
-                    swiftType = referenceNullability.applyTo(type: swiftType)
-                }
+                let swiftObjectType = SwiftType.identifier(name: swiftTypeName, genericArgs: swiftGenericArgs)
+                let swiftValueType = type.definition.isValueType ? swiftObjectType : .optional(wrapped: swiftObjectType)
 
                 // Open generic types have no ABI representation
-                guard !type.isParameterized else { return .init(swiftType: swiftType) }
+                guard !type.isParameterized else { return .noAbi(swiftType: swiftValueType) }
 
-                // Only return projections which we can currently produce
-                guard type.definition is EnumDefinition || type.definition is InterfaceDefinition else { return .init(swiftType: swiftType) }
+                // Only return ABI projections which we can currently produce
+                guard type.definition is EnumDefinition
+                    || type.definition is InterfaceDefinition
+                    || type.definition is ClassDefinition else { return .noAbi(swiftType: swiftValueType) }
 
                 var abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
                 if type.definition.isReferenceType {
-                    abiType = referenceNullability.applyTo(type: abiType)
+                    abiType = .optional(wrapped: abiType)
                 }
 
                 let projectionType: SwiftType
@@ -75,86 +82,90 @@ extension SwiftProjection {
                 }
                 else {
                     // Structs, enums and classes conform to ABIProjection directly and cannot be generic
-                    projectionType = swiftType
+                    projectionType = swiftObjectType
                 }
 
-                return .init(
-                    swiftType: swiftType,
-                    abiType: abiType,
+                return TypeProjection(
+                    swiftType: swiftValueType,
                     projectionType: projectionType,
+                    abiType: abiType,
                     inert: type.definition.isValueType)
 
             case let .genericParam(param):
-                return .init(swiftType: .identifier(name: param.name))
+                return .noAbi(swiftType: .identifier(name: param.name))
 
             case let .array(of: element):
-                // TODO: implement ABI projection
-                return .init(swiftType: .array(element: try toType(element)))
+                return .noAbi(swiftType: .array(element: try toType(element)))
 
             default:
                 fatalError("Not implemented: projecting values of type \(type)")
         }
     }
 
-    private static func getTypeProjection(mscorlibType: BoundType, referenceNullability: ReferenceNullability) -> TypeProjection? {
-        guard mscorlibType.definition.namespace == "System" else { return nil }
-        if mscorlibType.genericArgs.isEmpty {
-            switch mscorlibType.definition.name {
+    private func getCoreLibraryTypeProjection(_ type: BoundType) -> TypeProjection? {
+        guard type.definition.namespace == "System" else { return nil }
+        if type.genericArgs.isEmpty {
+            switch type.definition.name {
                 case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double":
-                    return .init(
-                        swiftType: .identifier(name: mscorlibType.definition.name),
-                        abiType: .identifier(name: mscorlibType.definition.name.uppercased()))
+                    return .numeric(
+                        swiftType: type.definition.name,
+                        abiType: type.definition.name.uppercased())
 
                 case "Boolean":
-                    return .init(
+                    return TypeProjection(
                         swiftType: .bool,
+                        projectionType: .identifier(name: "BooleanProjection"),
                         abiType: .identifier(name: "boolean"),
-                        projectionType: .identifier(name: "BooleanProjection"))
-                case "SByte":
-                    return .init(
-                        swiftType: .int(bits: 8, signed: true),
-                        abiType: .identifier(name: "INT8"))
-                case "Byte":
-                    return .init(
-                        swiftType: .int(bits: 8, signed: false),
-                        abiType: .identifier(name: "UINT8"))
-                case "IntPtr":
-                    return .init(
-                        swiftType: .int,
-                        abiType: .identifier(name: "INT_PTR"))
-                case "UIntPtr":
-                    return .init(
-                        swiftType: .uint,
-                        abiType: .identifier(name: "UINT_PTR"))
-                case "Single":
-                    return .init(
-                        swiftType: .float,
-                        abiType: .identifier(name: "FLOAT"))
-                case "Char":
-                    return .init(
-                        swiftType: .identifierChain("UTF16", "CodeUnit"),
-                        abiType: .identifier(name: "WCHAR"))
-                case "Guid":
-                    // TODO: Provide GUID -> UUID Projection
-                    return .init(
-                        swiftType: .identifierChain("Foundation", "UUID"))
+                        defaultAbiValue: "0",
+                        inert: true)
+                case "SByte": return .numeric(swiftType: "Int8", abiType: "INT8")
+                case "Byte": return .numeric(swiftType: "UInt8", abiType: "UINT8")
+                case "IntPtr": return .numeric(swiftType: "Int", abiType: "INT_PTR")
+                case "UIntPtr": return .numeric(swiftType: "UInt", abiType: "UINT_PTR")
+                case "Single": return .numeric(swiftType: "Float", abiType: "FLOAT")
+                case "Char": return .noAbi(swiftType: .identifierChain("UTF16", "CodeUnit"))
+                case "Guid": return .noAbi(swiftType: .identifierChain("Foundation", "UUID"))
                 case "String":
                     return .init(
                         swiftType: .string,
+                        projectionType: .identifier(name: "HStringProjection"),
                         abiType: .optional(wrapped: .identifier(name: "HSTRING")),
-                        projectionType: .identifier(name: "HStringProjection"))
+                        defaultAbiValue: "nil")
                 case "Object":
                     return .init(
-                        swiftType: referenceNullability.applyTo(type: .identifierChain("WindowsRuntime", "IInspectable")),
-                        projectionType: .identifier(name: "IInspectableProjection"))
+                        swiftType: .optional(wrapped: .identifierChain("WindowsRuntime", "IInspectable")),
+                        projectionType: .identifier(name: "IInspectableProjection"),
+                        abiType: .optional(wrapped: .identifierChain("IInspectableProjection", "COMInterface")),
+                        defaultAbiValue: "nil")
                 case "Void":
-                    return .init(swiftType: .void)
+                    return .noAbi(swiftType: .void)
 
                 default: return nil
             }
         }
         else {
             return nil
+        }
+    }
+
+    private func getWindowsFoundationTypeProjection(_ type: BoundType) throws -> TypeProjection? {
+        guard type.definition.namespace == "Windows.Foundation" else { return nil }
+        switch type.definition.name {
+            case "IReference`1":
+                precondition(type.genericArgs.count == 1)
+                let wrappedTypeProjection = try getTypeProjection(type.genericArgs[0])
+                return TypeProjection.noAbi(swiftType: .optional(wrapped: wrappedTypeProjection.swiftType))
+
+            case "HResult":
+                return TypeProjection(
+                    swiftType: .identifierChain("COM", "HResult"),
+                    projectionType: .identifierChain("COM", "HResultProjection"),
+                    abiType: .identifier(name: "HRESULT"),
+                    defaultAbiValue: "S_OK",
+                    inert: true)
+
+            default:
+                return nil
         }
     }
 
