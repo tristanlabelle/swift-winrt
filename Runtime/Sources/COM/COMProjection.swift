@@ -49,6 +49,8 @@ extension COMProjection {
         self.init(transferringRef: pointer)
     }
 
+    public static var defaultAbiValue: ABIValue { nil }
+
     public static func toSwift(copying value: ABIValue) -> SwiftValue {
         guard let value else { return nil }
         return Self(value).swiftObject

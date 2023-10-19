@@ -11,6 +11,8 @@ public struct EventRegistrationToken {
 extension EventRegistrationToken: ABIInertProjection {
     public typealias SwiftValue = Self
     public typealias ABIValue = CABI.EventRegistrationToken
+
+    public static var defaultAbiValue: ABIValue { CABI.EventRegistrationToken(value: 0) }
     public static func toSwift(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
     public static func toABI(_ value: SwiftValue) throws -> ABIValue { ABIValue(value: value.value) }
 }

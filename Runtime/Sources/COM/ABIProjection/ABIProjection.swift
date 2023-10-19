@@ -1,10 +1,14 @@
 /// A type that manages the projection between the Swift and ABI representation of a type of values.
 public protocol ABIProjection {
-    /// The type for the Swift representation of values
+    /// The type for the Swift representation of values.
     associatedtype SwiftValue
 
-    // The type for the ABI representation of values
+    // The type for the ABI representation of values.
     associatedtype ABIValue
+
+    /// A default ABI value that can be used to initialize variables
+    /// and does not imply any resource allocation (release is a no-op).
+    static var defaultAbiValue: ABIValue { get }
 
     /// Converts a value from its ABI to its Swift representation
     /// without releasing the original value.

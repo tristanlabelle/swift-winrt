@@ -2,18 +2,20 @@ import CABI
 
 extension COMProjectionBase {
     public func _withOutParam<ValueProjection: ABIProjection>(
-        _: ValueProjection.Type,
-        _ body: (UnsafeMutablePointer<ValueProjection.ABIValue>) -> HRESULT) throws -> ValueProjection.SwiftValue {
-        try withUnsafeTemporaryAllocation(of: ValueProjection.ABIValue.self, capacity: 1) { valueBuffer in
-            let valuePointer = valueBuffer.baseAddress!
-            try HResult.throwIfFailed(body(valuePointer))
-            return ValueProjection.toSwift(consuming: valuePointer.pointee)
-        }
+            _: ValueProjection.Type,
+            _ body: (UnsafeMutablePointer<ValueProjection.ABIValue>) -> HRESULT) throws -> ValueProjection.SwiftValue {
+        var value = ValueProjection.defaultAbiValue
+        try HResult.throwIfFailed(body(&value))
+        return ValueProjection.toSwift(consuming: value)
     }
 
     public func _getter<Value>(
             _ function: (Projection.ABIValue, UnsafeMutablePointer<Value>?) -> HRESULT) throws -> Value {
-        try _withOutParam(IdentityProjection<Value>.self) { function(_pointer, $0) }
+        try withUnsafeTemporaryAllocation(of: Value.self, capacity: 1) { valueBuffer in
+            let valuePointer = valueBuffer.baseAddress!
+            try HResult.throwIfFailed(function(_pointer, valuePointer))
+            return valuePointer.pointee
+        }
     }
 
     public func _getter<ValueProjection: ABIProjection>(

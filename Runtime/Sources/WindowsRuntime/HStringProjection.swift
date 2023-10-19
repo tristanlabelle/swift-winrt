@@ -5,6 +5,7 @@ public enum HStringProjection: ABIProjection {
     public typealias SwiftValue = String
     public typealias ABIValue = CABI.HSTRING?
 
+    public static var defaultAbiValue: ABIValue { nil }
     public static func toSwift(consuming value: CABI.HSTRING?) -> SwiftValue { CABI.HSTRING.toStringAndDelete(value) }
     public static func toSwift(copying value: CABI.HSTRING?) -> SwiftValue { value.toString() }
     public static func toABI(_ value: String) throws -> CABI.HSTRING? { try CABI.HSTRING.create(value) }
