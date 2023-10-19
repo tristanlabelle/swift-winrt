@@ -8,7 +8,7 @@ public protocol ABIProjection {
 
     /// A default ABI value that can be used to initialize variables
     /// and does not imply any resource allocation (release is a no-op).
-    static var defaultAbiValue: ABIValue { get }
+    static var abiDefaultValue: ABIValue { get }
 
     /// Converts a value from its ABI to its Swift representation
     /// without releasing the original value.

@@ -4,7 +4,7 @@ extension COMProjectionBase {
     public func _withOutParam<ValueProjection: ABIProjection>(
             _: ValueProjection.Type,
             _ body: (UnsafeMutablePointer<ValueProjection.ABIValue>) -> HRESULT) throws -> ValueProjection.SwiftValue {
-        var value = ValueProjection.defaultAbiValue
+        var value = ValueProjection.abiDefaultValue
         try HResult.throwIfFailed(body(&value))
         return ValueProjection.toSwift(consuming: value)
     }

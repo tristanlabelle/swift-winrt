@@ -114,7 +114,7 @@ extension SwiftProjection {
                         swiftType: .bool,
                         projectionType: .identifier(name: "BooleanProjection"),
                         abiType: .identifier(name: "boolean"),
-                        defaultAbiValue: "0",
+                        abiDefaultValue: "0",
                         inert: true)
                 case "SByte": return .numeric(swiftType: "Int8", abiType: "INT8")
                 case "Byte": return .numeric(swiftType: "UInt8", abiType: "UINT8")
@@ -128,13 +128,13 @@ extension SwiftProjection {
                         swiftType: .string,
                         projectionType: .identifier(name: "HStringProjection"),
                         abiType: .optional(wrapped: .identifier(name: "HSTRING")),
-                        defaultAbiValue: "nil")
+                        abiDefaultValue: "nil")
                 case "Object":
                     return .init(
                         swiftType: .optional(wrapped: .identifierChain("WindowsRuntime", "IInspectable")),
                         projectionType: .identifier(name: "IInspectableProjection"),
                         abiType: .optional(wrapped: .identifierChain("IInspectableProjection", "COMInterface")),
-                        defaultAbiValue: "nil")
+                        abiDefaultValue: "nil")
                 case "Void":
                     return .noAbi(swiftType: .void)
 
@@ -159,7 +159,7 @@ extension SwiftProjection {
                     swiftType: .identifierChain("COM", "HResult"),
                     projectionType: .identifierChain("COM", "HResultProjection"),
                     abiType: .identifier(name: "HRESULT"),
-                    defaultAbiValue: "S_OK",
+                    abiDefaultValue: "S_OK",
                     inert: true)
 
             default:

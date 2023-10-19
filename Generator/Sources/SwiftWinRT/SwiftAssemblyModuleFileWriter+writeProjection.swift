@@ -97,7 +97,7 @@ extension SwiftAssemblyModuleFileWriter {
             writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
 
             writer.writeComputedProperty(
-                    visibility: .public, static: true, name: "defaultAbiValue", type: abiType) { writer in
+                    visibility: .public, static: true, name: "abiDefaultValue", type: abiType) { writer in
                 writer.writeStatement("\(abiType)()")
             }
             writer.writeFunc(
