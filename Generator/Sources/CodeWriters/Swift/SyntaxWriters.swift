@@ -208,6 +208,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         setVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
         `let`: Bool = false,
+        `lazy`: Bool = false,
         name: String,
         type: SwiftType? = nil,
         initializer: String? = nil) {
@@ -221,6 +222,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         }
         if `static` { output.write("static ") }
         output.write(`let` ? "let " : "var ")
+        if `lazy` { output.write("lazy ") }
         SwiftIdentifier.write(name, to: &output)
         if let type {
             output.write(": ")
@@ -351,6 +353,32 @@ public struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
 
 public struct SwiftStatementWriter: SwiftSyntaxWriter {
     public let output: IndentedTextOutputStream
+
+    public func writeVariableDeclaration(
+        `let`: Bool, name: String, type: SwiftType? = nil, initializer: String? = nil) {
+
+        var output = output
+        output.write(`let` ? "let " : "var ")
+        SwiftIdentifier.write(name, to: &output)
+        if let type {
+            output.write(": ")
+            type.write(to: &output)
+        }
+        if let initializer {
+            output.write(" = ")
+            output.write(initializer)
+        }
+        output.endLine()
+    }
+
+    public func writeReturnStatement(value: String? = nil) {
+        output.write("return")
+        if let value {
+            output.write(" ")
+            output.write(value)
+        }
+        output.endLine()
+    }
 
     public func writeFatalError(_ message: String? = nil) {
         output.write("fatalError(")

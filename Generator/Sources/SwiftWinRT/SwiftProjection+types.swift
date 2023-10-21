@@ -23,17 +23,6 @@ extension SwiftProjection {
         return try toType(type)
     }
 
-    func toAbiType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
-        referenceNullability.applyTo(type:
-            .chain(abiModuleName, CAbi.mangleName(type: type)))
-    }
-
-    func toAbiVTableType(_ type: BoundType, referenceNullability: ReferenceNullability) -> SwiftType {
-        guard type.definition is InterfaceDefinition else { fatalError("\(type) has no VTable") }
-        return referenceNullability.applyTo(type:
-            .chain(abiModuleName, CAbi.mangleName(type: type) + CAbi.interfaceVTableSuffix))
-    }
-
     func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
         switch type {
             case let .bound(type):
@@ -62,7 +51,7 @@ extension SwiftProjection {
 
                 var abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
                 if type.definition.isReferenceType {
-                    abiType = .optional(wrapped: abiType)
+                    abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
                 }
 
                 let projectionType: SwiftType
@@ -133,7 +122,7 @@ extension SwiftProjection {
                     return .init(
                         swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
                         projectionType: .identifier("IInspectableProjection"),
-                        abiType: .optional(wrapped: .chain("IInspectableProjection", "COMInterface")),
+                        abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
                         abiDefaultValue: "nil")
                 case "Void":
                     return .noAbi(swiftType: .void)

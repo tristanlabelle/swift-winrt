@@ -41,35 +41,64 @@ extension SwiftAssemblyModuleFileWriter {
 
             try writeGenericTypeAliases(interfaces: [interface], to: writer)
             try writeWinRTProjectionConformance(type: interface, interface: interface, to: writer)
-            try writeInterfaceMembersProjection(interface, to: writer)
+            try writeMethodsProjection(interface: interface, static: false, thisName: "comPointer", lazyThis: false, to: writer)
+
+            // for baseInterface in interfaceDefinition.baseInterfaces {
+            //     let baseInterface = try baseInterface.interface
+            //     let propertyName = "_" + projection.toTypeName(baseInterface.definition)
+            //     writer.writeStoredProperty(
+            //         visibility: .private, let: false, lazy: true, name: propertyName,
+            //         initializer: "Result {  }")
+            // }
         }
     }
 
     private func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
-            try sourceFileWriter.writeClass(
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-                final: true,
-                name: typeName,
-                base: .identifier(
-                    name: "WinRTProjectionBase",
-                    genericArgs: [.identifier(name: typeName)]),
-                protocolConformances: [.identifier("WinRTProjection")]) { writer throws in
+        let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)
+        let isStatic = defaultInterface == nil
+        try sourceFileWriter.writeClass(
+            visibility: SwiftProjection.toVisibility(classDefinition.visibility),
+            final: true,
+            name: typeName,
+            base: isStatic ? nil : .identifier(
+                name: "WinRTProjectionBase",
+                genericArgs: [.identifier(name: typeName)]),
+            protocolConformances: isStatic ? [] : [.identifier("WinRTProjection")]) { writer throws in
 
-                try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
+            try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
+
+            if let defaultInterface {
                 try writeWinRTProjectionConformance(type: classDefinition.bind(), interface: defaultInterface, to: writer)
-                try writeInterfaceMembersProjection(defaultInterface, to: writer)
             }
-        }
-        else {
-            // Static class
-            try sourceFileWriter.writeClass(
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-                final: true,
-                name: typeName) { writer throws in
+            else {
+                writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
+                    initializer: "\"\(classDefinition.fullName)\"")
 
                 writer.writeInit(visibility: .private) { writer in }
+            }
+
+            for interface in classDefinition.baseInterfaces {
+                let interface = try interface.interface
+                writer.output.writeLine("// \(interface.definition.name)")
+                try writeMethodsProjection(interface: interface, static: false, thisName: "comPointer", lazyThis: false, to: writer)
+            }
+
+            for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
+                let propertyName = try "_" + Casing.pascalToCamel(projection.toTypeName(staticAttribute.interface, namespaced: false))
+                let abiName = CAbi.mangleName(type: staticAttribute.interface.bind())
+                let guid = try staticAttribute.interface.findAttribute(WindowsMetadata.GuidAttribute.self)!
+                let iid = try Self.toIIDExpression(guid)
+                writer.writeStoredProperty(
+                    visibility: .private, static: true, let: true, name: propertyName,
+                    initializer: "Result { () -> UnsafeMutablePointer<\(abiName)> in try WindowsRuntime.ActivationFactory.getPointer(activatableId: runtimeClassName, iid: \(iid)) }")
+
+                try writeMethodsProjection(
+                    interface: staticAttribute.interface.bind(),
+                    static: true,
+                    thisName: propertyName,
+                    lazyThis: true,
+                    to: writer)
             }
         }
     }
@@ -80,35 +109,33 @@ extension SwiftAssemblyModuleFileWriter {
             protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
-                target: projection.toAbiType(enumDefinition.bind(), referenceNullability: .none))
+                target: .chain(projection.abiModuleName, CAbi.mangleName(type: enumDefinition.bind())))
         }
     }
 
     private func writeStructProjection(_ structDefinition: StructDefinition) throws {
-        let typeProjection = try projection.getTypeProjection(structDefinition.bindNode())
-        let swiftType = typeProjection.swiftType
-        let abiType = typeProjection.abi!.valueType
+        let abiType = SwiftType.chain(projection.abiModuleName, CAbi.mangleName(type: structDefinition.bind()))
 
         sourceFileWriter.writeExtension(
             name: try projection.toTypeName(structDefinition),
             protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
 
-            writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: swiftType)
+            writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: .`self`)
             writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
 
             writer.writeComputedProperty(
                     visibility: .public, static: true, name: "abiDefaultValue", type: abiType) { writer in
-                writer.writeStatement("\(abiType)()")
+                writer.writeStatement(".init()")
             }
             writer.writeFunc(
                     visibility: .public, static: true, name: "toSwift",
                     parameters: [.init(label: "_", name: "value", type: abiType)], 
-                    returnType: swiftType) { writer in
+                    returnType: .`self`) { writer in
                 writer.writeNotImplemented()
             }
             writer.writeFunc(
                     visibility: .public, static: true, name: "toABI",
-                    parameters: [.init(label: "_", name: "value", type: swiftType)],
+                    parameters: [.init(label: "_", name: "value", type: .`self`)],
                     returnType: abiType) { writer in
                 writer.writeNotImplemented()
             }
@@ -149,25 +176,24 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeWinRTProjectionConformance(type: BoundType, interface: BoundType, to writer: SwiftRecordBodyWriter) throws {
-        let typeProjection = try projection.getTypeProjection(type.asNode)
-        let interfaceProjection = try projection.getTypeProjection(interface.asNode)
+        let abiName = CAbi.mangleName(type: interface)
 
         writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
-            target: typeProjection.swiftType.unwrapOptional())
+            target: try projection.toType(type.asNode).unwrapOptional())
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
-            target: interfaceProjection.abi!.valueType.unwrapOptional())
+            target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
-            target: projection.toAbiVTableType(interface, referenceNullability: .none))
+            target: .chain(projection.abiModuleName, abiName + CAbi.interfaceVTableSuffix))
 
         // TODO: Support generic interfaces
         let guid = try interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
-            initializer: try Self.toIIDInitializer(guid))
+            initializer: try Self.toIIDExpression(guid))
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
             initializer: "\"\(type.definition.fullName)\"")
     }
 
-    private static func toIIDInitializer(_ uuid: UUID) throws -> String {
+    private static func toIIDExpression(_ uuid: UUID) throws -> String {
         func toPrefixedPaddedHex<Value: UnsignedInteger & FixedWidthInteger>(
             _ value: Value,
             minimumLength: Int = MemoryLayout<Value>.size * 2) -> String {
@@ -195,31 +221,35 @@ extension SwiftAssemblyModuleFileWriter {
         return "IID(\(arguments.joined(separator: ", ")))"
     }
 
-    private func writeInterfaceMembersProjection(_ interface: BoundType, to writer: SwiftRecordBodyWriter) throws {
+    private func writeMethodsProjection(
+            interface: BoundType, static: Bool, thisName: String, lazyThis: Bool,
+            to writer: SwiftRecordBodyWriter) throws {
         // TODO: Support generic interfaces
         let interfaceDefinition = interface.definition
         for property in interfaceDefinition.properties {
             if let getter = try property.getter, getter.isPublic {
                 try writer.writeComputedProperty(
                     visibility: .public,
+                    static: `static`,
                     name: projection.toMemberName(property),
                     type: projection.toReturnType(property.type),
                     throws: true) { writer throws in
 
-                    try writeMethodProjection(getter, to: &writer)
+                    try writeMethodProjection(getter, thisName: thisName, lazyThis: lazyThis, to: &writer)
                 }
             }
 
             if let setter = try property.setter, setter.isPublic {
                 try writer.writeFunc(
                     visibility: .public,
+                    static: `static`,
                     name: projection.toMemberName(property),
                     parameters: [SwiftParameter(
                         label: "_", name: "newValue",
                         type: projection.toType(property.type))],
                     throws: true) { writer throws in
 
-                    try writeMethodProjection(setter, to: &writer)
+                    try writeMethodProjection(setter, thisName: thisName, lazyThis: lazyThis, to: &writer)
                 }
             }
         }
@@ -229,18 +259,23 @@ extension SwiftAssemblyModuleFileWriter {
 
             try writer.writeFunc(
                 visibility: .public,
+                static: `static`,
                 name: projection.toMemberName(method),
                 parameters: method.params.map(projection.toParameter),
                 throws: true,
                 returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
 
-                try writeMethodProjection(method, to: &writer)
+                try writeMethodProjection(method, thisName: thisName, lazyThis: lazyThis, to: &writer)
             }
         }
     }
 
-    private func writeMethodProjection(_ method: Method, to writer: inout SwiftStatementWriter) throws {
-        var abiArgs = ["comPointer"]
+    private func writeMethodProjection(_ method: Method, thisName: String, lazyThis: Bool, to writer: inout SwiftStatementWriter) throws {
+        var abiArgs = [thisName]
+        if lazyThis {
+            writer.writeStatement("let \(thisName) = try \(thisName).get()")
+        }
+
         for param in try method.params {
             guard let paramName = param.name else {
                 writer.writeNotImplemented()
@@ -254,8 +289,13 @@ extension SwiftAssemblyModuleFileWriter {
             }
 
             if !abi.identity {
-                writer.writeStatement("let \(paramName) = \(abi.projectionType).toAbi(\(paramName))")
-                if !abi.inert { writer.writeStatement("defer { \(paramName).release() }") }
+                if abi.inert {
+                    writer.writeStatement("let \(paramName) = \(abi.projectionType).toABI(\(paramName))")
+                }
+                else {
+                    writer.writeStatement("let \(paramName) = try \(abi.projectionType).toABI(\(paramName))")
+                    writer.writeStatement("defer { \(abi.projectionType).release(\(paramName)) }")
+                }
             }
 
             abiArgs.append(paramName)
@@ -263,7 +303,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         func writeCall() throws {
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            writer.writeStatement("try HResult.throwIfFailed(comPointer.pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
+            writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
 
         if try !method.hasReturnValue {
