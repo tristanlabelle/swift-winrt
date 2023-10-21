@@ -47,7 +47,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     private func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        if let defaultInterface = try FoundationAttributes.getDefaultInterface(classDefinition) {
+        if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
             try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility),
                 final: true,
@@ -160,8 +160,9 @@ extension SwiftAssemblyModuleFileWriter {
             target: projection.toAbiVTableType(interface, referenceNullability: .none))
 
         // TODO: Support generic interfaces
+        let guid = try interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
-            initializer: try Self.toIIDInitializer(FoundationAttributes.getGuid(interface.definition as! InterfaceDefinition)))
+            initializer: try Self.toIIDInitializer(guid))
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
             initializer: "\"\(type.definition.fullName)\"")
     }
@@ -261,7 +262,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
 
         func writeCall() throws {
-            let abiMethodName = try FoundationAttributes.getOverloadName(method) ?? method.name
+            let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
             writer.writeStatement("try HResult.throwIfFailed(comPointer.pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
 

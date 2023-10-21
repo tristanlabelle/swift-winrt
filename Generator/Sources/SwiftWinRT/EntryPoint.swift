@@ -123,7 +123,7 @@ struct EntryPoint: ParsableCommand {
                     guard typeDefinition.fullName != "Windows.Foundation.HResult" else { continue }
                     guard typeDefinition.fullName != "Windows.Foundation.EventRegistrationToken" else { continue }
                     if let structDefinition = typeDefinition as? StructDefinition {
-                        guard try !FoundationAttributes.hasApiContract(structDefinition) else { continue }
+                        guard try !structDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
                     }
 
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
