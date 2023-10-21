@@ -14,5 +14,5 @@ extension EventRegistrationToken: ABIInertProjection {
 
     public static var abiDefaultValue: ABIValue { CABI.EventRegistrationToken(value: 0) }
     public static func toSwift(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
-    public static func toABI(_ value: SwiftValue) throws -> ABIValue { ABIValue(value: value.value) }
+    public static func toABI(_ value: SwiftValue) -> ABIValue { ABIValue(value: value.value) }
 }

@@ -6,5 +6,5 @@ public enum HResultProjection: ABIInertProjection {
 
     public static var abiDefaultValue: ABIValue { CABI.S_OK }
     public static func toSwift(_ value: CABI.HRESULT) -> SwiftValue { HResult(value) }
-    public static func toABI(_ value: HResult) throws -> CABI.HRESULT { value.value }
+    public static func toABI(_ value: HResult) -> CABI.HRESULT { value.value }
 }

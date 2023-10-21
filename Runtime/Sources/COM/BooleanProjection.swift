@@ -7,5 +7,5 @@ public enum BooleanProjection: ABIInertProjection {
 
     public static var abiDefaultValue: ABIValue { 0 }
     public static func toSwift(_ value: CABI.boolean) -> Bool { value != 0 }
-    public static func toABI(_ value: Bool) throws -> CABI.boolean { value ? 1 : 0 }
+    public static func toABI(_ value: Bool) -> CABI.boolean { value ? 1 : 0 }
 }

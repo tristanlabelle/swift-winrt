@@ -38,6 +38,7 @@ extension ABIProjection {
 /// where the ABI representation requires no resource allocation.
 /// For conformance convenience.
 public protocol ABIInertProjection: ABIProjection {
+    static func toABI(_ value: SwiftValue) -> ABIValue // No throw version
     static func toSwift(_ value: ABIValue) -> SwiftValue
 }
 
