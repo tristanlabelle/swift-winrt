@@ -272,10 +272,6 @@ extension SwiftAssemblyModuleFileWriter {
 
     private func writeMethodProjection(_ method: Method, thisName: String, lazyThis: Bool, to writer: inout SwiftStatementWriter) throws {
         var abiArgs = [thisName]
-        if lazyThis {
-            writer.writeStatement("let \(thisName) = try \(thisName).get()")
-        }
-
         for param in try method.params {
             guard let paramName = param.name else {
                 writer.writeNotImplemented()
@@ -302,6 +298,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
 
         func writeCall() throws {
+            if lazyThis { writer.writeStatement("let \(thisName) = try \(thisName).get()") }
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
             writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
