@@ -43,15 +43,15 @@ let package = Package(
 
         // Runtime libraries
         .target(
-            name: "CABI",
-            path: "Runtime/Sources/CABI"),
+            name: "CWinRTCore",
+            path: "Runtime/Sources/CWinRTCore"),
         .target(
             name: "COM",
-            dependencies: ["CABI"],
+            dependencies: ["CWinRTCore"],
             path: "Runtime/Sources/COM"),
         .target(
             name: "WindowsRuntime",
-            dependencies: ["CABI", "COM"],
+            dependencies: ["CWinRTCore", "COM"],
             path: "Runtime/Sources/WindowsRuntime"),
         .testTarget(
             name: "RuntimeTests",

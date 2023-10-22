@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import COM
 
 extension HSTRING {
@@ -6,13 +6,13 @@ extension HSTRING {
         let chars = Array(value.utf16)
         return try chars.withUnsafeBufferPointer {
             var result: HSTRING?
-            try HResult.throwIfFailed(CABI.WindowsCreateString($0.baseAddress!, UInt32(chars.count), &result))
+            try HResult.throwIfFailed(CWinRTCore.WindowsCreateString($0.baseAddress!, UInt32(chars.count), &result))
             return result
         }
     }
 
     public static func delete(_ value: HSTRING?) {
-        let hr = CABI.WindowsDeleteString(value)
+        let hr = CWinRTCore.WindowsDeleteString(value)
         assert(HResult.isSuccess(hr), "Failed to delete HSTRING")
     }
 
@@ -26,13 +26,13 @@ extension HSTRING {
 extension Optional where Wrapped == HSTRING {
     public func duplicate() throws -> Self {
         var result: HSTRING?
-        try HResult.throwIfFailed(CABI.WindowsDuplicateString(self, &result))
+        try HResult.throwIfFailed(CWinRTCore.WindowsDuplicateString(self, &result))
         return result
     }
 
     public func toString() -> String {
         var length: UInt32 = 0
-        guard let ptr = CABI.WindowsGetStringRawBuffer(self, &length) else { return "" }
+        guard let ptr = CWinRTCore.WindowsGetStringRawBuffer(self, &length) else { return "" }
         let buffer: UnsafeBufferPointer<UTF16.CodeUnit> = .init(start: ptr, count: Int(length))
         return String(decoding: buffer, as: UTF16.self)
     }

@@ -1,6 +1,6 @@
-import CABI
+import CWinRTCore
 
-public typealias IUnknownPointer = UnsafeMutablePointer<CABI.IUnknown>
+public typealias IUnknownPointer = UnsafeMutablePointer<CWinRTCore.IUnknown>
 
 extension IUnknownPointer {
     @discardableResult

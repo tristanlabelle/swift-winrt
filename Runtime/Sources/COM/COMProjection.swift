@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 /// A type which projects a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.

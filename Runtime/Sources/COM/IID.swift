@@ -1,6 +1,6 @@
-import CABI
+import CWinRTCore
 
-public typealias IID = CABI.IID
+public typealias IID = CWinRTCore.IID
 
 extension IID {
     public init(_ data1: UInt32, _ data2: UInt16, _ data3: UInt16, _ data4: UInt16, _ data5: UInt64) {

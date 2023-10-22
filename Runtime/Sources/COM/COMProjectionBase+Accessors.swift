@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 extension COMProjectionBase {
     public func _withOutParam<ValueProjection: ABIProjection>(

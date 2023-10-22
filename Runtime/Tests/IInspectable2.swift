@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import WindowsRuntime
 
 internal protocol IInspectable2Protocol: IInspectableProtocol {}
@@ -7,8 +7,8 @@ internal typealias IInspectable2 = any IInspectable2Protocol
 internal final class IInspectable2Projection: WinRTProjectionBase<IInspectable2Projection>, WinRTTwoWayProjection,
         IInspectable2Protocol {
     public typealias SwiftObject = IInspectable2
-    public typealias COMInterface = CABI.IInspectable
-    public typealias COMVirtualTable = CABI.IInspectableVtbl
+    public typealias COMInterface = CWinRTCore.IInspectable
+    public typealias COMVirtualTable = CWinRTCore.IInspectableVtbl
 
     public static let iid = IID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var runtimeClassName: String { "IInspectable2" }

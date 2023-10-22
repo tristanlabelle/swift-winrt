@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import COM
 
 public struct TrustLevel: Hashable, RawRepresentable {
@@ -11,5 +11,5 @@ public struct TrustLevel: Hashable, RawRepresentable {
 }
 
 extension TrustLevel: EnumProjection {
-    public typealias CEnum = CABI.TrustLevel
+    public typealias CEnum = CWinRTCore.TrustLevel
 }

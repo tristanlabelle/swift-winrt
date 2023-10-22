@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import COM
 
 public protocol IBufferByteAccessProtocol: IUnknownProtocol {
@@ -10,8 +10,8 @@ public final class IBufferByteAccessProjection:
         COMProjectionBase<IBufferByteAccessProjection>, COMTwoWayProjection,
         IBufferByteAccessProtocol {
     public typealias SwiftObject = IBufferByteAccess
-    public typealias COMInterface = CABI.IBufferByteAccess
-    public typealias COMVirtualTable = CABI.IBufferByteAccessVtbl
+    public typealias COMInterface = CWinRTCore.IBufferByteAccess
+    public typealias COMVirtualTable = CWinRTCore.IBufferByteAccessVtbl
 
     public static let iid = IID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
     public static var vtable: COMVirtualTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }

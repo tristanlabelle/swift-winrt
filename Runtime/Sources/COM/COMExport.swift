@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 // Base class for Swift objects exported to COM
 public protocol COMExportProtocol: IUnknownProtocol {

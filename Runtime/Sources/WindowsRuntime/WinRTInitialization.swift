@@ -1,11 +1,11 @@
-import CABI
+import CWinRTCore
 
 public final class WinRTInitialization {
     public init(multithreaded: Bool) throws {
-        CABI.RoInitialize(multithreaded ? CABI.RO_INIT_MULTITHREADED  : CABI.RO_INIT_SINGLETHREADED)
+        CWinRTCore.RoInitialize(multithreaded ? CWinRTCore.RO_INIT_MULTITHREADED  : CWinRTCore.RO_INIT_SINGLETHREADED)
     }
 
     deinit {
-        CABI.RoUninitialize()
+        CWinRTCore.RoUninitialize()
     }
 }

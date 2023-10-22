@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import COM
 
 open class WinRTDelegateProjectionBase<Projection: COMTwoWayProjection>: COMProjectionBase<Projection> {

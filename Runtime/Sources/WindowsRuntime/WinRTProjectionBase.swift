@@ -1,9 +1,9 @@
-import CABI
+import CWinRTCore
 import COM
 
 open class WinRTProjectionBase<Projection: WinRTProjection>: COMProjectionBase<Projection>, IInspectableProtocol {
-    private var _inspectable: UnsafeMutablePointer<CABI.IInspectable> {
-        comPointer.withMemoryRebound(to: CABI.IInspectable.self, capacity: 1) { $0 }
+    private var _inspectable: UnsafeMutablePointer<CWinRTCore.IInspectable> {
+        comPointer.withMemoryRebound(to: CWinRTCore.IInspectable.self, capacity: 1) { $0 }
     }
 
     public func getIids() throws -> [IID] {
@@ -16,15 +16,15 @@ open class WinRTProjectionBase<Projection: WinRTProjection>: COMProjectionBase<P
     }
 
     public func getRuntimeClassName() throws -> String {
-        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CABI.IInspectable>
+        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.IInspectable>
         var runtimeClassName: HSTRING?
         try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetRuntimeClassName(_inspectable, &runtimeClassName))
         return HStringProjection.toSwift(consuming: runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
-        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CABI.IInspectable>
-        var trustLevel: CABI.TrustLevel = CABI.BaseTrust
+        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.IInspectable>
+        var trustLevel: CWinRTCore.TrustLevel = CWinRTCore.BaseTrust
         try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetTrustLevel(_inspectable, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }

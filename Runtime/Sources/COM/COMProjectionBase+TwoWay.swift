@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 extension COMProjectionBase where Projection: COMTwoWayProjection {
     public static func _getImplementation(_ pointer: Projection.COMPointer) -> Projection.SwiftObject {

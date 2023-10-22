@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 import COM
 
 extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
@@ -36,7 +36,7 @@ extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
 
     public static func _getTrustLevel(
             _ this: Projection.COMPointer?,
-            _ trustLevel: UnsafeMutablePointer<CABI.TrustLevel>?) -> HRESULT {
+            _ trustLevel: UnsafeMutablePointer<CWinRTCore.TrustLevel>?) -> HRESULT {
         guard let this, let trustLevel else { return HResult.invalidArg.value }
         let object = _getImplementation(this) as! IInspectable
         return HResult.catchValue {

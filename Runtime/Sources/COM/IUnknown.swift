@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 public protocol IUnknownProtocol: AnyObject {
     func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer

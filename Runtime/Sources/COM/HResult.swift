@@ -1,4 +1,4 @@
-import CABI
+import CWinRTCore
 
 public struct HResult: Hashable, CustomStringConvertible {
     public typealias Value = Int32
@@ -49,7 +49,7 @@ public struct HResult: Hashable, CustomStringConvertible {
         // When specifying ALLOCATE_BUFFER, lpBuffer is used as an LPWSTR*
         let dwResult: DWORD = withUnsafeMutablePointer(to: &buffer) {
             $0.withMemoryRebound(to: WCHAR.self, capacity: 1) {
-                CABI.FormatMessageW(
+                CWinRTCore.FormatMessageW(
                     dwFlags,
                     /* lpSource: */ nil,
                     /* dwMessageId: */ DWORD(bitPattern: hr),
@@ -60,7 +60,7 @@ public struct HResult: Hashable, CustomStringConvertible {
             }
         }
         guard let buffer else { return nil }
-        defer { CABI.LocalFree(buffer) }
+        defer { CWinRTCore.LocalFree(buffer) }
         guard dwResult > 0 else { return nil }
 
         var message = String(decodingCString: buffer, as: UTF16.self)

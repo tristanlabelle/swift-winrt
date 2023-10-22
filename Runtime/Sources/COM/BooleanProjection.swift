@@ -1,11 +1,11 @@
-import CABI
+import CWinRTCore
 
 /// Projects the native "boolean" type to Swift's Bool type
 public enum BooleanProjection: ABIInertProjection {
     public typealias SwiftValue = Bool
-    public typealias ABIValue = CABI.boolean
+    public typealias ABIValue = CWinRTCore.boolean
 
     public static var abiDefaultValue: ABIValue { 0 }
-    public static func toSwift(_ value: CABI.boolean) -> Bool { value != 0 }
-    public static func toABI(_ value: Bool) -> CABI.boolean { value ? 1 : 0 }
+    public static func toSwift(_ value: CWinRTCore.boolean) -> Bool { value != 0 }
+    public static func toABI(_ value: Bool) -> CWinRTCore.boolean { value ? 1 : 0 }
 }

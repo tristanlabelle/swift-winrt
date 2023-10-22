@@ -1,5 +1,5 @@
 import COM
-import CABI
+import CWinRTCore
 
 public struct EventRegistrationToken {
     public var value: Int64
@@ -10,9 +10,9 @@ public struct EventRegistrationToken {
 
 extension EventRegistrationToken: ABIInertProjection {
     public typealias SwiftValue = Self
-    public typealias ABIValue = CABI.EventRegistrationToken
+    public typealias ABIValue = CWinRTCore.EventRegistrationToken
 
-    public static var abiDefaultValue: ABIValue { CABI.EventRegistrationToken(value: 0) }
+    public static var abiDefaultValue: ABIValue { CWinRTCore.EventRegistrationToken(value: 0) }
     public static func toSwift(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
     public static func toABI(_ value: SwiftValue) -> ABIValue { ABIValue(value: value.value) }
 }
