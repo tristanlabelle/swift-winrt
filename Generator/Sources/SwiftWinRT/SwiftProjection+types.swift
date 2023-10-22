@@ -101,7 +101,7 @@ extension SwiftProjection {
                 case "Boolean":
                     return TypeProjection(
                         swiftType: .bool,
-                        projectionType: .identifier("BooleanProjection"),
+                        projectionType: .chain("COM", "BooleanProjection"),
                         abiType: .identifier("boolean"),
                         abiDefaultValue: "0",
                         inert: true)
@@ -110,8 +110,19 @@ extension SwiftProjection {
                 case "IntPtr": return .numeric(swiftType: "Int", abiType: "INT_PTR")
                 case "UIntPtr": return .numeric(swiftType: "UInt", abiType: "UINT_PTR")
                 case "Single": return .numeric(swiftType: "Float", abiType: "FLOAT")
-                case "Char": return .noAbi(swiftType: .chain("UTF16", "CodeUnit"))
-                case "Guid": return .noAbi(swiftType: .chain("Foundation", "UUID"))
+                case "Char":
+                    return TypeProjection(
+                        swiftType: .chain("COM", "WideChar"),
+                        projectionType: .chain("COM", "WideChar"),
+                        abiType: .identifier("WCHAR"),
+                        abiDefaultValue: "0",
+                        inert: true)
+                case "Guid":
+                    return TypeProjection(
+                        swiftType: .chain("Foundation", "UUID"),
+                        projectionType: .chain("COM", "GUIDProjection"),
+                        abiType: .identifier("GUID"),
+                        inert: true)
                 case "String":
                     return .init(
                         swiftType: .string,
