@@ -178,7 +178,7 @@ struct SwiftAssemblyModuleFileWriter {
                 writer.writeStoredProperty(
                     visibility: .public, static: true, let: true,
                     name: projection.toMemberName(field),
-                    initializer: "Self(rawValue: \(value))")
+                    initialValue: "Self(rawValue: \(value))")
             }
         }
     }
@@ -243,7 +243,8 @@ struct SwiftAssemblyModuleFileWriter {
                 let: literalValue != nil,
                 name: projection.toMemberName(field),
                 type: type,
-                initializer: literalValue.flatMap(SwiftProjection.toConstant) ?? (field.isInstance && defaultInit ? getDefaultValue(type) : nil))
+                initialValue: literalValue.flatMap(SwiftProjection.toConstant)
+                    ?? (field.isInstance && defaultInit ? getDefaultValue(type) : nil))
         }
     }
 

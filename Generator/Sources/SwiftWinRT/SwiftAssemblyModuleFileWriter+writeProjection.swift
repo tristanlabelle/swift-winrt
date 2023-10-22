@@ -48,7 +48,7 @@ extension SwiftAssemblyModuleFileWriter {
             //     let propertyName = "_" + projection.toTypeName(baseInterface.definition)
             //     writer.writeStoredProperty(
             //         visibility: .private, let: false, lazy: true, name: propertyName,
-            //         initializer: "Result {  }")
+            //         initialValue: "Result {  }")
             // }
         }
     }
@@ -73,7 +73,7 @@ extension SwiftAssemblyModuleFileWriter {
             }
             else {
                 writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
-                    initializer: "\"\(classDefinition.fullName)\"")
+                    initialValue: "\"\(classDefinition.fullName)\"")
 
                 writer.writeInit(visibility: .private) { writer in }
             }
@@ -89,9 +89,11 @@ extension SwiftAssemblyModuleFileWriter {
                 let abiName = CAbi.mangleName(type: staticAttribute.interface.bind())
                 let guid = try staticAttribute.interface.findAttribute(WindowsMetadata.GuidAttribute.self)!
                 let iid = try Self.toIIDExpression(guid)
-                writer.writeStoredProperty(
-                    visibility: .private, static: true, let: true, name: propertyName,
-                    initializer: "Result { () -> UnsafeMutablePointer<\(abiName)> in try WindowsRuntime.ActivationFactory.getPointer(activatableId: runtimeClassName, iid: \(iid)) }")
+                writer.writeStoredProperty(visibility: .private, static: true, let: true, name: propertyName) { writer in
+                    writer.writeIndentedBlock(header: "Result { () -> UnsafeMutablePointer<\(abiName)> in", footer: "}") {
+                        writer.writeLine("try WindowsRuntime.ActivationFactory.getPointer(activatableId: runtimeClassName, iid: \(iid))")
+                    }
+                }
 
                 try writeMethodsProjection(
                     interface: staticAttribute.interface.bind(),
@@ -188,9 +190,9 @@ extension SwiftAssemblyModuleFileWriter {
         // TODO: Support generic interfaces
         let guid = try interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "iid",
-            initializer: try Self.toIIDExpression(guid))
+            initialValue: try Self.toIIDExpression(guid))
         writer.writeStoredProperty(visibility: .public, static: true, let: true, name: "runtimeClassName",
-            initializer: "\"\(type.definition.fullName)\"")
+            initialValue: "\"\(type.definition.fullName)\"")
     }
 
     private static func toIIDExpression(_ uuid: UUID) throws -> String {

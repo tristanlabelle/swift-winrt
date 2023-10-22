@@ -211,7 +211,10 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         `lazy`: Bool = false,
         name: String,
         type: SwiftType? = nil,
-        initializer: String? = nil) {
+        initialValue: String? = nil,
+        initializer: ((IndentedTextOutputStream) throws -> Void)? = nil) rethrows {
+
+        precondition(initialValue == nil || initializer == nil)
 
         var output = output
         output.beginLine(grouping: .withName("storedProperty"))
@@ -228,11 +231,15 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             output.write(": ")
             type.write(to: &output)
         }
-        if let initializer {
+        if let initialValue {
             output.write(" = ")
-            output.write(initializer)
+            output.write(initialValue)
+            output.endLine()
         }
-        output.endLine()
+        else if initializer != nil {
+            output.write(" = ")
+            try initializer?(output)
+        }
     }
 
     public func writeComputedProperty(
