@@ -214,7 +214,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         writer.writeDeinit { writer in
             for storedProperty in NonDefaultInterfaceStoredProperties {
-                writer.writeStatement("if let \(storedProperty) { \(storedProperty).pointee.lpVtbl.pointee.Release() }")
+                writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
             }
         }
     }
@@ -239,11 +239,11 @@ extension SwiftAssemblyModuleFileWriter {
         writer.writeFunc(visibility: .private, static: `static`, name: initFunc, throws: true) {
             $0.writeStatement("guard \(storedPropertyName) == nil else { return }")
             if `static`{
-                $0.writeStatement("\(storedPropertyName) = try WindowsRuntime.ActivationFactory.lazyInit("
+                $0.writeStatement("\(storedPropertyName) = try WindowsRuntime.ActivationFactory.getPointer("
                     + "activatableId: runtimeClassName, iid: \(iid))")
             }
             else {
-                $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(\(iid)).cast()")
+                $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(\(iid)).cast(to: \(abiName).self)")
             }
         }
 
