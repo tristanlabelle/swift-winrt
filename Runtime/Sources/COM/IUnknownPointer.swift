@@ -42,6 +42,14 @@ extension IUnknownPointer {
         try self.queryInterface(iid, IUnknownPointer.Pointee.self)
     }
 
+    public func cast<COMInterface>() -> UnsafeMutablePointer<COMInterface> {
+        self.withMemoryRebound(to: COMInterface.self, capacity: 1) { $0 }
+    }
+
+    public func cast<COMInterface>(to type: COMInterface.Type) -> UnsafeMutablePointer<COMInterface> {
+        self.withMemoryRebound(to: COMInterface.self, capacity: 1) { $0 }
+    }
+
     // UnsafeMutableRawPointer helpers
     public static func cast(_ pointer: UnsafeMutableRawPointer) -> IUnknownPointer {
         pointer.bindMemory(to: IUnknownPointer.Pointee.self, capacity: 1)

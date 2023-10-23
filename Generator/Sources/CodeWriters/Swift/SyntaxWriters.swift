@@ -2,6 +2,11 @@ public protocol SwiftSyntaxWriter {
     var output: IndentedTextOutputStream { get }
 }
 
+public enum SwiftVariableDeclarator: Hashable {
+    case `let`
+    case `var`
+}
+
 public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
     public let output: IndentedTextOutputStream
 
@@ -207,7 +212,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
         visibility: SwiftVisibility = .implicit,
         setVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
-        `let`: Bool = false,
+        declarator: SwiftVariableDeclarator,
         `lazy`: Bool = false,
         name: String,
         type: SwiftType? = nil,
@@ -224,7 +229,7 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             output.write("(set) ")
         }
         if `static` { output.write("static ") }
-        output.write(`let` ? "let " : "var ")
+        output.write(declarator == .let ? "let " : "var ")
         if `lazy` { output.write("lazy ") }
         SwiftIdentifier.write(name, to: &output)
         if let type {
@@ -338,6 +343,15 @@ public struct SwiftRecordBodyWriter: SwiftTypeDeclarationWriter {
             try body(&statementWriter)
         }
     }
+
+    public func writeDeinit(body: (inout SwiftStatementWriter) throws -> Void) rethrows {
+        output.beginLine(grouping: .never)
+        output.write("deinit")
+        try output.writeBracedIndentedBlock() {
+            var statementWriter = SwiftStatementWriter(output: output)
+            try body(&statementWriter)
+        }
+    }
 }
 
 public struct SwiftEnumBodyWriter: SwiftTypeDeclarationWriter {
@@ -362,10 +376,10 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
     public let output: IndentedTextOutputStream
 
     public func writeVariableDeclaration(
-        `let`: Bool, name: String, type: SwiftType? = nil, initializer: String? = nil) {
+        declarator: SwiftVariableDeclarator, name: String, type: SwiftType? = nil, initializer: String? = nil) {
 
         var output = output
-        output.write(`let` ? "let " : "var ")
+        output.write(declarator == .let ? "let " : "var ")
         SwiftIdentifier.write(name, to: &output)
         if let type {
             output.write(": ")

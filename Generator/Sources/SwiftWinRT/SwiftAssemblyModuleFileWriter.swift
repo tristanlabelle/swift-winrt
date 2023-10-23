@@ -167,7 +167,7 @@ struct SwiftAssemblyModuleFileWriter {
                 .identifier("Codable") ]) { writer throws in
 
             let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
-            writer.writeStoredProperty(visibility: .public, name: "rawValue", type: rawValueType)
+            writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
             writer.writeInit(visibility: .public,
                 parameters: [ .init(name: "rawValue", type: rawValueType, defaultValue: "0") ]) {
                 $0.output.write("self.rawValue = rawValue")
@@ -176,7 +176,7 @@ struct SwiftAssemblyModuleFileWriter {
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                 let value = SwiftProjection.toConstant(try field.literalValue!)
                 writer.writeStoredProperty(
-                    visibility: .public, static: true, let: true,
+                    visibility: .public, static: true, declarator: .let,
                     name: projection.toMemberName(field),
                     initialValue: "Self(rawValue: \(value))")
             }
@@ -240,7 +240,7 @@ struct SwiftAssemblyModuleFileWriter {
             writer.writeStoredProperty(
                 visibility: SwiftProjection.toVisibility(field.visibility),
                 static: field.isStatic,
-                let: literalValue != nil,
+                declarator: literalValue == nil ? .var : .let,
                 name: projection.toMemberName(field),
                 type: type,
                 initialValue: literalValue.flatMap(SwiftProjection.toConstant)
