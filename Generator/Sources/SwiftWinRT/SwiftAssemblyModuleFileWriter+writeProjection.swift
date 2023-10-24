@@ -36,8 +36,13 @@ extension SwiftAssemblyModuleFileWriter {
                     .identifier("WinRTProjection"), .identifier(name: try projection.toProtocolName(interface.definition))
                 ]) { writer throws in
 
-            try writeGenericTypeAliases(interfaces: [interface], to: writer)
             try writeWinRTProjectionConformance(type: interface.asType, interface: interface, to: writer)
+
+            let interfaces = try interface.definition.baseInterfaces.map {
+                try $0.interface.bindGenericParams(typeArgs: interface.genericArgs, methodArgs: nil)
+            }
+            try writeGenericTypeAliases(interfaces: interfaces, to: writer)
+
             try writeInterfaceImplementations(interface.asType, to: writer)
         }
     }
@@ -45,12 +50,13 @@ extension SwiftAssemblyModuleFileWriter {
     private func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
         let isStatic = classDefinition.isAbstract && classDefinition.isSealed
+        assert(isStatic == classDefinition.baseInterfaces.isEmpty)
+        let protocolConformances: [SwiftType] = try isStatic ? [] : [.identifier("WinRTProjection")]
+            + classDefinition.baseInterfaces.map { .identifier(try projection.toProtocolName($0.interface.definition)) }
         try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
                 base: isStatic ? nil : .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: typeName)]),
-                protocolConformances: isStatic ? [] : [.identifier("WinRTProjection")]) { writer throws in
-
-            try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
+                protocolConformances: protocolConformances) { writer throws in
 
             if isStatic {
                 writer.writeInit(visibility: .private) { writer in }
@@ -58,8 +64,11 @@ extension SwiftAssemblyModuleFileWriter {
             else {
                 let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)!
                 try writeWinRTProjectionConformance(type: classDefinition.bindType(), interface: defaultInterface, to: writer)
-                try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
             }
+
+            try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
+
+            try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
 
             for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
                 _ = try writeNonDefaultInterfaceImplementation(
