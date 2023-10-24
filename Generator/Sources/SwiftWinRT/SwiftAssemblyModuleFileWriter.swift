@@ -105,7 +105,7 @@ struct SwiftAssemblyModuleFileWriter {
                     static: method.isStatic,
                     name: projection.toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },
-                    parameters: method.params.map(projection.toParameter),
+                    parameters: method.params.map { try projection.toParameter($0) },
                     throws: true,
                     returnType: projection.toReturnTypeUnlessVoid(method.returnType))
             }
@@ -294,7 +294,7 @@ struct SwiftAssemblyModuleFileWriter {
                 try writer.writeInit(
                     visibility: .public,
                     override: try projection.isOverriding(constructor),
-                    parameters: method.params.map(projection.toParameter),
+                    parameters: method.params.map { try projection.toParameter($0) },
                     throws: true) { $0.writeNotImplemented() }
             }
             else {
@@ -304,7 +304,7 @@ struct SwiftAssemblyModuleFileWriter {
                     override: method.isOverride,
                     name: projection.toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },
-                    parameters: method.params.map(projection.toParameter),
+                    parameters: method.params.map { try projection.toParameter($0) },
                     throws: true,
                     returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { $0.writeNotImplemented() }
             }

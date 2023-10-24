@@ -5,24 +5,35 @@ import WindowsMetadata
 import struct Foundation.UUID
 
 extension SwiftAssemblyModuleFileWriter {
-    func writeProjection(_ type: BoundType) throws {
-        // TODO: Support generic interfaces/delegates
+    func writeProjection(_ typeDefinition: TypeDefinition) throws {
+        if typeDefinition.genericArity == 0 {
+            switch typeDefinition {
+                case let interfaceDefinition as InterfaceDefinition:
+                    try writeInterfaceProjection(interfaceDefinition.bind())
+                case let classDefinition as ClassDefinition:
+                    try writeClassProjection(classDefinition)
+                case let enumDefinition as EnumDefinition:
+                    try writeEnumProjection(enumDefinition)
+                case let structDefinition as StructDefinition:
+                    try writeStructProjection(structDefinition)
+                case let delegateDefinition as DelegateDefinition:
+                    break // Not implemented
+                default: fatalError("Unexpected type definition kind")
+            }
+        }
+        else {
+            assert(typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition)
 
-        if let interfaceDefinition = type.definition as? InterfaceDefinition {
-            // Generic interfaces have no projection, only their instantiations do
-            try writeInterfaceProjection(interfaceDefinition.bind(genericArgs: type.genericArgs))
-        }
-        else if let classDefinition = type.definition as? ClassDefinition {
-            assert(type.genericArgs.isEmpty)
-            try writeClassProjection(classDefinition)
-        }
-        else if let enumDefinition = type.definition as? EnumDefinition {
-            assert(type.genericArgs.isEmpty)
-            try writeEnumProjection(enumDefinition)
-        }
-        else if let structDefinition = type.definition as? StructDefinition {
-            assert(type.genericArgs.isEmpty)
-            try writeStructProjection(structDefinition)
+            // Declare a placeholder generic projection:
+            //     public enum IVectorProjection<T> {}
+            // So that we can later declare projection instances:
+            //     extension IVectorProjection where T == Bool {
+            //         public final class Instance {}
+            //     }
+            try sourceFileWriter.writeEnum(
+                visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
+                name: projection.toProjectionTypeName(typeDefinition),
+                typeParameters: typeDefinition.genericParams.map { $0.name }) { _ in }
         }
     }
 
@@ -273,15 +284,19 @@ extension SwiftAssemblyModuleFileWriter {
         // TODO: Support generic interfaces
         let interfaceDefinition = interface.definition
         for property in interfaceDefinition.properties {
+            let swiftPropertyType = try projection.toType(
+                property.type.bindGenericParams(typeArgs: interface.genericArgs, methodArgs: nil))
+
             if let getter = try property.getter, getter.isPublic {
                 try writer.writeComputedProperty(
                     visibility: .public,
                     static: `static`,
                     name: projection.toMemberName(property),
-                    type: projection.toReturnType(property.type),
+                    type: swiftPropertyType,
                     throws: true) { writer throws in
 
-                    try writeMethodProjection(getter, thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                    try writeMethodProjection(getter, genericTypeArgs: interface.genericArgs,
+                        thisName: thisName, initThisFunc: initThisFunc, to: &writer)
                 }
             }
 
@@ -290,12 +305,11 @@ extension SwiftAssemblyModuleFileWriter {
                     visibility: .public,
                     static: `static`,
                     name: projection.toMemberName(property),
-                    parameters: [SwiftParameter(
-                        label: "_", name: "newValue",
-                        type: projection.toType(property.type))],
+                    parameters: [SwiftParameter(label: "_", name: "newValue", type: swiftPropertyType)],
                     throws: true) { writer throws in
 
-                    try writeMethodProjection(setter, thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                    try writeMethodProjection(setter , genericTypeArgs: interface.genericArgs,
+                        thisName: thisName, initThisFunc: initThisFunc, to: &writer)
                 }
             }
         }
@@ -303,20 +317,27 @@ extension SwiftAssemblyModuleFileWriter {
         for method in interfaceDefinition.methods {
             guard method.isPublic, method.nameKind == .regular else { continue }
 
+            let returnSwiftType: SwiftType? = try method.hasReturnValue
+                ? projection.toType(method.returnType.bindGenericParams(typeArgs: interface.genericArgs, methodArgs: nil))
+                : nil
             try writer.writeFunc(
                 visibility: .public,
                 static: `static`,
                 name: projection.toMemberName(method),
-                parameters: method.params.map(projection.toParameter),
+                parameters: method.params.map { try projection.toParameter($0, genericTypeArgs: interface.genericArgs) },
                 throws: true,
-                returnType: projection.toReturnTypeUnlessVoid(method.returnType)) { writer throws in
+                returnType: returnSwiftType) { writer throws in
 
-                try writeMethodProjection(method, thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                try writeMethodProjection(method, genericTypeArgs: interface.genericArgs,
+                    thisName: thisName, initThisFunc: initThisFunc, to: &writer)
             }
         }
     }
 
-    private func writeMethodProjection(_ method: Method, thisName: String, initThisFunc: String? = nil, to writer: inout SwiftStatementWriter) throws {
+    private func writeMethodProjection(
+            _ method: Method, genericTypeArgs: [TypeNode],
+            thisName: String, initThisFunc: String? = nil,
+            to writer: inout SwiftStatementWriter) throws {
         if let initThisFunc { writer.writeStatement("try \(initThisFunc)()") }
 
         var abiArgs = [thisName]
@@ -326,7 +347,7 @@ extension SwiftAssemblyModuleFileWriter {
                 return
             }
 
-            let typeProjection = try projection.getTypeProjection(param.type)
+            let typeProjection = try projection.getTypeProjection(param.type.bindGenericParams(typeArgs: genericTypeArgs, methodArgs: nil))
             guard let abi = typeProjection.abi else {
                 writer.writeNotImplemented()
                 return
@@ -355,7 +376,8 @@ extension SwiftAssemblyModuleFileWriter {
             return
         }
 
-        let returnTypeProjection = try projection.getTypeProjection(method.returnType)
+        let returnTypeProjection = try projection.getTypeProjection(
+            method.returnType.bindGenericParams(typeArgs: genericTypeArgs, methodArgs: nil))
         guard let returnAbi = returnTypeProjection.abi else {
             writer.writeNotImplemented()
             return

@@ -4,7 +4,7 @@ class SwiftProjection {
     private(set) var modulesByShortName: [String: Module] = .init()
     private(set) var assembliesToModules: [Assembly: Module] = .init()
     let abiModuleName: String
-    var referenceReturnNullability: ReferenceNullability { .none } 
+    var referenceReturnNullability: ReferenceNullability { .explicit } 
 
     init(abiModuleName: String) {
         self.abiModuleName = abiModuleName
