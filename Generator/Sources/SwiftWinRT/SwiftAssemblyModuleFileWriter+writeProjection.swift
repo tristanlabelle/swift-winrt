@@ -10,84 +10,68 @@ extension SwiftAssemblyModuleFileWriter {
 
         if let interfaceDefinition = type.definition as? InterfaceDefinition {
             // Generic interfaces have no projection, only their instantiations do
-            guard interfaceDefinition.genericArity == 0 else { return }
-            try writeInterfaceProjection(interfaceDefinition, genericArgs: type.genericArgs)
+            try writeInterfaceProjection(interfaceDefinition.bind(genericArgs: type.genericArgs))
         }
         else if let classDefinition = type.definition as? ClassDefinition {
+            assert(type.genericArgs.isEmpty)
             try writeClassProjection(classDefinition)
         }
         else if let enumDefinition = type.definition as? EnumDefinition {
+            assert(type.genericArgs.isEmpty)
             try writeEnumProjection(enumDefinition)
         }
         else if let structDefinition = type.definition as? StructDefinition {
+            assert(type.genericArgs.isEmpty)
             try writeStructProjection(structDefinition)
         }
     }
 
-    private func writeInterfaceProjection(_ interfaceDefinition: InterfaceDefinition, genericArgs: [TypeNode] = []) throws {
-        let interface = interfaceDefinition.bind(genericArgs: genericArgs)
-        let projectionTypeName = try projection.toProjectionTypeName(interfaceDefinition)
+    private func writeInterfaceProjection(_ interface: BoundInterface) throws {
+        let projectionTypeName = try projection.toProjectionTypeName(interface.definition)
         try sourceFileWriter.writeClass(
-            visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
-            final: true,
-            name: projectionTypeName,
-            base: .identifier(
-                name: "WinRTProjectionBase",
-                genericArgs: [.identifier(name: projectionTypeName)]),
-            protocolConformances: [
-                .identifier("WinRTProjection"),
-                .identifier(name: try projection.toProtocolName(interfaceDefinition))
-            ]) { writer throws in
+                visibility: SwiftProjection.toVisibility(interface.definition.visibility),
+                final: true, name: projectionTypeName,
+                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: projectionTypeName)]),
+                protocolConformances: [
+                    .identifier("WinRTProjection"), .identifier(name: try projection.toProtocolName(interface.definition))
+                ]) { writer throws in
 
             try writeGenericTypeAliases(interfaces: [interface], to: writer)
-            try writeWinRTProjectionConformance(type: interface.typeErased, interface: interface, to: writer)
-            try writeMethodsProjection(interface: interface, static: false, thisName: "comPointer", to: writer)
-            try writeNonDefaultInterfaceImplementations(
-                interfaces: interfaceDefinition.baseInterfaces.map { try $0.interface }
-                    .filter { try !$0.definition.hasAttribute(DefaultAttribute.self) }, to: writer)
+            try writeWinRTProjectionConformance(type: interface.asType, interface: interface, to: writer)
+            try writeInterfaceImplementations(interface.asType, to: writer)
         }
     }
 
     private func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)
-        let isStatic = defaultInterface == nil
+        let isStatic = classDefinition.isAbstract && classDefinition.isSealed
         try sourceFileWriter.writeClass(
-            visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-            final: true,
-            name: typeName,
-            base: isStatic ? nil : .identifier(
-                name: "WinRTProjectionBase",
-                genericArgs: [.identifier(name: typeName)]),
-            protocolConformances: isStatic ? [] : [.identifier("WinRTProjection")]) { writer throws in
+                visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
+                base: isStatic ? nil : .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: typeName)]),
+                protocolConformances: isStatic ? [] : [.identifier("WinRTProjection")]) { writer throws in
 
             try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
-            if let defaultInterface {
-                try writeWinRTProjectionConformance(type: classDefinition.bindType(), interface: defaultInterface, to: writer)
-                try writeMethodsProjection(interface: defaultInterface, static: false, thisName: "comPointer", to: writer)
-                try writeNonDefaultInterfaceImplementations(
-                    interfaces: classDefinition.baseInterfaces
-                        .filter { try !$0.hasAttribute(DefaultAttribute.self) }
-                        .map { try $0.interface }, to: writer)
+            if isStatic {
+                writer.writeInit(visibility: .private) { writer in }
             }
             else {
-                // Static class
-                writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
-                    initialValue: "\"\(classDefinition.fullName)\"")
-                writer.writeInit(visibility: .private) { writer in }
+                let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)!
+                try writeWinRTProjectionConformance(type: classDefinition.bindType(), interface: defaultInterface, to: writer)
+                try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
             }
 
             for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
-                _ = try writeNonDefaultInterfaceImplementation(staticAttribute.interface.bind(), static: true, to: writer)
+                _ = try writeNonDefaultInterfaceImplementation(
+                    staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
             }
         }
     }
 
     private func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
         try sourceFileWriter.writeExtension(
-            name: projection.toTypeName(enumDefinition),
-            protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
+                name: projection.toTypeName(enumDefinition),
+                protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
                 target: .chain(projection.abiModuleName, try CAbi.mangleName(type: enumDefinition.bindType())))
@@ -98,8 +82,8 @@ extension SwiftAssemblyModuleFileWriter {
         let abiType = SwiftType.chain(projection.abiModuleName, try CAbi.mangleName(type: structDefinition.bindType()))
 
         sourceFileWriter.writeExtension(
-            name: try projection.toTypeName(structDefinition),
-            protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
+                name: try projection.toTypeName(structDefinition),
+                protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: .`self`)
             writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
@@ -123,33 +107,19 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    // For StringMap, will write typealiases for K = String and V = String
+    /// Gathers all generic arguments from the given interfaces and writes them as type aliases
+    /// For example, if an interface is IMap<String, Int32>, write K = String and V = Int32
     private func writeGenericTypeAliases(interfaces: [BoundInterface], to writer: SwiftRecordBodyWriter) throws {
-        // Gather type aliases by recursively visiting base types
         var typeAliases = OrderedDictionary<String, SwiftType>()
-        func visit(interface: BoundInterface) throws {
-            for genericParam in interface.definition.genericParams {
-                // TODO: Don't assume that all instances of generic params of the same name are bound to the same type
-                typeAliases[genericParam.name] = try projection.toType(interface.genericArgs[genericParam.index])
-            }
 
-            for baseInterface in interface.definition.baseInterfaces {
-                let baseInterface = try baseInterface.interface
-                try visit(interface: BoundInterface(baseInterface.definition,
-                    genericArgs: baseInterface.genericArgs.map {
-                        // Bind transitive generic arguments:
-                        // For IVector<String>, IIterable<T> -> IIterable<String> 
-                        if case .genericParam(let genericParam) = $0 {
-                            return interface.genericArgs[genericParam.index]
-                        }
-                        else {
-                            return $0
-                        }
-                    }))
+        for interface in interfaces {
+            for (index, genericArg) in interface.genericArgs.enumerated() {
+                let genericParamName = interface.definition.genericParams[index].name
+                if typeAliases[genericParamName] == nil {
+                    typeAliases[genericParamName] = try projection.toType(genericArg)
+                }
             }
         }
-
-        for interface in interfaces { try visit(interface: interface) }
 
         for (name, type) in typeAliases {
             writer.writeTypeAlias(visibility: .public, name: name, target: type)
@@ -157,7 +127,7 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeWinRTProjectionConformance(type: BoundType, interface: BoundInterface, to writer: SwiftRecordBodyWriter) throws {
-        let abiName = try CAbi.mangleName(type: interface.typeErased)
+        let abiName = try CAbi.mangleName(type: interface.asType)
 
         writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
             target: try projection.toType(type.asNode).unwrapOptional())
@@ -170,8 +140,10 @@ extension SwiftAssemblyModuleFileWriter {
         let guid = try interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "iid",
             initialValue: try Self.toIIDExpression(guid))
+
+        let runtimeClassName = WinRTTypeName.from(type: type)!.description
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
-            initialValue: "\"\(type.definition.fullName)\"")
+            initialValue: "\"\(runtimeClassName)\"")
     }
 
     private static func toIIDExpression(_ uuid: UUID) throws -> String {
@@ -202,52 +174,86 @@ extension SwiftAssemblyModuleFileWriter {
         return "IID(\(arguments.joined(separator: ", ")))"
     }
 
-    private func writeNonDefaultInterfaceImplementations(interfaces: [BoundInterface], to writer: SwiftRecordBodyWriter) throws {
-        guard !interfaces.isEmpty else { return }
+    private func writeInterfaceImplementations(_ type: BoundType, to writer: SwiftRecordBodyWriter) throws {
+        var recursiveInterfaces = [BoundInterface]()
 
-        var NonDefaultInterfaceStoredProperties = [String]()
-        for interface in interfaces {
-            writer.output.writeLine("// \(interface.definition.name)")
-            let storedProperty = try writeNonDefaultInterfaceImplementation(interface, static: false, to: writer)
-            NonDefaultInterfaceStoredProperties.append(storedProperty)
+        func visit(_ interface: BoundInterface) throws {
+            guard !recursiveInterfaces.contains(interface) else { return }
+            recursiveInterfaces.append(interface)
+
+            for baseInterface in interface.definition.baseInterfaces {
+                try visit(baseInterface.interface.bindGenericParams(
+                    typeArgs: interface.genericArgs, methodArgs: nil))
+            }
         }
 
-        writer.writeDeinit { writer in
-            for storedProperty in NonDefaultInterfaceStoredProperties {
-                writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
+        var defaultInterface: BoundInterface?
+        if let interfaceDefinition = type.definition as? InterfaceDefinition {
+            let interface = interfaceDefinition.bind(genericArgs: type.genericArgs)
+            defaultInterface = interface
+            try visit(interface)
+        }
+
+        for baseInterface in type.definition.baseInterfaces {
+            let interface = try baseInterface.interface.bindGenericParams(
+                typeArgs: type.genericArgs, methodArgs: nil)
+            if try defaultInterface == nil && baseInterface.hasAttribute(DefaultAttribute.self) {
+                defaultInterface = interface
+            }
+            try visit(interface)
+        }
+
+        var nonDefaultInterfaceStoredProperties = [String]()
+        for interface in recursiveInterfaces {
+            writer.output.writeLine("// \(WinRTTypeName.from(type: interface.asType)!.description)")
+            if interface == defaultInterface {
+                try writeMethodsProjection(interface: interface, static: false, thisName: "comPointer", to: writer)
+            }
+            else {
+                let storedProperty = try writeNonDefaultInterfaceImplementation(interface, to: writer)
+                nonDefaultInterfaceStoredProperties.append(storedProperty)
+            }
+        }
+
+        if !nonDefaultInterfaceStoredProperties.isEmpty {
+            writer.writeDeinit { writer in
+                for storedProperty in nonDefaultInterfaceStoredProperties {
+                    writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
+                }
             }
         }
     }
 
     private func writeNonDefaultInterfaceImplementation(
-        _ interface: BoundInterface, static: Bool, to writer: SwiftRecordBodyWriter) throws -> String {
+        _ interface: BoundInterface, staticOf: ClassDefinition? = nil, to writer: SwiftRecordBodyWriter) throws -> String {
 
         // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>! = nil
         let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
-        let abiName = try CAbi.mangleName(type: interface.typeErased)
+        let abiName = try CAbi.mangleName(type: interface.asType)
         let iid = try Self.toIIDExpression(interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!)
-        writer.writeStoredProperty(visibility: .private, static: `static`, declarator: .var, name: storedPropertyName,
+        writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
             type: .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)]), implicitUnwrap: true),
             initialValue: "nil")
 
         // private [static] func _initIStringable() throws {
         //     guard _istringable == nil else { return }
-        //     _istringable = try WindowsRuntime.ActivationFactory.lazyInit(pointer: &_lazyIStringable, activatableId: runtimeClassName, iid: IID(__x_ABI_CIStringable.self)
+        //     _istringable = try WindowsRuntime.ActivationFactory.getPointer(activatableId: "Windows.Foundation.IStringable", iid: IID(__x_ABI_CIStringable.self)
         // }
         let initFunc = "_init" + interfaceName
-        writer.writeFunc(visibility: .private, static: `static`, name: initFunc, throws: true) {
+        writer.writeFunc(visibility: .private, static: staticOf != nil, name: initFunc, throws: true) {
             $0.writeStatement("guard \(storedPropertyName) == nil else { return }")
-            if `static`{
+            if let staticOf {
+                let activatableId = WinRTTypeName.from(type: staticOf.bindType())!.description
                 $0.writeStatement("\(storedPropertyName) = try WindowsRuntime.ActivationFactory.getPointer("
-                    + "activatableId: runtimeClassName, iid: \(iid))")
+                    + "activatableId: \"\(activatableId)\", iid: \(iid))")
             }
             else {
                 $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(\(iid)).cast(to: \(abiName).self)")
             }
         }
 
-        try writeMethodsProjection(interface: interface, static: `static`, thisName: storedPropertyName, initThisFunc: initFunc, to: writer)
+        try writeMethodsProjection(interface: interface, static: staticOf != nil, thisName: storedPropertyName, initThisFunc: initFunc, to: writer)
 
         return storedPropertyName
     }

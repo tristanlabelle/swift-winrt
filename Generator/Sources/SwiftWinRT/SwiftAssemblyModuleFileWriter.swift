@@ -132,7 +132,7 @@ struct SwiftAssemblyModuleFileWriter {
             name: try projection.toTypeName(classDefinition),
             typeParameters: classDefinition.genericParams.map { $0.name },
             base: try projection.toBaseType(classDefinition.base),
-            protocolConformances: try classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface.typeErased) }) {
+            protocolConformances: try classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface.asType) }) {
             writer throws in
             try writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
             try writeFields(of: classDefinition, defaultInit: false, to: writer)
@@ -197,7 +197,7 @@ struct SwiftAssemblyModuleFileWriter {
     }
 
     fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
-        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.typeErased }
+        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.asType }
         if let base = try typeDefinition.base {
             baseTypes.insert(base, at: 0)
         }
