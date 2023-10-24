@@ -49,7 +49,7 @@ extension SwiftProjection {
                 // Only return ABI projections which we can currently produce
                 guard !(type.definition is DelegateDefinition) else { return .noAbi(swiftType: swiftValueType) }
 
-                var abiType = SwiftType.identifier(name: CAbi.mangleName(type: type))
+                var abiType = SwiftType.identifier(name: try CAbi.mangleName(type: type))
                 if type.definition.isReferenceType {
                     abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
                 }

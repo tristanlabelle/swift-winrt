@@ -55,7 +55,7 @@ struct SwiftAssemblyModuleFileWriter {
         for baseInterface in interface.baseInterfaces {
             let baseInterface = try baseInterface.interface
             baseProtocols.append(SwiftType.identifier(
-                try projection.toProtocolName(baseInterface.definition as! InterfaceDefinition)))
+                try projection.toProtocolName(baseInterface.definition)))
             for (i, genericArg) in baseInterface.genericArgs.enumerated() {
                 let genericParam = baseInterface.definition.genericParams[i]
                 // Ignore generic arguments that are the same as the current interface's generic arguments,
@@ -132,7 +132,7 @@ struct SwiftAssemblyModuleFileWriter {
             name: try projection.toTypeName(classDefinition),
             typeParameters: classDefinition.genericParams.map { $0.name },
             base: try projection.toBaseType(classDefinition.base),
-            protocolConformances: try classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface) }) {
+            protocolConformances: try classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface.typeErased) }) {
             writer throws in
             try writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
             try writeFields(of: classDefinition, defaultInit: false, to: writer)
@@ -197,7 +197,7 @@ struct SwiftAssemblyModuleFileWriter {
     }
 
     fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
-        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface }
+        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.typeErased }
         if let base = try typeDefinition.base {
             baseTypes.insert(base, at: 0)
         }

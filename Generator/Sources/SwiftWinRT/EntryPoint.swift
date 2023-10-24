@@ -128,7 +128,7 @@ struct EntryPoint: ParsableCommand {
 
                     try definitionsWriter.writeTypeDefinition(typeDefinition)
                     if typeDefinition.genericArity == 0 {
-                        try projectionsWriter.writeProjection(typeDefinition.bind())
+                        try projectionsWriter.writeProjection(typeDefinition.bindType())
                     }
                     if typeDefinition.isPublic {
                         try aliasesWriter.writeAliases(typeDefinition)

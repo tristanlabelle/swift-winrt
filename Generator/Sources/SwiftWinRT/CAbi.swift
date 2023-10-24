@@ -1,93 +1,99 @@
 import DotNetMetadata
+import WindowsMetadata
 import CodeWriters
 
 enum CAbi {
-    public static let interfaceIDPrefix = "IID_"
-    public static let interfaceVTableSuffix = "Vtbl"
-
-    public static func mangleName(type: BoundType) -> String {
-        var output = String()
-        writeMangledName(type: type, to: &output)
-        return output
+    static func mangleName(type: BoundType) throws -> String {
+        WinRTTypeName.from(type: type)!.midlMangling
     }
 
-    public static func writeMangledName(type: BoundType, to output: inout some TextOutputStream) {
-        if type.definition.assembly is Mscorlib {
-            assert(type.genericArgs.isEmpty && type.definition.namespace == "System")
-            writeSystemTypeName(name: type.definition.name, to: &output)
-            return
-        }
-
-        if type.genericArgs.isEmpty { output.write("__x_ABI_C") }
-        writeInnerMangledName(type: type, to: &output)
+    static func toCType(_ type: TypeNode) throws -> CType {
+        guard case .bound(let type) = type else { fatalError() }
+        return CType(
+            name: try mangleName(type: type),
+            pointerIndirections: type.definition.isReferenceType ? 1 : 0)
     }
 
-    private static func writeInnerMangledName(type: BoundType, to output: inout some TextOutputStream) {
-        // __FIMap_2_HSTRING___FIVectorView_1_Windows__CData__CText__CTextSegment
-        if type.definition.assembly is Mscorlib {
-            assert(type.genericArgs.isEmpty && type.definition.namespace == "System")
-            writeSystemTypeName(name: type.definition.name, to: &output)
-            return
+    static func writeEnum(_ enumDefinition: EnumDefinition, to writer: inout CSourceFileWriter) throws {
+        let mangledName = try mangleName(type: enumDefinition.bindType())
+
+        func toValue(_ constant: Constant) -> Int {
+            guard case let .int32(value) = constant else { fatalError() }
+            return Int(value)
         }
 
-        if type.genericArgs.isEmpty {
-            if let namespace = type.definition.namespace {
-                var first = true
-                for namespaceComponent in namespace.split(separator: ".") {
-                    if !first { output.write("C") }
-                    output.write(String(namespaceComponent.replacing("_", with: "__z")))
-                    output.write("_")
-                    first = false
-                }
+        let enumerants = try enumDefinition.fields.filter { $0.isStatic && $0.visibility == .public }
+            .map { CEnumerant(name: $0.name, value: toValue(try $0.literalValue!)) }
+
+        writer.writeEnum(name: mangledName, enumerants: enumerants, enumerantPrefix: mangledName + "_")
+    }
+
+    static func writeStruct(_ structDefinition: StructDefinition, to writer: inout CSourceFileWriter) throws {
+        let mangledName = try mangleName(type: structDefinition.bindType())
+
+        let members = try structDefinition.fields.filter { !$0.isStatic && $0.visibility == .public  }
+            .map { CDataMember(type: try toCType(try $0.type), name: $0.name) }
+
+        writer.writeStruct(name: mangledName, members: members)
+    }
+
+    static func writeInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: inout CSourceFileWriter) throws {
+        let mangledName = try mangleName(type: interface.bindType(genericArgs: genericArgs))
+
+        var functions = [CFunctionSignature]()
+
+        // IUnknown members
+        functions.append(.hresultReturning(name: "QueryInterface", params: [
+            .init(type: .pointer(to: mangledName), name: "This"),
+            .init(type: .init(name: "REFIID"), name: "riid"),
+            .init(type: .init(name: "void", pointerIndirections: 2), name: "ppvObject")
+        ]))
+        functions.append(.init(returnType: "ULONG", name: "AddRef", params: [
+            .init(type: .pointer(to: mangledName), name: "This")
+        ]))
+        functions.append(.init(returnType: "ULONG", name: "Release", params: [
+            .init(type: .pointer(to: mangledName), name: "This")
+        ]))
+
+        // IInspectable members
+        functions.append(.hresultReturning(name: "GetIids", params: [
+            .init(type: .pointer(to: mangledName), name: "This"),
+            .init(type: .pointer(to: "ULONG"), name: "iidCount"),
+            .init(type: .init(name: "IID", pointerIndirections: 2), name: "iids")
+        ]))
+        functions.append(.hresultReturning(name: "GetRuntimeClassName", params: [
+            .init(type: .pointer(to: mangledName), name: "This"),
+            .init(type: .pointer(to: "HSTRING"), name: "className")
+        ]))
+        functions.append(.hresultReturning(name: "GetTrustLevel", params: [
+            .init(type: .pointer(to: mangledName), name: "This"),
+            .init(type: .pointer(to: "TrustLevel"), name: "trustLevel")
+        ]))
+
+        // Interface members
+        for method in interface.methods {
+            var params = [CFunctionSignature.Param]()
+
+            params.append(.init(type: .pointer(to: mangledName), name: "This"))
+
+            for param in try method.params {
+                var type = try toCType(param.type)
+                if param.isByRef { type = type.withPointerIndirection() }
+                params.append(.init(type: type, name: param.name))
             }
 
-            output.write("C")
-            output.write(type.definition.name)
-        }
-        else {
-            output.write("__F")
-            output.write(type.definition.nameWithoutGenericSuffix)
-            output.write("_")
-            output.write(String(type.genericArgs.count))
-            output.write("_")
-            for (index, genericArgNode) in type.genericArgs.enumerated() {
-                if index > 0 {
-                    output.write("_")
-                }
-
-                guard case .bound(let genericArg) = genericArgNode else {
-                    fatalError("Invalid generic arg, must be a bound type.")
-                }
-                writeMangledName(type: genericArg, to: &output)
+            let returnType = try method.returnType
+            if !(returnType.asDefinition?.fullName == "System.Void") {
+                params.append(.init(type: try toCType(returnType).withPointerIndirection(), name: nil))
             }
-        }
-    }
 
-    private static func writeSystemTypeName(name: String, to output: inout some TextOutputStream) {
-        switch name {
-            case "Boolean": output.write("boolean")
-            case "Byte": output.write("byte")
-            case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64":
-                output.write(name.uppercased())
-            case "Single": output.write("float")
-            case "Double": output.write("double")
-            case "Guid": output.write("GUID")
-            case "String": output.write("HSTRING")
-            case "Object": output.write("IInspectable")
-            default: fatalError("Not implemented: ABI name for System.\(name)")
+            functions.append(.hresultReturning(name: method.name, params: params))
         }
-    }
 
-    public static func toCType(_ type: TypeNode) -> CType {
-        if case let .bound(type) = type {
-            // TODO: Handle special system types
-
-            return CType(
-                name: mangleName(type: type),
-                pointerIndirections: type.definition.isReferenceType ? 1 : 0)
-        }
-        else {
-            fatalError("Not implemented")
-        }
+        writer.writeCOMInterface(
+            name: mangledName,
+            functions: functions,
+            idName: WinRTTypeName.midlInterfaceIDPrefix + mangledName,
+            vtableName: mangledName + WinRTTypeName.midlVirtualTableSuffix)
     }
 }

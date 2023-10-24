@@ -40,7 +40,7 @@ extension SwiftAssemblyModuleFileWriter {
             ]) { writer throws in
 
             try writeGenericTypeAliases(interfaces: [interface], to: writer)
-            try writeWinRTProjectionConformance(type: interface, interface: interface, to: writer)
+            try writeWinRTProjectionConformance(type: interface.typeErased, interface: interface, to: writer)
             try writeMethodsProjection(interface: interface, static: false, thisName: "comPointer", to: writer)
             try writeNonDefaultInterfaceImplementations(
                 interfaces: interfaceDefinition.baseInterfaces.map { try $0.interface }
@@ -64,7 +64,7 @@ extension SwiftAssemblyModuleFileWriter {
             try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
             if let defaultInterface {
-                try writeWinRTProjectionConformance(type: classDefinition.bind(), interface: defaultInterface, to: writer)
+                try writeWinRTProjectionConformance(type: classDefinition.bindType(), interface: defaultInterface, to: writer)
                 try writeMethodsProjection(interface: defaultInterface, static: false, thisName: "comPointer", to: writer)
                 try writeNonDefaultInterfaceImplementations(
                     interfaces: classDefinition.baseInterfaces
@@ -85,17 +85,17 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
-        sourceFileWriter.writeExtension(
-            name: try projection.toTypeName(enumDefinition),
+        try sourceFileWriter.writeExtension(
+            name: projection.toTypeName(enumDefinition),
             protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
 
             writer.writeTypeAlias(visibility: .public, name: "CEnum",
-                target: .chain(projection.abiModuleName, CAbi.mangleName(type: enumDefinition.bind())))
+                target: .chain(projection.abiModuleName, try CAbi.mangleName(type: enumDefinition.bindType())))
         }
     }
 
     private func writeStructProjection(_ structDefinition: StructDefinition) throws {
-        let abiType = SwiftType.chain(projection.abiModuleName, CAbi.mangleName(type: structDefinition.bind()))
+        let abiType = SwiftType.chain(projection.abiModuleName, try CAbi.mangleName(type: structDefinition.bindType()))
 
         sourceFileWriter.writeExtension(
             name: try projection.toTypeName(structDefinition),
@@ -124,10 +124,10 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     // For StringMap, will write typealiases for K = String and V = String
-    private func writeGenericTypeAliases(interfaces: [BoundType], to writer: SwiftRecordBodyWriter) throws {
+    private func writeGenericTypeAliases(interfaces: [BoundInterface], to writer: SwiftRecordBodyWriter) throws {
         // Gather type aliases by recursively visiting base types
         var typeAliases = OrderedDictionary<String, SwiftType>()
-        func visit(interface: BoundType) throws {
+        func visit(interface: BoundInterface) throws {
             for genericParam in interface.definition.genericParams {
                 // TODO: Don't assume that all instances of generic params of the same name are bound to the same type
                 typeAliases[genericParam.name] = try projection.toType(interface.genericArgs[genericParam.index])
@@ -135,7 +135,7 @@ extension SwiftAssemblyModuleFileWriter {
 
             for baseInterface in interface.definition.baseInterfaces {
                 let baseInterface = try baseInterface.interface
-                try visit(interface: BoundType(baseInterface.definition,
+                try visit(interface: BoundInterface(baseInterface.definition,
                     genericArgs: baseInterface.genericArgs.map {
                         // Bind transitive generic arguments:
                         // For IVector<String>, IIterable<T> -> IIterable<String> 
@@ -156,15 +156,15 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    private func writeWinRTProjectionConformance(type: BoundType, interface: BoundType, to writer: SwiftRecordBodyWriter) throws {
-        let abiName = CAbi.mangleName(type: interface)
+    private func writeWinRTProjectionConformance(type: BoundType, interface: BoundInterface, to writer: SwiftRecordBodyWriter) throws {
+        let abiName = try CAbi.mangleName(type: interface.typeErased)
 
         writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
             target: try projection.toType(type.asNode).unwrapOptional())
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
             target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
-            target: .chain(projection.abiModuleName, abiName + CAbi.interfaceVTableSuffix))
+            target: .chain(projection.abiModuleName, abiName + WinRTTypeName.midlVirtualTableSuffix))
 
         // TODO: Support generic interfaces
         let guid = try interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
@@ -202,7 +202,7 @@ extension SwiftAssemblyModuleFileWriter {
         return "IID(\(arguments.joined(separator: ", ")))"
     }
 
-    private func writeNonDefaultInterfaceImplementations(interfaces: [BoundType], to writer: SwiftRecordBodyWriter) throws {
+    private func writeNonDefaultInterfaceImplementations(interfaces: [BoundInterface], to writer: SwiftRecordBodyWriter) throws {
         guard !interfaces.isEmpty else { return }
 
         var NonDefaultInterfaceStoredProperties = [String]()
@@ -220,12 +220,12 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeNonDefaultInterfaceImplementation(
-        _ interface: BoundType, static: Bool, to writer: SwiftRecordBodyWriter) throws -> String {
+        _ interface: BoundInterface, static: Bool, to writer: SwiftRecordBodyWriter) throws -> String {
 
         // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>! = nil
         let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
-        let abiName = CAbi.mangleName(type: interface)
+        let abiName = try CAbi.mangleName(type: interface.typeErased)
         let iid = try Self.toIIDExpression(interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!)
         writer.writeStoredProperty(visibility: .private, static: `static`, declarator: .var, name: storedPropertyName,
             type: .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)]), implicitUnwrap: true),
@@ -253,7 +253,7 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     private func writeMethodsProjection(
-            interface: BoundType, static: Bool, thisName: String, initThisFunc: String? = nil,
+            interface: BoundInterface, static: Bool, thisName: String, initThisFunc: String? = nil,
             to writer: SwiftRecordBodyWriter) throws {
         // TODO: Support generic interfaces
         let interfaceDefinition = interface.definition
