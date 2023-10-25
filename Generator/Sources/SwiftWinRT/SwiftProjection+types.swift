@@ -76,6 +76,7 @@ extension SwiftProjection {
                     swiftType: swiftValueType,
                     projectionType: projectionType,
                     abiType: abiType,
+                    abiDefaultValue: type.definition.isReferenceType ? "nil" : nil,
                     inert: type.definition.isValueType)
 
             case let .genericParam(param):
