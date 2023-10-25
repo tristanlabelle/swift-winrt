@@ -55,6 +55,7 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
     public func writeExtension(
         name: String,
         protocolConformances: [SwiftType] = [],
+        whereClauses: [String] = [],
         members: (SwiftRecordBodyWriter) throws -> Void) rethrows {
 
         var output = output
@@ -62,6 +63,10 @@ public struct SwiftSourceFileWriter: SwiftTypeDeclarationWriter {
         output.write("extension ")
         SwiftIdentifier.write(name, to: &output)
         writeInheritanceClause(protocolConformances)
+        if !whereClauses.isEmpty {
+            output.write(" where ")
+            output.write(whereClauses.joined(separator: ", "))
+        }
         try output.writeBracedIndentedBlock() {
             try members(.init(output: output))
         }

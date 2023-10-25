@@ -73,7 +73,7 @@ struct TypeGraphWalker {
             }
         }
 
-        if openOrClosed == .closed {
+        if openOrClosed == .closed && !type.genericArgs.isEmpty {
             closedGenericTypes.insert(type)
         }
 

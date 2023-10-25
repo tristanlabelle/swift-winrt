@@ -104,7 +104,6 @@ struct EntryPoint: ParsableCommand {
             let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
             try FileManager.default.createDirectory(atPath: assemblyModuleDirectoryPath, withIntermediateDirectories: true)
 
-            // For each namespace
             for (namespace, types) in module.typesByNamespace {
                 let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
                 print("Writing \(module.shortName)/\(compactNamespace).swift...")
@@ -132,6 +131,15 @@ struct EntryPoint: ParsableCommand {
                         try aliasesWriter.writeAliases(typeDefinition)
                     }
                 }
+            }
+
+            let closedGenericTypes = typeGraphWalker.closedGenericTypes.sorted {
+                WinRTTypeName.from(type: $0)!.description < WinRTTypeName.from(type: $1)!.description
+            }
+            for closedGenericType in closedGenericTypes {
+                let genericsPath = "\(assemblyModuleDirectoryPath)\\_Generics.swift"
+                let fileWriter = SwiftAssemblyModuleFileWriter(path: genericsPath, module: module, importAbiModule: true)
+                try fileWriter.writeProjection(closedGenericType.definition, genericArgs: closedGenericType.genericArgs)
             }
         }
     }

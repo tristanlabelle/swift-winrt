@@ -5,18 +5,22 @@ import WindowsMetadata
 import struct Foundation.UUID
 
 extension SwiftAssemblyModuleFileWriter {
-    func writeProjection(_ typeDefinition: TypeDefinition) throws {
+    func writeProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]? = nil) throws {
         if typeDefinition.genericArity == 0 {
+            assert(genericArgs == nil)
             switch typeDefinition {
                 case let interfaceDefinition as InterfaceDefinition:
-                    try writeInterfaceProjection(interfaceDefinition.bind())
+                    try writeInterfaceProjection(
+                        interfaceDefinition.bind(),
+                        projectionName: try projection.toProjectionTypeName(interfaceDefinition),
+                        to: sourceFileWriter)
                 case let classDefinition as ClassDefinition:
                     try writeClassProjection(classDefinition)
                 case let enumDefinition as EnumDefinition:
                     try writeEnumProjection(enumDefinition)
                 case let structDefinition as StructDefinition:
                     try writeStructProjection(structDefinition)
-                case let delegateDefinition as DelegateDefinition:
+                case _ as DelegateDefinition:
                     break // Not implemented
                 default: fatalError("Unexpected type definition kind")
             }
@@ -24,25 +28,44 @@ extension SwiftAssemblyModuleFileWriter {
         else {
             assert(typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition)
 
-            // Declare a placeholder generic projection:
-            //     public enum IVectorProjection<T> {}
-            // So that we can later declare projection instances:
-            //     extension IVectorProjection where T == Bool {
-            //         public final class Instance {}
-            //     }
-            try sourceFileWriter.writeEnum(
-                visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
-                name: projection.toProjectionTypeName(typeDefinition),
-                typeParameters: typeDefinition.genericParams.map { $0.name }) { _ in }
+            if let genericArgs {
+                // extension IVectorProjection where T == Bool {
+                //     internal final class Projection: WinRTProjection... {}
+                // }
+                let whereClauses = try typeDefinition.genericParams.map {
+                    try "\($0.name) == \(projection.toType(genericArgs[$0.index]))"
+                }
+                try sourceFileWriter.writeExtension(
+                        name: projection.toProjectionTypeName(typeDefinition),
+                        whereClauses: whereClauses) { writer in
+                    switch typeDefinition {
+                        case let interfaceDefinition as InterfaceDefinition:
+                            try writeInterfaceProjection(
+                                interfaceDefinition.bind(genericArgs: genericArgs),
+                                projectionName: "Projection",
+                                to: writer)
+                        case _ as DelegateDefinition:
+                            break // Not implemented
+                        default:
+                            fatalError("Unexpected closed generic type")
+                    }
+                }
+            }
+            else {
+                // public enum IVectorProjection<T> {}
+                try sourceFileWriter.writeEnum(
+                    visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
+                    name: projection.toProjectionTypeName(typeDefinition),
+                    typeParameters: typeDefinition.genericParams.map { $0.name }) { _ in }
+            }
         }
     }
 
-    private func writeInterfaceProjection(_ interface: BoundInterface) throws {
-        let projectionTypeName = try projection.toProjectionTypeName(interface.definition)
-        try sourceFileWriter.writeClass(
+    private func writeInterfaceProjection(_ interface: BoundInterface, projectionName: String, to writer: some SwiftTypeDeclarationWriter) throws {
+        try writer.writeClass(
                 visibility: SwiftProjection.toVisibility(interface.definition.visibility),
-                final: true, name: projectionTypeName,
-                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: projectionTypeName)]),
+                final: true, name: projectionName,
+                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: projectionName)]),
                 protocolConformances: [
                     .identifier("WinRTProjection"), .identifier(name: try projection.toProtocolName(interface.definition))
                 ]) { writer throws in
