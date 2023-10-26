@@ -63,7 +63,7 @@ extension SwiftProjection {
         .init(label: "_", name: param.name!, `inout`: param.isByRef,
             type: try genericTypeArgs.isEmpty
                 ? toType(param.type)
-                : toType(param.type.bindGenericParams(typeArgs: genericTypeArgs, methodArgs: nil)))
+                : toType(param.type.bindGenericParams(typeArgs: genericTypeArgs)))
     }
 
     func isOverriding(_ constructor: Constructor) throws -> Bool {

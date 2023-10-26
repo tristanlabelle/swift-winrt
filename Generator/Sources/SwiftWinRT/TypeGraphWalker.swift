@@ -121,7 +121,7 @@ struct TypeGraphWalker {
         }
 
         for baseInterface in type.baseInterfaces {
-            try enqueue(baseInterface.interface.asType, genericContext: genericContext)
+            try enqueue(baseInterface.interface.asBoundType, genericContext: genericContext)
         }
 
         for field in type.fields {
@@ -136,7 +136,7 @@ struct TypeGraphWalker {
 
         for event in type.events {
             guard try !publicMembersOnly || event.addAccessor?.visibility == .public else { continue }
-            try enqueue(event.handlerType.asType, genericContext: genericContext)
+            try enqueue(event.handlerType.asBoundType, genericContext: genericContext)
         }
 
         for method in type.methods {

@@ -126,14 +126,14 @@ extension SwiftAssemblyModuleFileWriter {
                     .identifier("WinRTProjection"), .identifier(name: try projection.toProtocolName(interface.definition))
                 ]) { writer throws in
 
-            try writeWinRTProjectionConformance(type: interface.asType, interface: interface, to: writer)
+            try writeWinRTProjectionConformance(interfaceOrDelegate: interface.asBoundType, to: writer)
 
             let interfaces = try interface.definition.baseInterfaces.map {
-                try $0.interface.bindGenericParams(typeArgs: interface.genericArgs, methodArgs: nil)
+                try $0.interface.bindGenericParams(typeArgs: interface.genericArgs)
             }
             try writeGenericTypeAliases(interfaces: interfaces, to: writer)
 
-            try writeInterfaceImplementations(interface.asType, to: writer)
+            try writeInterfaceImplementations(interface.asBoundType, to: writer)
         }
     }
 }

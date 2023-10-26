@@ -11,14 +11,14 @@ extension SwiftAssemblyModuleFileWriter {
                 name: projection.toTypeName(classDefinition),
                 typeParameters: classDefinition.genericParams.map { $0.name },
                 base: projection.toBaseType(classDefinition.base),
-                protocolConformances: classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface.asType) }) { writer throws in
+                protocolConformances: classDefinition.baseInterfaces.compactMap { try projection.toBaseType($0.interface.asBoundType) }) { writer throws in
             try writeTypeAliasesForBaseGenericArgs(of: classDefinition, to: writer)
             try writeClassMembers(classDefinition, to: writer)
         }
     }
 
     fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
-        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.asType }
+        var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.asBoundType }
         if let base = try typeDefinition.base {
             baseTypes.insert(base, at: 0)
         }
@@ -101,7 +101,8 @@ extension SwiftAssemblyModuleFileWriter {
             }
             else {
                 let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)!
-                try writeWinRTProjectionConformance(type: classDefinition.bindType(), interface: defaultInterface, to: writer)
+                try writeWinRTProjectionConformance(
+                    interfaceOrDelegate: defaultInterface.asBoundType, classDefinition: classDefinition, to: writer)
             }
 
             try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
