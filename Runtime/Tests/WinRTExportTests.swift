@@ -6,18 +6,24 @@ internal final class WinRTExportTests: XCTestCase {
         let swiftObject = SwiftObject()
         let unknown2 = try swiftObject.queryInterface(IUnknown2Projection.self)
         let inspectable2 = try swiftObject.queryInterface(IInspectable2Projection.self)
-        XCTAssertEqual(
-            try unknown2.queryInterface(IUnknownProjection.self)._unknown,
-            try inspectable2.queryInterface(IUnknownProjection.self)._unknown)
+
+        let unknownPointer1 = try unknown2._queryInterfacePointer(IUnknownProjection.self)
+        defer { unknownPointer1.release() }
+        let unknownPointer2 = try inspectable2._queryInterfacePointer(IUnknownProjection.self)
+        defer { unknownPointer2.release() }
+        XCTAssertEqual(unknownPointer1, unknownPointer2)
     }
 
     func testIInspectableIdentityRule() throws {
         let swiftObject = SwiftObject()
         let unknown2 = try swiftObject.queryInterface(IUnknown2Projection.self)
         let inspectable2 = try swiftObject.queryInterface(IInspectable2Projection.self)
-        XCTAssertEqual(
-            try unknown2.queryInterface(IInspectableProjection.self)._unknown,
-            try inspectable2.queryInterface(IInspectableProjection.self)._unknown)
+
+        let inspectablePointer1 = try unknown2._queryInterfacePointer(IInspectableProjection.self)
+        defer { IUnknownPointer.release(inspectablePointer1) }
+        let inspectablePointer2 = try inspectable2._queryInterfacePointer(IInspectableProjection.self)
+        defer { IUnknownPointer.release(inspectablePointer2) }
+        XCTAssertEqual(inspectablePointer1, inspectablePointer2)
     }
 
     func testQueryInterfaceTransitivityRule() throws {
