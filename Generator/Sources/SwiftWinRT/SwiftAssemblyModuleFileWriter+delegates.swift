@@ -49,26 +49,6 @@ extension SwiftAssemblyModuleFileWriter {
     fileprivate func writeDelegateProjection(
             _ delegate: BoundDelegate, projectionName: String,
             to writer: some SwiftTypeDeclarationWriter) throws {
-
-        // internal final class Instance: WinRTDelegateProjectionBase<Instance>, COMTwoWayProjection {
-        //     public typealias SwiftValue = WindowsFoundation_TypedEventHandler<TSender, TResult>
-        //     public typealias CStruct = CWinRT.__FITypedEventHandler_2_Windows__CFoundation__CIMemoryBufferReference_IInspectable
-        //     public typealias CVTableStruct = CWinRT.__FITypedEventHandler_2_Windows__CFoundation__CIMemoryBufferReference_IInspectableVtbl
-
-        //     public static let iid = IID(0xF4637D4A, 0x0760, 0x5431, 0xBFC0, 0x24EB1D4F6C4F)
-        //     public static var vtable: CVTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
-        //     private static var vtableStruct: CVTableStruct = .init(
-        //         QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
-        //         AddRef: { this in _addRef(this) },
-        //         Release: { this in _release(this) },
-        //         Invoke: { this, sender, args in _implement(this) { handler in
-        //             let sender = WindowsFoundation_IMemoryBufferReferenceProjection.toSwift(copying: sender)
-        //             let args = WindowsRuntime.IInspectableProjection.toSwift(copying: args)
-        //             try handler(sender, args)
-        //         } }
-        //     )
-        // }
-
         try writer.writeClass(
                 visibility: SwiftProjection.toVisibility(delegate.definition.visibility),
                 final: true, name: projectionName,
@@ -86,9 +66,9 @@ extension SwiftAssemblyModuleFileWriter {
             // The only member should be an "invoke()" method
             try writeMemberImplementations(interfaceOrDelegate: delegate.asBoundType, static: false, thisName: "comPointer", to: writer)
 
-            // public static var vtable: COMVirtualTablePointer { withUnsafePointer(to: &vtableStruct) { $0 } }
+            // public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
             // TODO: Actually generate a virtual table struct
-            writer.writeComputedProperty(visibility: .public, static: true, name: "vtable",
+            writer.writeComputedProperty(visibility: .public, static: true, name: "virtualTablePointer",
                 type: .identifier("COMVirtualTablePointer"), throws: false,
                 get: { $0.writeNotImplemented() })
         }

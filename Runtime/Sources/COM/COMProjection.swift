@@ -25,7 +25,6 @@ public protocol COMProjection: ABIProjection, IUnknownProtocol
 }
 
 extension COMProjection {
-
     // Common implementations
     public static var abiDefaultValue: ABIValue { nil }
 
@@ -56,5 +55,5 @@ extension COMProjection {
 
 // Protocol for strongly-typed two-way COM interface projections into and from Swift.
 public protocol COMTwoWayProjection: COMProjection {
-    static var vtable: COMVirtualTablePointer { get }
+    static var virtualTablePointer: COMVirtualTablePointer { get }
 }

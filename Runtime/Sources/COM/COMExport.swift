@@ -1,6 +1,5 @@
 import CWinRTCore
 
-// Base class for Swift objects exported to COM
 public protocol COMExportProtocol: IUnknownProtocol {
     var unknown: IUnknownPointer { get }
     var anyImplementation: Any { get }
@@ -26,7 +25,7 @@ public struct COMExportInterface {
 open class COMExport<Projection: COMTwoWayProjection>: COMExportProtocol, IUnknownProtocol {
     private struct COMInterface {
         /// Virtual function table called by COM
-        public let vtable: Projection.COMVirtualTablePointer = Projection.vtable
+        public let virtualTablePointer: Projection.COMVirtualTablePointer = Projection.virtualTablePointer
         public var object: Unmanaged<COMExport<Projection>>! = nil
     }
 
