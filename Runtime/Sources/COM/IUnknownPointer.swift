@@ -62,8 +62,9 @@ extension IUnknownPointer {
     }
 
     @discardableResult
-    public static func release(_ pointer: UnsafeMutableRawPointer) -> UInt32 {
-        cast(pointer).release()
+    public static func release(_ pointer: UnsafeMutableRawPointer?) -> UInt32 {
+        guard let pointer else { return 0 }
+        return cast(pointer).release()
     }
 
     // UnsafeMutablePointer<Interface> helpers
@@ -82,7 +83,8 @@ extension IUnknownPointer {
     }
 
     @discardableResult
-    public static func release<Interface>(_ pointer: UnsafeMutablePointer<Interface>) -> UInt32 {
-        cast(pointer).release()
+    public static func release<Interface>(_ pointer: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let pointer else { return 0 }
+        return cast(pointer).release()
     }
 }

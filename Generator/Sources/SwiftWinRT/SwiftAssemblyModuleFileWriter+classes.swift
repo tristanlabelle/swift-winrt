@@ -2,6 +2,7 @@ import CodeWriters
 import Collections
 import DotNetMetadata
 import WindowsMetadata
+import struct Foundation.UUID
 
 extension SwiftAssemblyModuleFileWriter {
     internal func writeClass(_ classDefinition: ClassDefinition) throws {
@@ -107,12 +108,47 @@ extension SwiftAssemblyModuleFileWriter {
 
             try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
+            // Write initializers from activation factories
+            for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+                if activatableAttribute.factory == nil {
+                    try writeDefaultInitializer(classDefinition, to: writer)
+                }
+            }
+
             try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
 
+            // Write static members from static interfaces
             for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
-                _ = try writeNonDefaultInterfaceImplementation(
+                let interfaceProperty = try writeSecondaryInterfaceProperty(
                     staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
+                try writeMemberImplementations(
+                    interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
+                    thisName: interfaceProperty.name, initThisFunc: interfaceProperty.initMethod, to: writer)
             }
+        }
+    }
+
+    internal func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) throws {
+        // 00000035-0000-0000-C000-000000000046
+        let iactivationFactoryID = UUID(uuid: (
+            0x00, 0x00, 0x00, 0x35,
+            0x00, 0x00,
+            0x00, 0x00,
+            0xC0, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
+        let interfaceProperty = try writeSecondaryInterfaceProperty(
+            interfaceName: "IActivationFactory", abiName: "IActivationFactory", iid: iactivationFactoryID,
+            staticOf: classDefinition, to: writer)
+
+        // let defaultInterface = DefaultAttribute.getDefaultInterface(classDefinition)!
+        // let defaultInterfaceProjection = try projection.getTypeProjection(defaultInterface.asNode)
+
+        writer.writeInit(visibility: .public, override: false, throws: true) { writer in
+            writer.writeStatement("try Self.\(interfaceProperty.initMethod)()")
+            writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).IInspectable>? = nil")
+            writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
+            writer.writeStatement("try HResult.throwIfFailed(\(interfaceProperty.name).pointee.lpVtbl.pointee.ActivateInstance(&inspectable))")
+            //writer.writeStatement("var instance: UnsafeMutablePointer<\(defaultInterfaceProjection)>? = nil")
         }
     }
 }
