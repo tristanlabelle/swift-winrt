@@ -44,15 +44,8 @@ struct EntryPoint: ParsableCommand {
         })
 
         let swiftProjection = SwiftProjection(abiModuleName: abiModuleName)
-        var typeGraphWalker = TypeGraphWalker(
-            filter: {
-                guard $0.namespace != "System" && $0.namespace?.starts(with: "System.") != true else { return false }
-                guard $0.namespace != "Windows.Foundation.Metadata" else { return false }
-                return true
-            },
-            publicMembersOnly: true)
 
-        // Gather types from all referenced assemblies
+        // Create modules and gather types
         for reference in allReferences {
             let assembly = try context.load(path: reference)
 
@@ -61,29 +54,21 @@ struct EntryPoint: ParsableCommand {
             module.addAssembly(assembly)
 
             print("Gathering types from \(assembly.name)...")
+            var typeDiscoverer = ModuleTypeDiscoverer(assemblyFilter: { $0 === assembly }, publicMembersOnly: true)
+
+            try typeDiscoverer.add(assembly.findDefinedType(fullName: "Windows.Foundation.Collections.StringMap")!)
+
             for typeDefinition in assembly.definedTypes {
-                if typeDefinition.visibility == .public && Self.isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) {
-                    try typeGraphWalker.walk(typeDefinition)
-                }
-            }
-        }
-
-        // Classify types into modules
-        print("Classifying types into modules...")
-        for typeDefinition in typeGraphWalker.definitions {
-            guard !(typeDefinition.assembly is Mscorlib) else { continue }
-
-            let module: SwiftProjection.Module
-            if let existingModule = swiftProjection.assembliesToModules[typeDefinition.assembly] {
-                module = existingModule
-            }
-            else {
-                let (moduleName, _) = Self.getModule(assemblyName: typeDefinition.assembly.name, moduleMapFile: moduleMap)
-                module = swiftProjection.addModule(shortName: moduleName)
-                module.addAssembly(typeDefinition.assembly)
+                guard typeDefinition.isPublic else { continue }
+                guard typeDefinition.namespace != "Windows.Foundation.Metadata" else { continue }
+                guard try !typeDefinition.hasAttribute(AttributeUsageAttribute.self) else { continue }
+                guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
+                guard Self.isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) else { continue }
+                try typeDiscoverer.add(typeDefinition)
             }
 
-            module.addType(typeDefinition)
+            for typeDefinition in typeDiscoverer.definitions { module.addTypeDefinition(typeDefinition) }
+            for closedGenericType in typeDiscoverer.closedGenericTypes { module.addClosedGenericType(closedGenericType) }
         }
 
         // Establish references between modules
@@ -104,7 +89,7 @@ struct EntryPoint: ParsableCommand {
             let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
             try FileManager.default.createDirectory(atPath: assemblyModuleDirectoryPath, withIntermediateDirectories: true)
 
-            for (namespace, types) in module.typesByNamespace {
+            for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
                 let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
                 print("Writing \(module.shortName)/\(compactNamespace).swift...")
 
@@ -117,7 +102,7 @@ struct EntryPoint: ParsableCommand {
                 let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module, importAbiModule: false)
                 let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module, importAbiModule: true)
                 let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
-                for typeDefinition in types.sorted(by: { $0.fullName < $1.fullName }) {
+                for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
                     // Some types have special handling and should not have their projection code generated
                     guard typeDefinition.fullName != "Windows.Foundation.HResult" else { continue }
                     guard typeDefinition.fullName != "Windows.Foundation.EventRegistrationToken" else { continue }
@@ -133,13 +118,15 @@ struct EntryPoint: ParsableCommand {
                 }
             }
 
-            let closedGenericTypes = typeGraphWalker.closedGenericTypes.sorted {
+            let closedGenericTypes = module.closedGenericTypes.sorted {
                 WinRTTypeName.from(type: $0)!.description < WinRTTypeName.from(type: $1)!.description
             }
-            for closedGenericType in closedGenericTypes {
+            if !closedGenericTypes.isEmpty {
                 let genericsPath = "\(assemblyModuleDirectoryPath)\\_Generics.swift"
                 let fileWriter = SwiftAssemblyModuleFileWriter(path: genericsPath, module: module, importAbiModule: true)
-                try fileWriter.writeProjection(closedGenericType.definition, genericArgs: closedGenericType.genericArgs)
+                for closedGenericType in closedGenericTypes {
+                    try fileWriter.writeProjection(closedGenericType.definition, genericArgs: closedGenericType.genericArgs)
+                }
             }
         }
     }

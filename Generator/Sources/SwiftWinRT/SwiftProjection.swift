@@ -19,7 +19,8 @@ class SwiftProjection {
     class Module {
         public unowned let projection: SwiftProjection
         public let shortName: String
-        private(set) var typesByNamespace: [String: Set<TypeDefinition>] = .init()
+        public private(set) var typeDefinitionsByNamespace: [String: Set<TypeDefinition>] = .init()
+        public private(set) var closedGenericTypes: Set<BoundType> = .init()
         private(set) var references: Set<Reference> = []
 
         // When encountering a generic type with a generic arity suffix,
@@ -57,11 +58,15 @@ class SwiftProjection {
             projection.assembliesToModules[assembly] = self
         }
 
-        func addType(_ type: TypeDefinition) {
+        func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.assembliesToModules[type.assembly] === self)
 
-            typesByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
+            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
             fullNameToGenericPrefixTrimmabilityCache.removeAll(keepingCapacity: true)
+        }
+
+        func addClosedGenericType(_ type: BoundType) {
+            closedGenericTypes.insert(type)
         }
 
         func addReference(_ other: Module) {
@@ -77,26 +82,26 @@ class SwiftProjection {
         }
 
         // Whether a given type has a generic arity suffix that can be removed without clashing with other types.
-        private func canTrimGenericSuffix(_ type: TypeDefinition) -> Bool {
-            func getFullNameWithoutGenericSuffix(_ type: TypeDefinition) -> String {
-                let name = type.name
+        private func canTrimGenericSuffix(_ typeDefinition: TypeDefinition) -> Bool {
+            func getFullNameWithoutGenericSuffix(_ typeDefinition: TypeDefinition) -> String {
+                let name = typeDefinition.name
                 guard let genericSuffixStartIndex = name.lastIndex(of: TypeDefinition.genericParamCountSeparator)
-                else { return type.fullName }
+                else { return typeDefinition.fullName }
 
                 let genericSuffixLength = name.distance(from: genericSuffixStartIndex, to: name.endIndex)
-                return String(type.fullName.dropLast(genericSuffixLength))
+                return String(typeDefinition.fullName.dropLast(genericSuffixLength))
             }
 
-            let fullNameWithoutGenericSuffix = getFullNameWithoutGenericSuffix(type)
-            guard fullNameWithoutGenericSuffix != type.fullName else { return false }
+            let fullNameWithoutGenericSuffix = getFullNameWithoutGenericSuffix(typeDefinition)
+            guard fullNameWithoutGenericSuffix != typeDefinition.fullName else { return false }
 
             if let trimmable = fullNameToGenericPrefixTrimmabilityCache[fullNameWithoutGenericSuffix] {
                 return trimmable
             }
 
             // Check if the name would clash with any other type if we removed the generic suffix
-            for otherType in typesByNamespace[Module.getNamespaceOrEmpty(type)] ?? [] {
-                if otherType !== type && getFullNameWithoutGenericSuffix(otherType) == fullNameWithoutGenericSuffix {
+            for otherTypeDefinition in typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(typeDefinition)] ?? [] {
+                if otherTypeDefinition !== typeDefinition && getFullNameWithoutGenericSuffix(otherTypeDefinition) == fullNameWithoutGenericSuffix {
                     fullNameToGenericPrefixTrimmabilityCache[fullNameWithoutGenericSuffix] = false
                     return false
                 }
