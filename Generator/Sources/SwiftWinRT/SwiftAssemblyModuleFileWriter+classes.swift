@@ -108,14 +108,14 @@ extension SwiftAssemblyModuleFileWriter {
 
             try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
+            try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
+
             // Write initializers from activation factories
             for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
                 if activatableAttribute.factory == nil {
                     try writeDefaultInitializer(classDefinition, to: writer)
                 }
             }
-
-            try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
 
             // Write static members from static interfaces
             for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
@@ -129,6 +129,8 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     internal func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) throws {
+        writer.output.writeLine("// IActivationFactory")
+
         // 00000035-0000-0000-C000-000000000046
         let iactivationFactoryID = UUID(uuid: (
             0x00, 0x00, 0x00, 0x35,
@@ -147,7 +149,8 @@ extension SwiftAssemblyModuleFileWriter {
             writer.writeStatement("try Self.\(interfaceProperty.initMethod)()")
             writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).IInspectable>? = nil")
             writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
-            writer.writeStatement("try HResult.throwIfFailed(\(interfaceProperty.name).pointee.lpVtbl.pointee.ActivateInstance(&inspectable))")
+            writer.writeStatement("try HResult.throwIfFailed(Self.\(interfaceProperty.name).pointee.lpVtbl.pointee.ActivateInstance("
+                + "Self.\(interfaceProperty.name), &inspectable))")
             //writer.writeStatement("var instance: UnsafeMutablePointer<\(defaultInterfaceProjection)>? = nil")
         }
     }
