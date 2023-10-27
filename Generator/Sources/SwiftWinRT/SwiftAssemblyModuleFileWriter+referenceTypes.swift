@@ -224,6 +224,8 @@ extension SwiftAssemblyModuleFileWriter {
         if let initThisFunc { writer.writeStatement("try \(initThisFunc)()") }
 
         var abiArgs = [thisName]
+
+        // Prologue: convert arguments from the Swift to the ABI representation
         for param in try method.params {
             guard let paramName = param.name else {
                 writer.writeNotImplemented()
@@ -236,17 +238,28 @@ extension SwiftAssemblyModuleFileWriter {
                 return
             }
 
-            if !abi.identity {
-                if abi.inert {
-                    writer.writeStatement("let \(paramName) = \(abi.projectionType).toABI(\(paramName))")
-                }
-                else {
-                    writer.writeStatement("let \(paramName) = try \(abi.projectionType).toABI(\(paramName))")
-                    writer.writeStatement("defer { \(abi.projectionType).release(\(paramName)) }")
-                }
+            let declarator: SwiftVariableDeclarator
+            let variableName: String
+            if param.isByRef {
+                declarator = .var
+                variableName = "_\(paramName)" // Preserve the original name so we can assign back
+                abiArgs.append("&\(variableName)")
+            }
+            else {
+                declarator = .let
+                variableName = paramName
+                abiArgs.append(variableName)
             }
 
-            abiArgs.append(paramName)
+            if !abi.identity {
+                if abi.inert {
+                    writer.writeStatement("\(declarator) \(variableName) = \(abi.projectionType).toABI(\(paramName))")
+                }
+                else {
+                    writer.writeStatement("\(declarator) \(variableName) = try \(abi.projectionType).toABI(\(paramName))")
+                    writer.writeStatement("defer { \(abi.projectionType).release(\(variableName)) }")
+                }
+            }
         }
 
         func writeCall() throws {
@@ -254,6 +267,8 @@ extension SwiftAssemblyModuleFileWriter {
             writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
 
+        // Epilogue: convert the return value and out params from the ABI to the Swift representation
+        // TODO: Convert out values back to Swift
         if try !method.hasReturnValue {
             try writeCall()
             return
