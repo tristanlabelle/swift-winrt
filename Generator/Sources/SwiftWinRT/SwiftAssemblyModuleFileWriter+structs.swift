@@ -11,39 +11,52 @@ extension SwiftAssemblyModuleFileWriter {
             protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
 
             try writeStructFields(structDefinition, to: writer)
-            // TODO: Default initialize fields in default initializer only
-            writer.writeInit(visibility: .public, parameters: []) { _ in } // Default initializer
-            try writeFieldwiseInitializer(of: structDefinition, to: writer)
+            try writeDefaultInitializer(structDefinition, to: writer)
+            try writeFieldwiseInitializer(structDefinition, to: writer)
         }
     }
 
     fileprivate func writeStructFields(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
-        // FIXME: Rather switch on TypeDefinition to properly handle enum cases
-        func getDefaultValue(_ type: SwiftType) -> String? {
-            if case .optional = type { return "nil" }
-            guard case .chain(let chain) = type,
-                chain.components.count == 1 else { return nil }
-            switch chain.components[0].identifier.name {
-                case "Bool": return "false"
-                case "Int", "UInt", "Int8", "UInt8", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64": return "0"
-                case "Float", "Double": return "0.0"
-                case "String": return "\"\""
-                default: return ".init()"
-            }
-        }
-
         for field in structDefinition.fields {
             assert(field.isInstance && !field.isInitOnly && field.isPublic)
 
             let type = try projection.toType(field.type)
-            writer.writeStoredProperty(
-                visibility: SwiftProjection.toVisibility(field.visibility),
-                declarator: .var, name: projection.toMemberName(field), type: type,
-                initialValue: getDefaultValue(type))
+            writer.writeStoredProperty(visibility: .public, declarator: .var, name: projection.toMemberName(field), type: type)
         }
     }
 
-    fileprivate func writeFieldwiseInitializer(of structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+        func getInitializer(type: TypeNode) -> String {
+            switch type {
+                case .array(_): return "[]"
+                case .pointer(_): return "nil"
+                case .genericParam(_): fatalError()
+                case .bound(let type):
+                    if type.definition.namespace == "System" {
+                        switch type.definition.name {
+                            case "Boolean": return "false"
+                            case "SByte", "Byte", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64": return "0"
+                            case "Single", "Double": return "0"
+                            case "Char": return ".init()"
+                            case "String": return "\"\""
+                            default: fatalError()
+                        }
+                    }
+
+                    return type.definition.isValueType ? ".init()" : "nil"
+            }
+        }
+
+        try writer.writeInit(visibility: .public, parameters: []) { writer in
+            for field in structDefinition.fields {
+                let name = projection.toMemberName(field)
+                let initializer = getInitializer(type: try field.type)
+                writer.writeStatement("self.\(name) = \(initializer)")
+            }
+        }
+    }
+
+    fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
         let params = try structDefinition.fields
             .filter { $0.visibility == .public && $0.isInstance }
             .map { SwiftParameter(name: projection.toMemberName($0), type: try projection.toType($0.type)) }
