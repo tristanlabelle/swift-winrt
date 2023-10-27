@@ -93,27 +93,22 @@ extension SwiftAssemblyModuleFileWriter {
                 to: sourceFileWriter)
         }
         else if let genericArgs {
-            // extension IVectorProjection where T == Bool {
-            //     internal final class Projection: WinRTProjection... {}
+            // extension IVectorProjection {
+            //     internal final class Boolean: WinRTProjection... {}
             // }
-            let whereClauses = try interfaceDefinition.genericParams.map {
-                try "\($0.name) == \(projection.toType(genericArgs[$0.index]))"
-            }
             try sourceFileWriter.writeExtension(
-                    name: projection.toProjectionTypeName(interfaceDefinition),
-                    whereClauses: whereClauses) { writer in
+                    name: projection.toProjectionTypeName(interfaceDefinition)) { writer in
                 try writeInterfaceProjection(
                     interfaceDefinition.bind(genericArgs: genericArgs),
-                    projectionName: "Projection",
+                    projectionName: try projection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
                     to: writer)
             }
         }
         else {
-            // public enum IVectorProjection<T> {}
+            // public enum IVectorProjection {}
             try sourceFileWriter.writeEnum(
                 visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
-                name: projection.toProjectionTypeName(interfaceDefinition),
-                typeParameters: interfaceDefinition.genericParams.map { $0.name }) { _ in }
+                name: projection.toProjectionTypeName(interfaceDefinition)) { _ in }
         }
     }
 

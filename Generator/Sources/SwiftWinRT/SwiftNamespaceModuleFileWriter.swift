@@ -33,15 +33,12 @@ struct SwiftNamespaceModuleFileWriter {
                 name: projection.toTypeName(typeDefinition),
                 genericArgs: typeDefinition.genericParams.map { SwiftType.identifier(name: $0.name) }))
 
-        // TODO: Also generate projection typealiases for delegates and generics once supported
-        if typeDefinition is InterfaceDefinition && typeDefinition.genericArity == 0 {
+        if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
             try sourceFileWriter.writeTypeAlias(
                 visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
                 name: projection.toProjectionTypeName(typeDefinition, namespaced: false),
-                typeParameters: typeDefinition.genericParams.map { $0.name },
                 target: SwiftType.identifier(
-                    name: projection.toProjectionTypeName(typeDefinition),
-                    genericArgs: typeDefinition.genericParams.map { SwiftType.identifier(name: $0.name) }))
+                    name: projection.toProjectionTypeName(typeDefinition)))
         }
     }
 }

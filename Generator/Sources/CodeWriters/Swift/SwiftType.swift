@@ -46,29 +46,31 @@ public enum SwiftType {
 }
 
 extension SwiftType {
-    public static let void = SwiftType.identifier("Void")
-    public static let anyObject = SwiftType.identifier("AnyObject")
-    public static let never = SwiftType.identifier("Never")
-    public static let bool = SwiftType.identifier("Bool")
-    public static let float = SwiftType.identifier("Float")
-    public static let double = SwiftType.identifier("Double")
-    public static let string = SwiftType.identifier("String")
-    public static let int = SwiftType.identifier("Int")
-    public static let uint = SwiftType.identifier("UInt")
+    public static let void: SwiftType = .chain("Swift", "Void")
+    public static let anyObject: SwiftType = .chain("Swift", "AnyObject")
+    public static let never: SwiftType = .chain("Swift", "Never")
+    public static let bool: SwiftType = .chain("Swift", "Bool")
+    public static let float: SwiftType = .chain("Swift", "Float")
+    public static let double: SwiftType = .chain("Swift", "Double")
+    public static let string: SwiftType = .chain("Swift", "String")
+    public static let int: SwiftType = .chain("Swift", "Int")
+    public static let uint: SwiftType = .chain("Swift", "UInt")
 
-    public static func int(bits: Int, signed: Bool) -> SwiftType {
+    public static func int(bits: Int, signed: Bool = true) -> SwiftType {
         switch (bits, signed) {
-            case (8, true): return SwiftType.identifier("Int8")
-            case (8, false): return SwiftType.identifier("UInt8")
-            case (16, true): return SwiftType.identifier("Int16")
-            case (16, false): return SwiftType.identifier("UInt16")
-            case (32, true): return SwiftType.identifier("Int32")
-            case (32, false): return SwiftType.identifier("UInt32")
-            case (64, true): return SwiftType.identifier("Int64")
-            case (64, false): return SwiftType.identifier("UInt64")
+            case (8, true): return .chain("Swift", "Int8")
+            case (8, false): return .chain("Swift", "UInt8")
+            case (16, true): return .chain("Swift", "Int16")
+            case (16, false): return .chain("Swift", "UInt16")
+            case (32, true): return .chain("Swift", "Int32")
+            case (32, false): return .chain("Swift", "UInt32")
+            case (64, true): return .chain("Swift", "Int64")
+            case (64, false): return .chain("Swift", "UInt64")
             default: preconditionFailure("bits should be one of 8, 16, 32 or 64")
         }
     }
+
+    public static func uint(bits: Int) -> SwiftType { int(bits: bits, signed: false) }
 
     public static func identifier(
         protocolModifier: SwiftType.ProtocolModifier? = nil,

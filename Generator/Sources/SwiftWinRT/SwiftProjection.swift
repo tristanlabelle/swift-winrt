@@ -20,12 +20,8 @@ class SwiftProjection {
         public unowned let projection: SwiftProjection
         public let shortName: String
         public private(set) var typeDefinitionsByNamespace: [String: Set<TypeDefinition>] = .init()
-        public private(set) var closedGenericTypes: Set<BoundType> = .init()
+        public private(set) var closedGenericTypesByDefinition: [TypeDefinition: [[TypeNode]]] = .init()
         private(set) var references: Set<Reference> = []
-
-        // When encountering a generic type with a generic arity suffix,
-        // we trim the arity suffix iff it wouldn't cause a name clash.
-        private var fullNameToGenericPrefixTrimmabilityCache: [String: Bool] = .init()
 
         init(projection: SwiftProjection, shortName: String) {
             self.projection = projection
@@ -47,9 +43,7 @@ class SwiftProjection {
                 result += type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
             }
 
-            result += canTrimGenericSuffix(type)
-                ? type.nameWithoutGenericSuffix
-                : type.name.replacingOccurrences(of: "`", with: "_")
+            result += type.nameWithoutGenericSuffix
 
             return result
         }
@@ -58,15 +52,18 @@ class SwiftProjection {
             projection.assembliesToModules[assembly] = self
         }
 
+        func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
+            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type)]?.contains(type) ?? false
+        }
+
         func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.assembliesToModules[type.assembly] === self)
-
             typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
-            fullNameToGenericPrefixTrimmabilityCache.removeAll(keepingCapacity: true)
         }
 
         func addClosedGenericType(_ type: BoundType) {
-            closedGenericTypes.insert(type)
+            precondition(!type.genericArgs.isEmpty && !type.isParameterized)
+            closedGenericTypesByDefinition[type.definition, default: []].append(type.genericArgs)
         }
 
         func addReference(_ other: Module) {
@@ -79,36 +76,6 @@ class SwiftProjection {
                 namespacedType = enclosingType
             }
             return namespacedType.namespace ?? ""
-        }
-
-        // Whether a given type has a generic arity suffix that can be removed without clashing with other types.
-        private func canTrimGenericSuffix(_ typeDefinition: TypeDefinition) -> Bool {
-            func getFullNameWithoutGenericSuffix(_ typeDefinition: TypeDefinition) -> String {
-                let name = typeDefinition.name
-                guard let genericSuffixStartIndex = name.lastIndex(of: TypeDefinition.genericParamCountSeparator)
-                else { return typeDefinition.fullName }
-
-                let genericSuffixLength = name.distance(from: genericSuffixStartIndex, to: name.endIndex)
-                return String(typeDefinition.fullName.dropLast(genericSuffixLength))
-            }
-
-            let fullNameWithoutGenericSuffix = getFullNameWithoutGenericSuffix(typeDefinition)
-            guard fullNameWithoutGenericSuffix != typeDefinition.fullName else { return false }
-
-            if let trimmable = fullNameToGenericPrefixTrimmabilityCache[fullNameWithoutGenericSuffix] {
-                return trimmable
-            }
-
-            // Check if the name would clash with any other type if we removed the generic suffix
-            for otherTypeDefinition in typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(typeDefinition)] ?? [] {
-                if otherTypeDefinition !== typeDefinition && getFullNameWithoutGenericSuffix(otherTypeDefinition) == fullNameWithoutGenericSuffix {
-                    fullNameToGenericPrefixTrimmabilityCache[fullNameWithoutGenericSuffix] = false
-                    return false
-                }
-            }
-
-            fullNameToGenericPrefixTrimmabilityCache[fullNameWithoutGenericSuffix] = true
-            return true
         }
 
         struct Reference: Hashable {

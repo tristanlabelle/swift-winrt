@@ -23,26 +23,21 @@ extension SwiftAssemblyModuleFileWriter {
                 to: sourceFileWriter)
         }
         else if let genericArgs {
-            // extension AsyncOperationCompletedHandlerProjection where T == Bool {
-            //     internal final class Projection: WinRTProjection... {}
+            // extension AsyncOperationCompletedHandlerProjection {
+            //     internal final class Boolean: WinRTProjection... {}
             // }
-            let whereClauses = try delegateDefinition.genericParams.map {
-                try "\($0.name) == \(projection.toType(genericArgs[$0.index]))"
-            }
             try sourceFileWriter.writeExtension(
-                    name: projection.toProjectionTypeName(delegateDefinition),
-                    whereClauses: whereClauses) { writer in
+                    name: projection.toProjectionTypeName(delegateDefinition)) { writer in
                 try writeDelegateProjection(delegateDefinition.bind(genericArgs: genericArgs),
-                    projectionName: "Projection",
+                    projectionName: try projection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
                     to: sourceFileWriter)
             }
         }
         else {
-            // public enum AsyncOperationCompletedHandlerProjection<T> {}
+            // public enum AsyncOperationCompletedHandlerProjection {}
             try sourceFileWriter.writeEnum(
                 visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
-                name: projection.toProjectionTypeName(delegateDefinition),
-                typeParameters: delegateDefinition.genericParams.map { $0.name }) { _ in }
+                name: projection.toProjectionTypeName(delegateDefinition)) { _ in }
         }
     }
 

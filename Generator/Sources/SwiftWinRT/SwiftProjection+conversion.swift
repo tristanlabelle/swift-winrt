@@ -57,6 +57,20 @@ extension SwiftProjection {
         return typeName
     }
 
+    func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
+        var result = ""
+        func visit(_ type: TypeNode) throws {
+            guard case .bound(let type) = type else { fatalError() }
+            if !result.isEmpty { result += "_" }
+            result += type.definition.nameWithoutGenericSuffix
+            for genericArg in type.genericArgs { try visit(genericArg) }
+        }
+
+        for genericArg in genericArgs { try visit(genericArg) }
+
+        return result
+    }
+
     func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
 
     func toParameter(_ param: Param, genericTypeArgs: [TypeNode] = []) throws -> SwiftParameter {

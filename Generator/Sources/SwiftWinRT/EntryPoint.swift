@@ -118,14 +118,17 @@ struct EntryPoint: ParsableCommand {
                 }
             }
 
-            let closedGenericTypes = module.closedGenericTypes.sorted {
-                WinRTTypeName.from(type: $0)!.description < WinRTTypeName.from(type: $1)!.description
-            }
-            if !closedGenericTypes.isEmpty {
+            if !module.closedGenericTypesByDefinition.isEmpty {
                 let genericsPath = "\(assemblyModuleDirectoryPath)\\_Generics.swift"
                 let fileWriter = SwiftAssemblyModuleFileWriter(path: genericsPath, module: module, importAbiModule: true)
-                for closedGenericType in closedGenericTypes {
-                    try fileWriter.writeProjection(closedGenericType.definition, genericArgs: closedGenericType.genericArgs)
+                for (typeDefinition, instanciations) in module.closedGenericTypesByDefinition {
+                    if !module.hasTypeDefinition(typeDefinition) {
+                        try fileWriter.writeProjection(typeDefinition)
+                    }
+
+                    for genericArgs in instanciations {
+                        try fileWriter.writeProjection(typeDefinition, genericArgs: genericArgs)
+                    }
                 }
             }
         }

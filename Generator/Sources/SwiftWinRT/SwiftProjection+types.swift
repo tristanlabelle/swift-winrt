@@ -62,8 +62,8 @@ extension SwiftProjection {
                     }
                     else {
                         projectionType = .chain([
-                            .init(swiftTypeName + "Projection", genericArgs: swiftGenericArgs),
-                            .init("Projection")
+                            .init(swiftTypeName + "Projection"),
+                            .init(try toProjectionInstanciationTypeName(genericArgs: type.genericArgs))
                         ])
                     }
                 }
@@ -94,11 +94,6 @@ extension SwiftProjection {
         guard type.definition.namespace == "System" else { return nil }
         if type.genericArgs.isEmpty {
             switch type.definition.name {
-                case "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64", "Double":
-                    return .numeric(
-                        swiftType: type.definition.name,
-                        abiType: type.definition.name.uppercased())
-
                 case "Boolean":
                     return TypeProjection(
                         swiftType: .bool,
@@ -106,11 +101,18 @@ extension SwiftProjection {
                         abiType: .identifier("boolean"),
                         abiDefaultValue: "0",
                         inert: true)
-                case "SByte": return .numeric(swiftType: "Int8", abiType: "INT8")
-                case "Byte": return .numeric(swiftType: "UInt8", abiType: "UINT8")
-                case "IntPtr": return .numeric(swiftType: "Int", abiType: "INT_PTR")
-                case "UIntPtr": return .numeric(swiftType: "UInt", abiType: "UINT_PTR")
-                case "Single": return .numeric(swiftType: "Float", abiType: "FLOAT")
+                case "SByte": return .numeric(swiftType: .int(bits: 8), abiType: "INT8")
+                case "Byte": return .numeric(swiftType: .uint(bits: 8), abiType: "UINT8")
+                case "Int16": return .numeric(swiftType: .int(bits: 16), abiType: "INT16")
+                case "UInt16": return .numeric(swiftType: .uint(bits: 16), abiType: "UINT16")
+                case "Int32": return .numeric(swiftType: .int(bits: 32), abiType: "INT32")
+                case "UInt32": return .numeric(swiftType: .uint(bits: 32), abiType: "UINT32")
+                case "Int64": return .numeric(swiftType: .int(bits: 64), abiType: "INT64")
+                case "UInt64": return .numeric(swiftType: .uint(bits: 64), abiType: "UINT64")
+                case "IntPtr": return .numeric(swiftType: .int, abiType: "INT_PTR")
+                case "UIntPtr": return .numeric(swiftType: .uint, abiType: "UINT_PTR")
+                case "Single": return .numeric(swiftType: .float, abiType: "FLOAT")
+                case "Double": return .numeric(swiftType: .double, abiType: "DOUBLE")
                 case "Char":
                     return TypeProjection(
                         swiftType: .chain("COM", "WideChar"),
