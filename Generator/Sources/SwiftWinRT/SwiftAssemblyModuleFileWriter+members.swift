@@ -140,10 +140,11 @@ extension SwiftAssemblyModuleFileWriter {
                 }
 
                 if abi.kind != .identity && param.isOut {
-                    writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(consuming: &_\(paramName))")
-                    if abi.kind != .inert {
-                        // Prevent the defer block from double-releasing the value
-                        writer.writeStatement("_\(paramName) = \(abi.defaultValue)")
+                    if abi.kind == .inert {
+                        writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(_\(paramName))")
+                    }
+                    else {
+                        writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(consuming: &_\(paramName))")
                     }
                 }
             }
