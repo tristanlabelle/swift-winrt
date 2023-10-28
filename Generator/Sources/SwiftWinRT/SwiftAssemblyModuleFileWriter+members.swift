@@ -77,6 +77,17 @@ extension SwiftAssemblyModuleFileWriter {
         }
 
         var abiArgs = [thisName]
+        func addAbiArg(_ variableName: String, byRef: Bool, array: Bool) {
+            let prefix = byRef ? "&" : ""
+            if array {
+                abiArgs.append("\(prefix)\(variableName).count")
+                abiArgs.append("\(prefix)\(variableName).elements")
+            } else {
+                abiArgs.append("\(prefix)\(variableName)")
+            }
+        }
+
+        var needsOutParamsEpilogue = false
 
         // Prologue: convert arguments from the Swift to the ABI representation
         for param in try method.params {
@@ -91,45 +102,31 @@ extension SwiftAssemblyModuleFileWriter {
                 return
             }
 
-            if abi.identity {
-                abiArgs.append(paramName)
+            if abi.kind == .identity {
+                addAbiArg(paramName, byRef: param.isByRef, array: false)
                 continue
             }
 
-            assert(param.isByRef || !param.isOut)
+            let declarator: SwiftVariableDeclarator = param.isByRef || abi.kind != .inert ? .var : .let
+            let variableName: String = param.isByRef && param.isOut ? "_\(paramName)" : paramName
+            if param.isByRef && param.isOut { needsOutParamsEpilogue = true }
 
-            let declarator: SwiftVariableDeclarator
-            let variableName: String
-            if param.isOut {
-                declarator = .var
-                variableName = "_\(paramName)"
-                abiArgs.append("&\(variableName)")
+            if param.isOut && !param.isIn {
+                writer.writeStatement("\(declarator) \(variableName): \(abi.type) = \(abi.defaultValue)")
             }
             else {
-                declarator = .let
-                variableName = paramName
-                abiArgs.append(variableName)
-            }
-
-            if param.isIn {
-                let tryPrefix = abi.inert ? "" : "try "
+                let tryPrefix = abi.kind == .inert ? "" : "try "
                 writer.writeStatement("\(declarator) \(variableName) = \(tryPrefix)\(abi.projectionType).toABI(\(paramName))")
             }
-            else {
-                assert(param.isOut)
-                writer.writeStatement("\(declarator) \(variableName): \(abi.valueType) = \(abi.defaultValue)")
+
+            if abi.kind != .inert {
+                writer.writeStatement("defer { \(abi.projectionType).release(&\(variableName)) }")
             }
 
-            if !abi.inert {
-                writer.writeStatement("defer { \(abi.projectionType).release(\(variableName)) }")
-            }
+            addAbiArg(variableName, byRef: param.isByRef, array: abi.kind == .array)
         }
 
-        func writeCall() throws {
-            let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
-
-            // Epilogue: convert the out params from the ABI to the Swift representation
+        func writeOutParamsEpilogue() throws {
             for param in try method.params {
                 guard let paramName = param.name else {
                     writer.writeNotImplemented()
@@ -142,9 +139,9 @@ extension SwiftAssemblyModuleFileWriter {
                     return
                 }
 
-                if !abi.identity && param.isOut {
-                    writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(consuming: _\(paramName))")
-                    if !abi.inert {
+                if abi.kind != .identity && param.isOut {
+                    writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(consuming: &_\(paramName))")
+                    if abi.kind != .inert {
                         // Prevent the defer block from double-releasing the value
                         writer.writeStatement("_\(paramName) = \(abi.defaultValue)")
                     }
@@ -152,12 +149,18 @@ extension SwiftAssemblyModuleFileWriter {
             }
         }
 
-        // Epilogue: convert the return value from the ABI to the Swift representation
+        func writeCall() throws {
+            let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
+            writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
+        }
+
         if try !method.hasReturnValue {
             try writeCall()
+            if needsOutParamsEpilogue { try writeOutParamsEpilogue() }
             return
         }
 
+        // Value-returning functions
         let returnTypeProjection = try projection.getTypeProjection(
             method.returnType.bindGenericParams(typeArgs: genericTypeArgs))
         guard let returnAbi = returnTypeProjection.abi else {
@@ -165,15 +168,23 @@ extension SwiftAssemblyModuleFileWriter {
             return
         }
 
-        writer.writeStatement("var _result: \(returnAbi.valueType) = \(returnAbi.defaultValue)")
-        abiArgs.append("&_result")
+        writer.writeStatement("var _result: \(returnAbi.type) = \(returnAbi.defaultValue)")
+        addAbiArg("_result", byRef: true, array: returnAbi.kind == .array)
         try writeCall()
 
-        if returnAbi.identity {
-            writer.writeStatement("return _result")
+        if needsOutParamsEpilogue {
+            // Don't leak the result if we fail in the out params epilogue
+            if returnAbi.kind != .identity && returnAbi.kind != .inert {
+                writer.writeStatement("defer { \(returnAbi.projectionType).release(&_result) }")
+            }
+
+            try writeOutParamsEpilogue()
         }
-        else {
-            writer.writeStatement("return \(returnAbi.projectionType).toSwift(consuming: _result)")
+
+        switch returnAbi.kind {
+            case .identity: writer.writeStatement("return _result")
+            case .inert: writer.writeStatement("return \(returnAbi.projectionType).toSwift(_result)")
+            default: writer.writeStatement("return \(returnAbi.projectionType).toSwift(consuming: &_result)")
         }
     }
 }

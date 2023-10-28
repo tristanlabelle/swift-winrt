@@ -2,8 +2,8 @@ import CWinRTCore
 import COM
 
 public func getActivationFactoryPointer<COMInterface>(activatableId: String, iid: IID) throws -> UnsafeMutablePointer<COMInterface> {
-    let activatableId = try HStringProjection.toABI(activatableId)
-    defer { HStringProjection.release(activatableId) }
+    var activatableId = try HStringProjection.toABI(activatableId)
+    defer { HStringProjection.release(&activatableId) }
 
     var iid = iid
     var factory: UnsafeMutableRawPointer?

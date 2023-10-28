@@ -43,12 +43,7 @@ open class COMProjectionBase<Projection: COMProjection>: IUnknownProtocol {
 
     public var _unsafeRefCount: UInt32 { _unknown._unsafeRefCount }
 
-    public static func toSwift(copying value: Projection.COMPointer) -> Projection.SwiftObject {
-        IUnknownPointer.addRef(value)
-        return Self(transferringRef: value).swiftObject
-    }
-
-    public static func toSwift(consuming value: Projection.COMPointer) -> Projection.SwiftObject {
+    public static func toSwift(transferringRef value: Projection.COMPointer) -> Projection.SwiftObject {
         return Self(transferringRef: value).swiftObject
     }
 

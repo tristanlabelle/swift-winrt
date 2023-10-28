@@ -1,12 +1,22 @@
 import CodeWriters
 
 struct TypeProjection {
+    enum ABIKind: Hashable {
+        /// The Swift and ABI representations are the same, and do not own any resources.
+        case identity
+        /// The ABI representation does not own any resources.
+        case inert
+        /// The ABI representation owns resources.
+        case allocating
+        /// The ABI representation is a WinRT array.
+        case array
+    }
+
     struct ABI {
+        var type: SwiftType
         var projectionType: SwiftType
-        var valueType: SwiftType
         var defaultValue: String
-        var identity: Bool = false
-        var inert: Bool = false
+        var kind: ABIKind
     }
 
     /// The type for the Swift representation of values.
@@ -19,15 +29,14 @@ struct TypeProjection {
         self.abi = abi
     }
 
-    public init(swiftType: SwiftType, projectionType: SwiftType, abiType: SwiftType? = nil, abiDefaultValue: String? = nil, identity: Bool = false, inert: Bool = false) {
+    public init(swiftType: SwiftType, abiType: SwiftType? = nil, projectionType: SwiftType, abiDefaultValue: String? = nil, abiKind: ABIKind = .allocating) {
         guard case .chain(let projectionTypeChain) = projectionType else { preconditionFailure() }
         self.init(swiftType: swiftType,
             abi: ABI(
+                type: abiType ?? .chain(projectionTypeChain.appending("ABIValue")),
                 projectionType: projectionType,
-                valueType: abiType ?? .chain(projectionTypeChain.appending("ABIValue")),
                 defaultValue: abiDefaultValue ?? projectionType.description + ".abiDefaultValue",
-                identity: identity,
-                inert: inert))
+                kind: abiKind))
     }
 
     public static func noAbi(swiftType: SwiftType) -> TypeProjection {
@@ -37,10 +46,9 @@ struct TypeProjection {
     public static func numeric(swiftType: SwiftType, abiType: String) -> TypeProjection {
         TypeProjection(
             swiftType: swiftType,
-            projectionType: .identifier("NumericProjection", genericArgs: [swiftType]),
             abiType: .identifier(name: abiType),
+            projectionType: .identifier("NumericProjection", genericArgs: [swiftType]),
             abiDefaultValue: "0",
-            identity: true,
-            inert: true)
+            abiKind: .identity)
     }
 }

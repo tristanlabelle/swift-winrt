@@ -74,16 +74,31 @@ extension SwiftProjection {
 
                 return TypeProjection(
                     swiftType: swiftValueType,
-                    projectionType: projectionType,
                     abiType: abiType,
+                    projectionType: projectionType,
                     abiDefaultValue: type.definition.isReferenceType ? "nil" : nil,
-                    inert: type.definition.isValueType)
+                    abiKind: type.definition.isValueType ? .inert : .allocating)
 
             case let .genericParam(param):
                 return .noAbi(swiftType: .identifier(name: param.name))
 
             case let .array(of: element):
-                return .noAbi(swiftType: .array(element: try toType(element)))
+                let elementProjection = try getTypeProjection(element)
+                if let elementProjectionAbi = elementProjection.abi {
+                    return TypeProjection(
+                        swiftType: .array(element: elementProjection.swiftType),
+                        abiType: .chain(
+                            .init("COM"),
+                            .init("COMArray", genericArgs: [elementProjectionAbi.type])),
+                        projectionType: .chain(
+                            .init("WindowsRuntime"),
+                            .init("WinRTArrayProjection", genericArgs: [elementProjectionAbi.projectionType])),
+                        abiDefaultValue: ".null",
+                        abiKind: .array)
+                }
+                else {
+                    return .noAbi(swiftType: .array(element: elementProjection.swiftType))
+                }
 
             default:
                 fatalError("Not implemented: projecting values of type \(type)")
@@ -97,10 +112,10 @@ extension SwiftProjection {
                 case "Boolean":
                     return TypeProjection(
                         swiftType: .bool,
-                        projectionType: .chain("COM", "BooleanProjection"),
                         abiType: .identifier("boolean"),
+                        projectionType: .chain("COM", "BooleanProjection"),
                         abiDefaultValue: "0",
-                        inert: true)
+                        abiKind: .inert)
                 case "SByte": return .numeric(swiftType: .int(bits: 8), abiType: "INT8")
                 case "Byte": return .numeric(swiftType: .uint(bits: 8), abiType: "UINT8")
                 case "Int16": return .numeric(swiftType: .int(bits: 16), abiType: "INT16")
@@ -116,28 +131,30 @@ extension SwiftProjection {
                 case "Char":
                     return TypeProjection(
                         swiftType: .chain("COM", "WideChar"),
+                        abiType: .chain(abiModuleName, "WCHAR"),
                         projectionType: .chain("COM", "WideChar"),
-                        abiType: .identifier("WCHAR"),
                         abiDefaultValue: "0",
-                        inert: true)
+                        abiKind: .inert)
                 case "Guid":
                     return TypeProjection(
                         swiftType: .chain("Foundation", "UUID"),
+                        abiType: .chain(abiModuleName, "GUID"),
                         projectionType: .chain("COM", "GUIDProjection"),
-                        abiType: .identifier("GUID"),
-                        inert: true)
+                        abiKind: .inert)
                 case "String":
                     return .init(
                         swiftType: .string,
-                        projectionType: .identifier("HStringProjection"),
-                        abiType: .optional(wrapped: .identifier("HSTRING")),
-                        abiDefaultValue: "nil")
+                        abiType: .optional(wrapped: .chain(abiModuleName, "HSTRING")),
+                        projectionType: .chain("WindowsRuntime", "HStringProjection"),
+                        abiDefaultValue: "nil",
+                        abiKind: .allocating)
                 case "Object":
                     return .init(
                         swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
-                        projectionType: .identifier("IInspectableProjection"),
                         abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
-                        abiDefaultValue: "nil")
+                        projectionType: .chain("WindowsRuntime", "IInspectableProjection"),
+                        abiDefaultValue: "nil",
+                        abiKind: .allocating)
                 case "Void":
                     return .noAbi(swiftType: .void)
 
@@ -155,15 +172,16 @@ extension SwiftProjection {
             case "IReference`1":
                 precondition(type.genericArgs.count == 1)
                 let wrappedTypeProjection = try getTypeProjection(type.genericArgs[0])
+                // TODO: Implement IReference<T> projection
                 return TypeProjection.noAbi(swiftType: .optional(wrapped: wrappedTypeProjection.swiftType))
 
             case "HResult":
                 return TypeProjection(
                     swiftType: .chain("COM", "HResult"),
-                    projectionType: .chain("COM", "HResultProjection"),
                     abiType: .identifier("HRESULT"),
+                    projectionType: .chain("COM", "HResultProjection"),
                     abiDefaultValue: "S_OK",
-                    inert: true)
+                    abiKind: .inert)
 
             default:
                 return nil

@@ -19,7 +19,7 @@ open class WinRTProjectionBase<Projection: WinRTProjection>: COMProjectionBase<P
         // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.IInspectable>
         var runtimeClassName: HSTRING?
         try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetRuntimeClassName(_inspectable, &runtimeClassName))
-        return HStringProjection.toSwift(consuming: runtimeClassName)
+        return HStringProjection.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
