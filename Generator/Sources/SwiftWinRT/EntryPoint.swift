@@ -121,12 +121,17 @@ struct EntryPoint: ParsableCommand {
             if !module.closedGenericTypesByDefinition.isEmpty {
                 let genericsPath = "\(assemblyModuleDirectoryPath)\\_Generics.swift"
                 let fileWriter = SwiftAssemblyModuleFileWriter(path: genericsPath, module: module, importAbiModule: true)
-                for (typeDefinition, instanciations) in module.closedGenericTypesByDefinition {
+                let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
+                    .sorted { $0.key.fullName < $1.key.fullName }
+                for (typeDefinition, instanciations) in closedGenericTypesByDefinition {
                     if !module.hasTypeDefinition(typeDefinition) {
                         try fileWriter.writeProjection(typeDefinition)
                     }
 
-                    for genericArgs in instanciations {
+                    let instanciationsByName = try instanciations
+                        .map { (key: try swiftProjection.toProjectionInstanciationTypeName(genericArgs: $0), value: $0) }
+                        .sorted { $0.key < $1.key }
+                    for (_, genericArgs) in instanciationsByName {
                         try fileWriter.writeProjection(typeDefinition, genericArgs: genericArgs)
                     }
                 }
