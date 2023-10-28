@@ -50,7 +50,7 @@ extension SwiftDeclarationWriter {
         typeParameters: [String] = [],
         rawValueType: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
-        body: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
+        definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
         output.beginLine(grouping: .never)
@@ -60,7 +60,7 @@ extension SwiftDeclarationWriter {
         writeTypeParameters(typeParameters)
         writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
         try output.writeBracedIndentedBlock() {
-            try body(.init(output: output))
+            try definition(.init(output: output))
         }
     }
 

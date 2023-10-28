@@ -88,47 +88,51 @@ extension SwiftAssemblyModuleFileWriter {
 
     internal func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        let isStatic = classDefinition.isAbstract && classDefinition.isSealed
-        assert(isStatic == classDefinition.baseInterfaces.isEmpty)
-        let protocolConformances: [SwiftType] = try isStatic ? [] : [.identifier("WinRTProjection")]
-            + classDefinition.baseInterfaces.map { .identifier(try projection.toProtocolName($0.interface.definition)) }
-        try sourceFileWriter.writeClass(
+        if classDefinition.isAbstract && classDefinition.isSealed {
+            // Static class
+            assert(classDefinition.baseInterfaces.isEmpty)
+            try sourceFileWriter.writeEnum(
+                visibility: SwiftProjection.toVisibility(classDefinition.visibility),
+                name: typeName) { try writeClassBody(classDefinition, to: $0) }
+        }
+        else {
+            let protocolConformances: [SwiftType] = try [.identifier("WinRTProjection")]
+                + classDefinition.baseInterfaces.map { .identifier(try projection.toProtocolName($0.interface.definition)) }
+            try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
-                base: isStatic ? nil : .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: typeName)]),
-                protocolConformances: protocolConformances) { writer throws in
-
-            if isStatic {
-                writer.writeInit(visibility: .private) { writer in }
-            }
-            else {
-                let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition)!
-                try writeWinRTProjectionConformance(
-                    interfaceOrDelegate: defaultInterface.asBoundType, classDefinition: classDefinition, to: writer)
-            }
-
-            try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
-
-            try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
-
-            // Write initializers from activation factories
-            for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
-                if activatableAttribute.factory == nil {
-                    try writeDefaultInitializer(classDefinition, to: writer)
-                }
-            }
-
-            // Write static members from static interfaces
-            for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
-                let interfaceProperty = try writeSecondaryInterfaceProperty(
-                    staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
-                try writeMemberImplementations(
-                    interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
-                    thisName: interfaceProperty.name, initThisFunc: interfaceProperty.initMethod, to: writer)
-            }
+                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: typeName)]),
+                protocolConformances: protocolConformances) { try writeClassBody(classDefinition, to: $0) }
         }
     }
 
-    internal func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
+    fileprivate func writeClassBody(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
+        if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
+            try writeWinRTProjectionConformance(
+                interfaceOrDelegate: defaultInterface.asBoundType, classDefinition: classDefinition, to: writer)
+        }
+
+        try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
+
+        try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
+
+        // Write initializers from activation factories
+        for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+            if activatableAttribute.factory == nil {
+                try writeDefaultInitializer(classDefinition, to: writer)
+            }
+        }
+
+        // Write static members from static interfaces
+        for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
+            let interfaceProperty = try writeSecondaryInterfaceProperty(
+                staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
+            try writeMemberImplementations(
+                interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
+                thisName: interfaceProperty.name, initThisFunc: interfaceProperty.initMethod, to: writer)
+        }
+    }
+
+    fileprivate func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         writer.output.writeLine("// IActivationFactory")
 
         // 00000035-0000-0000-C000-000000000046
