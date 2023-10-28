@@ -41,6 +41,10 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
         writeFatalError("Not implemented: \\(#function)")
     }
 
+    public func writeBlankLine() {
+        output.writeLine()
+    }
+
     public func writeStatement(_ code: String) {
         output.write(code, endLine: true)
     }

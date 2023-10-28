@@ -116,9 +116,18 @@ extension SwiftAssemblyModuleFileWriter {
         try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
 
         // Write initializers from activation factories
-        for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
-            if activatableAttribute.factory == nil {
-                try writeDefaultInitializer(classDefinition, to: writer)
+        let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
+        if !activatableAttributes.isEmpty {
+            // As soon as we declare one initializer, we must redeclare required initializers
+            writer.writeInit(visibility: .public, required: true,
+                    parameters: [.init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer"))]) { writer in
+                writer.writeStatement("super.init(transferringRef: comPointer)")
+            } 
+
+            for activatableAttribute in activatableAttributes {
+                if activatableAttribute.factory == nil {
+                    try writeDefaultInitializer(classDefinition, to: writer)
+                }
             }
         }
 
@@ -146,15 +155,19 @@ extension SwiftAssemblyModuleFileWriter {
             interfaceName: "IActivationFactory", abiName: "IActivationFactory", iid: iactivationFactoryID,
             staticOf: classDefinition, to: writer)
 
-        // let defaultInterface = DefaultAttribute.getDefaultInterface(classDefinition)!
-        // let defaultInterfaceProjection = try projection.getTypeProjection(defaultInterface.asNode)
-
-        writer.writeInit(visibility: .public, override: false, throws: true) { writer in
+        writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
             writer.writeStatement("let _factory = try Self.\(interfaceProperty.getter)()")
             writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).IInspectable>? = nil")
             writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
             writer.writeStatement("try HResult.throwIfFailed(_factory.pointee.lpVtbl.pointee.ActivateInstance(_factory, &inspectable))")
-            //writer.writeStatement("var instance: UnsafeMutablePointer<\(defaultInterfaceProjection)>? = nil")
+            writer.writeStatement("guard let inspectable else { throw COM.HResult.Error.noInterface }")
+            writer.writeBlankLine()
+            writer.writeStatement("var iid = Self.iid")
+            writer.writeStatement("var instance: UnsafeMutableRawPointer? = nil")
+            writer.writeStatement("try HResult.throwIfFailed(inspectable.pointee.lpVtbl.pointee.QueryInterface(inspectable, &iid, &instance))")
+            writer.writeStatement("guard let instance else { throw COM.HResult.Error.noInterface }")
+            writer.writeBlankLine()
+            writer.writeStatement("self.init(transferringRef: instance.bindMemory(to: COMInterface.self, capacity: 1))")
         }
     }
 }

@@ -126,6 +126,8 @@ extension SwiftDeclarationWriter {
 
     public func writeInit(
         visibility: SwiftVisibility = .implicit,
+        required: Bool = false,
+        convenience: Bool = false,
         override: Bool = false,
         failable: Bool = false,
         parameters: [SwiftParameter] = [],
@@ -135,6 +137,8 @@ extension SwiftDeclarationWriter {
         var output = output
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
+        if `required` { output.write("required ") }
+        if `convenience` { output.write("convenience ") }
         if `override` { output.write("override ") }
         output.write("init")
         if failable { output.write("?") }

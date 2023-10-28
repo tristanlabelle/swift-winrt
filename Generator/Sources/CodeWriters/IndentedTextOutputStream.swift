@@ -63,7 +63,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         return .withGroup(AnonymousVerticalGroup(id: lastAllocatedGroupID))
     }
 
-    public func writeLine(grouping: VerticalGrouping = .withDefault, _ str: String) {
+    public func writeLine(grouping: VerticalGrouping = .withDefault, _ str: String = "") {
         beginLine(grouping: grouping)
         write(str, endLine: true)
     }
