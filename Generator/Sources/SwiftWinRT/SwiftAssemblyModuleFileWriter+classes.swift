@@ -128,7 +128,7 @@ extension SwiftAssemblyModuleFileWriter {
                 staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
             try writeMemberImplementations(
                 interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
-                thisName: interfaceProperty.name, initThisFunc: interfaceProperty.initMethod, to: writer)
+                thisPointer: .getter(interfaceProperty.getter), to: writer)
         }
     }
 
@@ -150,11 +150,10 @@ extension SwiftAssemblyModuleFileWriter {
         // let defaultInterfaceProjection = try projection.getTypeProjection(defaultInterface.asNode)
 
         writer.writeInit(visibility: .public, override: false, throws: true) { writer in
-            writer.writeStatement("try Self.\(interfaceProperty.initMethod)()")
+            writer.writeStatement("let _factory = try Self.\(interfaceProperty.getter)()")
             writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).IInspectable>? = nil")
             writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
-            writer.writeStatement("try HResult.throwIfFailed(Self.\(interfaceProperty.name).pointee.lpVtbl.pointee.ActivateInstance("
-                + "Self.\(interfaceProperty.name), &inspectable))")
+            writer.writeStatement("try HResult.throwIfFailed(_factory.pointee.lpVtbl.pointee.ActivateInstance(_factory, &inspectable))")
             //writer.writeStatement("var instance: UnsafeMutablePointer<\(defaultInterfaceProjection)>? = nil")
         }
     }

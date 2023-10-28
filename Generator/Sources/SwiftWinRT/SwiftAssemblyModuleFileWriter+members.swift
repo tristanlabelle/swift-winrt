@@ -3,8 +3,13 @@ import DotNetMetadata
 import WindowsMetadata
 
 extension SwiftAssemblyModuleFileWriter {
+    internal enum ThisPointer {
+        case name(String)
+        case getter(String)
+    }
+
     internal func writeMemberImplementations(
-            interfaceOrDelegate: BoundType, static: Bool, thisName: String, initThisFunc: String? = nil,
+            interfaceOrDelegate: BoundType, static: Bool = false, thisPointer: ThisPointer,
             to writer: SwiftTypeDefinitionWriter) throws {
         for property in interfaceOrDelegate.definition.properties {
             let swiftPropertyType = try projection.toType(
@@ -19,7 +24,7 @@ extension SwiftAssemblyModuleFileWriter {
                     throws: true) { writer throws in
 
                     try writeMethodImplementation(getter, genericTypeArgs: interfaceOrDelegate.genericArgs,
-                        thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                        thisPointer: thisPointer, to: &writer)
                 }
             }
 
@@ -32,7 +37,7 @@ extension SwiftAssemblyModuleFileWriter {
                     throws: true) { writer throws in
 
                     try writeMethodImplementation(setter , genericTypeArgs: interfaceOrDelegate.genericArgs,
-                        thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                        thisPointer: thisPointer, to: &writer)
                 }
             }
         }
@@ -54,16 +59,22 @@ extension SwiftAssemblyModuleFileWriter {
                 returnType: returnSwiftType) { writer throws in
 
                 try writeMethodImplementation(method, genericTypeArgs: interfaceOrDelegate.genericArgs,
-                    thisName: thisName, initThisFunc: initThisFunc, to: &writer)
+                    thisPointer: thisPointer, to: &writer)
             }
         }
     }
 
     internal func writeMethodImplementation(
-            _ method: Method, genericTypeArgs: [TypeNode],
-            thisName: String, initThisFunc: String? = nil,
+            _ method: Method, genericTypeArgs: [TypeNode], thisPointer: ThisPointer,
             to writer: inout SwiftStatementWriter) throws {
-        if let initThisFunc { writer.writeStatement("try \(initThisFunc)()") }
+
+        let thisName: String
+        switch thisPointer {
+            case .name(let name): thisName = name
+            case .getter(let getter):
+                thisName = "_this"
+                writer.writeStatement("let _this = try \(getter)()")
+        }
 
         var abiArgs = [thisName]
 

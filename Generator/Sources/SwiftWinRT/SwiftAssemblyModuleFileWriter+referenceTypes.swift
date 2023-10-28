@@ -108,13 +108,15 @@ extension SwiftAssemblyModuleFileWriter {
         for interface in recursiveInterfaces {
             writer.output.writeLine("// \(WinRTTypeName.from(type: interface.asBoundType)!.description)")
             if interface == defaultInterface {
-                try writeMemberImplementations(interfaceOrDelegate: interface.asBoundType, static: false, thisName: "comPointer", to: writer)
+                try writeMemberImplementations(
+                    interfaceOrDelegate: interface.asBoundType,
+                    thisPointer: .name("comPointer"), to: writer)
             }
             else {
                 let interfaceProperty = try writeSecondaryInterfaceProperty(interface, to: writer)
                 try writeMemberImplementations(
-                    interfaceOrDelegate: interface.asBoundType, static: false,
-                    thisName: interfaceProperty.name, initThisFunc: interfaceProperty.initMethod, to: writer)
+                    interfaceOrDelegate: interface.asBoundType,
+                    thisPointer: .getter(interfaceProperty.getter), to: writer)
                 nonDefaultInterfaceStoredProperties.append(interfaceProperty.name)
             }
         }
@@ -130,7 +132,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     struct SecondaryInterfaceProperty {
         let name: String
-        let initMethod: String
+        let getter: String
     }
 
     internal func writeSecondaryInterfaceProperty(
@@ -149,28 +151,30 @@ extension SwiftAssemblyModuleFileWriter {
 
         // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>! = nil
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
-        let iid = try Self.toIIDExpression(iid)
+        let abiPointerType: SwiftType = .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)])
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
-            type: .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)]), implicitUnwrap: true),
+            type: .optional(wrapped: abiPointerType, implicitUnwrap: true),
             initialValue: "nil")
 
-        // private [static] func _initIStringable() throws {
-        //     guard _istringable == nil else { return }
-        //     _istringable = try WindowsRuntime.ActivationFactory.getPointer(activatableId: "Windows.Foundation.IStringable", iid: IID(__x_ABI_CIStringable.self)
+        // private [static] func _getIStringable() throws -> UnsafeMutablePointer<__x_ABI_CIStringable> {
+        //     let iid = IID(00000035, 0000, 0000, C000, 000000000046)
+        //     _istringable = try _istringable ?? WindowsRuntime.getActivationFactoryPointer(activatableId: "Windows.Foundation.IStringable", iid: iid)
+        //     return _istringable
         // }
-        let initFunc = "_init" + interfaceName
-        writer.writeFunc(visibility: .private, static: staticOf != nil, name: initFunc, throws: true) {
-            $0.writeStatement("guard \(storedPropertyName) == nil else { return }")
+        let getter = "_get" + interfaceName
+        try writer.writeFunc(visibility: .private, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
+            $0.writeStatement("let iid = \(try Self.toIIDExpression(iid))")
             if let staticOf {
                 let activatableId = WinRTTypeName.from(type: staticOf.bindType())!.description
-                $0.writeStatement("\(storedPropertyName) = try WindowsRuntime.ActivationFactory.getPointer("
-                    + "activatableId: \"\(activatableId)\", iid: \(iid))")
+                $0.writeStatement("\(storedPropertyName) = try \(storedPropertyName) ?? WindowsRuntime.getActivationFactoryPointer("
+                    + "activatableId: \"\(activatableId)\", iid: iid)")
             }
             else {
-                $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(\(iid)).cast(to: \(abiName).self)")
+                $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(iid).cast(to: \(abiName).self)")
             }
+            $0.writeStatement("return \(storedPropertyName)")
         }
 
-        return SecondaryInterfaceProperty(name: storedPropertyName, initMethod: initFunc)
+        return SecondaryInterfaceProperty(name: storedPropertyName, getter: getter)
     }
 }

@@ -59,7 +59,9 @@ extension SwiftAssemblyModuleFileWriter {
                 get: { $0.writeStatement("invoke") })
 
             // The only member should be an "invoke()" method
-            try writeMemberImplementations(interfaceOrDelegate: delegate.asBoundType, static: false, thisName: "comPointer", to: writer)
+            try writeMemberImplementations(
+                interfaceOrDelegate: delegate.asBoundType,
+                thisPointer: .name("comPointer"), to: writer)
 
             // public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
             // TODO: Actually generate a virtual table struct
