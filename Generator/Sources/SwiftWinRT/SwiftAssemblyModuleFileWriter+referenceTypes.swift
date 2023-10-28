@@ -7,7 +7,7 @@ import struct Foundation.UUID
 extension SwiftAssemblyModuleFileWriter {
     /// Gathers all generic arguments from the given interfaces and writes them as type aliases
     /// For example, if an interface is IMap<String, Int32>, write K = String and V = Int32
-    internal func writeGenericTypeAliases(interfaces: [BoundInterface], to writer: SwiftRecordBodyWriter) throws {
+    internal func writeGenericTypeAliases(interfaces: [BoundInterface], to writer: SwiftTypeDefinitionWriter) throws {
         var typeAliases = OrderedDictionary<String, SwiftType>()
 
         for interface in interfaces {
@@ -24,7 +24,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    internal func writeWinRTProjectionConformance(interfaceOrDelegate: BoundType, classDefinition: ClassDefinition? = nil, to writer: SwiftRecordBodyWriter) throws {
+    internal func writeWinRTProjectionConformance(interfaceOrDelegate: BoundType, classDefinition: ClassDefinition? = nil, to writer: SwiftTypeDefinitionWriter) throws {
         writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
             target: try projection.toType(classDefinition?.bindNode() ?? interfaceOrDelegate.asNode).unwrapOptional())
 
@@ -75,7 +75,7 @@ extension SwiftAssemblyModuleFileWriter {
         return "IID(\(arguments.joined(separator: ", ")))"
     }
 
-    internal func writeInterfaceImplementations(_ type: BoundType, to writer: SwiftRecordBodyWriter) throws {
+    internal func writeInterfaceImplementations(_ type: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
         var recursiveInterfaces = [BoundInterface]()
 
         func visit(_ interface: BoundInterface) throws {
@@ -135,7 +135,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     internal func writeSecondaryInterfaceProperty(
             _ interface: BoundInterface, staticOf: ClassDefinition? = nil,
-            to writer: SwiftRecordBodyWriter) throws -> SecondaryInterfaceProperty {
+            to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceProperty {
         try writeSecondaryInterfaceProperty(
             interfaceName: try projection.toTypeName(interface.definition, namespaced: false),
             abiName: try CAbi.mangleName(type: interface.asBoundType),
@@ -145,7 +145,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     internal func writeSecondaryInterfaceProperty(
             interfaceName: String, abiName: String, iid: UUID, staticOf: ClassDefinition? = nil,
-            to writer: SwiftRecordBodyWriter) throws -> SecondaryInterfaceProperty {
+            to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceProperty {
 
         // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>! = nil
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)

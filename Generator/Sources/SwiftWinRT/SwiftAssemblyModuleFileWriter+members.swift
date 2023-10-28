@@ -5,7 +5,7 @@ import WindowsMetadata
 extension SwiftAssemblyModuleFileWriter {
     internal func writeMemberImplementations(
             interfaceOrDelegate: BoundType, static: Bool, thisName: String, initThisFunc: String? = nil,
-            to writer: SwiftRecordBodyWriter) throws {
+            to writer: SwiftTypeDefinitionWriter) throws {
         for property in interfaceOrDelegate.definition.properties {
             let swiftPropertyType = try projection.toType(
                 property.type.bindGenericParams(typeArgs: interfaceOrDelegate.genericArgs))

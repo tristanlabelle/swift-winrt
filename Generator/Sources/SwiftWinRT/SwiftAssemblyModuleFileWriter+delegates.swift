@@ -43,7 +43,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     fileprivate func writeDelegateProjection(
             _ delegate: BoundDelegate, projectionName: String,
-            to writer: some SwiftTypeDeclarationWriter) throws {
+            to writer: some SwiftDeclarationWriter) throws {
         try writer.writeClass(
                 visibility: SwiftProjection.toVisibility(delegate.definition.visibility),
                 final: true, name: projectionName,

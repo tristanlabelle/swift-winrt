@@ -112,7 +112,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeInterfaceProjection(_ interface: BoundInterface, projectionName: String, to writer: some SwiftTypeDeclarationWriter) throws {
+    fileprivate func writeInterfaceProjection(_ interface: BoundInterface, projectionName: String, to writer: some SwiftDeclarationWriter) throws {
         try writer.writeClass(
                 visibility: SwiftProjection.toVisibility(interface.definition.visibility),
                 final: true, name: projectionName,

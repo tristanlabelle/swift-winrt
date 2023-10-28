@@ -18,7 +18,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeTypeAliasesForBaseGenericArgs(of typeDefinition: TypeDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         var baseTypes = try typeDefinition.baseInterfaces.map { try $0.interface.asBoundType }
         if let base = try typeDefinition.base {
             baseTypes.insert(base, at: 0)
@@ -36,7 +36,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeClassMembers(_ classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeClassMembers(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         for property in classDefinition.properties {
             if let getter = try property.getter, getter.isPublic {
                 try writer.writeComputedProperty(
@@ -128,7 +128,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    internal func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftRecordBodyWriter) throws {
+    internal func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         writer.output.writeLine("// IActivationFactory")
 
         // 00000035-0000-0000-C000-000000000046

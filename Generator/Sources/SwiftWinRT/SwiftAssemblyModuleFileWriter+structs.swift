@@ -16,7 +16,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeStructFields(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeStructFields(_ structDefinition: StructDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         for field in structDefinition.fields {
             assert(field.isInstance && !field.isInitOnly && field.isPublic)
 
@@ -25,7 +25,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         func getInitializer(type: TypeNode) -> String {
             switch type {
                 case .array(_): return "[]"
@@ -56,7 +56,7 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, to writer: SwiftRecordBodyWriter) throws {
+    fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         let params = try structDefinition.fields
             .filter { $0.visibility == .public && $0.isInstance }
             .map { SwiftParameter(name: projection.toMemberName($0), type: try projection.toType($0.type)) }
