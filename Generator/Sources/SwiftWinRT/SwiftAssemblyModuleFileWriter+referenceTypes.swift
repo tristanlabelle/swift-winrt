@@ -33,15 +33,12 @@ extension SwiftAssemblyModuleFileWriter {
             target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: .chain(projection.abiModuleName, abiName + WinRTTypeName.midlVirtualTableSuffix))
-
-        // TODO: Support generic interfaces
-        let guid = try interfaceOrDelegate.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "iid",
-            initialValue: try Self.toIIDExpression(guid))
+            initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
         if interfaceOrDelegate.definition is InterfaceDefinition {
-            // Delegates are IUnknown interfaces, not IInspectable
-            let runtimeClassName = WinRTTypeName.from(type: classDefinition?.bindType() ?? interfaceOrDelegate)!.description
+            // Only interfaces are IInspectable. Delegates are IUnknown.
+            let runtimeClassName = try WinRTTypeName.from(type: classDefinition?.bindType() ?? interfaceOrDelegate).description
             writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
                 initialValue: "\"\(runtimeClassName)\"")
         }
@@ -106,7 +103,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         var nonDefaultInterfaceStoredProperties = [String]()
         for interface in recursiveInterfaces {
-            writer.output.writeLine("// \(WinRTTypeName.from(type: interface.asBoundType)!.description)")
+            try writer.output.writeLine("// \(WinRTTypeName.from(type: interface.asBoundType).description)")
             if interface == defaultInterface {
                 try writeMemberImplementations(
                     interfaceOrDelegate: interface.asBoundType,
@@ -139,9 +136,9 @@ extension SwiftAssemblyModuleFileWriter {
             _ interface: BoundInterface, staticOf: ClassDefinition? = nil,
             to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceProperty {
         try writeSecondaryInterfaceProperty(
-            interfaceName: try projection.toTypeName(interface.definition, namespaced: false),
-            abiName: try CAbi.mangleName(type: interface.asBoundType),
-            iid: interface.definition.findAttribute(WindowsMetadata.GuidAttribute.self)!,
+            interfaceName: projection.toTypeName(interface.definition, namespaced: false),
+            abiName: CAbi.mangleName(type: interface.asBoundType),
+            iid: WindowsMetadata.getInterfaceID(interface.asBoundType),
             staticOf: staticOf, to: writer)
     }
 
@@ -165,7 +162,7 @@ extension SwiftAssemblyModuleFileWriter {
         try writer.writeFunc(visibility: .private, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
             $0.writeStatement("let iid = \(try Self.toIIDExpression(iid))")
             if let staticOf {
-                let activatableId = WinRTTypeName.from(type: staticOf.bindType())!.description
+                let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                 $0.writeStatement("\(storedPropertyName) = try \(storedPropertyName) ?? WindowsRuntime.getActivationFactoryPointer("
                     + "activatableId: \"\(activatableId)\", iid: iid)")
             }

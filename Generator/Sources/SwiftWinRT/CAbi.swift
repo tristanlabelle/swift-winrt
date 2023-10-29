@@ -4,7 +4,7 @@ import CodeWriters
 
 enum CAbi {
     static func mangleName(type: BoundType) throws -> String {
-        WinRTTypeName.from(type: type)!.midlMangling
+        try WinRTTypeName.from(type: type).midlMangling
     }
 
     static func toCType(_ type: TypeNode) throws -> CType {
