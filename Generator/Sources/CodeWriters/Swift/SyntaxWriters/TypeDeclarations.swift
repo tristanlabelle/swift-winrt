@@ -4,6 +4,7 @@ public struct SwiftTypeDefinitionWriter: SwiftDeclarationWriter {
 
 extension SwiftDeclarationWriter {
     public func writeClass(
+        docComments: SwiftDocComment? = nil,
         visibility: SwiftVisibility = .implicit,
         final: Bool = false,
         name: String,
@@ -13,6 +14,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if final { output.write("final ") }
@@ -26,6 +28,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeStruct(
+        docComments: SwiftDocComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
@@ -33,6 +36,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
@@ -45,6 +49,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeEnum(
+        docComments: SwiftDocComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
@@ -53,6 +58,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
@@ -65,12 +71,14 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeTypeAlias(
+        docComments: SwiftDocComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
         target: SwiftType) {
 
         var output = output
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .withName("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")

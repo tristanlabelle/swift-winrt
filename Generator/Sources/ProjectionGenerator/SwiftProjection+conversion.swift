@@ -1,5 +1,6 @@
-import DotNetMetadata
 import CodeWriters
+import DotNetMetadata
+import DotNetXMLDocs
 
 extension SwiftProjection {
     static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
@@ -10,6 +11,11 @@ extension SwiftProjection {
             case .familyOrAssembly, .family, .public:
                 return inheritableClass ? .open : .public
         }
+    }
+
+    static func toDocComments(_ entry: MemberEntry) -> SwiftDocComment {
+        // TODO: Convert doc comments
+        return SwiftDocComment()
     }
 
     // Windows.Foundation.Collections to WindowsFoundationCollections
@@ -39,17 +45,17 @@ extension SwiftProjection {
         }
     }
 
-    func toTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
-        try assembliesToModules[type.assembly]!.getName(type, namespaced: namespaced)
+    func toTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
+        try getModule(typeDefinition.assembly)!.getName(typeDefinition, namespaced: namespaced)
     }
 
-    func toProtocolName(_ type: InterfaceDefinition, namespaced: Bool = true) throws -> String {
-        try toTypeName(type, namespaced: namespaced) + "Protocol"
+    func toProtocolName(_ typeDefinition: InterfaceDefinition, namespaced: Bool = true) throws -> String {
+        try toTypeName(typeDefinition, namespaced: namespaced) + "Protocol"
     }
 
-    public func toProjectionTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
-        var typeName = try toTypeName(type, namespaced: namespaced)
-        if type is InterfaceDefinition || type is DelegateDefinition {
+    public func toProjectionTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
+        var typeName = try toTypeName(typeDefinition, namespaced: namespaced)
+        if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
             // protocols and function pointers cannot serve as the projection class,
             // so an accompanying type provides the ABIProjection conformance.
             typeName += "Projection"

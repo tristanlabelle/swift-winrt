@@ -1,8 +1,14 @@
 import DotNetMetadata
+import DotNetXMLDocs
 
 public class SwiftProjection {
-    public private(set) var modulesByShortName: [String: Module] = .init()
-    public private(set) var assembliesToModules: [Assembly: Module] = .init()
+    internal struct AssemblyEntry {
+        var module: Module
+        var documentation: DocumentationFile?
+    }
+
+    public private(set) var modulesByShortName = [String: Module]()
+    internal var assembliesToModules = [Assembly: AssemblyEntry]()
     public let abiModuleName: String
     public var referenceReturnNullability: ReferenceNullability { .explicit } 
 
@@ -16,78 +22,35 @@ public class SwiftProjection {
         return module
     }
 
-    public class Module {
-        public unowned let projection: SwiftProjection
-        public let shortName: String
-        public private(set) var typeDefinitionsByNamespace: [String: Set<TypeDefinition>] = .init()
-        public private(set) var closedGenericTypesByDefinition: [TypeDefinition: [[TypeNode]]] = .init()
-        private(set) var references: Set<Reference> = []
+    public func getModule(_ assembly: Assembly) -> Module? {
+        assembliesToModules[assembly]?.module
+    }
 
-        internal init(projection: SwiftProjection, shortName: String) {
-            self.projection = projection
-            self.shortName = shortName
+    internal func getDocumentation(_ assembly: Assembly) -> DocumentationFile? {
+        assembliesToModules[assembly]?.documentation
+    }
+
+    internal func getDocumentation(_ typeDefinition: TypeDefinition) -> DotNetXMLDocs.MemberEntry? {
+        guard let documentationFile = getDocumentation(typeDefinition.assembly) else { return nil }
+        return documentationFile.members[.type(fullName: typeDefinition.fullName)]
+    }
+
+    internal func getDocumentation(_ member: Member) throws -> DotNetXMLDocs.MemberEntry? {
+        guard let documentationFile = getDocumentation(member.definingType.assembly) else { return nil }
+
+        let memberKey: DotNetXMLDocs.MemberKey
+        switch member {
+            case let field as Field:
+                memberKey = .field(typeFullName: field.definingType.fullName, name: field.name)
+            case let event as Event:
+                memberKey = .event(typeFullName: event.definingType.fullName, name: event.name)
+            case let property as Property:
+                guard try (property.getter?.arity ?? 0) == 0 else { return nil }
+                memberKey = .event(typeFullName: property.definingType.fullName, name: property.name)
+            default:
+                return nil
         }
 
-        var assemblyModuleName: String { shortName + "Assembly" }
-
-        func getName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
-            // Map: Namespace.TypeName
-            // To: Namespace_TypeName
-            // Map: Namespace.Subnamespace.TypeName/NestedTypeName
-            // To: NamespaceSubnamespace_TypeName_NestedTypeName
-            var result: String = ""
-            if let enclosingType = try type.enclosingType {
-                result += try getName(enclosingType, namespaced: namespaced) + "_"
-            }
-            else if namespaced {
-                result += type.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
-            }
-
-            result += type.nameWithoutGenericSuffix
-
-            return result
-        }
-
-        public func addAssembly(_ assembly: Assembly) {
-            projection.assembliesToModules[assembly] = self
-        }
-
-        public func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
-            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type)]?.contains(type) ?? false
-        }
-
-        public func addTypeDefinition(_ type: TypeDefinition) {
-            precondition(projection.assembliesToModules[type.assembly] === self)
-            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
-        }
-
-        public func addClosedGenericType(_ type: BoundType) {
-            precondition(!type.genericArgs.isEmpty && !type.isParameterized)
-            closedGenericTypesByDefinition[type.definition, default: []].append(type.genericArgs)
-        }
-
-        public func addReference(_ other: Module) {
-            references.insert(Reference(target: other))
-        }
-
-        private static func getNamespaceOrEmpty(_ type: TypeDefinition) -> String {
-            var namespacedType = type
-            while namespacedType.namespace == nil, let enclosingType = try? namespacedType.enclosingType {
-                namespacedType = enclosingType
-            }
-            return namespacedType.namespace ?? ""
-        }
-
-        struct Reference: Hashable {
-            unowned var target: Module
-
-            func hash(into hasher: inout Hasher) {
-                hasher.combine(ObjectIdentifier(target))
-            }
-
-            static func == (lhs: Module.Reference, rhs: Module.Reference) -> Bool {
-                lhs.target === rhs.target
-            }
-        }
+        return documentationFile.members[memberKey]
     }
 }

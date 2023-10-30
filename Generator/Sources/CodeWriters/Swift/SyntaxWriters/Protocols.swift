@@ -1,5 +1,6 @@
 extension SwiftSourceFileWriter {
     public func writeProtocol(
+        docComments: SwiftDocComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParameters: [String] = [],
@@ -8,6 +9,7 @@ extension SwiftSourceFileWriter {
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
+        if let docComments = docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
@@ -36,6 +38,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     }
 
     public func writeProperty(
+        docComments: SwiftDocComment? = nil,
         static: Bool = false,
         name: String,
         type: SwiftType,
@@ -45,6 +48,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         precondition(!set || !`throws`)
 
         var output = output
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .withName("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
@@ -58,6 +62,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     }
 
     public func writeFunc(
+        docComments: SwiftDocComment? = nil,
         isPropertySetter: Bool = false,
         static: Bool = false,
         name: String,
@@ -66,6 +71,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
+        if let docComments { writeDocComment(docComments) }
         output.beginLine(grouping: .withName(isPropertySetter ? "protocolProperty" : "protocolFunc"))
         writeFuncHeader(
             visibility: .implicit,

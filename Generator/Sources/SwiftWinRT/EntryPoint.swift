@@ -75,9 +75,9 @@ struct EntryPoint: ParsableCommand {
         for assembly in context.loadedAssembliesByName.values {
             guard !(assembly is Mscorlib) else { continue }
 
-            if let sourceModule = swiftProjection.assembliesToModules[assembly] {
+            if let sourceModule = swiftProjection.getModule(assembly) {
                 for reference in assembly.references {
-                    if let targetModule = swiftProjection.assembliesToModules[try reference.resolve()] {
+                    if let targetModule = swiftProjection.getModule(try reference.resolve()) {
                         sourceModule.addReference(targetModule)
                     }
                 }
