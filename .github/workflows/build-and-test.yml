@@ -1,0 +1,38 @@
+name: Build & Test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Visual Studio Development Environment
+      uses: compnerd/gha-setup-vsdevenv@main
+
+    - name: Install Swift
+      uses: compnerd/gha-setup-swift@main
+      with:
+        branch: swift-5.9-release
+        tag: 5.9-RELEASE
+
+    - name: Build code generator
+      working-directory: Generator
+      shell: pwsh
+      run: swift build --verbose --build-tests
+
+    - name: Test code generator
+      working-directory: Generator
+      shell: pwsh
+      run: swift test --verbose --skip-build
+
+    - name: Build support module
+      shell: pwsh
+      run: swift build --verbose --build-tests
+
+    - name: Test support module
+      shell: pwsh
+      run: swift test --verbose --skip-build
