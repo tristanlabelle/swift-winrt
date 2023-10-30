@@ -2,6 +2,7 @@ import ArgumentParser
 import ProjectionGenerator
 import DotNetMetadata
 import DotNetMetadataFormat
+import DotNetXMLDocs
 import Foundation
 import WindowsMetadata
 
@@ -38,20 +39,21 @@ struct EntryPoint: ParsableCommand {
 
         // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
         struct AssemblyLoadError: Error {}
-        let context = AssemblyLoadContext(resolver: {
-            guard $0.name == "mscorlib", let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
-            return try ModuleFile(path: mscorlibPath)
-        })
+        let context = AssemblyLoadContext()
+
+        guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else {
+            throw AssemblyLoadError()
+        }
+        _ = try context.load(path: mscorlibPath)
 
         let swiftProjection = SwiftProjection(abiModuleName: abiModuleName)
 
         // Create modules and gather types
         for reference in allReferences {
-            let assembly = try context.load(path: reference)
-
+            let (assembly, assemblyDocumentation) = try Self.loadAssemblyAndDocumentation(path: reference, into: context)
             let (moduleName, moduleMapping) = Self.getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
             let module = swiftProjection.modulesByShortName[moduleName] ?? swiftProjection.addModule(shortName: moduleName)
-            module.addAssembly(assembly)
+            module.addAssembly(assembly, documentation: assemblyDocumentation)
 
             print("Gathering types from \(assembly.name)...")
             var typeDiscoverer = ModuleTypeDiscoverer(assemblyFilter: { $0 === assembly }, publicMembersOnly: true)
@@ -137,6 +139,31 @@ struct EntryPoint: ParsableCommand {
                 }
             }
         }
+    }
+
+    private static func loadAssemblyAndDocumentation(
+            path: String, languageCode: String? = "en",
+            into context: AssemblyLoadContext) throws -> (assembly: Assembly, docs: AssemblyDocumentation?) {
+        let assembly = try context.load(path: path)
+        var docs: AssemblyDocumentation? = nil
+        if let lastPathSeparator = path.lastIndex(where: { $0 == "\\" || $0 == "/" }) {
+            let assemblyDirectoryPath = String(path[..<lastPathSeparator])
+            let assemblyFileName = String(path[path.index(after: lastPathSeparator)...])
+            if let extensionDot = assemblyFileName.lastIndex(of: ".") {
+                let assemblyFileNameWithoutExtension = String(assemblyFileName[..<extensionDot])
+                let sideBySideDocsPath = "\(assemblyDirectoryPath)\\\(assemblyFileNameWithoutExtension).xml"
+                if FileManager.default.fileExists(atPath: sideBySideDocsPath) {
+                    docs = try AssemblyDocumentation(readingFileAtPath: sideBySideDocsPath)
+                }
+                else if let languageCode {
+                    let languageNestedDocsPath = "\(assemblyDirectoryPath)\\\(languageCode)\\\(assemblyFileNameWithoutExtension).xml"
+                    if FileManager.default.fileExists(atPath: sideBySideDocsPath) {
+                        docs = try AssemblyDocumentation(readingFileAtPath: languageNestedDocsPath)
+                    }
+                }
+            }
+        }
+        return (assembly, docs)
     }
 
     static func getModule(assemblyName: String, moduleMapFile: ModuleMapFile?) -> (name: String, mapping: ModuleMapFile.Module?) {

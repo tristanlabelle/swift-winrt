@@ -16,7 +16,7 @@ extension SwiftProjection {
 
         public var assemblyModuleName: String { shortName + "Assembly" }
 
-        public func addAssembly(_ assembly: Assembly, documentation: DocumentationFile? = nil) {
+        public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
             projection.assembliesToModules[assembly] = AssemblyEntry(module: self, documentation: documentation)
         }
 

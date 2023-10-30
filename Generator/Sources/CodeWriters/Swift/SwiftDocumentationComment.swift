@@ -1,4 +1,4 @@
-public struct SwiftDocComment {
+public struct SwiftDocumentationComment {
     public var summary: [Block]?
     public var parameters = [Param]()
     public var returns: [Span]?

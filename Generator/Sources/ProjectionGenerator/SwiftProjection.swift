@@ -4,7 +4,7 @@ import DotNetXMLDocs
 public class SwiftProjection {
     internal struct AssemblyEntry {
         var module: Module
-        var documentation: DocumentationFile?
+        var documentation: AssemblyDocumentation?
     }
 
     public private(set) var modulesByShortName = [String: Module]()
@@ -26,27 +26,27 @@ public class SwiftProjection {
         assembliesToModules[assembly]?.module
     }
 
-    internal func getDocumentation(_ assembly: Assembly) -> DocumentationFile? {
+    internal func getDocumentation(_ assembly: Assembly) -> AssemblyDocumentation? {
         assembliesToModules[assembly]?.documentation
     }
 
-    internal func getDocumentation(_ typeDefinition: TypeDefinition) -> DotNetXMLDocs.MemberEntry? {
+    internal func getDocumentation(_ typeDefinition: TypeDefinition) -> MemberDocumentation? {
         guard let documentationFile = getDocumentation(typeDefinition.assembly) else { return nil }
         return documentationFile.members[.type(fullName: typeDefinition.fullName)]
     }
 
-    internal func getDocumentation(_ member: Member) throws -> DotNetXMLDocs.MemberEntry? {
+    internal func getDocumentation(_ member: Member) throws -> MemberDocumentation? {
         guard let documentationFile = getDocumentation(member.definingType.assembly) else { return nil }
 
-        let memberKey: DotNetXMLDocs.MemberKey
+        let memberKey: MemberDocumentationKey
         switch member {
             case let field as Field:
-                memberKey = .field(typeFullName: field.definingType.fullName, name: field.name)
+                memberKey = .field(declaringType: field.definingType.fullName, name: field.name)
             case let event as Event:
-                memberKey = .event(typeFullName: event.definingType.fullName, name: event.name)
+                memberKey = .event(declaringType: event.definingType.fullName, name: event.name)
             case let property as Property:
                 guard try (property.getter?.arity ?? 0) == 0 else { return nil }
-                memberKey = .event(typeFullName: property.definingType.fullName, name: property.name)
+                memberKey = .event(declaringType: property.definingType.fullName, name: property.name)
             default:
                 return nil
         }

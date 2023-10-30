@@ -1,6 +1,6 @@
 extension SwiftDeclarationWriter {
     public func writeStoredProperty(
-        docComments: SwiftDocComment? = nil,
+        documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         setVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
@@ -14,7 +14,7 @@ extension SwiftDeclarationWriter {
         precondition(initialValue == nil || initializer == nil)
 
         var output = output
-        if let docComments { writeDocComment(docComments) }
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .withName("storedProperty"))
         visibility.write(to: &output, trailingSpace: true)
         if setVisibility != .implicit {
@@ -41,7 +41,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeComputedProperty(
-        docComments: SwiftDocComment? = nil,
+        documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
@@ -54,7 +54,7 @@ extension SwiftDeclarationWriter {
         precondition(set == nil || !`throws`)
 
         var output = output
-        if let docComments { writeDocComment(docComments) }
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
@@ -88,7 +88,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeFunc(
-        docComments: SwiftDocComment? = nil,
+        documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
@@ -99,7 +99,7 @@ extension SwiftDeclarationWriter {
         returnType: SwiftType? = nil,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
-        if let docComments { writeDocComment(docComments) }
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
         writeFuncHeader(
             visibility: visibility,
@@ -117,12 +117,12 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeEnumCase(
-        docComments: SwiftDocComment? = nil,
+        documentation: SwiftDocumentationComment? = nil,
         name: String,
         rawValue: String? = nil) {
 
         var output = output
-        if let docComments { writeDocComment(docComments) }
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .withName("case"))
         output.write("case ")
         SwiftIdentifier.write(name, to: &output)
@@ -136,7 +136,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeInit(
-        docComments: SwiftDocComment? = nil,
+        documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         required: Bool = false,
         convenience: Bool = false,
@@ -147,7 +147,7 @@ extension SwiftDeclarationWriter {
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
         var output = output
-        if let docComments { writeDocComment(docComments) }
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
         visibility.write(to: &output, trailingSpace: true)
         if `required` { output.write("required ") }

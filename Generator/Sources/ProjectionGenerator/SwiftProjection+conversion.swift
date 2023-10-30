@@ -13,9 +13,9 @@ extension SwiftProjection {
         }
     }
 
-    static func toDocComments(_ entry: MemberEntry) -> SwiftDocComment {
+    static func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
         // TODO: Convert doc comments
-        return SwiftDocComment()
+        return SwiftDocumentationComment()
     }
 
     // Windows.Foundation.Collections to WindowsFoundationCollections
