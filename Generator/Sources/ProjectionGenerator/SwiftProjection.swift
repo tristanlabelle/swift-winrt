@@ -1,29 +1,29 @@
 import DotNetMetadata
 
-class SwiftProjection {
-    private(set) var modulesByShortName: [String: Module] = .init()
-    private(set) var assembliesToModules: [Assembly: Module] = .init()
-    let abiModuleName: String
-    var referenceReturnNullability: ReferenceNullability { .explicit } 
+public class SwiftProjection {
+    public private(set) var modulesByShortName: [String: Module] = .init()
+    public private(set) var assembliesToModules: [Assembly: Module] = .init()
+    public let abiModuleName: String
+    public var referenceReturnNullability: ReferenceNullability { .explicit } 
 
-    init(abiModuleName: String) {
+    public init(abiModuleName: String) {
         self.abiModuleName = abiModuleName
     }
 
-    func addModule(shortName: String) -> Module {
+    public func addModule(shortName: String) -> Module {
         let module = Module(projection: self, shortName: shortName)
         modulesByShortName[shortName] = module
         return module
     }
 
-    class Module {
+    public class Module {
         public unowned let projection: SwiftProjection
         public let shortName: String
         public private(set) var typeDefinitionsByNamespace: [String: Set<TypeDefinition>] = .init()
         public private(set) var closedGenericTypesByDefinition: [TypeDefinition: [[TypeNode]]] = .init()
         private(set) var references: Set<Reference> = []
 
-        init(projection: SwiftProjection, shortName: String) {
+        internal init(projection: SwiftProjection, shortName: String) {
             self.projection = projection
             self.shortName = shortName
         }
@@ -48,25 +48,25 @@ class SwiftProjection {
             return result
         }
 
-        func addAssembly(_ assembly: Assembly) {
+        public func addAssembly(_ assembly: Assembly) {
             projection.assembliesToModules[assembly] = self
         }
 
-        func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
+        public func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
             typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type)]?.contains(type) ?? false
         }
 
-        func addTypeDefinition(_ type: TypeDefinition) {
+        public func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.assembliesToModules[type.assembly] === self)
             typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
         }
 
-        func addClosedGenericType(_ type: BoundType) {
+        public func addClosedGenericType(_ type: BoundType) {
             precondition(!type.genericArgs.isEmpty && !type.isParameterized)
             closedGenericTypesByDefinition[type.definition, default: []].append(type.genericArgs)
         }
 
-        func addReference(_ other: Module) {
+        public func addReference(_ other: Module) {
             references.insert(Reference(target: other))
         }
 

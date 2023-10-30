@@ -13,7 +13,7 @@ extension SwiftProjection {
     }
 
     // Windows.Foundation.Collections to WindowsFoundationCollections
-    static func toCompactNamespace(_ namespace: String) -> String {
+    public static func toCompactNamespace(_ namespace: String) -> String {
         namespace.replacing(".", with: "")
     }
 
@@ -47,7 +47,7 @@ extension SwiftProjection {
         try toTypeName(type, namespaced: namespaced) + "Protocol"
     }
 
-    func toProjectionTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
+    public func toProjectionTypeName(_ type: TypeDefinition, namespaced: Bool = true) throws -> String {
         var typeName = try toTypeName(type, namespaced: namespaced)
         if type is InterfaceDefinition || type is DelegateDefinition {
             // protocols and function pointers cannot serve as the projection class,
@@ -57,7 +57,7 @@ extension SwiftProjection {
         return typeName
     }
 
-    func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
+    public func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
         var result = ""
         func visit(_ type: TypeNode) throws {
             guard case .bound(let type) = type else { fatalError() }

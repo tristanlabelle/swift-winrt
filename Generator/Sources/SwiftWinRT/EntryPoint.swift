@@ -1,5 +1,5 @@
 import ArgumentParser
-import CodeWriters
+import ProjectionGenerator
 import DotNetMetadata
 import DotNetMetadataFormat
 import Foundation

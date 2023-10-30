@@ -1,12 +1,12 @@
 import CodeWriters
 import DotNetMetadata
 
-struct SwiftNamespaceModuleFileWriter {
+public struct SwiftNamespaceModuleFileWriter {
     private let sourceFileWriter: SwiftSourceFileWriter
     private let module: SwiftProjection.Module
     private var projection: SwiftProjection { module.projection }
 
-    init(path: String, module: SwiftProjection.Module) {
+    public init(path: String, module: SwiftProjection.Module) {
         self.sourceFileWriter = SwiftSourceFileWriter(output: FileTextOutputStream(path: path))
         self.module = module
 
@@ -16,7 +16,7 @@ struct SwiftNamespaceModuleFileWriter {
         sourceFileWriter.writeImport(module: module.assemblyModuleName)
     }
 
-    func writeAliases(_ typeDefinition: TypeDefinition) throws {
+    public func writeAliases(_ typeDefinition: TypeDefinition) throws {
         if let interface = typeDefinition as? InterfaceDefinition {
             try sourceFileWriter.writeProtocol(
                 visibility: SwiftProjection.toVisibility(interface.visibility),

@@ -1,7 +1,7 @@
 import CodeWriters
 
 /// Specifies how to express the nullability of WinRT reference types in Swift
-enum ReferenceNullability: Hashable {
+public enum ReferenceNullability: Hashable {
     /// Specifies to use explicitly unwrapped optionals
     case explicit
     /// Specifies to use implicitly unwrapped optionals
@@ -12,14 +12,14 @@ enum ReferenceNullability: Hashable {
 }
 
 extension ReferenceNullability {
-    func disallowImplicit() -> ReferenceNullability {
+    public func disallowImplicit() -> ReferenceNullability {
         switch self {
             case .implicit:.explicit
             default: self
         }
     }
 
-    func applyTo(type: SwiftType) -> SwiftType {
+    public func applyTo(type: SwiftType) -> SwiftType {
         switch self {
             case .explicit: return .optional(wrapped: type, implicitUnwrap: false)
             case .implicit: return .optional(wrapped: type, implicitUnwrap: true)

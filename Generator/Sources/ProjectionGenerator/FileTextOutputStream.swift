@@ -1,4 +1,4 @@
-class FileTextOutputStream: TextOutputStream {
+internal class FileTextOutputStream: TextOutputStream {
     let path: String
     var text: String = String()
 

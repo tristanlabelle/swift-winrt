@@ -2,8 +2,8 @@ import Collections
 import DotNetMetadata
 
 /// Walks the type graph to discovers all type definitions and closed generic types needed by a module.
-struct ModuleTypeDiscoverer {
-    enum QueueEntry {
+public struct ModuleTypeDiscoverer {
+    private enum QueueEntry {
         case typeDefinition(TypeDefinition)
         case closedGenericType(BoundType)
     }
