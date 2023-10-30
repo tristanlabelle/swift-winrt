@@ -18,6 +18,13 @@ extension IndentedTextOutputStream {
 }
 
 extension SwiftSyntaxWriter {
+    public func writeCommentLine(_ comment: String, groupWithNext: Bool = true) {
+        output.beginLine(grouping: .never)
+        output.write("// ")
+        output.write(comment)
+        output.endLine(groupWithNext: groupWithNext)
+    }
+
     internal func writeTypeParameters(_ typeParameters: [String]) {
         guard !typeParameters.isEmpty else { return }
         var output = output

@@ -142,7 +142,7 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     fileprivate func writeDefaultInitializer(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
-        writer.output.writeLine("// IActivationFactory")
+        writer.writeCommentLine("IActivationFactory")
 
         // 00000035-0000-0000-C000-000000000046
         let iactivationFactoryID = UUID(uuid: (

@@ -103,7 +103,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         var nonDefaultInterfaceStoredProperties = [String]()
         for interface in recursiveInterfaces {
-            try writer.output.writeLine("// \(WinRTTypeName.from(type: interface.asBoundType).description)")
+            try writer.writeCommentLine(WinRTTypeName.from(type: interface.asBoundType).description)
             if interface == defaultInterface {
                 try writeMemberImplementations(
                     interfaceOrDelegate: interface.asBoundType,
