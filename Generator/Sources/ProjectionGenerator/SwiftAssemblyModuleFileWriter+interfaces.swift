@@ -3,16 +3,25 @@ import Collections
 import DotNetMetadata
 import WindowsMetadata
 
+// Interfaces are generated as two types: a protocol and an existential typealias.
+// Given an interface IFoo, we generate:
+//
+//     protocol IFooProtocol { ... }
+//     typealias IFoo = any IFooProtocol
+//
+// This provides a more natural (C#-like) syntax when using those types:
+//
+//     var foo: IFoo? = getFoo()
 extension SwiftAssemblyModuleFileWriter {
     internal func writeInterface(_ interface: InterfaceDefinition) throws {
         try writeProtocol(interface)
         try writeProtocolTypeAlias(interface)
     }
 
-    fileprivate func writeProtocol(_ interface: InterfaceDefinition) throws {
+    fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition) throws {
         var baseProtocols = [SwiftType]()
         var whereGenericConstraints = OrderedDictionary<String, SwiftType>()
-        for baseInterface in interface.baseInterfaces {
+        for baseInterface in interfaceDefinition.baseInterfaces {
             let baseInterface = try baseInterface.interface
             baseProtocols.append(SwiftType.identifier(
                 try projection.toProtocolName(baseInterface.definition)))
@@ -29,17 +38,18 @@ extension SwiftAssemblyModuleFileWriter {
         if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
 
         try sourceFileWriter.writeProtocol(
-            visibility: SwiftProjection.toVisibility(interface.visibility),
-            name: projection.toProtocolName(interface),
-            typeParameters: interface.genericParams.map { $0.name },
+            documentation: projection.getDocumentationComment(interfaceDefinition),
+            visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
+            name: projection.toProtocolName(interfaceDefinition),
+            typeParameters: interfaceDefinition.genericParams.map { $0.name },
             bases: baseProtocols,
             whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
 
-            for genericParam in interface.genericParams {
+            for genericParam in interfaceDefinition.genericParams {
                 writer.writeAssociatedType(name: genericParam.name)
             }
 
-            for property in interface.properties {
+            for property in interfaceDefinition.properties {
                 if let getter = try property.getter, getter.isPublic {
                     try writer.writeProperty(
                         documentation: projection.getDocumentationComment(property),
@@ -60,7 +70,7 @@ extension SwiftAssemblyModuleFileWriter {
                 }
             }
 
-            for method in interface.methods.filter({ $0.visibility == .public }) {
+            for method in interfaceDefinition.methods.filter({ $0.visibility == .public }) {
                 guard method.nameKind == .regular else { continue }
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(method),
@@ -75,8 +85,6 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition) throws {
-        // For every "protocol IFoo", we generate a "typealias AnyIFoo = any IFoo"
-        // This enables the shorter "AnyIFoo?" syntax instead of "(any IFoo)?" or "Optional<any IFoo>"
         sourceFileWriter.writeTypeAlias(
             documentation: projection.getDocumentationComment(interfaceDefinition),
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),

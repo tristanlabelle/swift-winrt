@@ -32,12 +32,12 @@ extension SwiftDeclarationWriter {
         if let initialValue {
             output.write(" = ")
             output.write(initialValue)
-            output.endLine()
         }
         else if initializer != nil {
             output.write(" = ")
             try initializer?(output)
         }
+        output.endLine()
     }
 
     public func writeComputedProperty(
