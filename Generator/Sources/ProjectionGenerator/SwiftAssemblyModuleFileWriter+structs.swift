@@ -75,28 +75,84 @@ extension SwiftAssemblyModuleFileWriter {
     internal func writeStructProjection(_ structDefinition: StructDefinition) throws {
         let abiType = SwiftType.chain(projection.abiModuleName, try CAbi.mangleName(type: structDefinition.bindType()))
 
-        sourceFileWriter.writeExtension(
+        // TODO: Support strings and IReference<T> field types (non-inert)
+        // extension <struct>: ABIInertProjection
+        try sourceFileWriter.writeExtension(
                 name: try projection.toTypeName(structDefinition),
                 protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
 
+            // public typealias SwiftValue = Self
             writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: .`self`)
+
+            // public typealias ABIValue = <abi-type>
             writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
 
+            // public static var abiDefaultValue: ABIValue { .init() }
             writer.writeComputedProperty(
                     visibility: .public, static: true, name: "abiDefaultValue", type: abiType) { writer in
                 writer.writeStatement(".init()")
             }
-            writer.writeFunc(
+
+            // public static func toSwift(_ value: ABIValue) -> SwiftValue { .init(field: value.Field, ...) }
+            try writer.writeFunc(
                     visibility: .public, static: true, name: "toSwift",
                     parameters: [.init(label: "_", name: "value", type: abiType)], 
                     returnType: .`self`) { writer in
-                writer.writeNotImplemented()
+                var expression = ".init("
+                for (index, field) in structDefinition.fields.enumerated() {
+                    guard field.isInstance else { continue }
+                    if index > 0 { expression += ", " }
+
+                    SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                    expression += ": "
+
+                    let abiProjection = try projection.getTypeProjection(field.type).abi!
+                    if abiProjection.kind == .identity {
+                        expression += "value."
+                        SwiftIdentifier.write(field.name, to: &expression)
+                    }
+                    else {
+                        assert(abiProjection.kind == .inert)
+                        abiProjection.projectionType.write(to: &expression)
+                        expression += ".toSwift("
+                        expression += "value."
+                        SwiftIdentifier.write(field.name, to: &expression)
+                        expression += ")"
+                    }
+                }
+                expression += ")"
+                writer.writeStatement(expression)
             }
-            writer.writeFunc(
+
+            // public static func toABI(_ value: SwiftValue) -> ABIValue { .init(Field: value.field, ...) }
+            try writer.writeFunc(
                     visibility: .public, static: true, name: "toABI",
                     parameters: [.init(label: "_", name: "value", type: .`self`)],
                     returnType: abiType) { writer in
-                writer.writeNotImplemented()
+                var expression = ".init("
+                for (index, field) in structDefinition.fields.enumerated() {
+                    guard field.isInstance else { continue }
+                    if index > 0 { expression += ", " }
+
+                    SwiftIdentifier.write(field.name, to: &expression)
+                    expression += ": "
+
+                    let abiProjection = try projection.getTypeProjection(field.type).abi!
+                    if abiProjection.kind == .identity {
+                        expression += "value."
+                        SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                    }
+                    else {
+                        assert(abiProjection.kind == .inert)
+                        abiProjection.projectionType.write(to: &expression)
+                        expression += ".toSwift("
+                        expression += "value."
+                        SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                        expression += ")"
+                    }
+                }
+                expression += ")"
+                writer.writeStatement(expression)
             }
         }
     }
