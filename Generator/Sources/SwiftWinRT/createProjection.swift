@@ -18,13 +18,13 @@ internal func createProjection(generateCommand: GenerateCommand, assemblyLoadCon
         moduleMap = nil
     }
 
-    let swiftProjection = SwiftProjection(abiModuleName: generateCommand.abiModuleName)
+    let projection = SwiftProjection(abiModuleName: generateCommand.abiModuleName)
 
     // Create modules and gather types
     for reference in allReferences {
-        let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: reference, into: context)
+        let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: reference, into: assemblyLoadContext)
         let (moduleName, moduleMapping) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
-        let module = swiftProjection.modulesByShortName[moduleName] ?? swiftProjection.addModule(shortName: moduleName)
+        let module = projection.modulesByShortName[moduleName] ?? projection.addModule(shortName: moduleName)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
 
         print("Gathering types from \(assembly.name)...")
@@ -46,12 +46,12 @@ internal func createProjection(generateCommand: GenerateCommand, assemblyLoadCon
     }
 
     // Establish references between modules
-    for assembly in context.loadedAssembliesByName.values {
+    for assembly in assemblyLoadContext.loadedAssembliesByName.values {
         guard !(assembly is Mscorlib) else { continue }
 
-        if let sourceModule = swiftProjection.getModule(assembly) {
+        if let sourceModule = projection.getModule(assembly) {
             for reference in assembly.references {
-                if let targetModule = swiftProjection.getModule(try reference.resolve()) {
+                if let targetModule = projection.getModule(try reference.resolve()) {
                     sourceModule.addReference(targetModule)
                 }
             }

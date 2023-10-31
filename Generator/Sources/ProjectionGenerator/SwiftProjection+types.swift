@@ -63,7 +63,7 @@ extension SwiftProjection {
                     else {
                         projectionType = .chain([
                             .init(swiftTypeName + "Projection"),
-                            .init(try toProjectionInstanciationTypeName(genericArgs: type.genericArgs))
+                            .init(try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: type.genericArgs))
                         ])
                     }
                 }

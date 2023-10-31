@@ -103,7 +103,7 @@ extension SwiftAssemblyModuleFileWriter {
                     name: projection.toProjectionTypeName(interfaceDefinition)) { writer in
                 try writeInterfaceProjection(
                     interfaceDefinition.bind(genericArgs: genericArgs),
-                    projectionName: try projection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
+                    projectionName: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
                     to: writer)
             }
         }

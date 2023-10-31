@@ -30,7 +30,7 @@ extension SwiftAssemblyModuleFileWriter {
             try sourceFileWriter.writeExtension(
                     name: projection.toProjectionTypeName(delegateDefinition)) { writer in
                 try writeDelegateProjection(delegateDefinition.bind(genericArgs: genericArgs),
-                    projectionName: try projection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
+                    projectionName: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
                     to: sourceFileWriter)
             }
         }

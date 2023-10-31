@@ -58,7 +58,7 @@ extension SwiftProjection {
         return typeName
     }
 
-    public func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
+    public static func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
         var result = ""
         func visit(_ type: TypeNode) throws {
             guard case .bound(let type) = type else { fatalError() }

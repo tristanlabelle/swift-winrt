@@ -1,14 +1,18 @@
 import DotNetMetadata
 import ProjectionGenerator
 
-// Parse command line arguments
-let generateCommand = GenerateCommand.parseOrExit()
+// Introduce a scope to workaround a compiler bug which allows
+// global main.swift variables to be referred to before their initialization.
+do {
+    // Parse command line arguments
+    let generateCommand = GenerateCommand.parseOrExit()
 
-// Resolve the mscorlib dependency from the .NET Framework 4 machine installation
-let context = AssemblyLoadContext()
-struct AssemblyLoadError: Error {}
-guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
-_ = try context.load(path: mscorlibPath)
+    // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
+    let context = AssemblyLoadContext()
+    struct AssemblyLoadError: Error {}
+    guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
+    _ = try context.load(path: mscorlibPath)
 
-let projection = try createProjection(generateCommand: generateCommand, assemblyLoadContext: context)
-try writeProjection(projection, generateCommand: generateCommand)
+    let projection = try createProjection(generateCommand: generateCommand, assemblyLoadContext: context)
+    try writeProjection(projection, generateCommand: generateCommand)
+}

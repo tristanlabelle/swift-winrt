@@ -8,54 +8,69 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
     for module in projection.modulesByShortName.values {
         let moduleRootPath = "\(generateCommand.out)\\\(module.shortName)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
-        try FileManager.default.createDirectory(atPath: assemblyModuleDirectoryPath, withIntermediateDirectories: true)
 
         for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
-            let compactNamespace = namespace == "" ? "global" : SwiftProjection.toCompactNamespace(namespace)
-            print("Writing \(module.shortName)/\(compactNamespace).swift...")
+            let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+            print("Generating types for namespace \(namespace)...")
 
-            let definitionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace).swift"
-            let projectionsPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)+Projections.swift"
             let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
             let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
             try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
-
-            let definitionsWriter = SwiftAssemblyModuleFileWriter(path: definitionsPath, module: module, importAbiModule: false)
-            let projectionsWriter = SwiftAssemblyModuleFileWriter(path: projectionsPath, module: module, importAbiModule: true)
             let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
+
             for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
                 // Some types have special handling and should not have their projection code generated
                 guard typeDefinition.fullName != "Windows.Foundation.HResult" else { continue }
                 guard typeDefinition.fullName != "Windows.Foundation.EventRegistrationToken" else { continue }
-                if let structDefinition = typeDefinition as? StructDefinition {
-                    guard try !structDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
-                }
+                guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
-                try definitionsWriter.writeTypeDefinition(typeDefinition)
-                try projectionsWriter.writeProjection(typeDefinition)
-                if typeDefinition.isPublic {
-                    try aliasesWriter.writeAliases(typeDefinition)
-                }
+                try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
+                    writeDefinition: true, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
+
+                if typeDefinition.isPublic { try aliasesWriter.writeAliases(typeDefinition) }
             }
         }
 
-        if !module.closedGenericTypesByDefinition.isEmpty {
-            let genericsPath = "\(assemblyModuleDirectoryPath)\\_Generics.swift"
-            let fileWriter = SwiftAssemblyModuleFileWriter(path: genericsPath, module: module, importAbiModule: true)
-            let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
-                .sorted { $0.key.fullName < $1.key.fullName }
-            for (typeDefinition, instanciations) in closedGenericTypesByDefinition {
-                if !module.hasTypeDefinition(typeDefinition) {
-                    try fileWriter.writeProjection(typeDefinition)
-                }
+        let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
+            .sorted { $0.key.fullName < $1.key.fullName }
+        for (typeDefinition, instanciations) in closedGenericTypesByDefinition {
+            if !module.hasTypeDefinition(typeDefinition) {
+                try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
+                    writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
+            }
 
-                let instanciationsByName = try instanciations
-                    .map { (key: try projection.toProjectionInstanciationTypeName(genericArgs: $0), value: $0) }
-                    .sorted { $0.key < $1.key }
-                for (_, genericArgs) in instanciationsByName {
-                    try fileWriter.writeProjection(typeDefinition, genericArgs: genericArgs)
-                }
+            let instanciationsByName = try instanciations
+                .map { (key: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: $0), value: $0) }
+                .sorted { $0.key < $1.key }
+            for (_, genericArgs) in instanciationsByName {
+                try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: genericArgs,
+                    writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
             }
         }
     }
+}
+
+fileprivate func writeProjectionSwiftFile(
+        module: SwiftProjection.Module,
+        typeDefinition: TypeDefinition,
+        closedGenericArgs: [TypeNode]? = nil,
+        writeDefinition: Bool,
+        assemblyModuleDirectoryPath: String) throws {
+
+    let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
+    let namespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
+
+    var fileName = typeDefinition.nameWithoutGenericSuffix
+    if let closedGenericArgs = closedGenericArgs {
+        fileName += "-"
+        fileName += try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: closedGenericArgs)
+    }
+    fileName += ".swift"
+
+    let filePath = "\(namespaceDirectoryPath)\\\(fileName)"
+    try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
+    let projectionWriter = SwiftAssemblyModuleFileWriter(path: filePath, module: module, importAbiModule: true)
+
+    if writeDefinition { try projectionWriter.writeTypeDefinition(typeDefinition) }
+    try projectionWriter.writeProjection(typeDefinition, genericArgs: closedGenericArgs)
 }
