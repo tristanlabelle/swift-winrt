@@ -42,6 +42,7 @@ extension SwiftAssemblyModuleFileWriter {
             for property in interface.properties {
                 if let getter = try property.getter, getter.isPublic {
                     try writer.writeProperty(
+                        documentation: projection.getDocumentationComment(property),
                         static: property.isStatic,
                         name: projection.toMemberName(property),
                         type: projection.toReturnType(property.type),
@@ -62,6 +63,7 @@ extension SwiftAssemblyModuleFileWriter {
             for method in interface.methods.filter({ $0.visibility == .public }) {
                 guard method.nameKind == .regular else { continue }
                 try writer.writeFunc(
+                    documentation: projection.getDocumentationComment(method),
                     static: method.isStatic,
                     name: projection.toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },
@@ -72,17 +74,18 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
-    fileprivate func writeProtocolTypeAlias(_ interface: InterfaceDefinition) throws {
+    fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition) throws {
         // For every "protocol IFoo", we generate a "typealias AnyIFoo = any IFoo"
         // This enables the shorter "AnyIFoo?" syntax instead of "(any IFoo)?" or "Optional<any IFoo>"
         sourceFileWriter.writeTypeAlias(
-            visibility: SwiftProjection.toVisibility(interface.visibility),
-            name: try projection.toTypeName(interface),
-            typeParameters: interface.genericParams.map { $0.name },
+            documentation: projection.getDocumentationComment(interfaceDefinition),
+            visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
+            name: try projection.toTypeName(interfaceDefinition),
+            typeParameters: interfaceDefinition.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
-                name: try projection.toProtocolName(interface),
-                genericArgs: interface.genericParams.map { .identifier(name: $0.name) }))
+                name: try projection.toProtocolName(interfaceDefinition),
+                genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
     }
 
     internal func writeInterfaceProjection(_ interfaceDefinition: InterfaceDefinition, genericArgs: [TypeNode]?) throws {

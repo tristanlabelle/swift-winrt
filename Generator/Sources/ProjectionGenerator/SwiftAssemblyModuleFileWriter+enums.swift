@@ -8,6 +8,7 @@ extension SwiftAssemblyModuleFileWriter {
         // therefore we cannot project them to Swift enums
         // since they would be unable to represent unknown values.
         try sourceFileWriter.writeStruct(
+            documentation: projection.getDocumentationComment(enumDefinition),
             visibility: SwiftProjection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
             protocolConformances: [
@@ -24,7 +25,8 @@ extension SwiftAssemblyModuleFileWriter {
 
             for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
                 let value = SwiftProjection.toConstant(try field.literalValue!)
-                writer.writeStoredProperty(
+                try writer.writeStoredProperty(
+                    documentation: projection.getDocumentationComment(field),
                     visibility: .public, static: true, declarator: .let,
                     name: projection.toMemberName(field),
                     initialValue: "Self(rawValue: \(value))")

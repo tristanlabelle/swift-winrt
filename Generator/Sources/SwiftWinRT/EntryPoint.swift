@@ -157,7 +157,7 @@ struct EntryPoint: ParsableCommand {
                 }
                 else if let languageCode {
                     let languageNestedDocsPath = "\(assemblyDirectoryPath)\\\(languageCode)\\\(assemblyFileNameWithoutExtension).xml"
-                    if FileManager.default.fileExists(atPath: sideBySideDocsPath) {
+                    if FileManager.default.fileExists(atPath: languageNestedDocsPath) {
                         docs = try AssemblyDocumentation(readingFileAtPath: languageNestedDocsPath)
                     }
                 }

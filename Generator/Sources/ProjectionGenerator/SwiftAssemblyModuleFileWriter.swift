@@ -31,9 +31,7 @@ public struct SwiftAssemblyModuleFileWriter {
             case let interfaceDefinition as InterfaceDefinition:
                 try writeInterface(interfaceDefinition)
             case _ as ClassDefinition:
-                // Skip until we can generate interface members correctly
-                // try writeClass(classDefinition)
-                break
+                break // Unified with the projection for now
             case let structDefinition as StructDefinition:
                 try writeStruct(structDefinition)
             case let enumDefinition as EnumDefinition:

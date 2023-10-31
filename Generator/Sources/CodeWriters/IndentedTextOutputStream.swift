@@ -75,8 +75,8 @@ public class IndentedTextOutputStream: TextOutputStream {
             lineEnd == str.startIndex ? "" : String(str[str.startIndex..<lineEnd]))
         endLine()
 
-        let nextLineStart = str.index(after: lineEnd)
-        if nextLineStart != str.endIndex {
+        if lineEnd != str.endIndex {
+            let nextLineStart = str.index(after: lineEnd)
             beginLine(grouping: self.lineGrouping ?? .withDefault)
             write(str[nextLineStart...])
         }

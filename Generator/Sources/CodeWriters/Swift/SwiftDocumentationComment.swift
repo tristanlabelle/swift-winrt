@@ -21,9 +21,9 @@ public struct SwiftDocumentationComment {
 
     public struct Param {
         public var name: String
-        public var description: String
+        public var description: [Span]
 
-        public init(name: String, description: String) {
+        public init(name: String, description: [Span]) {
             self.name = name
             self.description = description
         }

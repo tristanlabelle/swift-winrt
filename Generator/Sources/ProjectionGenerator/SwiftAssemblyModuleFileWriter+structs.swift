@@ -5,6 +5,7 @@ import WindowsMetadata
 extension SwiftAssemblyModuleFileWriter {
     internal func writeStruct(_ structDefinition: StructDefinition) throws {
         try sourceFileWriter.writeStruct(
+            documentation: projection.getDocumentationComment(structDefinition),
             visibility: SwiftProjection.toVisibility(structDefinition.visibility),
             name: try projection.toTypeName(structDefinition),
             typeParameters: structDefinition.genericParams.map { $0.name },
@@ -20,8 +21,10 @@ extension SwiftAssemblyModuleFileWriter {
         for field in structDefinition.fields {
             assert(field.isInstance && !field.isInitOnly && field.isPublic)
 
-            let type = try projection.toType(field.type)
-            writer.writeStoredProperty(visibility: .public, declarator: .var, name: projection.toMemberName(field), type: type)
+            try writer.writeStoredProperty(
+                documentation: projection.getDocumentationComment(field),
+                visibility: .public, declarator: .var, name: projection.toMemberName(field),
+                type: projection.toType(field.type))
         }
     }
 

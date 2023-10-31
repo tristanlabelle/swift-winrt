@@ -7,6 +7,7 @@ import struct Foundation.UUID
 extension SwiftAssemblyModuleFileWriter {
     internal func writeClass(_ classDefinition: ClassDefinition) throws {
         try sourceFileWriter.writeClass(
+                documentation: projection.getDocumentationComment(classDefinition),
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
                 final: classDefinition.isSealed,
                 name: projection.toTypeName(classDefinition),

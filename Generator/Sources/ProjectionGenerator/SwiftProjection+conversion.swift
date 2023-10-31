@@ -13,11 +13,6 @@ extension SwiftProjection {
         }
     }
 
-    static func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
-        // TODO: Convert doc comments
-        return SwiftDocumentationComment()
-    }
-
     // Windows.Foundation.Collections to WindowsFoundationCollections
     public static func toCompactNamespace(_ namespace: String) -> String {
         namespace.replacing(".", with: "")

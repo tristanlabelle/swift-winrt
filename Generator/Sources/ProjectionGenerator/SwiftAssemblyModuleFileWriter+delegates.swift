@@ -4,6 +4,7 @@ import DotNetMetadata
 extension SwiftAssemblyModuleFileWriter {
     internal func writeDelegate(_ delegateDefinition: DelegateDefinition) throws {
         try sourceFileWriter.writeTypeAlias(
+            documentation: projection.getDocumentationComment(delegateDefinition),
             visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
             name: try projection.toTypeName(delegateDefinition),
             typeParameters: delegateDefinition.genericParams.map { $0.name },
