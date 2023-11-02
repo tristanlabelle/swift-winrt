@@ -2,8 +2,7 @@ import CWinRTCore
 
 /// A type which projects a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.
-public protocol COMProjection: ABIProjection, IUnknownProtocol
-        where SwiftValue == SwiftObject?, ABIValue == COMPointer? {
+public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, ABIValue == COMPointer? {
     /// The Swift type to which the COM interface is projected.
     associatedtype SwiftObject
     /// The COM interface structure.
@@ -16,43 +15,55 @@ public protocol COMProjection: ABIProjection, IUnknownProtocol
     typealias COMVirtualTablePointer = UnsafePointer<COMVirtualTable>
 
     // Non-nullable overloads
-    static func toSwift(transferringRef value: COMPointer) -> SwiftObject
-    static func toABI(_ value: SwiftObject) throws -> COMPointer
+    static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject
+    static func toCOM(_ object: SwiftObject) throws -> COMPointer
 
     /// Gets the identifier of the COM interface.
     static var iid: IID { get }
 }
 
 extension COMProjection {
-    // Common implementations
+    // Default ABIProjection implementation
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func release(_ value: COMPointer) {
-        IUnknownPointer.release(value)
-    }
-
-    // Nullable to non-nullable overload forwarding
     public static func toSwift(copying value: ABIValue) -> SwiftValue {
-        guard let value else { return nil }
-        return toSwift(copying: value)
+        guard let comPointer = value else { return nil }
+        IUnknownPointer.addRef(comPointer)
+        return toSwift(transferringRef: comPointer)
     }
 
     public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
-        let result = toSwift(transferringRef: comPointer)
         value = nil
-        return result
+        return toSwift(transferringRef: comPointer)
     }
 
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
-        guard let value else { return nil }
-        return try toABI(value)
+        guard let object = value else { return nil }
+        return try toCOM(object)
     }
 
     public static func release(_ value: inout ABIValue) {
         guard let comPointer = value else { return }
         IUnknownPointer.release(comPointer)
         value = nil
+    }
+
+    // COMProjection implementation helpers
+    public static func toSwift<Implementation: COMImport<Self>>(
+            transferringRef comPointer: COMPointer,
+            implementation: Implementation.Type) -> SwiftObject {
+        Implementation(transferringRef: comPointer).swiftObject
+    }
+
+    public static func toCOM<Implementation: COMImport<Self>>(
+            _ object: SwiftObject,
+            implementation: Implementation.Type) throws -> COMPointer {
+        switch object {
+            case let comImport as Implementation: return IUnknownPointer.addingRef(comImport.comPointer)
+            case let unknown as COM.IUnknown: return try unknown._queryInterfacePointer(Self.self)
+            default: throw ABIProjectionError.unsupported(Self.SwiftObject.self)
+        }
     }
 }
 

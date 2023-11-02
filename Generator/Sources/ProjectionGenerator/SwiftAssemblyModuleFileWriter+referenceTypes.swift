@@ -33,14 +33,45 @@ extension SwiftAssemblyModuleFileWriter {
             target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: .chain(projection.abiModuleName, abiName + WinRTTypeName.midlVirtualTableSuffix))
+
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "iid",
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
-        if interfaceOrDelegate.definition is InterfaceDefinition {
-            // Only interfaces are IInspectable. Delegates are IUnknown.
+        if classDefinition == nil {
+            writer.writeComputedProperty(
+                visibility: .public, static: true, name: "virtualTablePointer",
+                type: .identifier("COMVirtualTablePointer"),
+                get: { writer in writer.writeNotImplemented() })
+        }
+
+        let isDelegate = interfaceOrDelegate.definition is DelegateDefinition
+        if !isDelegate {
+            // Delegates are IUnknown whereas interfaces are IInspectable
             let runtimeClassName = try WinRTTypeName.from(type: classDefinition?.bindType() ?? interfaceOrDelegate).description
             writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
                 initialValue: "\"\(runtimeClassName)\"")
+        }
+
+        // Classes derive from COMImport directly whereas interfaces and delegates are implemented using a nested class
+        let implementationTypeName = classDefinition == nil ? "Implementation" : "Self"
+        writer.writeFunc(
+                visibility: .public, static: true, name: "toSwift",
+                parameters: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
+                returnType: .identifier("SwiftObject")) { writer in
+            writer.writeStatement("toSwift(transferringRef: comPointer, implementation: \(implementationTypeName).self)")
+        }
+
+        writer.writeFunc(
+                visibility: .public, static: true, name: "toCOM",
+                parameters: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
+                throws: true, returnType: .identifier("COMPointer")) { writer in
+            if isDelegate {
+                writer.writeStatement("let comExport = COMExport<Self>(implementation: object, queriableInterfaces: [ .init(Self.self) ])")
+                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(comExport.pointer)")
+            }
+            else {
+                writer.writeStatement("try toCOM(object, implementation: \(implementationTypeName).self)")
+            }
         }
     }
 

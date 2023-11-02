@@ -1,7 +1,7 @@
 import CWinRTCore
 import COM
 
-extension WinRTProjectionBase where Projection: WinRTTwoWayProjection {
+extension WinRTImport where Projection: WinRTTwoWayProjection {
     public static func _getIids(
             _ this: Projection.COMPointer?,
             _ count: UnsafeMutablePointer<UInt32>?,

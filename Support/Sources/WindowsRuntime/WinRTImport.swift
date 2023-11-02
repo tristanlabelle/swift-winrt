@@ -1,7 +1,7 @@
 import CWinRTCore
 import COM
 
-open class WinRTProjectionBase<Projection: WinRTProjection>: COMProjectionBase<Projection>, IInspectableProtocol {
+open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IInspectableProtocol {
     private var _inspectable: UnsafeMutablePointer<CWinRTCore.IInspectable> {
         comPointer.withMemoryRebound(to: CWinRTCore.IInspectable.self, capacity: 1) { $0 }
     }

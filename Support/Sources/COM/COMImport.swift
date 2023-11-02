@@ -1,11 +1,7 @@
 import CWinRTCore
 
 // Base class for COM objects projected into Swift.
-open class COMProjectionBase<Projection: COMProjection>: IUnknownProtocol {
-    // Explicitly specify the typealias because our overloads make it ambiguous
-    // for the compiler to deduce between COMPointer? and COMPointer
-    public typealias ABIValue = Projection.COMPointer?
-
+open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     /// Gets the COM interface pointer.
     public let comPointer: Projection.COMPointer
 
@@ -28,7 +24,7 @@ open class COMProjectionBase<Projection: COMProjection>: IUnknownProtocol {
     public func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer {
         return try IUnknownPointer.cast(comPointer).queryInterface(iid)
     }
-    
+
     public var _unknown: IUnknownPointer {
         IUnknownPointer.cast(comPointer)
     }
@@ -42,16 +38,4 @@ open class COMProjectionBase<Projection: COMProjection>: IUnknownProtocol {
     }
 
     public var _unsafeRefCount: UInt32 { _unknown._unsafeRefCount }
-
-    public static func toSwift(transferringRef value: Projection.COMPointer) -> Projection.SwiftObject {
-        return Self(transferringRef: value).swiftObject
-    }
-
-    open class func toABI(_ value: Projection.SwiftObject) throws -> Projection.COMPointer {
-        switch value {
-            case let object as Self: return IUnknownPointer.addingRef(object.comPointer)
-            case let unknown as IUnknown: return try unknown._queryInterfacePointer(Projection.self)
-            default: throw ABIProjectionError.unsupported(Projection.SwiftValue.self)
-        }
-    }
 }

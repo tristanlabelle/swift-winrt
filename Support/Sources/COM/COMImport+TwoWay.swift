@@ -1,6 +1,6 @@
 import CWinRTCore
 
-extension COMProjectionBase where Projection: COMTwoWayProjection {
+extension COMImport where Projection: COMTwoWayProjection {
     public static func _getImplementation(_ pointer: Projection.COMPointer) -> Projection.SwiftObject {
         COMExport<Projection>.from(pointer).implementation
     }

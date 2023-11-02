@@ -1,6 +1,6 @@
 import CWinRTCore
 
-extension COMProjectionBase {
+extension COMImport {
     public func _withOutParam<ValueProjection: ABIProjection>(
             _: ValueProjection.Type,
             _ body: (UnsafeMutablePointer<ValueProjection.ABIValue>) -> HRESULT) throws -> ValueProjection.SwiftValue {

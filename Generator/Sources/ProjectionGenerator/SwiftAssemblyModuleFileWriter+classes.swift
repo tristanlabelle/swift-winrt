@@ -19,7 +19,7 @@ extension SwiftAssemblyModuleFileWriter {
                 + classDefinition.baseInterfaces.map { .identifier(try projection.toProtocolName($0.interface.definition)) }
             try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
-                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: typeName)]),
+                base: .identifier(name: "WinRTImport", genericArgs: [.identifier(name: typeName)]),
                 protocolConformances: protocolConformances) { try writeClassBody(classDefinition, to: $0) }
         }
     }

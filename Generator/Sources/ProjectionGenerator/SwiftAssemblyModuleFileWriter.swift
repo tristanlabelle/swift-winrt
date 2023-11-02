@@ -30,7 +30,7 @@ public struct SwiftAssemblyModuleFileWriter {
         switch typeDefinition {
             case let interfaceDefinition as InterfaceDefinition:
                 try writeInterface(interfaceDefinition)
-            case _ as ClassDefinition:
+            case is ClassDefinition:
                 break // Unified with the projection for now
             case let structDefinition as StructDefinition:
                 try writeStruct(structDefinition)
@@ -46,8 +46,8 @@ public struct SwiftAssemblyModuleFileWriter {
     public func writeProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]? = nil) throws {
         let hasGenericArgs = (genericArgs?.count ?? 0) > 0
         switch typeDefinition {
-            case let interfaceDefinition as InterfaceDefinition:
-                try writeInterfaceProjection(interfaceDefinition, genericArgs: genericArgs)
+            case is InterfaceDefinition:
+                try writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: genericArgs)
 
             case let classDefinition as ClassDefinition:
                 assert(!hasGenericArgs)
@@ -61,8 +61,8 @@ public struct SwiftAssemblyModuleFileWriter {
                 assert(!hasGenericArgs)
                 try writeStructProjection(structDefinition)
 
-            case let delegateDefinition as DelegateDefinition:
-                try writeDelegateProjection(delegateDefinition, genericArgs: genericArgs)
+            case is DelegateDefinition:
+                try writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: genericArgs)
 
             default: fatalError("Unexpected type definition kind")
         }

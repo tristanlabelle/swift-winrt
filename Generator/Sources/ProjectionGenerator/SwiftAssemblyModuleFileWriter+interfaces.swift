@@ -3,19 +3,33 @@ import Collections
 import DotNetMetadata
 import WindowsMetadata
 
-// Interfaces are generated as two types: a protocol and an existential typealias.
-// Given an interface IFoo, we generate:
-//
-//     protocol IFooProtocol { ... }
-//     typealias IFoo = any IFooProtocol
-//
-// This provides a more natural (C#-like) syntax when using those types:
-//
-//     var foo: IFoo? = getFoo()
 extension SwiftAssemblyModuleFileWriter {
+    // Interfaces are generated as two types: a protocol and an existential typealias.
+    // Given an interface IFoo, we generate:
+    //
+    //     protocol IFooProtocol { ... }
+    //     typealias IFoo = any IFooProtocol
+    //
+    // This provides a more natural (C#-like) syntax when using those types:
+    //
+    //     var foo: IFoo? = getFoo()
     internal func writeInterface(_ interface: InterfaceDefinition) throws {
         try writeProtocol(interface)
         try writeProtocolTypeAlias(interface)
+    }
+
+    internal func writeDelegate(_ delegateDefinition: DelegateDefinition) throws {
+        try sourceFileWriter.writeTypeAlias(
+            documentation: projection.getDocumentationComment(delegateDefinition),
+            visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
+            name: try projection.toTypeName(delegateDefinition),
+            typeParameters: delegateDefinition.genericParams.map { $0.name },
+            target: .function(
+                params: delegateDefinition.invokeMethod.params.map { try projection.toType($0.type) },
+                throws: true,
+                returnType: projection.toReturnType(delegateDefinition.invokeMethod.returnType)
+            )
+        )
     }
 
     fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition) throws {
@@ -96,11 +110,11 @@ extension SwiftAssemblyModuleFileWriter {
                 genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
     }
 
-    internal func writeInterfaceProjection(_ interfaceDefinition: InterfaceDefinition, genericArgs: [TypeNode]?) throws {
-        if interfaceDefinition.genericArity == 0 {
-            // class IVectorProjection: WinRTProjection... {}
-            try writeInterfaceProjection(interfaceDefinition.bind(),
-                projectionName: try projection.toProjectionTypeName(interfaceDefinition),
+    internal func writeInterfaceOrDelegateProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?) throws {
+        if typeDefinition.genericArity == 0 {
+            // enum IVectorProjection: WinRTProjection... {}
+            try writeInterfaceOrDelegateProjection(typeDefinition.bindType(),
+                projectionName: try projection.toProjectionTypeName(typeDefinition),
                 to: sourceFileWriter)
         }
         else if let genericArgs {
@@ -108,9 +122,9 @@ extension SwiftAssemblyModuleFileWriter {
             //     internal final class Boolean: WinRTProjection... {}
             // }
             try sourceFileWriter.writeExtension(
-                    name: projection.toProjectionTypeName(interfaceDefinition)) { writer in
-                try writeInterfaceProjection(
-                    interfaceDefinition.bind(genericArgs: genericArgs),
+                    name: projection.toProjectionTypeName(typeDefinition)) { writer in
+                try writeInterfaceOrDelegateProjection(
+                    typeDefinition.bindType(genericArgs: genericArgs),
                     projectionName: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: genericArgs),
                     to: writer)
             }
@@ -118,28 +132,50 @@ extension SwiftAssemblyModuleFileWriter {
         else {
             // public enum IVectorProjection {}
             try sourceFileWriter.writeEnum(
-                visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
-                name: projection.toProjectionTypeName(interfaceDefinition)) { _ in }
+                visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
+                name: projection.toProjectionTypeName(typeDefinition)) { _ in }
         }
     }
 
-    fileprivate func writeInterfaceProjection(_ interface: BoundInterface, projectionName: String, to writer: some SwiftDeclarationWriter) throws {
-        try writer.writeClass(
-                visibility: SwiftProjection.toVisibility(interface.definition.visibility),
-                final: true, name: projectionName,
-                base: .identifier(name: "WinRTProjectionBase", genericArgs: [.identifier(name: projectionName)]),
-                protocolConformances: [
-                    .identifier("WinRTProjection"), .identifier(name: try projection.toProtocolName(interface.definition))
-                ]) { writer throws in
+    fileprivate func writeInterfaceOrDelegateProjection(_ type: BoundType, projectionName: String, to writer: some SwiftDeclarationWriter) throws {
+        let projectionProtocolName: String
+        let importBaseTypeName: String
+        let protocolConformances: [SwiftType]
+        if let interfaceDefinition = type.definition as? InterfaceDefinition {
+            projectionProtocolName = "WinRTTwoWayProjection"
+            importBaseTypeName = "WinRTImport"
+            protocolConformances = [ .identifier(name: try projection.toProtocolName(interfaceDefinition)) ]
+        }
+        else {
+            projectionProtocolName = "COMTwoWayProjection"
+            importBaseTypeName = "COMImport"
+            protocolConformances = []
+        }
 
-            try writeWinRTProjectionConformance(interfaceOrDelegate: interface.asBoundType, to: writer)
+        try writer.writeEnum(
+                visibility: SwiftProjection.toVisibility(type.definition.visibility),
+                name: projectionName,
+                protocolConformances: [ .identifier(projectionProtocolName) ]) { writer throws in
 
-            let interfaces = try interface.definition.baseInterfaces.map {
-                try $0.interface.bindGenericParams(typeArgs: interface.genericArgs)
+            try writeWinRTProjectionConformance(interfaceOrDelegate: type, to: writer)
+
+            try writer.writeClass(
+                visibility: .private, final: true, name: "Implementation",
+                base: .identifier(name: importBaseTypeName, genericArgs: [.identifier(name: projectionName)]),
+                protocolConformances: protocolConformances) { writer throws in
+
+                let interfaces = try type.definition.baseInterfaces.map {
+                    try $0.interface.bindGenericParams(typeArgs: type.genericArgs)
+                }
+                try writeGenericTypeAliases(interfaces: interfaces, to: writer)
+
+                if type.definition is InterfaceDefinition {
+                    try writeInterfaceImplementations(type, to: writer)
+                }
+                else {
+                    try writeMemberImplementations(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
+                }
             }
-            try writeGenericTypeAliases(interfaces: interfaces, to: writer)
-
-            try writeInterfaceImplementations(interface.asBoundType, to: writer)
         }
     }
 }
