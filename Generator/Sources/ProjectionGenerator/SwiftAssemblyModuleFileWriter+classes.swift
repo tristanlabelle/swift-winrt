@@ -54,7 +54,7 @@ extension SwiftAssemblyModuleFileWriter {
         for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
             let interfaceProperty = try writeSecondaryInterfaceProperty(
                 staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
-            try writeMemberImplementations(
+            try writeProjectionMembers(
                 interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
                 thisPointer: .getter(interfaceProperty.getter), to: writer)
         }

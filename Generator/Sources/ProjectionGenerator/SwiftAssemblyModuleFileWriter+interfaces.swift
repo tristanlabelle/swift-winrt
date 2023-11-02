@@ -64,22 +64,38 @@ extension SwiftAssemblyModuleFileWriter {
             }
 
             for property in interfaceDefinition.properties {
-                if let getter = try property.getter, getter.isPublic {
+                if try property.getter != nil {
                     try writer.writeProperty(
                         documentation: projection.getDocumentationComment(property),
-                        static: property.isStatic,
                         name: projection.toMemberName(property),
                         type: projection.toReturnType(property.type),
                         throws: true,
                         set: false)
                 }
 
-                if let setter = try property.setter, setter.isPublic {
+                if let setter = try property.setter {
                     try writer.writeFunc(
                         isPropertySetter: true,
-                        static: property.isStatic,
                         name: projection.toMemberName(property),
-                        parameters: [.init(label: "_", name: "newValue", type: projection.toType(property.type))],
+                        parameters: setter.params.map { try projection.toParameter($0) },
+                        throws: true)
+                }
+            }
+
+            for event in interfaceDefinition.events {
+                if let addAccessor = try event.addAccessor {
+                    try writer.writeFunc(
+                        documentation: projection.getDocumentationComment(event),
+                        name: projection.toMemberName(event),
+                        parameters: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
+                        throws: true,
+                        returnType: .chain("WindowsRuntime", "EventRegistration"))
+                }
+
+                if let removeAccessor = try event.removeAccessor {
+                    try writer.writeFunc(
+                        name: projection.toMemberName(event),
+                        parameters: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
                         throws: true)
                 }
             }
@@ -88,7 +104,6 @@ extension SwiftAssemblyModuleFileWriter {
                 guard method.nameKind == .regular else { continue }
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(method),
-                    static: method.isStatic,
                     name: projection.toMemberName(method),
                     typeParameters: method.genericParams.map { $0.name },
                     parameters: method.params.map { try projection.toParameter($0) },
@@ -173,7 +188,7 @@ extension SwiftAssemblyModuleFileWriter {
                     try writeInterfaceImplementations(type, to: writer)
                 }
                 else {
-                    try writeMemberImplementations(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
+                    try writeProjectionMembers(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
                 }
             }
         }

@@ -8,65 +8,127 @@ extension SwiftAssemblyModuleFileWriter {
         case getter(String)
     }
 
-    internal func writeMemberImplementations(
+    internal func writeProjectionMembers(
             interfaceOrDelegate: BoundType, static: Bool = false, thisPointer: ThisPointer,
             to writer: SwiftTypeDefinitionWriter) throws {
         for property in interfaceOrDelegate.definition.properties {
-            let swiftPropertyType = try projection.toType(
-                property.type.bindGenericParams(typeArgs: interfaceOrDelegate.genericArgs))
+            try writeProjectionProperty(
+                property, typeGenericArgs: interfaceOrDelegate.genericArgs,
+                static: `static`, thisPointer: thisPointer, to: writer)
+        }
 
-            if let getter = try property.getter, getter.isPublic {
-                try writer.writeComputedProperty(
-                    visibility: .public,
-                    static: `static`,
-                    name: projection.toMemberName(property),
-                    type: swiftPropertyType,
-                    throws: true) { writer throws in
-
-                    try writeMethodImplementation(getter, genericTypeArgs: interfaceOrDelegate.genericArgs,
-                        thisPointer: thisPointer, to: &writer)
-                }
-            }
-
-            if let setter = try property.setter, setter.isPublic {
-                try writer.writeFunc(
-                    visibility: .public,
-                    static: `static`,
-                    name: projection.toMemberName(property),
-                    parameters: [SwiftParameter(label: "_", name: "newValue", type: swiftPropertyType)],
-                    throws: true) { writer throws in
-
-                    try writeMethodImplementation(setter , genericTypeArgs: interfaceOrDelegate.genericArgs,
-                        thisPointer: thisPointer, to: &writer)
-                }
-            }
+        for event in interfaceOrDelegate.definition.events {
+            try writeProjectionEvent(
+                event, typeGenericArgs: interfaceOrDelegate.genericArgs,
+                static: `static`, thisPointer: thisPointer, to: writer)
         }
 
         for method in interfaceOrDelegate.definition.methods {
             guard method.isPublic && !(method is Constructor) else { continue }
             // Generate Delegate.Invoke as a regular method
             guard method.nameKind == .regular || interfaceOrDelegate.definition is DelegateDefinition else { continue }
+            try writeProjectionMethod(
+                method, typeGenericArgs: interfaceOrDelegate.genericArgs,
+                static: `static`, thisPointer: thisPointer, to: writer)
+        }
+    }
 
-            let returnSwiftType: SwiftType? = try method.hasReturnValue
-                ? projection.toType(method.returnType.bindGenericParams(typeArgs: interfaceOrDelegate.genericArgs))
-                : nil
+    fileprivate func writeProjectionProperty(
+            _ property: Property, typeGenericArgs: [TypeNode],
+            static: Bool = false, thisPointer: ThisPointer,
+            to writer: SwiftTypeDefinitionWriter) throws {
+        let valueType = try projection.toType(
+            property.type.bindGenericParams(typeArgs: typeGenericArgs))
+
+        // public [static] var myProperty: MyPropertyType { get throws { .. } }
+        if let getter = try property.getter {
+            try writer.writeComputedProperty(
+                    visibility: .public,
+                    static: `static`,
+                    name: projection.toMemberName(property),
+                    type: valueType,
+                    throws: true) { writer throws in
+                try writeProjectionMethodBody(
+                    getter, genericTypeArgs: typeGenericArgs,
+                    thisPointer: thisPointer, to: writer)
+            }
+        }
+
+        // public [static] func myProperty(_ newValue: MyPropertyType) throws { ... }
+        if let setter = try property.setter {
             try writer.writeFunc(
-                visibility: .public,
-                static: `static`,
-                name: projection.toMemberName(method),
-                parameters: method.params.map { try projection.toParameter($0, genericTypeArgs: interfaceOrDelegate.genericArgs) },
-                throws: true,
-                returnType: returnSwiftType) { writer throws in
-
-                try writeMethodImplementation(method, genericTypeArgs: interfaceOrDelegate.genericArgs,
-                    thisPointer: thisPointer, to: &writer)
+                    visibility: .public,
+                    static: `static`,
+                    name: projection.toMemberName(property),
+                    parameters: setter.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+                    throws: true) { writer throws in
+                try writeProjectionMethodBody(
+                    setter , genericTypeArgs: typeGenericArgs,
+                    thisPointer: thisPointer, to: writer)
             }
         }
     }
 
-    internal func writeMethodImplementation(
+    fileprivate func writeProjectionEvent(
+            _ event: Event, typeGenericArgs: [TypeNode],
+            static: Bool = false, thisPointer: ThisPointer,
+            to writer: SwiftTypeDefinitionWriter) throws {
+        let name = projection.toMemberName(event)
+
+        // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
+        if let addAccessor = try event.addAccessor, let addParameter = try addAccessor.params.first {
+            try writer.writeFunc(
+                    visibility: .public,
+                    static: `static`,
+                    name: name,
+                    parameters: [ try projection.toParameter(label: "adding", addParameter, genericTypeArgs: typeGenericArgs) ],
+                    throws: true,
+                    returnType: .chain("WindowsRuntime", "EventRegistration")) { writer throws in
+                try writeProjectionMethodBody(
+                    addAccessor, genericTypeArgs: typeGenericArgs,
+                    thisPointer: thisPointer, eventRemoveMethodName: name, to: writer)
+            }
+        }
+
+        // public [static] func myEvent(removing handler: EventRegistrationToken) throws { ... }
+        if let removeAccessor = try event.removeAccessor, let removeParameter = try removeAccessor.params.first {
+            try writer.writeFunc(
+                    visibility: .public,
+                    static: `static`,
+                    name: name,
+                    parameters: [ try projection.toParameter(label: "removing", removeParameter, genericTypeArgs: typeGenericArgs) ],
+                    throws: true) { writer throws in
+                try writeProjectionMethodBody(
+                    removeAccessor, genericTypeArgs: typeGenericArgs,
+                    thisPointer: thisPointer, to: writer)
+            }
+        }
+    }
+
+    fileprivate func writeProjectionMethod(
+            _ method: Method, typeGenericArgs: [TypeNode],
+            static: Bool = false, thisPointer: ThisPointer,
+            to writer: SwiftTypeDefinitionWriter) throws {
+        let returnSwiftType: SwiftType? = try method.hasReturnValue
+            ? projection.toType(method.returnType.bindGenericParams(typeArgs: typeGenericArgs))
+            : nil
+        try writer.writeFunc(
+                visibility: .public,
+                static: `static`,
+                name: projection.toMemberName(method),
+                parameters: method.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+                throws: true,
+                returnType: returnSwiftType) { writer throws in
+            try writeProjectionMethodBody(
+                method, genericTypeArgs: typeGenericArgs,
+                thisPointer: thisPointer, to: writer)
+        }
+    }
+
+    internal func writeProjectionMethodBody(
             _ method: Method, genericTypeArgs: [TypeNode], thisPointer: ThisPointer,
-            to writer: inout SwiftStatementWriter) throws {
+            eventRemoveMethodName: String? = nil,
+            to writer: SwiftStatementWriter) throws {
 
         let thisName: String
         switch thisPointer {
@@ -182,10 +244,16 @@ extension SwiftAssemblyModuleFileWriter {
             try writeOutParamsEpilogue()
         }
 
+        if let eventRemoveMethodName {
+            // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
+            writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration(token: \(returnAbi.projectionType).toSwift(_result), remover: \(eventRemoveMethodName))")
+            return
+        }
+
         switch returnAbi.kind {
-            case .identity: writer.writeStatement("return _result")
-            case .inert: writer.writeStatement("return \(returnAbi.projectionType).toSwift(_result)")
-            default: writer.writeStatement("return \(returnAbi.projectionType).toSwift(consuming: &_result)")
+            case .identity: writer.writeReturnStatement(value: "_result")
+            case .inert: writer.writeReturnStatement(value: "\(returnAbi.projectionType).toSwift(_result)")
+            default: writer.writeReturnStatement(value: "\(returnAbi.projectionType).toSwift(consuming: &_result)")
         }
     }
 }

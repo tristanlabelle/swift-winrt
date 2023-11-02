@@ -46,9 +46,6 @@ extension SwiftProjection {
                 // Open generic types have no ABI representation
                 guard !type.isParameterized else { return .noAbi(swiftType: swiftValueType) }
 
-                // Only return ABI projections which we can currently produce
-                guard !(type.definition is DelegateDefinition) else { return .noAbi(swiftType: swiftValueType) }
-
                 var abiType = SwiftType.identifier(name: try CAbi.mangleName(type: type))
                 if type.definition.isReferenceType {
                     abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
@@ -175,10 +172,18 @@ extension SwiftProjection {
                 // TODO: Implement IReference<T> projection
                 return TypeProjection.noAbi(swiftType: .optional(wrapped: wrappedTypeProjection.swiftType))
 
+            case "EventRegistrationToken":
+                return TypeProjection(
+                    swiftType: .chain("WindowsRuntime", "EventRegistrationToken"),
+                    abiType: .chain(abiModuleName, "EventRegistrationToken"),
+                    projectionType: .chain("WindowsRuntime", "EventRegistrationToken"),
+                    abiDefaultValue: "\(abiModuleName).EventRegistrationToken()",
+                    abiKind: .inert)
+
             case "HResult":
                 return TypeProjection(
                     swiftType: .chain("COM", "HResult"),
-                    abiType: .identifier("HRESULT"),
+                    abiType: .chain(abiModuleName, "HRESULT"),
                     projectionType: .chain("COM", "HResultProjection"),
                     abiDefaultValue: "S_OK",
                     abiKind: .inert)
@@ -186,14 +191,5 @@ extension SwiftProjection {
             default:
                 return nil
         }
-    }
-
-    private static func tryGetIReferenceType(_ type: BoundType) -> TypeNode? {
-        guard type.definition.assembly.name == "Windows",
-            type.definition.assembly.version == .all255,
-            type.definition.namespace == "Windows.Foundation",
-            type.definition.name == "IReference`1",
-            type.genericArgs.count == 1 else { return nil }
-        return type.genericArgs[0]
     }
 }

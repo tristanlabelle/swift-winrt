@@ -136,13 +136,13 @@ extension SwiftAssemblyModuleFileWriter {
         for interface in recursiveInterfaces {
             try writer.writeCommentLine(WinRTTypeName.from(type: interface.asBoundType).description)
             if interface == defaultInterface {
-                try writeMemberImplementations(
+                try writeProjectionMembers(
                     interfaceOrDelegate: interface.asBoundType,
                     thisPointer: .name("comPointer"), to: writer)
             }
             else {
                 let interfaceProperty = try writeSecondaryInterfaceProperty(interface, to: writer)
-                try writeMemberImplementations(
+                try writeProjectionMembers(
                     interfaceOrDelegate: interface.asBoundType,
                     thisPointer: .getter(interfaceProperty.getter), to: writer)
                 nonDefaultInterfaceStoredProperties.append(interfaceProperty.name)
