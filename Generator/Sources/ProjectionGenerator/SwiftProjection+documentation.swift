@@ -52,7 +52,7 @@ fileprivate func toDocumentationComment(_ documentation: MemberDocumentation) ->
         swift.summary = toBlocks(summary)
     }
     for param in documentation.params {
-        swift.parameters.append(SwiftDocumentationComment.Param(name: param.key, description: toSpans(param.value)))
+        swift.parameters.append(SwiftDocumentationComment.Param(name: param.name, description: toSpans(param.description)))
     }
     if let returns = documentation.returns {
         swift.returns = toSpans(returns)
