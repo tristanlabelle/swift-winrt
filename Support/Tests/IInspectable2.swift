@@ -21,7 +21,7 @@ internal enum IInspectable2Projection: WinRTTwoWayProjection {
         return try toCOM(object, implementation: Implementation.self)
     }
 
-    private final class Implementation: WinRTImport<IInspectable2Projection> {
+    private final class Implementation: WinRTImport<IInspectable2Projection>, IInspectable2Protocol {
         public static var virtualTable: COMVirtualTable = .init(
             QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
             AddRef: { this in _addRef(this) },

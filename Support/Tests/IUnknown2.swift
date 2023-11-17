@@ -20,7 +20,7 @@ internal enum IUnknown2Projection: COMTwoWayProjection {
         return try toCOM(object, implementation: Implementation.self)
     }
 
-    private final class Implementation: COMImport<IUnknown2Projection> {
+    private final class Implementation: COMImport<IUnknown2Projection>, IUnknown2Protocol {
         public static var virtualTable: COMVirtualTable = .init(
             QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
             AddRef: { this in _addRef(this) },

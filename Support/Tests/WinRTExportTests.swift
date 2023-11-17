@@ -44,6 +44,6 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testRoundTripToOriginalSwiftObject() throws {
-        XCTFail("TODO: Test that sending a Swift object to WinRT and back returns the original Swift object")
+        throw XCTSkip("TODO: Test that sending a Swift object to WinRT and back returns the original Swift object")
     }
 }
