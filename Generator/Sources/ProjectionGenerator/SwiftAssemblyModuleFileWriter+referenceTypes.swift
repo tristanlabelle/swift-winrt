@@ -197,7 +197,8 @@ extension SwiftAssemblyModuleFileWriter {
             $0.writeStatement("let iid = \(try Self.toIIDExpression(iid))")
             if let staticOf {
                 let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
-                $0.writeStatement("let new: \(abiPointerType) = try WindowsRuntime.getActivationFactoryPointer(activatableId: \"\(activatableId)\", iid: iid)")
+                $0.writeStatement("let new: \(abiPointerType) = try WindowsRuntime.getActivationFactoryPointer(\n"
+                    + "activatableId: \"\(activatableId)\", iid: iid)")
             }
             else {
                 $0.writeStatement("let new = try _queryInterfacePointer(iid).cast(to: \(abiName).self)")

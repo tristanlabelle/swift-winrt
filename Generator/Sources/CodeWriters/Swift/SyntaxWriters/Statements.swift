@@ -46,6 +46,13 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
     }
 
     public func writeStatement(_ code: String) {
-        output.write(code, endLine: true)
+        let lines = code.split(separator: "\n")
+        output.write(String(lines[0]), endLine: true)
+        if lines.count == 1 { return }
+        output.writeIndentedBlock {
+            for line in lines.dropFirst() {
+                output.write(String(line), endLine: true)
+            }
+        }
     }
 }
