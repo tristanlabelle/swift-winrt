@@ -112,9 +112,9 @@ extension SwiftAssemblyModuleFileWriter {
                         SwiftIdentifier.write(field.name, to: &expression)
                     }
                     else {
-                        assert(abiProjection.kind == .inert)
                         abiProjection.projectionType.write(to: &expression)
                         expression += ".toSwift("
+                        if abiProjection.kind != .inert { expression += "copying: " }
                         expression += "value."
                         SwiftIdentifier.write(field.name, to: &expression)
                         expression += ")"
@@ -143,9 +143,9 @@ extension SwiftAssemblyModuleFileWriter {
                         SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
                     }
                     else {
-                        assert(abiProjection.kind == .inert)
+                        if abiProjection.kind != .inert { expression.append("try! ") }
                         abiProjection.projectionType.write(to: &expression)
-                        expression += ".toSwift("
+                        expression += ".toABI("
                         expression += "value."
                         SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
                         expression += ")"

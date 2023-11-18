@@ -1,0 +1,23 @@
+import "MinimalTypes.idl";
+
+namespace TestComponent
+{
+    interface IPassthrough
+    {
+        Int32 Int32(Int32 value);
+        String String(String value);
+        Object Object(Object value);
+        MinimalEnum Enum(MinimalEnum value);
+        MinimalStruct Struct(MinimalStruct value);
+        IMinimalInterface Interface(IMinimalInterface value);
+        MinimalClass Class(MinimalClass value);
+        MinimalDelegate Delegate(MinimalDelegate value);
+        Windows.Foundation.IReference<Int32> Reference(Windows.Foundation.IReference<Int32> value);
+    }
+
+    static runtimeclass Passthrough
+    {
+        static IPassthrough Create();
+        static IPassthrough CreateProxy(IPassthrough inner);
+    }
+}

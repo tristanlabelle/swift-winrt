@@ -1,0 +1,18 @@
+namespace TestComponent
+{
+	enum Enum
+	{
+		MinusOne = -1,
+		Zero = 0,
+		Int32Max = 2147483647
+	};
+
+	[flags]
+	enum Flags
+	{
+		None = 0,
+		Bit0 = 1,
+		Bit16 = 0x10000,
+		All = 0xFFFFFFFF,
+	};
+}
