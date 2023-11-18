@@ -62,7 +62,7 @@ fileprivate func writeProjectionSwiftFile(
 
     var fileName = typeDefinition.nameWithoutGenericSuffix
     if let closedGenericArgs = closedGenericArgs {
-        fileName += "-"
+        fileName += "+"
         fileName += try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: closedGenericArgs)
     }
     fileName += ".swift"
