@@ -177,30 +177,33 @@ extension SwiftAssemblyModuleFileWriter {
             interfaceName: String, abiName: String, iid: UUID, staticOf: ClassDefinition? = nil,
             to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceProperty {
 
-        // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>! = nil
+        // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>? = nil
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
         let abiPointerType: SwiftType = .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)])
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
-            type: .optional(wrapped: abiPointerType, implicitUnwrap: true),
+            type: .optional(wrapped: abiPointerType),
             initialValue: "nil")
 
         // private [static] func _getIStringable() throws -> UnsafeMutablePointer<__x_ABI_CIStringable> {
+        //     if let _existing = _istringable { return _existing }
         //     let iid = IID(00000035, 0000, 0000, C000, 000000000046)
-        //     _istringable = try _istringable ?? WindowsRuntime.getActivationFactoryPointer(activatableId: "Windows.Foundation.IStringable", iid: iid)
-        //     return _istringable
+        //     let _new = try _queryInterfacePointer(iid).cast(to: __x_ABI_CIStringable.self)
+        //     _istringable = _new
+        //     return _new
         // }
         let getter = "_get" + interfaceName
         try writer.writeFunc(visibility: .private, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
+            $0.writeStatement("if let existing = \(storedPropertyName) { return existing }")
             $0.writeStatement("let iid = \(try Self.toIIDExpression(iid))")
             if let staticOf {
                 let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
-                $0.writeStatement("\(storedPropertyName) = try \(storedPropertyName) ?? WindowsRuntime.getActivationFactoryPointer("
-                    + "activatableId: \"\(activatableId)\", iid: iid)")
+                $0.writeStatement("let new: \(abiPointerType) = try WindowsRuntime.getActivationFactoryPointer(activatableId: \"\(activatableId)\", iid: iid)")
             }
             else {
-                $0.writeStatement("\(storedPropertyName) = try _queryInterfacePointer(iid).cast(to: \(abiName).self)")
+                $0.writeStatement("let new = try _queryInterfacePointer(iid).cast(to: \(abiName).self)")
             }
-            $0.writeStatement("return \(storedPropertyName)")
+            $0.writeStatement("\(storedPropertyName) = new")
+            $0.writeStatement("return new")
         }
 
         return SecondaryInterfaceProperty(name: storedPropertyName, getter: getter)
