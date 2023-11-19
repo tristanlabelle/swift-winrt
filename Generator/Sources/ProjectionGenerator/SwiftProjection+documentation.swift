@@ -3,61 +3,87 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 extension SwiftProjection {
-    internal func getDocumentationComment(_ typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
+    internal func getDocumentation(_ typeDefinition: TypeDefinition) -> MemberDocumentation? {
         guard let documentation = assembliesToModules[typeDefinition.assembly]?.documentation else { return nil }
-        return documentation.members[.type(fullName: typeDefinition.fullName)].map { toDocumentationComment($0) }
+        return documentation.members[.type(toDocumentationTypeReference(typeDefinition))]
+    }
+
+    internal func getDocumentationComment(_ typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
+        getDocumentation(typeDefinition).map { toDocumentationComment($0) }
     }
 
     internal func getDocumentationComment(_ member: Member) throws -> SwiftDocumentationComment? {
         guard let documentation = assembliesToModules[member.definingType.assembly]?.documentation else { return nil }
+        let declaringType = toDocumentationTypeReference(member.definingType)
 
         let memberKey: MemberDocumentationKey
         switch member {
             case let field as Field:
-                memberKey = .field(declaringType: field.definingType.fullName, name: field.name)
+                memberKey = .field(declaringType: declaringType, name: field.name)
             case let event as Event:
-                memberKey = .event(declaringType: event.definingType.fullName, name: event.name)
+                memberKey = .event(declaringType: declaringType, name: event.name)
             case let property as Property:
                 guard try (property.getter?.arity ?? 0) == 0 else { return nil }
-                memberKey = .property(declaringType: property.definingType.fullName, name: property.name)
+                memberKey = .property(declaringType: declaringType, name: property.name)
             case let method as Method:
-                memberKey = try .method(declaringType: method.definingType.fullName, name: method.name,
-                    params: method.params.map { try .init(type: toParamType($0.type), isByRef: $0.isByRef) })
+                memberKey = try .method(declaringType: declaringType, name: method.name,
+                    params: method.params.map { try .init(type: toDocumentationTypeNode($0.type), isByRef: $0.isByRef) })
             default:
                 return nil
         }
 
         return documentation.members[memberKey].map { toDocumentationComment($0) }
     }
+
+    internal func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
+        var swift = SwiftDocumentationComment()
+        if let summary = documentation.summary {
+            swift.summary = toBlocks(summary)
+        }
+        for param in documentation.params {
+            swift.parameters.append(SwiftDocumentationComment.Param(name: param.name, description: toSpans(param.description)))
+        }
+        if let returns = documentation.returns {
+            swift.returns = toSpans(returns)
+        }
+        return swift
+    }
+
+    internal func toDocumentationComment(_ textNode: DocumentationTextNode) -> SwiftDocumentationComment {
+        var swift = SwiftDocumentationComment()
+        swift.summary = toBlocks(textNode)
+        return swift
+    }
 }
 
-fileprivate func toParamType(_ type: TypeNode) -> MemberDocumentationKey.ParamType {
+fileprivate func toDocumentationTypeReference(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]? = nil) -> DocumentationTypeReference {
+    DocumentationTypeReference(
+        namespace: typeDefinition.namespace,
+        nameWithoutGenericSuffix: typeDefinition.nameWithoutGenericSuffix,
+        genericity: {
+            if let genericArgs = genericArgs {
+                return .bound(genericArgs.map(toDocumentationTypeNode))
+            }
+            else if typeDefinition.genericArity > 0 {
+                return .unbound(arity: typeDefinition.genericArity)
+            }
+            else {
+                return .bound([])
+            }
+        }())
+}
+
+fileprivate func toDocumentationTypeNode(_ type: TypeNode) -> DocumentationTypeNode {
     switch type {
         case .bound(let type):
-            return .bound(
-                fullName: type.definition.fullName,
-                genericArgs: type.genericArgs.map { toParamType($0) })
+            return .bound(toDocumentationTypeReference(type.definition, genericArgs: type.genericArgs))
         case .array(of: let elementType):
-            return .array(of: toParamType(elementType))
+            return .array(of: toDocumentationTypeNode(elementType))
         case .pointer(to: let pointeeType):
-            return .pointer(to: toParamType(pointeeType!)) // TODO: Handle void*
+            return .pointer(to: toDocumentationTypeNode(pointeeType!)) // TODO: Handle void*
         case .genericParam(let param):
-            return .genericArg(index: param.index, kind: param is GenericTypeParam ? .type : .method)
+            return .genericParam(index: param.index, kind: param is GenericTypeParam ? .type : .method)
     }
-}
-
-fileprivate func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
-    var swift = SwiftDocumentationComment()
-    if let summary = documentation.summary {
-        swift.summary = toBlocks(summary)
-    }
-    for param in documentation.params {
-        swift.parameters.append(SwiftDocumentationComment.Param(name: param.name, description: toSpans(param.description)))
-    }
-    if let returns = documentation.returns {
-        swift.returns = toSpans(returns)
-    }
-    return swift
 }
 
 fileprivate func toBlocks(_ node: DocumentationTextNode) -> [SwiftDocumentationComment.Block] {

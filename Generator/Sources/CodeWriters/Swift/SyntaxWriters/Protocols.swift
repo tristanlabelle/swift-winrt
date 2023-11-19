@@ -29,8 +29,12 @@ extension SwiftSourceFileWriter {
 public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     public let output: IndentedTextOutputStream
 
-    public func writeAssociatedType(name: String) {
+    public func writeAssociatedType(
+        documentation: SwiftDocumentationComment? = nil,
+        name: String) {
+
         var output = output
+        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .withName("associatedtype"))
         output.write("associatedtype ")
         SwiftIdentifier.write(name, to: &output)

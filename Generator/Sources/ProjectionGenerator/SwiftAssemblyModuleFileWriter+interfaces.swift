@@ -1,6 +1,7 @@
 import CodeWriters
 import Collections
 import DotNetMetadata
+import DotNetXMLDocs
 import WindowsMetadata
 
 extension SwiftAssemblyModuleFileWriter {
@@ -51,8 +52,9 @@ extension SwiftAssemblyModuleFileWriter {
 
         if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
 
+        let documentation = projection.getDocumentation(interfaceDefinition)
         try sourceFileWriter.writeProtocol(
-            documentation: projection.getDocumentationComment(interfaceDefinition),
+            documentation: documentation.map { projection.toDocumentationComment($0) },
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             name: projection.toProtocolName(interfaceDefinition),
             typeParameters: interfaceDefinition.genericParams.map { $0.name },
@@ -60,7 +62,12 @@ extension SwiftAssemblyModuleFileWriter {
             whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
 
             for genericParam in interfaceDefinition.genericParams {
-                writer.writeAssociatedType(name: genericParam.name)
+                writer.writeAssociatedType(
+                    documentation: documentation?.typeParams
+                        .first { $0.name == genericParam.name }
+                        .flatMap { $0.description }
+                        .map { projection.toDocumentationComment($0) },
+                    name: genericParam.name)
             }
 
             for property in interfaceDefinition.properties {
