@@ -1,7 +1,7 @@
 #pragma once
 #include "Numbers.g.h"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     struct Numbers
     {
@@ -19,7 +19,7 @@ namespace winrt::TestComponent::implementation
         static double NegateDouble(double value);
     };
 }
-namespace winrt::TestComponent::factory_implementation
+namespace winrt::WinRTComponent::factory_implementation
 {
     struct Numbers : NumbersT<Numbers, implementation::Numbers>
     {

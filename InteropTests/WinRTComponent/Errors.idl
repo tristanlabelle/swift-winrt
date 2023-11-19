@@ -1,6 +1,6 @@
 import "MinimalTypes.idl";
 
-namespace TestComponent
+namespace WinRTComponent
 {
 	static runtimeclass Errors
 	{

@@ -1,7 +1,7 @@
 #pragma once
 #include "MinimalClass.g.h"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     struct MinimalClass : MinimalClassT<MinimalClass>
     {
@@ -10,7 +10,7 @@ namespace winrt::TestComponent::implementation
         void Method();
     };
 }
-namespace winrt::TestComponent::factory_implementation
+namespace winrt::WinRTComponent::factory_implementation
 {
     struct MinimalClass : MinimalClassT<MinimalClass, implementation::MinimalClass>
     {

@@ -2,7 +2,7 @@
 #include "Numbers.h"
 #include "Numbers.g.cpp"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     bool Numbers::Not(bool value)
     {

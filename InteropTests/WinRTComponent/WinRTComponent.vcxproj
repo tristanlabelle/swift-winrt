@@ -7,8 +7,8 @@
     <CppWinRTGenerateWindowsMetadata>true</CppWinRTGenerateWindowsMetadata>
     <MinimalCoreWin>true</MinimalCoreWin>
     <ProjectGuid>{0e4c927c-631d-4d48-8bec-658562bb86a5}</ProjectGuid>
-    <ProjectName>TestComponent</ProjectName>
-    <RootNamespace>TestComponent</RootNamespace>
+    <ProjectName>WinRTComponent</ProjectName>
+    <RootNamespace>WinRTComponent</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
@@ -87,7 +87,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>TestComponent.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>WinRTComponent.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -174,7 +174,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TestComponent.def" />
+    <None Include="WinRTComponent.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

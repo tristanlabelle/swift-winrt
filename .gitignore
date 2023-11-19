@@ -1,14 +1,2 @@
-# OS and code editor
 .vscode/
-.vs/
-
-# SPM
 .build/
-
-# msbuild
-bin/
-obj/
-packages/
-Debug/
-Release/
-Generated Files/

@@ -5,14 +5,14 @@
 
 namespace
 {
-    class Implementation : public winrt::implements<Implementation, winrt::TestComponent::IEvent>
+    class Implementation : public winrt::implements<Implementation, winrt::WinRTComponent::IEvent>
     {
     private:
-        std::unordered_map<int64_t, winrt::TestComponent::MinimalDelegate> handlers;
+        std::unordered_map<int64_t, winrt::WinRTComponent::MinimalDelegate> handlers;
         int64_t nextToken = 1;
 
     public:
-        winrt::event_token Event(winrt::TestComponent::MinimalDelegate const& handler)
+        winrt::event_token Event(winrt::WinRTComponent::MinimalDelegate const& handler)
         {
             auto token = nextToken++;
             handlers.emplace(token, handler);
@@ -29,15 +29,15 @@ namespace
         }
     };
 
-    class Counter : public winrt::implements<Counter, winrt::TestComponent::IEventCounter>
+    class Counter : public winrt::implements<Counter, winrt::WinRTComponent::IEventCounter>
     {
     private:
-        winrt::TestComponent::IEvent inner;
+        winrt::WinRTComponent::IEvent inner;
         winrt::event_token token;
         int32_t count = 0;
 
     public:
-        Counter(winrt::TestComponent::IEvent inner) : inner(inner)
+        Counter(winrt::WinRTComponent::IEvent inner) : inner(inner)
         {
             token = inner.Event([this]() { count++; });
         }
@@ -54,13 +54,13 @@ namespace
     };
 }
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
-    winrt::TestComponent::IEvent Events::Create()
+    winrt::WinRTComponent::IEvent Events::Create()
     {
         return winrt::make<Implementation>();
     }
-    winrt::TestComponent::IEventCounter Events::CreateCounter(winrt::TestComponent::IEvent const& inner)
+    winrt::WinRTComponent::IEventCounter Events::CreateCounter(winrt::WinRTComponent::IEvent const& inner)
     {
         return winrt::make<Counter>(inner);
     }

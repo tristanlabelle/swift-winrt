@@ -2,7 +2,7 @@
 #include "Errors.h"
 #include "Errors.g.cpp"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     void Errors::FailWith(winrt::hresult const& hr, winrt::hstring const& message)
     {
@@ -16,7 +16,7 @@ namespace winrt::TestComponent::implementation
     {
         throw winrt::hresult_not_implemented();
     }
-    winrt::hresult Errors::Catch(winrt::TestComponent::MinimalDelegate const& callee)
+    winrt::hresult Errors::Catch(winrt::WinRTComponent::MinimalDelegate const& callee)
     {
         try { callee(); }
         catch (const winrt::hresult_error& error) { return error.code(); }

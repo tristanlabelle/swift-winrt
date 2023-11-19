@@ -1,4 +1,4 @@
-namespace TestComponent
+namespace WinRTComponent
 {
     enum MinimalEnum { Value };
     struct MinimalStruct { Int32 Field; };

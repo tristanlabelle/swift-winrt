@@ -2,7 +2,7 @@
 #include "MinimalTypes.h"
 #include "MinimalClass.g.cpp"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     void MinimalClass::Method() {}
 }

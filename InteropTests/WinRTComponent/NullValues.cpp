@@ -2,21 +2,21 @@
 #include "NullValues.h"
 #include "NullValues.g.cpp"
 
-namespace winrt::TestComponent::implementation
+namespace winrt::WinRTComponent::implementation
 {
     bool NullValues::IsObjectNull(winrt::Windows::Foundation::IInspectable const& value)
     {
         return value == nullptr;
     }
-    bool NullValues::IsInterfaceNull(winrt::TestComponent::IMinimalInterface const& value)
+    bool NullValues::IsInterfaceNull(winrt::WinRTComponent::IMinimalInterface const& value)
     {
         return value == nullptr;
     }
-    bool NullValues::IsClassNull(winrt::TestComponent::MinimalClass const& value)
+    bool NullValues::IsClassNull(winrt::WinRTComponent::MinimalClass const& value)
     {
         return value == nullptr;
     }
-    bool NullValues::IsDelegateNull(winrt::TestComponent::MinimalDelegate const& value)
+    bool NullValues::IsDelegateNull(winrt::WinRTComponent::MinimalDelegate const& value)
     {
         return value == nullptr;
     }
@@ -24,15 +24,15 @@ namespace winrt::TestComponent::implementation
     {
         return nullptr;
     }
-    winrt::TestComponent::IMinimalInterface NullValues::GetNullInterface()
+    winrt::WinRTComponent::IMinimalInterface NullValues::GetNullInterface()
     {
         return nullptr;
     }
-    winrt::TestComponent::MinimalClass NullValues::GetNullClass()
+    winrt::WinRTComponent::MinimalClass NullValues::GetNullClass()
     {
         return nullptr;
     }
-    winrt::TestComponent::MinimalDelegate NullValues::GetNullDelegate()
+    winrt::WinRTComponent::MinimalDelegate NullValues::GetNullDelegate()
     {
         return nullptr;
     }

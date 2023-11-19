@@ -1,4 +1,4 @@
-namespace TestComponent
+namespace WinRTComponent
 {
 	// WinRT structs allow primitives, strings, IReferences, and other such structs.
 	struct LeafStruct
