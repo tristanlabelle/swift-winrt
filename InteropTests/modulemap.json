@@ -1,8 +1,13 @@
 {
     "modules": {
-        "TestComponent": {
+        "WindowsFoundation": {
             "assemblies": [
-                "TestComponent"
+                "Windows.Foundation.FoundationContract"
+            ]
+        },
+        "WinRTComponent": {
+            "assemblies": [
+                "WinRTComponent"
             ]
         }
     }
