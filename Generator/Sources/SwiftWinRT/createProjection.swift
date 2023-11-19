@@ -20,17 +20,23 @@ internal func createProjection(generateCommand: GenerateCommand, assemblyLoadCon
 
     let projection = SwiftProjection(abiModuleName: generateCommand.abiModuleName)
 
-    // Create modules and gather types
+    // Preload assemblies and create modules
     for reference in allReferences {
+        print("Loading assembly \(reference)...")
         let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: reference, into: assemblyLoadContext)
-        let (moduleName, moduleMapping) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
+        let (moduleName, _) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
         let module = projection.modulesByShortName[moduleName] ?? projection.addModule(shortName: moduleName)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
+    }
+
+    // Gather types from assemblies
+    for assembly in assemblyLoadContext.loadedAssembliesByName.values {
+        guard let module = projection.getModule(assembly) else { continue }
 
         print("Gathering types from \(assembly.name)...")
         var typeDiscoverer = ModuleTypeDiscoverer(assemblyFilter: { $0 === assembly }, publicMembersOnly: true)
 
-        try typeDiscoverer.add(assembly.findDefinedType(fullName: "Windows.Foundation.Collections.StringMap")!)
+        let (_, moduleMapping) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
 
         for typeDefinition in assembly.definedTypes {
             guard typeDefinition.isPublic else { continue }

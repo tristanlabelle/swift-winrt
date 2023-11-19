@@ -1,0 +1,33 @@
+namespace WinRTComponent
+{
+	// WinRT structs allow primitives, strings, IReferences, and other such structs.
+	struct LeafStruct
+	{
+		Int32 Int32;
+		String String;
+		Windows.Foundation.IReference<Int32> Reference;
+	};
+
+	struct Struct
+	{
+		Int32 Int32;
+		String String;
+		Windows.Foundation.IReference<Int32> Reference;
+		LeafStruct Nested;
+	};
+
+	static runtimeclass Structs
+	{
+		static Struct Make(Int32 a, String b, Windows.Foundation.IReference<Int32> c, LeafStruct d);
+
+		static Int32 GetInt32(Struct value);
+		static String GetString(Struct value);
+		static Windows.Foundation.IReference<Int32> GetReference(Struct value);
+		static LeafStruct GetNested(Struct value);
+
+		static void Output(Int32 a, String b, Windows.Foundation.IReference<Int32> c, LeafStruct d, out Struct value);
+
+		// Structs do not support in-out byref. "ref Struct value" results in:
+		// MIDL4035: The [in] parameter has a pointer type that is not valid.
+	};
+}

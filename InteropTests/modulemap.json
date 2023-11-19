@@ -1,0 +1,9 @@
+{
+    "modules": {
+        "TestComponent": {
+            "assemblies": [
+                "TestComponent"
+            ]
+        }
+    }
+}

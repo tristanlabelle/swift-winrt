@@ -1,0 +1,11 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+	static runtimeclass Errors
+	{
+		static void FailWith(Windows.Foundation.HResult hr, String message);
+		static String NotImplementedProperty;
+		static Windows.Foundation.HResult Catch(MinimalDelegate callee);
+	};
+}

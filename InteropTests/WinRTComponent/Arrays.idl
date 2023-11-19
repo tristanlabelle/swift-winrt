@@ -1,0 +1,43 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+	static runtimeclass Arrays
+	{
+        static Int32 GetLastInt32(Int32[] value);
+        static String GetLastString(String[] value);
+        static Object GetLastObject(Object[] value);
+        static MinimalEnum GetLastEnum(MinimalEnum[] value);
+        static MinimalStruct GetLastStruct(MinimalStruct[] value);
+        static IMinimalInterface GetLastInterface(IMinimalInterface[] value);
+        static MinimalClass GetLastClass(MinimalClass[] value);
+        static MinimalDelegate GetLastDelegate(MinimalDelegate[] value);
+
+        static Int32[] MakeInt32(Int32 a, Int32 b);
+        static String[] MakeString(String a, String b);
+        static Object[] MakeObject(Object a, Object b);
+        static MinimalEnum[] MakeEnum(MinimalEnum a, MinimalEnum b);
+        static MinimalStruct[] MakeStruct(MinimalStruct a, MinimalStruct b);
+        static IMinimalInterface[] MakeInterface(IMinimalInterface a, IMinimalInterface b);
+        static MinimalClass[] MakeClass(MinimalClass a, MinimalClass b);
+        static MinimalDelegate[] MakeDelegate(MinimalDelegate a, MinimalDelegate b);
+
+        static void OutputInt32(Int32 a, Int32 b, out Int32[] array);
+        static void OutputString(String a, String b, out String[] array);
+        static void OutputObject(Object a, Object b, out Object[] array);
+        static void OutputEnum(MinimalEnum a, MinimalEnum b, out MinimalEnum[] array);
+        static void OutputStruct(MinimalStruct a, MinimalStruct b, out MinimalStruct[] array);
+        static void OutputInterface(IMinimalInterface a, IMinimalInterface b, out IMinimalInterface[] array);
+        static void OutputClass(MinimalClass a, MinimalClass b, out MinimalClass[] array);
+        static void OutputDelegate(MinimalDelegate a, MinimalDelegate b, out MinimalDelegate[] array);
+
+        static void SwapFirstLastInt32(ref Int32[] array);
+        static void SwapFirstLastString(ref String[] array);
+        static void SwapFirstLastObject(ref Object[] array);
+        static void SwapFirstLastEnum(ref MinimalEnum[] array);
+        static void SwapFirstLastStruct(ref MinimalStruct[] array);
+        static void SwapFirstLastInterface(ref IMinimalInterface[] array);
+        static void SwapFirstLastClass(ref MinimalClass[] array);
+        static void SwapFirstLastDelegate(ref MinimalDelegate[] array);
+	};
+}

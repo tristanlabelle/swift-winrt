@@ -1,0 +1,17 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+    static runtimeclass NullValues
+    {
+        static Boolean IsObjectNull(Object value);
+        static Boolean IsInterfaceNull(IMinimalInterface value);
+        static Boolean IsClassNull(MinimalClass value);
+        static Boolean IsDelegateNull(MinimalDelegate value);
+
+        static Object GetNullObject();
+        static IMinimalInterface GetNullInterface();
+        static MinimalClass GetNullClass();
+        static MinimalDelegate GetNullDelegate();
+    }
+}
