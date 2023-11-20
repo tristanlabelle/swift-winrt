@@ -7,12 +7,11 @@ namespace winrt::WinRTComponent::implementation
     {
         Structs() = default;
 
-        static winrt::WinRTComponent::Struct Make(int32_t a, hstring const& b, winrt::Windows::Foundation::IReference<int32_t> const& c, winrt::WinRTComponent::LeafStruct const& d);
+        static winrt::WinRTComponent::Struct Make(int32_t a, hstring const& b, winrt::WinRTComponent::LeafStruct const& c);
         static int32_t GetInt32(winrt::WinRTComponent::Struct const& value);
         static hstring GetString(winrt::WinRTComponent::Struct const& value);
-        static winrt::Windows::Foundation::IReference<int32_t> GetReference(winrt::WinRTComponent::Struct const& value);
         static winrt::WinRTComponent::LeafStruct GetNested(winrt::WinRTComponent::Struct const& value);
-        static void Output(int32_t a, hstring const& b, winrt::Windows::Foundation::IReference<int32_t> const& c, winrt::WinRTComponent::LeafStruct const& d, winrt::WinRTComponent::Struct& value);
+        static void Output(int32_t a, hstring const& b, winrt::WinRTComponent::LeafStruct const& c, winrt::WinRTComponent::Struct& value);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation
