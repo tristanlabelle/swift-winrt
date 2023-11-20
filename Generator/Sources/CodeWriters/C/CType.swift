@@ -1,24 +1,33 @@
-public struct CType: ExpressibleByStringLiteral {
-    public static let hresult = CType(name: "HRESULT")
-    public static let voidPointer = CType(name: "void", pointerIndirections: 1)
+public enum CTypeSpecifier {
+    case reference(kind: CTypeDeclKind? = nil, name: String)
+    indirect case pointer(to: CType)
+    indirect case functionPointer(return: CType, callingConvention: CCallingConvention? = nil, params: [CVariableDecl] = [])
+}
 
-    public static func pointer(to name: String) -> CType {
-        .init(name: name, pointerIndirections: 1)
+public struct CType {
+    public var specifier: CTypeSpecifier
+    public var const: Bool = false
+    public var volatile: Bool = false
+
+    public init(_ specifier: CTypeSpecifier, const: Bool = false, volatile: Bool = false) {
+        self.specifier = specifier
+        self.const = const
+        self.volatile = volatile
+    }
+}
+
+extension CType {
+    public static func reference(kind: CTypeDeclKind? = nil, name: String, const: Bool = false, volatile: Bool = false) -> Self {
+        .init(.reference(kind: kind, name: name), const: const, volatile: volatile)
     }
 
-    public var name: String
-    public var pointerIndirections: Int = 0
-
-    public init(stringLiteral name: String) {
-        self.name = name
+    public static func pointer(to pointee: CType, const: Bool = false, volatile: Bool = false) -> Self {
+        .init(.pointer(to: pointee), const: const, volatile: volatile)
     }
 
-    public init(name: String, pointerIndirections: Int = 0) {
-        self.name = name
-        self.pointerIndirections = pointerIndirections
-    }
+    public static let void: Self = .reference(name: "void")
 
-    public func withPointerIndirection() -> CType {
-        .init(name: name, pointerIndirections: pointerIndirections + 1)
+    public func makePointer(const: Bool = false, volatile: Bool = false) -> Self {
+        .init(.pointer(to: self), const: const, volatile: volatile)
     }
 }

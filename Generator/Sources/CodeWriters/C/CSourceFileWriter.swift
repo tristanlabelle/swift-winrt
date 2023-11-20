@@ -1,14 +1,11 @@
 public struct CSourceFileWriter {
     private let output: IndentedTextOutputStream
 
-    public enum TypeKind {
-        case `struct`
-        case `enum`
-    }
-
-    public init(output: some TextOutputStream) {
+    public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
-        self.output.writeLine(grouping: .never, "#pragma once")
+        if pragmaOnce {
+            self.output.writeLine(grouping: .never, "#pragma once")
+        }
     }
 
     public func writeInclude(header: String, local: Bool) {
@@ -16,11 +13,12 @@ public struct CSourceFileWriter {
         output.write(local ? "#include \"\(header)\"" : "#include <\(header)>", endLine: true)
     }
 
-    public func writeForwardDeclaration(kind: TypeKind, name: String) {
+    public func writeForwardDeclaration(kind: CTypeDeclKind, name: String) {
         output.beginLine(grouping: .withName("forwardDecl"))
         switch kind {
             case .struct: output.write("struct ")
             case .enum: output.write("enum ")
+            case .union: output.write("union ")
         }
         output.write(name)
         output.write(";", endLine: true)
@@ -51,7 +49,7 @@ public struct CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeStruct(name: String, members: [CDataMember], typedef: Bool = true) {
+    public func writeStruct(name: String, members: [CVariableDecl], typedef: Bool = true) {
         let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }
@@ -59,10 +57,7 @@ public struct CSourceFileWriter {
         output.write(name, endLine: true)
         output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
             for member in members {
-                writeType(member.type)
-                output.write(" ")
-                output.write(member.name)
-                output.write(";", endLine: true)
+                writeVariableDecl(member)
             }
         }
         output.beginLine(grouping: lineGrouping)
@@ -74,78 +69,78 @@ public struct CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeCOMInterface(name: String, functions: [CFunctionSignature], idName: String, vtableName: String) {
-        writeCOMInterfaceID(name: idName)
-        writeCOMVirtualTable(name: vtableName, functions: functions)
-        writeCOMInterfaceStruct(name: name, vtableName: vtableName)
-    }
-
-    private func writeCOMInterfaceID(name: String) {
-        output.beginLine(grouping: .withName("iid"))
-        output.write("EXTERN_C const IID IID_")
-        output.write(name)
+    private func writeVariableDecl(_ member: CVariableDecl) {
+        output.beginLine(grouping: .withName("variableDecl"))
+        if !writeType(member.type, variableName: member.name), let memberName = member.name {
+            output.write(" ")
+            output.write(memberName)
+        }
         output.write(";", endLine: true)
     }
 
-    private func writeCOMVirtualTable(name: String, functions: [CFunctionSignature]) {
-        let lineGrouping = output.allocateVerticalGrouping()
-        output.beginLine(grouping: lineGrouping)
-        output.write("typedef struct ")
-        output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
-            output.writeLine(grouping: .never, "BEGIN_INTERFACE")
+    private func writeType(_ type: CType, variableName: String? = nil) -> Bool {
+        // The syntax is quite different for a type reference and a function pointer
+        switch Self.getLeafTypeSpecifier(type) {
+            case let .reference(kind, name):
+                if let kind = kind {
+                    output.write(kind.keyword)
+                    output.write(" ")
+                }
+                writeQualifiersAndPointers(type, name: name)
+                return false // We didn't write the variable name, it should be written as a suffix
 
-            for function in functions {
-                writeCOMInterfaceFunction(function)
-            }
+            case let .functionPointer(`return`, callingConvention, params):
+                _ = writeType(`return`)
 
-            output.writeLine(grouping: .never, "END_INTERFACE")
+                output.write(" (")
+                if let callingConvention {
+                    output.write(callingConvention.keyword)
+                    output.write(" ")
+                }
+                output.write("*")
+                writeQualifiersAndPointers(type, name: variableName)
+                output.write(")")
+
+                output.write("(")
+                for (paramIndex, param) in params.enumerated() {
+                    if paramIndex > 0 { output.write(", ") }
+                    if !writeType(param.type, variableName: param.name), let paramName = param.name {
+                        output.write(" ")
+                        output.write(paramName)
+                    }
+                }
+                output.write(")")
+                return true // We did write the variable name
+
+            case let specifier:
+                fatalError("Unexpected leaf C type specifier: \(specifier)")
         }
-        output.beginLine(grouping: lineGrouping)
-        output.write("} ")
-        output.write(name)
-        output.write(";", endLine: true)
     }
 
-    private func writeCOMInterfaceFunction(_ function: CFunctionSignature) {
-        writeType(function.returnType)
-        output.write(" (STDMETHODCALLTYPE* ")
-        output.write(function.name)
-        output.write(")(")
-
-        for (paramIndex, param) in function.params.enumerated() {
-            if paramIndex > 0 {
-                output.write(", ")
-            }
-
-            writeType(param.type)
-            if let paramName = param.name {
-                output.write(" ")
-                output.write(paramName)
-            }
-        }
-
-        output.write(");", endLine: true)
-    }
-
-    private func writeCOMInterfaceStruct(name: String, vtableName: String) {
-        let lineGrouping = output.allocateVerticalGrouping()
-        output.beginLine(grouping: lineGrouping)
-        output.write("interface ")
-        output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
-            output.write("CONST_VTBL struct ")
-            output.write(vtableName)
-            output.write("* lpVtbl;", endLine: true)
-        }
-        output.beginLine(grouping: lineGrouping)
-        output.write("};", endLine: true)
-    }
-
-    private func writeType(_ type: CType) {
-        output.write(type.name)
-        for _ in 0..<type.pointerIndirections {
+    private func writeQualifiersAndPointers(_ type: CType, name: String?) {
+        if case let .pointer(pointee) = type.specifier {
+            writeQualifiersAndPointers(pointee, name: name)
             output.write("*")
+            writeQualifiers(type, prefix: false)
+        } else {
+            writeQualifiers(type, prefix: true)
+            if let name { output.write(name) }
+        }
+    }
+
+    private func writeQualifiers(_ type: CType, prefix: Bool) {
+        if type.const {
+            output.write(prefix ? "const ": " const")
+        }
+        if type.volatile {
+            output.write(prefix ? "volatile ": " volatile")
+        }
+    }
+
+    private static func getLeafTypeSpecifier(_ type: CType) -> CTypeSpecifier {
+        switch type.specifier {
+            case .pointer(let pointee): return getLeafTypeSpecifier(pointee)
+            default: return type.specifier
         }
     }
 }
