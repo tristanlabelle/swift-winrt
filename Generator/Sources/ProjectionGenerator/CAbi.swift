@@ -2,24 +2,27 @@ import DotNetMetadata
 import WindowsMetadata
 import CodeWriters
 
-enum CAbi {
-    static func mangleName(type: BoundType) throws -> String {
+public enum CAbi {
+    public static func mangleName(type: BoundType) throws -> String {
         try WinRTTypeName.from(type: type).midlMangling
     }
 
-    static func toCType(_ type: TypeNode) throws -> CType {
+    public static func toCType(_ type: TypeNode) throws -> CType {
         guard case .bound(let type) = type else { fatalError() }
         return CType(
             name: try mangleName(type: type),
             pointerIndirections: type.definition.isReferenceType ? 1 : 0)
     }
 
-    static func writeEnum(_ enumDefinition: EnumDefinition, to writer: inout CSourceFileWriter) throws {
+    public static func writeEnum(_ enumDefinition: EnumDefinition, to writer: inout CSourceFileWriter) throws {
         let mangledName = try mangleName(type: enumDefinition.bindType())
 
         func toValue(_ constant: Constant) -> Int {
-            guard case let .int32(value) = constant else { fatalError() }
-            return Int(value)
+            switch constant {
+                case .int32(let value): return Int(value) // Non-flags
+                case .uint32(let value): return Int(value) // Flags
+                default: fatalError()
+            }
         }
 
         let enumerants = try enumDefinition.fields.filter { $0.isStatic && $0.visibility == .public }
@@ -28,7 +31,7 @@ enum CAbi {
         writer.writeEnum(name: mangledName, enumerants: enumerants, enumerantPrefix: mangledName + "_")
     }
 
-    static func writeStruct(_ structDefinition: StructDefinition, to writer: inout CSourceFileWriter) throws {
+    public static func writeStruct(_ structDefinition: StructDefinition, to writer: inout CSourceFileWriter) throws {
         let mangledName = try mangleName(type: structDefinition.bindType())
 
         let members = try structDefinition.fields.filter { !$0.isStatic && $0.visibility == .public  }
@@ -37,7 +40,7 @@ enum CAbi {
         writer.writeStruct(name: mangledName, members: members)
     }
 
-    static func writeInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: inout CSourceFileWriter) throws {
+    public static func writeInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: inout CSourceFileWriter) throws {
         let mangledName = try mangleName(type: interface.bindType(genericArgs: genericArgs))
 
         var functions = [CFunctionSignature]()
@@ -77,12 +80,21 @@ enum CAbi {
             params.append(.init(type: .pointer(to: mangledName), name: "This"))
 
             for param in try method.params {
-                var type = try toCType(param.type)
-                if param.isByRef { type = type.withPointerIndirection() }
-                params.append(.init(type: type, name: param.name))
+                let paramType = try param.type.bindGenericParams(typeArgs: genericArgs)
+                if case .array(let element) = paramType {
+                    params.append(.init(type: CType(name: "UINT32", pointerIndirections: param.isByRef ? 1 : 0), name: param.name.map { $0 + "Length" }))
+                    var type = try toCType(element).withPointerIndirection()
+                    if param.isByRef { type = type.withPointerIndirection() }
+                    params.append(.init(type: type, name: param.name))
+                }
+                else {
+                    var type = try toCType(paramType)
+                    if param.isByRef { type = type.withPointerIndirection() }
+                    params.append(.init(type: type, name: param.name))
+                }
             }
 
-            let returnType = try method.returnType
+            let returnType = try method.returnType.bindGenericParams(typeArgs: genericArgs)
             if !(returnType.asDefinition?.fullName == "System.Void") {
                 params.append(.init(type: try toCType(returnType).withPointerIndirection(), name: nil))
             }

@@ -1,9 +1,29 @@
 public struct CSourceFileWriter {
     private let output: IndentedTextOutputStream
 
+    public enum TypeKind {
+        case `struct`
+        case `enum`
+    }
+
     public init(output: some TextOutputStream) {
         self.output = .init(inner: output)
         self.output.writeLine(grouping: .never, "#pragma once")
+    }
+
+    public func writeInclude(header: String, local: Bool) {
+        output.beginLine(grouping: .withName("include"))
+        output.write(local ? "#include \"\(header)\"" : "#include <\(header)>", endLine: true)
+    }
+
+    public func writeForwardDeclaration(kind: TypeKind, name: String) {
+        output.beginLine(grouping: .withName("forwardDecl"))
+        switch kind {
+            case .struct: output.write("struct ")
+            case .enum: output.write("enum ")
+        }
+        output.write(name)
+        output.write(";", endLine: true)
     }
 
     public func writeEnum(name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil, typedef: Bool = true) {
@@ -13,14 +33,13 @@ public struct CSourceFileWriter {
         output.write("enum ")
         output.write(name, endLine: true)
         output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
-            for enumerant in enumerants {
-                if let enumerantPrefix {
-                    output.write(enumerantPrefix)
-                }
+            for (index, enumerant) in enumerants.enumerated() {
+                if let enumerantPrefix { output.write(enumerantPrefix) }
                 output.write(enumerant.name)
                 output.write(" = ")
                 output.write(String(enumerant.value))
-                output.write(";", endLine: true)
+                if index < enumerants.count - 1 { output.write(",") }
+                output.endLine()
             }
         }
         output.beginLine(grouping: lineGrouping)

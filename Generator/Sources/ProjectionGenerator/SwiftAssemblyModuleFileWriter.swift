@@ -20,7 +20,7 @@ public struct SwiftAssemblyModuleFileWriter {
         sourceFileWriter.writeImport(module: "WindowsRuntime")
 
         for reference in module.references {
-            sourceFileWriter.writeImport(module: reference.target.assemblyModuleName)
+            sourceFileWriter.writeImport(module: reference.assemblyModuleName)
         }
 
         sourceFileWriter.writeImport(module: "Foundation", struct: "UUID")

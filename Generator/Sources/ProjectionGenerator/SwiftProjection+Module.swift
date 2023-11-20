@@ -7,7 +7,7 @@ extension SwiftProjection {
         public let shortName: String
         public private(set) var typeDefinitionsByNamespace = [String: Set<TypeDefinition>]()
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
-        private(set) var references: Set<Reference> = []
+        private(set) var weakReferences: Set<Reference> = []
 
         internal init(projection: SwiftProjection, shortName: String) {
             self.projection = projection
@@ -15,6 +15,7 @@ extension SwiftProjection {
         }
 
         public var assemblyModuleName: String { shortName + "Assembly" }
+        public var references: [Module] { weakReferences.map { $0.target } }
 
         public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
             projection.assembliesToModules[assembly] = AssemblyEntry(module: self, documentation: documentation)
@@ -35,7 +36,7 @@ extension SwiftProjection {
         }
 
         public func addReference(_ other: Module) {
-            references.insert(Reference(target: other))
+            weakReferences.insert(Reference(target: other))
         }
 
         internal func getName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {

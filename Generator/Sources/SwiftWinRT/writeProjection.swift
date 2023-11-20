@@ -1,3 +1,5 @@
+import CodeWriters
+import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 import Foundation
@@ -5,9 +7,14 @@ import ProjectionGenerator
 import WindowsMetadata
 
 func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
+    let abiModuleDirectoryPath = "\(generateCommand.out)\\\(projection.abiModuleName)"
+    try FileManager.default.createDirectory(atPath: abiModuleDirectoryPath, withIntermediateDirectories: true)
+
     for module in projection.modulesByShortName.values {
         let moduleRootPath = "\(generateCommand.out)\\\(module.shortName)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
+
+        try writeCAbiFile(module: module, toPath: "\(abiModuleDirectoryPath)\\\(module.shortName).h")
 
         for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
@@ -46,6 +53,54 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: genericArgs,
                     writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
             }
+        }
+    }
+}
+
+fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: String) throws {
+    var boundTypesByMangledName = OrderedDictionary<String, BoundType>()
+    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
+        for typeDefinition in typeDefinitions {
+            guard typeDefinition.genericArity == 0 else { continue }
+            guard !(typeDefinition is ClassDefinition) else { continue }
+            let type = typeDefinition.bindType()
+            let mangledName = try CAbi.mangleName(type: type)
+            boundTypesByMangledName[mangledName] = type
+        }
+    }
+
+    for (typeDefinition, instanciations) in module.closedGenericTypesByDefinition {
+        for genericArgs in instanciations {
+            let type = typeDefinition.bindType(genericArgs: genericArgs)
+            let mangledName = try CAbi.mangleName(type: type)
+            boundTypesByMangledName[mangledName] = type
+        }
+    }
+
+    var sourceFileWriter = CSourceFileWriter(output: FileTextOutputStream(path: path))
+
+    for reference in module.references {
+        sourceFileWriter.writeInclude(header: "\(reference.shortName).h", local: true)
+    }
+
+    // Forward declare all interfaces and structs
+    for (mangledName, boundType) in boundTypesByMangledName {
+        sourceFileWriter.writeForwardDeclaration(
+            kind: boundType.definition is EnumDefinition ? .enum : .struct,
+            name: mangledName)
+    }
+
+    // Write all interfaces and delegates
+    for (_, boundType) in boundTypesByMangledName {
+        switch boundType.definition {
+            case let enumDefinition as EnumDefinition:
+                try CAbi.writeEnum(enumDefinition, to: &sourceFileWriter)
+            case let structDefinition as StructDefinition:
+                try CAbi.writeStruct(structDefinition, to: &sourceFileWriter)
+            case let interfaceDefinition as InterfaceDefinition:
+                try CAbi.writeInterface(interfaceDefinition, genericArgs: boundType.genericArgs, to: &sourceFileWriter)
+            default:
+                break
         }
     }
 }
