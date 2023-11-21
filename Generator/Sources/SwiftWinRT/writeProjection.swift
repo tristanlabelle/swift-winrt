@@ -58,14 +58,14 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
 }
 
 fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: String) throws {
-    var boundTypesByMangledName = OrderedDictionary<String, BoundType>()
+    var typesByMangledName = OrderedDictionary<String, BoundType>()
     for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
         for typeDefinition in typeDefinitions {
             guard typeDefinition.genericArity == 0 else { continue }
             guard !(typeDefinition is ClassDefinition) else { continue }
             let type = typeDefinition.bindType()
             let mangledName = try CAbi.mangleName(type: type)
-            boundTypesByMangledName[mangledName] = type
+            typesByMangledName[mangledName] = type
         }
     }
 
@@ -73,32 +73,30 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
         for genericArgs in instanciations {
             let type = typeDefinition.bindType(genericArgs: genericArgs)
             let mangledName = try CAbi.mangleName(type: type)
-            boundTypesByMangledName[mangledName] = type
+            typesByMangledName[mangledName] = type
         }
     }
 
-    var sourceFileWriter = CSourceFileWriter(output: FileTextOutputStream(path: path))
+    let cHeaderWriter = CAbiHeaderWriter(output: FileTextOutputStream(path: path))
 
     for reference in module.references {
-        sourceFileWriter.writeInclude(header: "\(reference.shortName).h", local: true)
+        cHeaderWriter.writeInclude(header: "\(reference.shortName).h")
     }
 
     // Forward declare all interfaces and structs
-    for (mangledName, boundType) in boundTypesByMangledName {
-        sourceFileWriter.writeForwardDeclaration(
-            kind: boundType.definition is EnumDefinition ? .enum : .struct,
-            name: mangledName)
+    for (_, type) in typesByMangledName {
+        try cHeaderWriter.writeForwardDeclaration(type: type)
     }
 
     // Write all interfaces and delegates
-    for (_, boundType) in boundTypesByMangledName {
-        switch boundType.definition {
+    for (_, type) in typesByMangledName {
+        switch type.definition {
             case let enumDefinition as EnumDefinition:
-                try CAbi.writeEnum(enumDefinition, to: &sourceFileWriter)
+                try cHeaderWriter.writeEnum(enumDefinition)
             case let structDefinition as StructDefinition:
-                try CAbi.writeStruct(structDefinition, to: &sourceFileWriter)
+                try cHeaderWriter.writeStruct(structDefinition)
             case let interfaceDefinition as InterfaceDefinition:
-                try CAbi.writeInterface(interfaceDefinition, genericArgs: boundType.genericArgs, to: &sourceFileWriter)
+                try cHeaderWriter.writeCOMInterface(interfaceDefinition, genericArgs: type.genericArgs)
             default:
                 break
         }

@@ -1,7 +1,7 @@
 public enum CTypeSpecifier {
     case reference(kind: CTypeDeclKind? = nil, name: String)
     indirect case pointer(to: CType)
-    indirect case functionPointer(return: CType, callingConvention: CCallingConvention? = nil, params: [CVariableDecl] = [])
+    indirect case functionPointer(return: CType, callingConvention: CCallingConvention? = nil, params: [CParamDecl] = [])
 }
 
 public struct CType {

@@ -1,4 +1,4 @@
-public struct CSourceFileWriter {
+public class CSourceFileWriter {
     private let output: IndentedTextOutputStream
 
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
@@ -8,9 +8,14 @@ public struct CSourceFileWriter {
         }
     }
 
-    public func writeInclude(header: String, local: Bool) {
+    public enum IncludeKind { case doubleQuotes; case angleBrackets }
+
+    public func writeInclude(pathSpec: String, kind: IncludeKind) {
         output.beginLine(grouping: .withName("include"))
-        output.write(local ? "#include \"\(header)\"" : "#include <\(header)>", endLine: true)
+        switch kind {
+            case .doubleQuotes: output.write("#include \"\(pathSpec)\"", endLine: true)
+            case .angleBrackets: output.write("#include <\(pathSpec)>", endLine: true)
+        }
     }
 
     public func writeForwardDeclaration(kind: CTypeDeclKind, name: String) {
@@ -71,9 +76,9 @@ public struct CSourceFileWriter {
 
     private func writeVariableDecl(_ member: CVariableDecl) {
         output.beginLine(grouping: .withName("variableDecl"))
-        if !writeType(member.type, variableName: member.name), let memberName = member.name {
+        if !writeType(member.type, variableName: member.name) {
             output.write(" ")
-            output.write(memberName)
+            output.write(member.name)
         }
         output.write(";", endLine: true)
     }
