@@ -7,6 +7,11 @@ public enum CAbi {
         try WinRTTypeName.from(type: type).midlMangling
     }
 
+    public static var namespacingPrefix: String { "SwiftWinRT_" }
+    public static var hresultName: String { namespacingPrefix + "HResult" }
+    public static var guidName: String { namespacingPrefix + "Guid" }
+    public static var hstringName: String { namespacingPrefix + "HString" }
+
     public static var virtualTableSuffix: String { "VTable" }
     public static var virtualTableFieldName: String { "lpVtbl" }
 }

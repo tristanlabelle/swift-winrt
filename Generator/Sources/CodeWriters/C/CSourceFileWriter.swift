@@ -29,6 +29,16 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
+    public func writeTypedef(type: CType, name: String) {
+        output.beginLine(grouping: .withName("typedef"))
+        output.write("typedef ")
+        if !writeType(type, variableName: name) {
+            output.write(" ")
+            output.write(name)
+        }
+        output.write(";", endLine: true)
+    }
+
     public func writeEnum(name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil, typedef: Bool = true) {
         let lineGrouping = output.allocateVerticalGrouping()
         output.beginLine(grouping: lineGrouping)

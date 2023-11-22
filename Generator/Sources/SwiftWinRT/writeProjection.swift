@@ -10,6 +10,8 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
     let abiModuleDirectoryPath = "\(generateCommand.out)\\\(projection.abiModuleName)"
     try FileManager.default.createDirectory(atPath: abiModuleDirectoryPath, withIntermediateDirectories: true)
 
+    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleDirectoryPath)\\_Core.h"))
+
     for module in projection.modulesByShortName.values {
         let moduleRootPath = "\(generateCommand.out)\\\(module.shortName)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
@@ -77,26 +79,27 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
         }
     }
 
-    let cHeaderWriter = CAbiHeaderWriter(output: FileTextOutputStream(path: path))
+    let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path))
+    cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)
 
     for reference in module.references {
-        cHeaderWriter.writeInclude(header: "\(reference.shortName).h")
+        cHeaderWriter.writeInclude(pathSpec: "\(reference.shortName).h", kind: .doubleQuotes)
     }
 
     // Forward declare all interfaces and structs
     for (_, type) in typesByMangledName {
-        try cHeaderWriter.writeForwardDeclaration(type: type)
+        try CAbi.writeForwardDeclaration(type: type, to: cHeaderWriter)
     }
 
     // Write all interfaces and delegates
     for (_, type) in typesByMangledName {
         switch type.definition {
             case let enumDefinition as EnumDefinition:
-                try cHeaderWriter.writeEnum(enumDefinition)
+                try CAbi.writeEnum(enumDefinition, to: cHeaderWriter)
             case let structDefinition as StructDefinition:
-                try cHeaderWriter.writeStruct(structDefinition)
+                try CAbi.writeStruct(structDefinition, to: cHeaderWriter)
             case let interfaceDefinition as InterfaceDefinition:
-                try cHeaderWriter.writeCOMInterface(interfaceDefinition, genericArgs: type.genericArgs)
+                try CAbi.writeCOMInterface(interfaceDefinition, genericArgs: type.genericArgs, to: cHeaderWriter)
             default:
                 break
         }
