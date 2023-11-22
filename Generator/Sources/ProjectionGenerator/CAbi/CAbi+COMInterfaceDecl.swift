@@ -38,8 +38,8 @@ extension CAbi {
             members.append(CVariableDecl(type: CType(typeSpecifier), name: name))
         }
 
-        public func write(to writer: CSourceFileWriter) {
-            writer.writeForwardDeclaration(kind: .struct, name: interfaceName)
+        public func write(comment: String? = nil, to writer: CSourceFileWriter) {
+            writer.writeForwardDeclaration(comment: comment, kind: .struct, name: interfaceName)
             writer.writeStruct(name: interfaceName + CAbi.virtualTableSuffix, members: members)
             writer.writeStruct(name: interfaceName, members: [
                 .init(type: .reference(name: interfaceName + CAbi.virtualTableSuffix).makePointer(), name: CAbi.virtualTableFieldName)

@@ -29,7 +29,9 @@ extension CAbi {
         let enumerants = try enumDefinition.fields.filter { $0.isStatic && $0.visibility == .public }
             .map { CEnumerant(name: $0.name, value: toValue(try $0.literalValue!)) }
 
-        writer.writeEnum(name: mangledName, enumerants: enumerants, enumerantPrefix: mangledName + "_")
+        writer.writeEnum(
+            comment: try WinRTTypeName.from(type: enumDefinition.bindType()).description,
+            name: mangledName, enumerants: enumerants, enumerantPrefix: mangledName + "_")
     }
 
     public static func writeStruct(_ structDefinition: StructDefinition, to writer: CSourceFileWriter) throws {
@@ -38,11 +40,14 @@ extension CAbi {
         let members = try structDefinition.fields.filter { !$0.isStatic && $0.visibility == .public  }
             .map { CVariableDecl(type: try toCType($0.type), name: $0.name) }
 
-        writer.writeStruct(name: mangledName, members: members)
+        writer.writeStruct(
+            comment: try WinRTTypeName.from(type: structDefinition.bindType()).description,
+            name: mangledName, members: members)
     }
 
     public static func writeCOMInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: CSourceFileWriter) throws {
-        let mangledName = try CAbi.mangleName(type: interface.bindType(genericArgs: genericArgs))
+        let boundType = interface.bindType(genericArgs: genericArgs)
+        let mangledName = try CAbi.mangleName(type: boundType)
 
         var decl = COMInterfaceDecl(interfaceName: mangledName, inspectable: true)
 
@@ -61,7 +66,9 @@ extension CAbi {
             decl.addFunction(name: method.name, params: params)
         }
 
-        decl.write(to: writer)
+        decl.write(
+            comment: try WinRTTypeName.from(type: boundType).description,
+            to: writer)
     }
 
     private static func appendCOMParams(for param: Param, genericArgs: [TypeNode], to comParams: inout [CParamDecl]) throws {

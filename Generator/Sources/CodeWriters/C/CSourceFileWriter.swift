@@ -18,7 +18,8 @@ public class CSourceFileWriter {
         }
     }
 
-    public func writeForwardDeclaration(kind: CTypeDeclKind, name: String) {
+    public func writeForwardDeclaration(comment: String? = nil, kind: CTypeDeclKind, name: String) {
+        if let comment { output.writeLine(grouping: .withName("forwardDecl"), "// \(comment)") }
         output.beginLine(grouping: .withName("forwardDecl"))
         switch kind {
             case .struct: output.write("struct ")
@@ -29,7 +30,8 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeTypedef(type: CType, name: String) {
+    public func writeTypedef(comment: String? = nil, type: CType, name: String) {
+        if let comment { output.writeLine(grouping: .withName("typedef"), "// \(comment)") }
         output.beginLine(grouping: .withName("typedef"))
         output.write("typedef ")
         if !writeType(type, variableName: name) {
@@ -39,8 +41,11 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeEnum(name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil, typedef: Bool = true) {
+    public func writeEnum(comment: String? = nil, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil, typedef: Bool = true) {
         let lineGrouping = output.allocateVerticalGrouping()
+
+        if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }
+
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }
         output.write("enum ")
@@ -64,8 +69,11 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeStruct(name: String, members: [CVariableDecl], typedef: Bool = true) {
+    public func writeStruct(comment: String? = nil, name: String, members: [CVariableDecl], typedef: Bool = true) {
         let lineGrouping = output.allocateVerticalGrouping()
+
+        if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }
+
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }
         output.write("struct ")
