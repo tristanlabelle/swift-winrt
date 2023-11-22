@@ -60,7 +60,9 @@ extension CAbi {
 
             if try method.hasReturnValue {
                 let returnType = try method.returnType.bindGenericParams(typeArgs: genericArgs)
-                params.append(CParamDecl(type: try toCType(returnType).makePointer(), name: nil))
+                params.append(CParamDecl(
+                    type: try toCType(returnType).makePointer(),
+                    name: "_return"))
             }
 
             decl.addFunction(name: method.name, params: params)
