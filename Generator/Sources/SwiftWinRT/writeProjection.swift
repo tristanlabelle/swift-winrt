@@ -8,15 +8,16 @@ import WindowsMetadata
 
 func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
     let abiModuleDirectoryPath = "\(generateCommand.out)\\\(projection.abiModuleName)"
-    try FileManager.default.createDirectory(atPath: abiModuleDirectoryPath, withIntermediateDirectories: true)
+    let abiModuleIncludeDirectoryPath = "\(abiModuleDirectoryPath)\\include"
+    try FileManager.default.createDirectory(atPath: abiModuleIncludeDirectoryPath, withIntermediateDirectories: true)
 
-    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleDirectoryPath)\\_Core.h"))
+    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h"))
 
     for module in projection.modulesByShortName.values {
         let moduleRootPath = "\(generateCommand.out)\\\(module.shortName)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
-        try writeCAbiFile(module: module, toPath: "\(abiModuleDirectoryPath)\\\(module.shortName).h")
+        try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.shortName).h")
 
         for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
@@ -64,8 +65,20 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
     for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
         for typeDefinition in typeDefinitions {
             guard typeDefinition.genericArity == 0 else { continue }
-            guard !(typeDefinition is ClassDefinition) else { continue }
-            let type = typeDefinition.bindType()
+
+            // For classes, use the default interface iff it is exclusive
+            let type: BoundType
+            if let classDefinition = typeDefinition as? ClassDefinition {
+                guard !classDefinition.isStatic else { continue }
+                guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else { throw WinMDError.missingAttribute }
+                guard let exclusiveTo = try defaultInterface.definition.findAttribute(ExclusiveToAttribute.self), exclusiveTo == classDefinition else { continue }
+
+                type = defaultInterface.asBoundType
+            }
+            else {
+                type = typeDefinition.bindType()
+            }
+
             let mangledName = try CAbi.mangleName(type: type)
             typesByMangledName[mangledName] = type
         }
@@ -100,8 +113,10 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
                 try CAbi.writeStruct(structDefinition, to: cHeaderWriter)
             case let interfaceDefinition as InterfaceDefinition:
                 try CAbi.writeCOMInterface(interfaceDefinition, genericArgs: type.genericArgs, to: cHeaderWriter)
+            case let delegateDefinition as DelegateDefinition:
+                try CAbi.writeCOMInterface(delegateDefinition, genericArgs: type.genericArgs, to: cHeaderWriter)
             default:
-                break
+                fatalError("Unexpected type definition kind \(type)")
         }
     }
 }

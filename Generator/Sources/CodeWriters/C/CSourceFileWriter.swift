@@ -18,15 +18,20 @@ public class CSourceFileWriter {
         }
     }
 
-    public func writeForwardDeclaration(comment: String? = nil, kind: CTypeDeclKind, name: String) {
+    public func writeForwardDeclaration(comment: String? = nil, typedef: Bool = false, kind: CTypeDeclKind, name: String) {
         if let comment { output.writeLine(grouping: .withName("forwardDecl"), "// \(comment)") }
         output.beginLine(grouping: .withName("forwardDecl"))
+        if typedef { output.write("typedef ") }
         switch kind {
             case .struct: output.write("struct ")
             case .enum: output.write("enum ")
             case .union: output.write("union ")
         }
         output.write(name)
+        if typedef {
+            output.write(" ")
+            output.write(name)
+        }
         output.write(";", endLine: true)
     }
 
@@ -41,7 +46,7 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeEnum(comment: String? = nil, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil, typedef: Bool = true) {
+    public func writeEnum(comment: String? = nil, typedef: Bool = false, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil) {
         let lineGrouping = output.allocateVerticalGrouping()
 
         if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }
@@ -69,7 +74,7 @@ public class CSourceFileWriter {
         output.write(";", endLine: true)
     }
 
-    public func writeStruct(comment: String? = nil, name: String, members: [CVariableDecl], typedef: Bool = true) {
+    public func writeStruct(comment: String? = nil, typedef: Bool = false, name: String, members: [CVariableDecl]) {
         let lineGrouping = output.allocateVerticalGrouping()
 
         if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }

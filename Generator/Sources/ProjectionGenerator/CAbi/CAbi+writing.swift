@@ -11,6 +11,7 @@ extension CAbi {
 
     public static func writeForwardDeclaration(type: BoundType, to writer: CSourceFileWriter) throws {
         writer.writeForwardDeclaration(
+            typedef: true,
             kind: type.definition is EnumDefinition ? .enum : .struct,
             name: try CAbi.mangleName(type: type))
     }
@@ -45,14 +46,21 @@ extension CAbi {
             name: mangledName, members: members)
     }
 
-    public static func writeCOMInterface(_ interface: InterfaceDefinition, genericArgs: [TypeNode], to writer: CSourceFileWriter) throws {
-        let boundType = interface.bindType(genericArgs: genericArgs)
+    public static func writeCOMInterface(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode], to writer: CSourceFileWriter) throws {
+        precondition(typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition)
+
+        let boundType = typeDefinition.bindType(genericArgs: genericArgs)
         let mangledName = try CAbi.mangleName(type: boundType)
 
-        var decl = COMInterfaceDecl(interfaceName: mangledName, inspectable: true)
+        var decl = COMInterfaceDecl(
+            interfaceName: mangledName,
+            inspectable: typeDefinition is InterfaceDefinition) // Delegates are not inspectable
 
         // Interface members
-        for method in interface.methods {
+        for method in typeDefinition.methods {
+            // For delegates, we only care about the invoke method
+            guard !(typeDefinition is DelegateDefinition) || method.name == "Invoke" else { continue }
+
             var params = [CParamDecl]()
             for param in try method.params {
                 try appendCOMParams(for: param, genericArgs: genericArgs, to: &params)
