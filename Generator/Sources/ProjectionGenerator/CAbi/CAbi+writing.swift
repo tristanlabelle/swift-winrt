@@ -10,29 +10,15 @@ extension CAbi {
     }
 
     public static func writeForwardDeclaration(type: BoundType, to writer: CSourceFileWriter) throws {
-        writer.writeForwardDeclaration(
-            typedef: true,
-            kind: type.definition is EnumDefinition ? .enum : .struct,
-            name: try CAbi.mangleName(type: type))
-    }
-
-    public static func writeEnum(_ enumDefinition: EnumDefinition, to writer: CSourceFileWriter) throws {
-        let mangledName = try CAbi.mangleName(type: enumDefinition.bindType())
-
-        func toValue(_ constant: Constant) -> Int {
-            switch constant {
-                case .int32(let value): return Int(value) // Non-flags
-                case .uint32(let value): return Int(value) // Flags
-                default: fatalError()
-            }
+        let mangledName = try CAbi.mangleName(type: type)
+        if let enumDefinition = type.definition as? EnumDefinition {
+            writer.writeTypedef(
+                type: CType.reference(name: try enumDefinition.isFlags ? "uint32_t" : "int32_t"),
+                name: mangledName)
         }
-
-        let enumerants = try enumDefinition.fields.filter { $0.isStatic && $0.visibility == .public }
-            .map { CEnumerant(name: $0.name, value: toValue(try $0.literalValue!)) }
-
-        writer.writeEnum(
-            comment: try WinRTTypeName.from(type: enumDefinition.bindType()).description,
-            name: mangledName, enumerants: enumerants, enumerantPrefix: mangledName + "_")
+        else {
+            writer.writeForwardDeclaration(typedef: true, kind: .struct, name: mangledName)
+        }
     }
 
     public static func writeStruct(_ structDefinition: StructDefinition, to writer: CSourceFileWriter) throws {

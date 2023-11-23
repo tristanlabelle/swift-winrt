@@ -20,11 +20,7 @@ extension CAbi {
 
         COMInterfaceDecl(interfaceName: iunknownName, inspectable: false).write(to: writer)
 
-        writer.writeEnum(typedef: true, name: namespacingPrefix + "TrustLevel", enumerants: [
-            .init(name: namespacingPrefix + "TrustLevel_BaseTrust", value: 0),
-            .init(name: namespacingPrefix + "TrustLevel_PartialTrust", value: 1),
-            .init(name: namespacingPrefix + "TrustLevel_FullTrust", value: 2)
-        ])
+        writer.writeTypedef(type: CType.reference(name: "int32_t"), name: namespacingPrefix + "TrustLevel")
 
         COMInterfaceDecl(interfaceName: iinspectableName, inspectable: true).write(to: writer)
     }

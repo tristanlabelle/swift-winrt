@@ -107,8 +107,10 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
     // Write all interfaces and delegates
     for (_, type) in typesByMangledName {
         switch type.definition {
-            case let enumDefinition as EnumDefinition:
-                try CAbi.writeEnum(enumDefinition, to: cHeaderWriter)
+            case is EnumDefinition:
+                // We don't need the full enum definitions with individual enumerant values.
+                // We merely forward declare them as typedefs of their underlying integer type.
+                break
             case let structDefinition as StructDefinition:
                 try CAbi.writeStruct(structDefinition, to: cHeaderWriter)
             case let interfaceDefinition as InterfaceDefinition:
