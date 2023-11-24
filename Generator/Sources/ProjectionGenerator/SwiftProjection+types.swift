@@ -1,4 +1,5 @@
 import DotNetMetadata
+import WindowsMetadata
 import CodeWriters
 
 extension SwiftProjection {
@@ -104,62 +105,51 @@ extension SwiftProjection {
 
     private func getCoreLibraryTypeProjection(_ type: BoundType) -> TypeProjection? {
         guard type.definition.namespace == "System" else { return nil }
-        if type.genericArgs.isEmpty {
-            switch type.definition.name {
-                case "Boolean":
-                    return TypeProjection(
-                        swiftType: .bool,
-                        abiType: .identifier("boolean"),
-                        projectionType: .chain("COM", "BooleanProjection"),
-                        abiDefaultValue: "0",
-                        abiKind: .inert)
-                case "SByte": return .numeric(swiftType: .int(bits: 8), abiType: "INT8")
-                case "Byte": return .numeric(swiftType: .uint(bits: 8), abiType: "UINT8")
-                case "Int16": return .numeric(swiftType: .int(bits: 16), abiType: "INT16")
-                case "UInt16": return .numeric(swiftType: .uint(bits: 16), abiType: "UINT16")
-                case "Int32": return .numeric(swiftType: .int(bits: 32), abiType: "INT32")
-                case "UInt32": return .numeric(swiftType: .uint(bits: 32), abiType: "UINT32")
-                case "Int64": return .numeric(swiftType: .int(bits: 64), abiType: "INT64")
-                case "UInt64": return .numeric(swiftType: .uint(bits: 64), abiType: "UINT64")
-                case "IntPtr": return .numeric(swiftType: .int, abiType: "INT_PTR")
-                case "UIntPtr": return .numeric(swiftType: .uint, abiType: "UINT_PTR")
-                case "Single": return .numeric(swiftType: .float, abiType: "FLOAT")
-                case "Double": return .numeric(swiftType: .double, abiType: "DOUBLE")
-                case "Char":
-                    return TypeProjection(
-                        swiftType: .chain("COM", "WideChar"),
-                        abiType: .chain(abiModuleName, "WCHAR"),
-                        projectionType: .chain("COM", "WideChar"),
-                        abiDefaultValue: "0",
-                        abiKind: .inert)
-                case "Guid":
-                    return TypeProjection(
-                        swiftType: .chain("Foundation", "UUID"),
-                        abiType: .chain(abiModuleName, "GUID"),
-                        projectionType: .chain("COM", "GUIDProjection"),
-                        abiKind: .inert)
-                case "String":
-                    return .init(
-                        swiftType: .string,
-                        abiType: .optional(wrapped: .chain(abiModuleName, "HSTRING")),
-                        projectionType: .chain("WindowsRuntime", "HStringProjection"),
-                        abiDefaultValue: "nil",
-                        abiKind: .allocating)
-                case "Object":
-                    return .init(
-                        swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
-                        abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
-                        projectionType: .chain("WindowsRuntime", "IInspectableProjection"),
-                        abiDefaultValue: "nil",
-                        abiKind: .allocating)
-                case "Void":
-                    return .noAbi(swiftType: .void)
-
-                default: return nil
-            }
-        }
-        else {
-            return nil
+        guard let systemType = WinRTSystemType(fromName: type.definition.name) else { return nil }
+        switch systemType {
+            case .boolean:
+                return TypeProjection(
+                    swiftType: .bool,
+                    abiType: .identifier("boolean"),
+                    projectionType: .chain("COM", "BooleanProjection"),
+                    abiDefaultValue: "0",
+                    abiKind: .inert)
+            case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8), abiType: "UINT8")
+            case .integer(.int16): return .numeric(swiftType: .int(bits: 16), abiType: "INT16")
+            case .integer(.uint16): return .numeric(swiftType: .uint(bits: 16), abiType: "UINT16")
+            case .integer(.int32): return .numeric(swiftType: .int(bits: 32), abiType: "INT32")
+            case .integer(.uint32): return .numeric(swiftType: .uint(bits: 32), abiType: "UINT32")
+            case .integer(.int64): return .numeric(swiftType: .int(bits: 64), abiType: "INT64")
+            case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64), abiType: "UINT64")
+            case .float(double: false): return .numeric(swiftType: .float, abiType: "FLOAT")
+            case .float(double: true): return .numeric(swiftType: .double, abiType: "DOUBLE")
+            case .char:
+                return TypeProjection(
+                    swiftType: .chain("COM", "WideChar"),
+                    abiType: .chain(abiModuleName, "WCHAR"),
+                    projectionType: .chain("COM", "WideChar"),
+                    abiDefaultValue: "0",
+                    abiKind: .inert)
+            case .guid:
+                return TypeProjection(
+                    swiftType: .chain("Foundation", "UUID"),
+                    abiType: .chain(abiModuleName, "GUID"),
+                    projectionType: .chain("COM", "GUIDProjection"),
+                    abiKind: .inert)
+            case .string:
+                return .init(
+                    swiftType: .string,
+                    abiType: .optional(wrapped: .chain(abiModuleName, "HSTRING")),
+                    projectionType: .chain("WindowsRuntime", "HStringProjection"),
+                    abiDefaultValue: "nil",
+                    abiKind: .allocating)
+            case .object:
+                return .init(
+                    swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
+                    abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
+                    projectionType: .chain("WindowsRuntime", "IInspectableProjection"),
+                    abiDefaultValue: "nil",
+                    abiKind: .allocating)
         }
     }
 

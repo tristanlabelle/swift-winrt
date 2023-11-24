@@ -32,7 +32,7 @@ extension SwiftAssemblyModuleFileWriter {
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
             target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
-            target: .chain(projection.abiModuleName, abiName + WinRTTypeName.midlVirtualTableSuffix))
+            target: .chain(projection.abiModuleName, abiName + CAbi.virtualTableSuffix))
 
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "iid",
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))

@@ -9,34 +9,51 @@ public enum CAbi {
         return result
     }
 
-    internal static func getName(systemTypeName: String, mangled: Bool) -> String? {
-        switch systemTypeName {
-            case "Boolean": return mangled ? "Bool" : "bool"
-            case "SByte": return mangled ? "Int8" : "int8_t"
-            case "Byte": return mangled ? "UInt8" : "uint8_t"
-            case "Int16": return mangled ? "Int16" : "int16_t"
-            case "UInt16": return mangled ? "UInt16" : "uint16_t"
-            case "Int32": return mangled ? "Int32" : "int32_t"
-            case "UInt32": return mangled ? "UInt32" : "uint32_t"
-            case "Int64": return mangled ? "Int64" : "int64_t"
-            case "UInt64": return mangled ? "UInt64" : "uint64_t"
-            case "Single": return mangled ? "Float" : "float"
-            case "Double": return mangled ? "Double" : "double"
-            case "Char": return mangled ? "Char" : "char16_t"
-            case "Object": return mangled ? "Object" : CAbi.iinspectableName
-            case "String": return mangled ? "String" : CAbi.hstringName
-            case "Guid": return mangled ? "Guid" : CAbi.guidName
-            default: return nil
+    internal static func getNamespace(_ typeDefinition: TypeDefinition) throws -> String {
+        guard let namespace = typeDefinition.namespace else { 
+            throw UnexpectedTypeError(typeDefinition.fullName, reason: "WinRT types must have namespaces")
+        }
+        return namespace
+    }
+
+    internal static func toSystemType(_ typeDefinition: TypeDefinition) throws -> WinRTSystemType? {
+        let namespace = try getNamespace(typeDefinition)
+        guard !namespace.starts(with: "System.") else { throw UnexpectedTypeError(typeDefinition.fullName, reason: "Not a well-known WinRT System type") }
+        guard namespace == "System" else { return nil }
+        guard let systemType = WinRTSystemType(fromName: typeDefinition.name) else {
+            throw UnexpectedTypeError(typeDefinition.fullName, reason: "Not a well-known WinRT System type")
+        }
+        return systemType
+    }
+
+    internal static func getName(integerType: WinRTIntegerType, mangled: Bool) -> String {
+        switch integerType {
+            case .uint8: return mangled ? "UInt8" : "uint8_t"
+            case .int16: return mangled ? "Int16" : "int16_t"
+            case .uint16: return mangled ? "UInt16" : "uint16_t"
+            case .int32: return mangled ? "Int32" : "int32_t"
+            case .uint32: return mangled ? "UInt32" : "uint32_t"
+            case .int64: return mangled ? "Int64" : "int64_t"
+            case .uint64: return mangled ? "UInt64" : "uint64_t"
+        }
+    }
+
+    internal static func getName(systemType: WinRTSystemType, mangled: Bool) -> String {
+        switch systemType {
+            case .boolean: return mangled ? "Bool" : "bool"
+            case .integer(let type): return getName(integerType: type, mangled: mangled)
+            case .float(double: false): return mangled ? "Float" : "float"
+            case .float(double: true): return mangled ? "Double" : "double"
+            case .char: return mangled ? "Char" : "char16_t"
+            case .object: return mangled ? "Object" : CAbi.iinspectableName
+            case .string: return mangled ? "String" : CAbi.hstringName
+            case .guid: return mangled ? "Guid" : CAbi.guidName
         }
     }
 
     private static func appendMangledName(type: BoundType, to result: inout String) throws {
-        if type.definition.namespace == "System" {
-            guard let mangledName = getName(systemTypeName: type.definition.name, mangled: true) else {
-                throw WinMDError.unexpectedType
-            }
-
-            result += mangledName
+        if let systemType = try toSystemType(type.definition) {
+            result += getName(systemType: systemType, mangled: true)
             return
         }
 
@@ -49,13 +66,16 @@ public enum CAbi {
         // so we can drop the generic arity suffix from the name without ambiguity.
         result += type.definition.nameWithoutGenericSuffix
         for genericArg in type.genericArgs {
-            guard case .bound(let genericArg) = genericArg else { throw WinMDError.unexpectedType }
+            guard case .bound(let genericArg) = genericArg else {
+                throw UnexpectedTypeError(genericArg.description, reason: "WinRT generic arguments must be bound types")
+            }
+
             result += "_"
             try appendMangledName(type: genericArg, to: &result)
         }
     }
 
-    public static var namespacingPrefix: String { "SwiftWinRT_" }
+    public static var namespacingPrefix: String { "ABI_" }
     public static var hresultName: String { namespacingPrefix + "HResult" }
     public static var guidName: String { namespacingPrefix + "Guid" }
     public static var hstringName: String { namespacingPrefix + "HString" }

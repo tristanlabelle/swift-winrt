@@ -16,19 +16,15 @@ extension CAbi {
     }
 
     internal static func toCType(_ type: TypeNode) throws -> CType {
-        guard case .bound(let type) = type else { throw WinMDError.unexpectedType }
-        guard let namespace = type.definition.namespace else { throw WinMDError.unexpectedType }
+        guard case .bound(let type) = type else { throw UnexpectedTypeError(type.description) }
 
-        if namespace == "System" || namespace.starts(with: "System.") {
-            guard let mangledName = getName(systemTypeName: type.definition.name, mangled: false) else {
-                throw WinMDError.unexpectedType
-            }
-            return makeCType(name: mangledName)
+        if let systemType = try toSystemType(type.definition) {
+            return makeCType(name: getName(systemType: systemType, mangled: false))
         }
 
         // At the ABI level, WinRT classes are represented as pointers to their default interface.
         if let classDefinition = type.definition as? ClassDefinition {
-            guard !classDefinition.isStatic else { throw WinMDError.unexpectedType }
+            guard !classDefinition.isStatic else { throw UnexpectedTypeError(classDefinition.fullName, reason: "Values should not be of static class types.") }
             guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else { throw WinMDError.missingAttribute }
             return try toCType(defaultInterface.asNode)
         }

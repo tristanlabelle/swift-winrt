@@ -28,7 +28,9 @@ extension SwiftAssemblyModuleFileWriter {
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { try projection.toType($0.type) },
                 throws: true,
-                returnType: projection.toReturnType(delegateDefinition.invokeMethod.returnType)
+                returnType: delegateDefinition.invokeMethod.hasReturnValue 
+                    ? projection.toReturnType(delegateDefinition.invokeMethod.returnType)
+                    : .void
             )
         )
     }
