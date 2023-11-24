@@ -19,8 +19,8 @@ public struct SwiftAssemblyModuleFileWriter {
         }
         sourceFileWriter.writeImport(module: "WindowsRuntime")
 
-        for reference in module.references {
-            sourceFileWriter.writeImport(module: reference.assemblyModuleName)
+        for referencedModule in module.references {
+            sourceFileWriter.writeImport(module: referencedModule.name)
         }
 
         sourceFileWriter.writeImport(module: "Foundation", struct: "UUID")

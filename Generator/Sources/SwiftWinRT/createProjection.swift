@@ -10,22 +10,24 @@ internal func createProjection(generateCommand: GenerateCommand, assemblyLoadCon
         allReferences.insert("C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\\(sdk)\\Windows.winmd")
     }
 
-    let moduleMap: ModuleMapFile?
-    if let moduleMapPath = generateCommand.moduleMap {
-        moduleMap = try JSONDecoder().decode(ModuleMapFile.self, from: Data(contentsOf: URL(fileURLWithPath: moduleMapPath)))
+    let projectionConfig: ProjectionConfig
+    if let configFilePath = generateCommand.config {
+        let jsonData = try Data(contentsOf: URL(fileURLWithPath: configFilePath))
+        projectionConfig = try JSONDecoder().decode(ProjectionConfig.self, from: jsonData)
     }
     else {
-        moduleMap = nil
+        projectionConfig = ProjectionConfig()
     }
 
-    let projection = SwiftProjection(abiModuleName: generateCommand.abiModuleName)
+    let projection = SwiftProjection(abiModuleName: projectionConfig.abiModule)
 
     // Preload assemblies and create modules
     for reference in allReferences {
         print("Loading assembly \(reference)...")
         let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: reference, into: assemblyLoadContext)
-        let (moduleName, _) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
-        let module = projection.modulesByShortName[moduleName] ?? projection.addModule(shortName: moduleName)
+        let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
+        let module = projection.modulesByName[moduleName] 
+            ?? projection.addModule(name: moduleName, flattenNamespaces: moduleConfig.flattenNamespaces)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
     }
 
@@ -36,14 +38,15 @@ internal func createProjection(generateCommand: GenerateCommand, assemblyLoadCon
         print("Gathering types from \(assembly.name)...")
         var typeDiscoverer = ModuleTypeDiscoverer(assemblyFilter: { $0 === assembly }, publicMembersOnly: true)
 
-        let (_, moduleMapping) = getModule(assemblyName: assembly.name, moduleMapFile: moduleMap)
+        let (_, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
+        let typeFilter = FilterSet(moduleConfig.types.map { $0.map { Filter(pattern: $0) } })
 
         for typeDefinition in assembly.definedTypes {
             guard typeDefinition.isPublic else { continue }
             guard typeDefinition.namespace != "Windows.Foundation.Metadata" else { continue }
             guard try !typeDefinition.hasAttribute(AttributeUsageAttribute.self) else { continue }
             guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
-            guard isIncluded(fullName: typeDefinition.fullName, filters: moduleMapping?.includeFilters) else { continue }
+            guard typeFilter.matches(typeDefinition.fullName) else { continue }
             try typeDiscoverer.add(typeDefinition)
         }
 
@@ -90,33 +93,4 @@ fileprivate func loadAssemblyAndDocumentation(
         }
     }
     return (assembly, docs)
-}
-
-fileprivate func getModule(assemblyName: String, moduleMapFile: ModuleMapFile?) -> (name: String, mapping: ModuleMapFile.Module?) {
-    if let moduleMapFile {
-        for (moduleName, module) in moduleMapFile.modules {
-            if module.assemblies.contains(assemblyName) {
-                return (moduleName, module)
-            }
-        }
-    }
-
-    return (assemblyName, nil)
-}
-
-fileprivate func isIncluded(fullName: String, filters: [String]?) -> Bool {
-    guard let filters else { return true }
-
-    for filter in filters {
-        if filter.last == "*" {
-            if fullName.starts(with: filter.dropLast()) {
-                return true
-            }
-        }
-        else if fullName == filter {
-            return true
-        }
-    }
-
-    return false
 }

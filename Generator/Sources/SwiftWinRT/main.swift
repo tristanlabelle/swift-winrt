@@ -1,5 +1,6 @@
 import DotNetMetadata
 import ProjectionGenerator
+import Foundation
 
 // Introduce a scope to workaround a compiler bug which allows
 // global main.swift variables to be referred to before their initialization.
@@ -15,4 +16,9 @@ do {
 
     let projection = try createProjection(generateCommand: generateCommand, assemblyLoadContext: context)
     try writeProjection(projection, generateCommand: generateCommand)
+}
+catch let error {
+    print(error)
+    fflush(stdout)
+    throw error
 }

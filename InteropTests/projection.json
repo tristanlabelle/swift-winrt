@@ -1,14 +1,15 @@
 {
     "modules": {
-        "WindowsFoundation": {
+        "UWP": {
             "assemblies": [
-                "Windows.Foundation.FoundationContract"
+                "Windows.*"
             ]
         },
         "WinRTComponent": {
             "assemblies": [
                 "WinRTComponent"
-            ]
+            ],
+            "flattenNamespaces": true
         }
     }
 }

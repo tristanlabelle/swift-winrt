@@ -13,20 +13,26 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
 
     CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h"))
 
-    for module in projection.modulesByShortName.values {
-        let moduleRootPath = "\(generateCommand.out)\\\(module.shortName)"
+    for module in projection.modulesByName.values {
+        let moduleRootPath = "\(generateCommand.out)\\\(module.name)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
-        try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.shortName).h")
+        try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
 
         for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
             print("Generating types for namespace \(namespace)...")
 
-            let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
-            let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
-            try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
-            let aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
+            let aliasesWriter: SwiftNamespaceModuleFileWriter?
+            if module.flattenNamespaces {
+                aliasesWriter = nil
+            }
+            else {
+                let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
+                let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
+                try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
+                aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
+            }
 
             for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
                 // Some types have special handling and should not have their projection code generated
@@ -37,7 +43,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
                     writeDefinition: true, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
 
-                if typeDefinition.isPublic { try aliasesWriter.writeAliases(typeDefinition) }
+                if typeDefinition.isPublic { try aliasesWriter?.writeAliases(typeDefinition) }
             }
         }
 
@@ -96,7 +102,7 @@ fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: Stri
     cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)
 
     for reference in module.references {
-        cHeaderWriter.writeInclude(pathSpec: "\(reference.shortName).h", kind: .doubleQuotes)
+        cHeaderWriter.writeInclude(pathSpec: "\(reference.name).h", kind: .doubleQuotes)
     }
 
     // Forward declare all interfaces and structs

@@ -7,11 +7,8 @@ struct GenerateCommand: ParsableCommand {
     @Option(help: "A Windows SDK version with the APIs to project.")
     var sdk: String? = nil
 
-    @Option(name: .customLong("module-map"), help: "A path to a module map json file to use.")
-    var moduleMap: String? = nil
-
-    @Option(name: .customLong("abi-module"), help: "The name of the C ABI module.")
-    var abiModuleName: String = "CAbi"
+    @Option(help: "A path to a json projection configuration file to use.")
+    var config: String? = nil
 
     @Option(help: "A path to the output directory.")
     var out: String

@@ -4,17 +4,18 @@ import DotNetXMLDocs
 extension SwiftProjection {
     public class Module {
         public unowned let projection: SwiftProjection
-        public let shortName: String
+        public let name: String
+        public let flattenNamespaces: Bool
         public private(set) var typeDefinitionsByNamespace = [String: Set<TypeDefinition>]()
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
-        internal init(projection: SwiftProjection, shortName: String) {
+        internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
             self.projection = projection
-            self.shortName = shortName
+            self.name = name
+            self.flattenNamespaces = flattenNamespaces
         }
 
-        public var assemblyModuleName: String { shortName + "Assembly" }
         public var references: [Module] { weakReferences.map { $0.target } }
 
         public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
@@ -48,7 +49,7 @@ extension SwiftProjection {
             if let enclosingType = try typeDefinition.enclosingType {
                 result += try getName(enclosingType, namespaced: namespaced) + "_"
             }
-            else if namespaced {
+            else if namespaced && !flattenNamespaces {
                 result += typeDefinition.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
             }
 
