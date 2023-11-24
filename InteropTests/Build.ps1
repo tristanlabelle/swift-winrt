@@ -28,9 +28,8 @@ $TestComponentDir = "$TestComponentProjectDir\$MSBuildConfiguration\WinRTCompone
 
 Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
 & $SwiftWinRT `
-    --module-map "$PSScriptRoot\modulemap.json" `
-    --abi-module "CTestComponent" `
-    --reference "$env:WindowsSdkDir\References\${env:WindowsSdkDir}Windows.Foundation.FoundationContract\4.0.0.0\Windows.Foundation.FoundationContract.winmd" `
+    --config "$PSScriptRoot\projection.json" `
+    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.FoundationContract\4.0.0.0\Windows.Foundation.FoundationContract.winmd" `
     --reference "$TestComponentDir\WinRTComponent.winmd" `
     --out "$PSScriptRoot\Generated"
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }
