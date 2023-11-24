@@ -12,7 +12,8 @@ namespace WinRTComponent
         IMinimalInterface Interface(IMinimalInterface value);
         MinimalClass Class(MinimalClass value);
         MinimalDelegate Delegate(MinimalDelegate value);
-        Windows.Foundation.IReference<Int32> Reference(Windows.Foundation.IReference<Int32> value);
+        // TODO(#6): Support IReference<T> projections
+        // Windows.Foundation.IReference<Int32> Reference(Windows.Foundation.IReference<Int32> value);
     }
 
     static runtimeclass Passthrough

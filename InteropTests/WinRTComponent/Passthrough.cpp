@@ -15,7 +15,6 @@ namespace
         winrt::WinRTComponent::IMinimalInterface Interface(winrt::WinRTComponent::IMinimalInterface const& value) { return value; }
         winrt::WinRTComponent::MinimalClass Class(winrt::WinRTComponent::MinimalClass const& value) { return value; }
         winrt::WinRTComponent::MinimalDelegate Delegate(winrt::WinRTComponent::MinimalDelegate const& value) { return value; }
-        winrt::Windows::Foundation::IReference<int32_t> Reference(winrt::Windows::Foundation::IReference<int32_t> const& value) { return value; }
     };
 
     class Proxy : public winrt::implements<Proxy, winrt::WinRTComponent::IPassthrough>
@@ -34,7 +33,6 @@ namespace
         winrt::WinRTComponent::IMinimalInterface Interface(winrt::WinRTComponent::IMinimalInterface const& value) { return inner.Interface(value); }
         winrt::WinRTComponent::MinimalClass Class(winrt::WinRTComponent::MinimalClass const& value) { return inner.Class(value); }
         winrt::WinRTComponent::MinimalDelegate Delegate(winrt::WinRTComponent::MinimalDelegate const& value) { return inner.Delegate(value); }
-        winrt::Windows::Foundation::IReference<int32_t> Reference(winrt::Windows::Foundation::IReference<int32_t> const& value) { return inner.Reference(value); }
     };
 }
 
