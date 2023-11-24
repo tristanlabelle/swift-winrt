@@ -81,6 +81,7 @@ public enum CAbi {
     public static var hstringName: String { namespacingPrefix + "HString" }
     public static var iunknownName: String { namespacingPrefix + "IUnknown" }
     public static var iinspectableName: String { namespacingPrefix + "IInspectable" }
+    public static var iactivationFactoryName: String { namespacingPrefix + "IActivationFactory" }
 
     public static var virtualTableSuffix: String { "VTable" }
     public static var virtualTableFieldName: String { "lpVtbl" }

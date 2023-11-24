@@ -71,7 +71,7 @@ extension SwiftAssemblyModuleFileWriter {
             0xC0, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
         let interfaceProperty = try writeSecondaryInterfaceProperty(
-            interfaceName: "IActivationFactory", abiName: "IActivationFactory", iid: iactivationFactoryID,
+            interfaceName: "IActivationFactory", abiName: CAbi.iactivationFactoryName, iid: iactivationFactoryID,
             staticOf: classDefinition, to: writer)
 
         writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
