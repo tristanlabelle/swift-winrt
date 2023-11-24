@@ -110,36 +110,36 @@ extension SwiftProjection {
             case .boolean:
                 return TypeProjection(
                     swiftType: .bool,
-                    abiType: .identifier("boolean"),
+                    abiType: .int(bits: 8, signed: false),
                     projectionType: .chain("COM", "BooleanProjection"),
                     abiDefaultValue: "0",
                     abiKind: .inert)
-            case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8), abiType: "UINT8")
-            case .integer(.int16): return .numeric(swiftType: .int(bits: 16), abiType: "INT16")
-            case .integer(.uint16): return .numeric(swiftType: .uint(bits: 16), abiType: "UINT16")
-            case .integer(.int32): return .numeric(swiftType: .int(bits: 32), abiType: "INT32")
-            case .integer(.uint32): return .numeric(swiftType: .uint(bits: 32), abiType: "UINT32")
-            case .integer(.int64): return .numeric(swiftType: .int(bits: 64), abiType: "INT64")
-            case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64), abiType: "UINT64")
-            case .float(double: false): return .numeric(swiftType: .float, abiType: "FLOAT")
-            case .float(double: true): return .numeric(swiftType: .double, abiType: "DOUBLE")
+            case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8))
+            case .integer(.int16): return .numeric(swiftType: .int(bits: 16))
+            case .integer(.uint16): return .numeric(swiftType: .uint(bits: 16))
+            case .integer(.int32): return .numeric(swiftType: .int(bits: 32))
+            case .integer(.uint32): return .numeric(swiftType: .uint(bits: 32))
+            case .integer(.int64): return .numeric(swiftType: .int(bits: 64))
+            case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64))
+            case .float(double: false): return .numeric(swiftType: .float)
+            case .float(double: true): return .numeric(swiftType: .double)
             case .char:
                 return TypeProjection(
                     swiftType: .chain("COM", "WideChar"),
-                    abiType: .chain(abiModuleName, "WCHAR"),
+                    abiType: .chain(abiModuleName, "char16_t"),
                     projectionType: .chain("COM", "WideChar"),
                     abiDefaultValue: "0",
                     abiKind: .inert)
             case .guid:
                 return TypeProjection(
                     swiftType: .chain("Foundation", "UUID"),
-                    abiType: .chain(abiModuleName, "GUID"),
+                    abiType: .chain(abiModuleName, CAbi.guidName),
                     projectionType: .chain("COM", "GUIDProjection"),
                     abiKind: .inert)
             case .string:
                 return .init(
                     swiftType: .string,
-                    abiType: .optional(wrapped: .chain(abiModuleName, "HSTRING")),
+                    abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
                     projectionType: .chain("WindowsRuntime", "HStringProjection"),
                     abiDefaultValue: "nil",
                     abiKind: .allocating)
@@ -159,7 +159,7 @@ extension SwiftProjection {
             case "IReference`1":
                 precondition(type.genericArgs.count == 1)
                 let wrappedTypeProjection = try getTypeProjection(type.genericArgs[0])
-                // TODO: Implement IReference<T> projection
+                // TODO(#6): Implement IReference<T> projection
                 return TypeProjection.noAbi(swiftType: .optional(wrapped: wrappedTypeProjection.swiftType))
 
             case "EventRegistrationToken":

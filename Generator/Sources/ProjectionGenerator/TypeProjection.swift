@@ -43,10 +43,10 @@ struct TypeProjection {
         TypeProjection(swiftType: swiftType, abi: nil)
     }
 
-    public static func numeric(swiftType: SwiftType, abiType: String) -> TypeProjection {
+    public static func numeric(swiftType: SwiftType, abiType: SwiftType? = nil) -> TypeProjection {
         TypeProjection(
             swiftType: swiftType,
-            abiType: .identifier(name: abiType),
+            abiType: abiType ?? swiftType,
             projectionType: .identifier("NumericProjection", genericArgs: [swiftType]),
             abiDefaultValue: "0",
             abiKind: .identity)
