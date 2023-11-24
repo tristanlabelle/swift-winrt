@@ -2,8 +2,8 @@ import CodeWriters
 
 extension CAbi {
     internal struct COMInterfaceDecl {
-        private let interfaceName: String
-        private var members = [CVariableDecl]()
+        public var interfaceName: String
+        public var members = [CVariableDecl]()
 
         public init(interfaceName: String, inspectable: Bool) {
             self.interfaceName = interfaceName
@@ -38,11 +38,15 @@ extension CAbi {
             members.append(CVariableDecl(type: CType(typeSpecifier), name: name))
         }
 
-        public func write(comment: String? = nil, to writer: CSourceFileWriter) {
-            writer.writeForwardDeclaration(comment: comment, typedef: true, kind: .struct, name: interfaceName)
-            writer.writeStruct(typedef: true, name: interfaceName + CAbi.virtualTableSuffix, members: members)
-            writer.writeStruct(name: interfaceName, members: [
-                .init(type: .reference(name: interfaceName + CAbi.virtualTableSuffix).makePointer(), name: CAbi.virtualTableFieldName)
+        public func write(comment: String? = nil, forwardDeclared: Bool = false, to writer: CSourceFileWriter) {
+            if !forwardDeclared {
+                writer.writeForwardDecl(comment: comment, typedef: true, kind: .struct, name: interfaceName)
+            }
+
+            writer.writeStruct(comment: forwardDeclared ? comment : nil, name: interfaceName + CAbi.virtualTableSuffix, members: members)
+
+            writer.writeStruct(typedef: !forwardDeclared, name: interfaceName, members: [
+                .init(type: .reference(kind: .struct, name: interfaceName + CAbi.virtualTableSuffix).makePointer(), name: CAbi.virtualTableFieldName)
             ])
         }
     }

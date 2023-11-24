@@ -9,16 +9,21 @@ extension CAbi {
         writer.writeInclude(pathSpec: "uchar.h", kind: .angleBrackets)
     }
 
-    public static func writeForwardDeclaration(type: BoundType, to writer: CSourceFileWriter) throws {
-        let mangledName = try CAbi.mangleName(type: type)
+    public static func writeForwardDecl(type: BoundType, to writer: CSourceFileWriter) throws {
         if let enumDefinition = type.definition as? EnumDefinition {
-            writer.writeTypedef(
-                type: CType.reference(name: try enumDefinition.isFlags ? "uint32_t" : "int32_t"),
-                name: mangledName)
+            try writeEnumTypedef(enumDefinition, to: writer)
         }
         else {
-            writer.writeForwardDeclaration(typedef: true, kind: .struct, name: mangledName)
+            let mangledName = try CAbi.mangleName(type: type)
+            writer.writeForwardDecl(typedef: true, kind: .struct, name: mangledName)
         }
+    }
+
+    public static func writeEnumTypedef(_ enumDefinition: EnumDefinition, to writer: CSourceFileWriter) throws {
+        let mangledName = try CAbi.mangleName(type: enumDefinition.bindType())
+        writer.writeTypedef(
+            type: CType.reference(name: try enumDefinition.isFlags ? "uint32_t" : "int32_t"),
+            name: mangledName)
     }
 
     public static func writeStruct(_ structDefinition: StructDefinition, to writer: CSourceFileWriter) throws {
@@ -29,7 +34,7 @@ extension CAbi {
 
         writer.writeStruct(
             comment: try WinRTTypeName.from(type: structDefinition.bindType()).description,
-            name: mangledName, members: members)
+            typedef: true,  name: mangledName, members: members)
     }
 
     public static func writeCOMInterface(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode], to writer: CSourceFileWriter) throws {
@@ -64,6 +69,7 @@ extension CAbi {
 
         decl.write(
             comment: try WinRTTypeName.from(type: boundType).description,
+            forwardDeclared: true,
             to: writer)
     }
 

@@ -66,69 +66,6 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
     }
 }
 
-fileprivate func writeCAbiFile(module: SwiftProjection.Module, toPath path: String) throws {
-    var typesByMangledName = OrderedDictionary<String, BoundType>()
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions {
-            guard typeDefinition.genericArity == 0 else { continue }
-
-            // For classes, use the default interface iff it is exclusive
-            let type: BoundType
-            if let classDefinition = typeDefinition as? ClassDefinition {
-                guard !classDefinition.isStatic else { continue }
-                guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else { throw WinMDError.missingAttribute }
-                guard let exclusiveTo = try defaultInterface.definition.findAttribute(ExclusiveToAttribute.self), exclusiveTo == classDefinition else { continue }
-
-                type = defaultInterface.asBoundType
-            }
-            else {
-                type = typeDefinition.bindType()
-            }
-
-            let mangledName = try CAbi.mangleName(type: type)
-            typesByMangledName[mangledName] = type
-        }
-    }
-
-    for (typeDefinition, instanciations) in module.closedGenericTypesByDefinition {
-        for genericArgs in instanciations {
-            let type = typeDefinition.bindType(genericArgs: genericArgs)
-            let mangledName = try CAbi.mangleName(type: type)
-            typesByMangledName[mangledName] = type
-        }
-    }
-
-    let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path))
-    cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)
-
-    for reference in module.references {
-        cHeaderWriter.writeInclude(pathSpec: "\(reference.name).h", kind: .doubleQuotes)
-    }
-
-    // Forward declare all interfaces and structs
-    for (_, type) in typesByMangledName {
-        try CAbi.writeForwardDeclaration(type: type, to: cHeaderWriter)
-    }
-
-    // Write all interfaces and delegates
-    for (_, type) in typesByMangledName {
-        switch type.definition {
-            case is EnumDefinition:
-                // We don't need the full enum definitions with individual enumerant values.
-                // We merely forward declare them as typedefs of their underlying integer type.
-                break
-            case let structDefinition as StructDefinition:
-                try CAbi.writeStruct(structDefinition, to: cHeaderWriter)
-            case let interfaceDefinition as InterfaceDefinition:
-                try CAbi.writeCOMInterface(interfaceDefinition, genericArgs: type.genericArgs, to: cHeaderWriter)
-            case let delegateDefinition as DelegateDefinition:
-                try CAbi.writeCOMInterface(delegateDefinition, genericArgs: type.genericArgs, to: cHeaderWriter)
-            default:
-                fatalError("Unexpected type definition kind \(type)")
-        }
-    }
-}
-
 fileprivate func writeProjectionSwiftFile(
         module: SwiftProjection.Module,
         typeDefinition: TypeDefinition,

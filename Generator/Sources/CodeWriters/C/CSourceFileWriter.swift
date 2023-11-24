@@ -18,7 +18,7 @@ public class CSourceFileWriter {
         }
     }
 
-    public func writeForwardDeclaration(comment: String? = nil, typedef: Bool = false, kind: CTypeDeclKind, name: String) {
+    public func writeForwardDecl(comment: String? = nil, typedef: Bool = false, kind: CTypeDeclKind, name: String) {
         if let comment { output.writeLine(grouping: .withName("forwardDecl"), "// \(comment)") }
         output.beginLine(grouping: .withName("forwardDecl"))
         if typedef { output.write("typedef ") }
