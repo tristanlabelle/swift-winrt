@@ -2,7 +2,7 @@ import COM
 import CWinRTCore
 
 public protocol IInspectableProtocol: IUnknownProtocol {
-    func getIids() throws -> [IID]
+    func getIids() throws -> [COMInterfaceID]
     func getRuntimeClassName() throws -> String
     func getTrustLevel() throws -> TrustLevel
 }
@@ -11,9 +11,9 @@ public typealias IInspectable = any IInspectableProtocol
 public enum IInspectableProjection: WinRTTwoWayProjection {
     public typealias SwiftObject = IInspectable
     public typealias COMInterface = CWinRTCore.ABI_IInspectable
-    public typealias COMVirtualTable = CWinRTCore.ABI_IInspectableVtbl
+    public typealias COMVirtualTable = CWinRTCore.ABI_IInspectableVTable
 
-    public static let iid = IID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
+    public static let id = COMInterfaceID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }
     public static var runtimeClassName: String { "IInspectable" }
 

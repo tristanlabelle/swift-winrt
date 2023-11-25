@@ -30,7 +30,7 @@ extension COMImport where Projection: COMTwoWayProjection {
 
     public static func _queryInterface(
             _ this: Projection.COMPointer?,
-            _ iid: UnsafePointer<IID>?,
+            _ iid: UnsafePointer<CWinRTCore.ABI_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.ABI_HResult {
         guard let ppvObject else { return HResult.invalidArg.value }
         ppvObject.pointee = nil
@@ -38,7 +38,8 @@ extension COMImport where Projection: COMTwoWayProjection {
         guard let this, let iid else { return HResult.invalidArg.value }
 
         return HResult.catchValue {
-            let unknownWithRef = try COMExport<Projection>.queryInterface(this, iid.pointee)
+            let id = GUIDProjection.toSwift(iid.pointee)
+            let unknownWithRef = try COMExport<Projection>.queryInterface(this, id)
             ppvObject.pointee = UnsafeMutableRawPointer(unknownWithRef)
         }
     }

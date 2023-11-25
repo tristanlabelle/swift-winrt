@@ -11,7 +11,7 @@ open class WinRTExportBase<Projection: WinRTTwoWayProjection>
             queriableInterfaces: Self.queriableInterfaces)
     }
     
-    public final func getIids() throws -> [IID] { Self.queriableInterfaces.map { $0.iid } }
+    public final func getIids() throws -> [COMInterfaceID] { Self.queriableInterfaces.map { $0.id } }
     public final func getRuntimeClassName() throws -> String { Self._runtimeClassName }
     public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }

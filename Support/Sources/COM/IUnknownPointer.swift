@@ -26,8 +26,8 @@ extension IUnknownPointer {
         return postRelease
     }
 
-    public func queryInterface<Interface>(_ iid: IID, _ type: Interface.Type) throws -> UnsafeMutablePointer<Interface> {
-        var iid = iid
+    public func queryInterface<Interface>(_ id: COMInterfaceID, _ type: Interface.Type) throws -> UnsafeMutablePointer<Interface> {
+        var iid = GUIDProjection.toABI(id)
         var pointer: UnsafeMutableRawPointer? = nil
         try HResult.throwIfFailed(self.pointee.lpVtbl.pointee.QueryInterface(self, &iid, &pointer))
         guard let pointer else {
@@ -38,8 +38,8 @@ extension IUnknownPointer {
         return pointer.bindMemory(to: Interface.self, capacity: 1)
     }
 
-    public func queryInterface(_ iid: IID) throws -> IUnknownPointer {
-        try self.queryInterface(iid, IUnknownPointer.Pointee.self)
+    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownPointer {
+        try self.queryInterface(id, IUnknownPointer.Pointee.self)
     }
 
     public func cast<COMInterface>(to type: COMInterface.Type) -> UnsafeMutablePointer<COMInterface> {

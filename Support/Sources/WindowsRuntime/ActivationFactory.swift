@@ -1,13 +1,13 @@
 import CWinRTCore
 import COM
 
-public func getActivationFactoryPointer<COMInterface>(activatableId: String, iid: IID) throws -> UnsafeMutablePointer<COMInterface> {
+public func getActivationFactoryPointer<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> UnsafeMutablePointer<COMInterface> {
     var activatableId = try HStringProjection.toABI(activatableId)
     defer { HStringProjection.release(&activatableId) }
 
-    var iid = iid
+    var iid = GUIDProjection.toABI(id)
     var factory: UnsafeMutableRawPointer?
-    try HResult.throwIfFailed(CWinRTCore.RoGetActivationFactory(activatableId, &iid, &factory))
+    try HResult.throwIfFailed(CWinRTCore.ABI_RoGetActivationFactory(activatableId, &iid, &factory))
     guard let factory else { throw HResult.Error.noInterface }
 
     return factory.bindMemory(to: COMInterface.self, capacity: 1)

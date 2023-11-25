@@ -18,8 +18,8 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject
     static func toCOM(_ object: SwiftObject) throws -> COMPointer
 
-    /// Gets the identifier of the COM interface.
-    static var iid: IID { get }
+    /// Gets the COM interface identifier.
+    static var id: COMInterfaceID { get }
 }
 
 extension COMProjection {

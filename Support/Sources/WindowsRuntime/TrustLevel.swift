@@ -11,5 +11,5 @@ public struct TrustLevel: Hashable, RawRepresentable {
 }
 
 extension TrustLevel: EnumProjection {
-    public typealias CEnum = CWinRTCore.TrustLevel
+    public typealias CEnum = CWinRTCore.ABI_TrustLevel
 }

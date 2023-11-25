@@ -81,7 +81,7 @@ extension SwiftAssemblyModuleFileWriter {
             writer.writeStatement("try HResult.throwIfFailed(_factory.pointee.lpVtbl.pointee.ActivateInstance(_factory, &inspectable))")
             writer.writeStatement("guard let inspectable else { throw COM.HResult.Error.noInterface }")
             writer.writeBlankLine()
-            writer.writeStatement("var iid = Self.iid")
+            writer.writeStatement("var iid = COM.GUIDProjection.toABI(Self.id)")
             writer.writeStatement("var instance: UnsafeMutableRawPointer? = nil")
             writer.writeStatement("try HResult.throwIfFailed(inspectable.pointee.lpVtbl.pointee.QueryInterface(inspectable, &iid, &instance))")
             writer.writeStatement("guard let instance else { throw COM.HResult.Error.noInterface }")

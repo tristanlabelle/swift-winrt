@@ -1,11 +1,14 @@
 import CWinRTCore
 
+// Initializes WinRT for the current thread.
 public final class WinRTInitialization {
     public init(multithreaded: Bool) throws {
-        CWinRTCore.RoInitialize(multithreaded ? CWinRTCore.RO_INIT_MULTITHREADED  : CWinRTCore.RO_INIT_SINGLETHREADED)
+        CWinRTCore.ABI_RoInitialize(multithreaded
+            ? CWinRTCore.ABI_RO_INIT_MULTITHREADED
+            : CWinRTCore.ABI_RO_INIT_SINGLETHREADED)
     }
 
     deinit {
-        CWinRTCore.RoUninitialize()
+        CWinRTCore.ABI_RoUninitialize()
     }
 }

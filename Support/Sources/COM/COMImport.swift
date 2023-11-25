@@ -21,8 +21,8 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
 
     deinit { IUnknownPointer.release(comPointer) }
 
-    public func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer {
-        return try IUnknownPointer.cast(comPointer).queryInterface(iid)
+    public func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+        return try IUnknownPointer.cast(comPointer).queryInterface(id)
     }
 
     public var _unknown: IUnknownPointer {

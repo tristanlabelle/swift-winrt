@@ -34,7 +34,7 @@ extension SwiftAssemblyModuleFileWriter {
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: .chain(projection.abiModuleName, abiName + CAbi.virtualTableSuffix))
 
-        writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "iid",
+        writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "id",
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
         if classDefinition == nil {
@@ -100,7 +100,7 @@ extension SwiftAssemblyModuleFileWriter {
                 | (UInt64(uuid.14) << 8) | (UInt64(uuid.15) << 0),
                 minimumLength: 12)
         ]
-        return "IID(\(arguments.joined(separator: ", ")))"
+        return "COMInterfaceID(\(arguments.joined(separator: ", ")))"
     }
 
     internal func writeInterfaceImplementations(_ type: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
@@ -185,23 +185,23 @@ extension SwiftAssemblyModuleFileWriter {
             initialValue: "nil")
 
         // private [static] func _getIStringable() throws -> UnsafeMutablePointer<__x_ABI_CIStringable> {
-        //     if let _existing = _istringable { return _existing }
-        //     let iid = IID(00000035, 0000, 0000, C000, 000000000046)
-        //     let _new = try _queryInterfacePointer(iid).cast(to: __x_ABI_CIStringable.self)
-        //     _istringable = _new
-        //     return _new
+        //     if let existing = _istringable { return existing }
+        //     let id = COMInterfaceID(00000035, 0000, 0000, C000, 000000000046)
+        //     let new = try _queryInterfacePointer(id).cast(to: __x_ABI_CIStringable.self)
+        //     _istringable = new
+        //     return new
         // }
         let getter = "_get" + interfaceName
         try writer.writeFunc(visibility: .private, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
             $0.writeStatement("if let existing = \(storedPropertyName) { return existing }")
-            $0.writeStatement("let iid = \(try Self.toIIDExpression(iid))")
+            $0.writeStatement("let id = \(try Self.toIIDExpression(iid))")
             if let staticOf {
                 let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                 $0.writeStatement("let new: \(abiPointerType) = try WindowsRuntime.getActivationFactoryPointer(\n"
-                    + "activatableId: \"\(activatableId)\", iid: iid)")
+                    + "activatableId: \"\(activatableId)\", id: id)")
             }
             else {
-                $0.writeStatement("let new = try _queryInterfacePointer(iid).cast(to: \(abiName).self)")
+                $0.writeStatement("let new = try _queryInterfacePointer(id).cast(to: \(abiName).self)")
             }
             $0.writeStatement("\(storedPropertyName) = new")
             $0.writeStatement("return new")

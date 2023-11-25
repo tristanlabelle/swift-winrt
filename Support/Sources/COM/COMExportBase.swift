@@ -21,7 +21,7 @@ open class COMExportBase<Projection: COMTwoWayProjection>: IUnknownProtocol {
             queriableInterfaces: Self.queriableInterfaces)
     }
 
-    public func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer {
-        return try _getCOMExport()._queryInterfacePointer(iid)
+    public func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+        return try _getCOMExport()._queryInterfacePointer(id)
     }
 }

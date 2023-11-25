@@ -8,11 +8,11 @@ public protocol COMExportProtocol: IUnknownProtocol {
 }
 
 public struct COMExportInterface {
-    public let iid: IID
+    public let id: COMInterfaceID
     public let queryPointer: (_ identity: any COMExportProtocol) throws -> IUnknownPointer
 
     public init<TargetProjection: COMTwoWayProjection>(_: TargetProjection.Type) {
-        self.iid = TargetProjection.iid
+        self.id = TargetProjection.id
         self.queryPointer = { identity in
             let export = COMExport<TargetProjection>(
                 implementation: identity.anyImplementation as! TargetProjection.SwiftObject,
@@ -77,19 +77,19 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportProtocol, IUnkno
         }
     }
 
-    open func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer {
-        if iid == Projection.iid { return unknown.addingRef() }
+    open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+        if id == Projection.id { return unknown.addingRef() }
         
         switch identityData {
             case .own(let queriableInterfaces):
-                if iid == IUnknownProjection.iid { return unknown.addingRef() }
-                guard let interface = queriableInterfaces.first(where: { $0.iid == iid }) else {
+                if id == IUnknownProjection.id { return unknown.addingRef() }
+                guard let interface = queriableInterfaces.first(where: { $0.id == id }) else {
                     throw HResult.Error.noInterface
                 }
                 return try interface.queryPointer(self)
 
             case .foreign(let target):
-                return try target._queryInterfacePointer(iid)
+                return try target._queryInterfacePointer(id)
         }
     }
 
@@ -118,7 +118,7 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportProtocol, IUnkno
         return UInt32(oldRetainCount - 1)
     }
 
-    internal static func queryInterface(_ this: Projection.COMPointer, _ iid: IID) throws -> IUnknownPointer {
-        try cast(this).pointee.object.takeUnretainedValue()._queryInterfacePointer(iid)
+    internal static func queryInterface(_ this: Projection.COMPointer, _ id: COMInterfaceID) throws -> IUnknownPointer {
+        try cast(this).pointee.object.takeUnretainedValue()._queryInterfacePointer(id)
     }
 }

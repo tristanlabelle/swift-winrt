@@ -1,18 +1,18 @@
 import CWinRTCore
 import COM
+import WinSDK
+import struct Foundation.UUID
 
 open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IInspectableProtocol {
     private var _inspectable: UnsafeMutablePointer<CWinRTCore.ABI_IInspectable> {
         comPointer.withMemoryRebound(to: CWinRTCore.ABI_IInspectable.self, capacity: 1) { $0 }
     }
 
-    public func getIids() throws -> [IID] {
-        var count: UInt32 = 0
-        var iids: UnsafeMutablePointer<IID>?
-        try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetIids(_inspectable, &count, &iids))
-        guard let iids else { throw HResult.Error.fail }
-        defer { CoTaskMemFree(UnsafeMutableRawPointer(iids)) }
-        return Array(UnsafeBufferPointer(start: iids, count: Int(count)))
+    public func getIids() throws -> [Foundation.UUID] {
+        var iids: COMArray<CWinRTCore.ABI_Guid> = .null
+        try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetIids(_inspectable, &iids.count, &iids.pointer))
+        defer { iids.deallocate() }
+        return WinRTArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
@@ -24,7 +24,7 @@ open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IIns
 
     public func getTrustLevel() throws -> TrustLevel {
         // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.ABI_IInspectable>
-        var trustLevel: CWinRTCore.TrustLevel = CWinRTCore.BaseTrust
+        var trustLevel: CWinRTCore.ABI_TrustLevel = CWinRTCore.ABI_TrustLevel_BaseTrust
         try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetTrustLevel(_inspectable, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }

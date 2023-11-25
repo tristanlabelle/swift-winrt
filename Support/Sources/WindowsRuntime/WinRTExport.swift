@@ -2,13 +2,13 @@ import COM
 
 open class WinRTExport<Projection: WinRTTwoWayProjection>
         : COMExport<Projection>, IInspectableProtocol {
-    public override func _queryInterfacePointer(_ iid: IID) throws -> IUnknownPointer {
-        return iid == IInspectableProjection.iid
+    public override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+        return id == IInspectableProjection.id
             ? identity.unknown.addingRef()
-            : try super._queryInterfacePointer(iid)
+            : try super._queryInterfacePointer(id)
     }
 
-    public final func getIids() throws -> [IID] { queriableInterfaces.map { $0.iid } }
+    public final func getIids() throws -> [COMInterfaceID] { queriableInterfaces.map { $0.id } }
     open func getRuntimeClassName() throws -> String { try (implementation as! IInspectable).getRuntimeClassName() }
     open func getTrustLevel() throws -> TrustLevel { try (implementation as! IInspectable).getTrustLevel() }
 }
