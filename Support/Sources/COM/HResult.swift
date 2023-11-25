@@ -39,35 +39,4 @@ public struct HResult: Hashable, CustomStringConvertible {
 
     public static func isSuccess(_ hr: Value) -> Bool { hr >= 0 }
     public static func isFailure(_ hr: Value) -> Bool { hr < 0 }
-
-    public static func getMessage(_ hr: Value) -> String? {
-        let dwFlags: DWORD = DWORD(FORMAT_MESSAGE_ALLOCATE_BUFFER)
-            | DWORD(FORMAT_MESSAGE_FROM_SYSTEM)
-            | DWORD(FORMAT_MESSAGE_IGNORE_INSERTS)
-
-        var buffer: UnsafeMutablePointer<WCHAR>? = nil
-        // When specifying ALLOCATE_BUFFER, lpBuffer is used as an LPWSTR*
-        let dwResult: DWORD = withUnsafeMutablePointer(to: &buffer) {
-            $0.withMemoryRebound(to: WCHAR.self, capacity: 1) {
-                CWinRTCore.FormatMessageW(
-                    dwFlags,
-                    /* lpSource: */ nil,
-                    /* dwMessageId: */ DWORD(bitPattern: hr),
-                    /* dwLanguageId: */ 0,
-                    /* lpBuffer*/ $0,
-                    /* nSize: */ 0,
-                    /* Arguments: */ nil)
-            }
-        }
-        guard let buffer else { return nil }
-        defer { CWinRTCore.LocalFree(buffer) }
-        guard dwResult > 0 else { return nil }
-
-        var message = String(decodingCString: buffer, as: UTF16.self)
-        // Remove any trailing whitespaces
-        while let lastIndex = message.indices.last, message[lastIndex].isWhitespace {
-            message.remove(at: lastIndex)
-        }
-        return message
-    }
 }

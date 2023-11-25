@@ -7,9 +7,9 @@ public struct WideChar {
 
 extension WideChar: ABIInertProjection {
     public typealias SwiftValue = Self
-    public typealias ABIValue = CWinRTCore.WCHAR
+    public typealias ABIValue = CWinRTCore.char16_t
 
-    public static var abiDefaultValue: CWinRTCore.WCHAR { 0 }
-    public static func toSwift(_ value: CWinRTCore.WCHAR) -> Self { Self(codeUnit: value) }
-    public static func toABI(_ value: WideChar) -> CWinRTCore.WCHAR { value.codeUnit }
+    public static var abiDefaultValue: CWinRTCore.char16_t { 0 }
+    public static func toSwift(_ value: CWinRTCore.char16_t) -> Self { Self(codeUnit: value) }
+    public static func toABI(_ value: WideChar) -> CWinRTCore.char16_t { value.codeUnit }
 }

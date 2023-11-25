@@ -1,29 +1,16 @@
 #pragma once
 
-#include <robuffer.h>
+#include "CWinRTCore.h"
 
-#ifndef __cplusplus
-EXTERN_C const IID IID_IBufferByteAccess;
+typedef struct ABI_IBufferByteAccess ABI_IBufferByteAccess;
 
-typedef interface IBufferByteAccess IBufferByteAccess;
+typedef struct ABI_IBufferByteAccessVtbl {
+    ABI_HResult (__stdcall* QueryInterface)(ABI_IBufferByteAccess* _this, ABI_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall* AddRef)(ABI_IBufferByteAccess* _this);
+    uint32_t (__stdcall* Release)(ABI_IBufferByteAccess* _this);
+    ABI_HResult (__stdcall* Buffer)(ABI_IBufferByteAccess* _this, uint8_t** data);
+} ABI_IBufferByteAccessVtbl;
 
-typedef struct IBufferByteAccessVtbl
-{
-    BEGIN_INTERFACE
-
-    HRESULT (STDMETHODCALLTYPE* QueryInterface)(IBufferByteAccess* This,
-        REFIID riid,
-        void** ppvObject);
-    ULONG (STDMETHODCALLTYPE* AddRef)(IBufferByteAccess* This);
-    ULONG (STDMETHODCALLTYPE* Release)(IBufferByteAccess* This);
-    HRESULT (STDMETHODCALLTYPE* Buffer)(IBufferByteAccess* This,
-        BYTE** data);
-
-    END_INTERFACE
-} IBufferByteAccessVtbl;
-
-interface IBufferByteAccess
-{
-    CONST_VTBL struct IBufferByteAccessVtbl* lpVtbl;
+struct ABI_IBufferByteAccess {
+    struct ABI_IBufferByteAccessVtbl* lpVtbl;
 };
-#endif

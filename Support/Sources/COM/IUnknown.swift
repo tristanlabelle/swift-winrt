@@ -22,8 +22,8 @@ extension IUnknownProtocol {
 
 public enum IUnknownProjection: COMTwoWayProjection {
     public typealias SwiftObject = IUnknown
-    public typealias COMInterface = CWinRTCore.IUnknown
-    public typealias COMVirtualTable = CWinRTCore.IUnknownVtbl
+    public typealias COMInterface = CWinRTCore.ABI_IUnknown
+    public typealias COMVirtualTable = CWinRTCore.ABI_IUnknownVtbl
 
     public static let iid = IID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }

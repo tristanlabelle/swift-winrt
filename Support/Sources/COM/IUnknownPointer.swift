@@ -1,6 +1,6 @@
 import CWinRTCore
 
-public typealias IUnknownPointer = UnsafeMutablePointer<CWinRTCore.IUnknown>
+public typealias IUnknownPointer = UnsafeMutablePointer<CWinRTCore.ABI_IUnknown>
 
 extension IUnknownPointer {
     @discardableResult

@@ -4,13 +4,13 @@ import struct Foundation.UUID
 /// Projects the native GUID type to Swift's Foundation.UUID type
 public enum GUIDProjection: ABIInertProjection {
     public typealias SwiftValue = Foundation.UUID
-    public typealias ABIValue = CWinRTCore.GUID
+    public typealias ABIValue = CWinRTCore.ABI_Guid
 
-    public static var abiDefaultValue: CWinRTCore.GUID {
+    public static var abiDefaultValue: CWinRTCore.ABI_Guid {
         .init(Data1: 0, Data2: 0, Data3: 0, Data4: (0, 0, 0, 0, 0, 0, 0, 0))
     }
 
-    public static func toSwift(_ value: CWinRTCore.GUID) -> Foundation.UUID {
+    public static func toSwift(_ value: CWinRTCore.ABI_Guid) -> Foundation.UUID {
         .init(uuid: (
             UInt8((value.Data1 >> 24) & 0xFF), UInt8((value.Data1 >> 16) & 0xFF),
             UInt8((value.Data1 >> 8) & 0xFF), UInt8((value.Data1 >> 0) & 0xFF),
@@ -20,7 +20,7 @@ public enum GUIDProjection: ABIInertProjection {
         ))
     }
 
-    public static func toABI(_ value: Foundation.UUID) -> CWinRTCore.GUID {
+    public static func toABI(_ value: Foundation.UUID) -> CWinRTCore.ABI_Guid {
         .init(
             Data1: (UInt32(value.uuid.0) << 24) | (UInt32(value.uuid.1) << 16) | (UInt32(value.uuid.2) << 8) | UInt32(value.uuid.3),
             Data2: (UInt16(value.uuid.4) << 8) | UInt16(value.uuid.5),

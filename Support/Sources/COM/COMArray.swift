@@ -1,4 +1,5 @@
 import CWinRTCore
+import WinSDK
 
 public struct COMArray<Element> {
     public static var null: Self { .init() }
@@ -36,8 +37,8 @@ public struct COMArray<Element> {
 
     public static func allocate(count: UInt32) -> Self {
         guard count > 0 else { return .init() }
-        let allocation = CWinRTCore.CoTaskMemAlloc(CWinRTCore.SIZE_T(count)
-            * CWinRTCore.SIZE_T(MemoryLayout<Element>.size))!
+        let allocation = WinSDK.CoTaskMemAlloc(WinSDK.SIZE_T(count)
+            * WinSDK.SIZE_T(MemoryLayout<Element>.size))!
         return .init(
             elements: allocation.bindMemory(to: Element.self, capacity: Int(count)),
             count: count)
@@ -45,7 +46,7 @@ public struct COMArray<Element> {
 
     public mutating func deallocate() {
         if let elements {
-            CWinRTCore.CoTaskMemFree(UnsafeMutableRawPointer(elements))
+            WinSDK.CoTaskMemFree(UnsafeMutableRawPointer(elements))
             self.elements = nil
             self.count = 0
         }
