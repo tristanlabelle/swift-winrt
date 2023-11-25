@@ -10,6 +10,5 @@ public struct TrustLevel: Hashable, RawRepresentable {
     public static let full = Self(rawValue: 2)
 }
 
-extension TrustLevel: EnumProjection {
-    public typealias CEnum = CWinRTCore.ABI_TrustLevel
+extension TrustLevel: IntegerEnumProjection {
 }

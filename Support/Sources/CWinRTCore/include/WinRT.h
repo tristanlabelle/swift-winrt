@@ -8,11 +8,7 @@ struct ABI_HString_ {};
 typedef struct ABI_HString_* ABI_HString;
 
 // TrustLevel
-typedef enum ABI_TrustLevel {
-    ABI_TrustLevel_BaseTrust = 0,
-    ABI_TrustLevel_PartialTrust = 1,
-    ABI_TrustLevel_FullTrust = 2
-} ABI_TrustLevel;
+typedef int32_t ABI_TrustLevel;
 
 // IInspectable
 typedef struct ABI_IInspectable ABI_IInspectable;

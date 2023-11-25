@@ -165,15 +165,15 @@ extension SwiftProjection {
             case "EventRegistrationToken":
                 return TypeProjection(
                     swiftType: .chain("WindowsRuntime", "EventRegistrationToken"),
-                    abiType: .chain(abiModuleName, "EventRegistrationToken"),
+                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
                     projectionType: .chain("WindowsRuntime", "EventRegistrationToken"),
-                    abiDefaultValue: "\(abiModuleName).EventRegistrationToken()",
+                    abiDefaultValue: "\(abiModuleName).\(CAbi.eventRegistrationTokenName)()",
                     abiKind: .inert)
 
             case "HResult":
                 return TypeProjection(
                     swiftType: .chain("COM", "HResult"),
-                    abiType: .chain(abiModuleName, "HRESULT"),
+                    abiType: .chain(abiModuleName, CAbi.hresultName),
                     projectionType: .chain("COM", "HResultProjection"),
                     abiDefaultValue: "S_OK",
                     abiKind: .inert)

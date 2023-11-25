@@ -24,7 +24,7 @@ open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IIns
 
     public func getTrustLevel() throws -> TrustLevel {
         // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.ABI_IInspectable>
-        var trustLevel: CWinRTCore.ABI_TrustLevel = CWinRTCore.ABI_TrustLevel_BaseTrust
+        var trustLevel: CWinRTCore.ABI_TrustLevel = 0
         try HResult.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetTrustLevel(_inspectable, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }

@@ -36,11 +36,7 @@ extension SwiftAssemblyModuleFileWriter {
 
     internal func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
         try sourceFileWriter.writeExtension(
-                name: projection.toTypeName(enumDefinition),
-                protocolConformances: [SwiftType.chain("WindowsRuntime", "EnumProjection")]) { writer in
-
-            writer.writeTypeAlias(visibility: .public, name: "CEnum",
-                target: .chain(projection.abiModuleName, try CAbi.mangleName(type: enumDefinition.bindType())))
-        }
+            name: projection.toTypeName(enumDefinition),
+            protocolConformances: [SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")]) { _ in }
     }
 }

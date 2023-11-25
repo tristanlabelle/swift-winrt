@@ -143,7 +143,7 @@ extension SwiftAssemblyModuleFileWriter {
             let prefix = byRef ? "&" : ""
             if array {
                 abiArgs.append("\(prefix)\(variableName).count")
-                abiArgs.append("\(prefix)\(variableName).elements")
+                abiArgs.append("\(prefix)\(variableName).pointer")
             } else {
                 abiArgs.append("\(prefix)\(variableName)")
             }
