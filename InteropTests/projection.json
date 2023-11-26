@@ -3,7 +3,8 @@
         "UWP": {
             "assemblies": [
                 "Windows.*"
-            ]
+            ],
+            "types": []
         },
         "WinRTComponent": {
             "assemblies": [

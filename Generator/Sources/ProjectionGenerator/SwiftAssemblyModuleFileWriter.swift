@@ -20,6 +20,7 @@ public struct SwiftAssemblyModuleFileWriter {
         sourceFileWriter.writeImport(module: "WindowsRuntime")
 
         for referencedModule in module.references {
+            guard !referencedModule.isEmpty else { continue }
             sourceFileWriter.writeImport(module: referencedModule.name)
         }
 

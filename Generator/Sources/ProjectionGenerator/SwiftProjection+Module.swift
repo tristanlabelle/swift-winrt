@@ -18,6 +18,8 @@ extension SwiftProjection {
 
         public var references: [Module] { weakReferences.map { $0.target } }
 
+        public var isEmpty: Bool { typeDefinitionsByNamespace.isEmpty }
+
         public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
             projection.assembliesToModules[assembly] = AssemblyEntry(module: self, documentation: documentation)
         }

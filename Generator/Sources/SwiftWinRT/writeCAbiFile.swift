@@ -9,8 +9,9 @@ internal func writeCAbiFile(module: SwiftProjection.Module, toPath path: String)
 
     // Write includes
     cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)
-    for reference in module.references {
-        cHeaderWriter.writeInclude(pathSpec: "\(reference.name).h", kind: .doubleQuotes)
+    for referencedModule in module.references {
+        guard !referencedModule.isEmpty else { continue }
+        cHeaderWriter.writeInclude(pathSpec: "\(referencedModule.name).h", kind: .doubleQuotes)
     }
 
     // Declare enums

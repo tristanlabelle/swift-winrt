@@ -14,6 +14,8 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
     CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h"))
 
     for module in projection.modulesByName.values {
+        guard !module.isEmpty else { continue }
+
         let moduleRootPath = "\(generateCommand.out)\\\(module.name)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
