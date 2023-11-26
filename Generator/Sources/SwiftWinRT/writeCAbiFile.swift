@@ -94,9 +94,16 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
             guard typeDefinition.genericArity == 0 else { continue }
             guard typeDefinition.isReferenceType else { continue }
 
-            // For classes, use the default interface iff it is exclusive
             let type: BoundType
             if let classDefinition = typeDefinition as? ClassDefinition {
+                // Also add static interfaces
+                for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
+                    let staticInterface = staticAttribute.interface.bindType()
+                    let mangledName = try CAbi.mangleName(type: staticInterface)
+                    interfacesByMangledName[mangledName] = staticInterface
+                }
+
+                // To represent instances, Use the default interface iff it is exclusive
                 guard !classDefinition.isStatic else { continue }
                 guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else { throw WinMDError.missingAttribute }
                 guard let exclusiveTo = try defaultInterface.definition.findAttribute(ExclusiveToAttribute.self), exclusiveTo == classDefinition else { continue }
