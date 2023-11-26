@@ -39,5 +39,6 @@ $SwiftTestPackageDir = $PSScriptRoot
 & swift.exe build `
     --package-path $SwiftTestPackageDir `
     --configuration $SwiftConfiguration `
-    --build-path "$SwiftTestPackageDir\.build"
+    --build-path "$SwiftTestPackageDir\.build" `
+    --build-tests
 if ($LASTEXITCODE -ne 0) { throw "Failed to Swift test package" }
