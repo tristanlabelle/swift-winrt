@@ -54,14 +54,11 @@ extension CAbi {
 
             var params = [CParamDecl]()
             for param in try method.params {
-                try appendCOMParams(for: param, genericArgs: genericArgs, to: &params)
+                try appendCOMParams(name: param.name, type: try param.type, genericArgs: genericArgs, isByRef: param.isByRef, to: &params)
             }
 
             if try method.hasReturnValue {
-                let returnType = try method.returnType.bindGenericParams(typeArgs: genericArgs)
-                params.append(CParamDecl(
-                    type: try toCType(returnType).makePointer(),
-                    name: "_return"))
+                try appendCOMParams(name: "_return", type: try method.returnType, genericArgs: genericArgs, isByRef: true, to: &params)
             }
 
             decl.addFunction(name: method.name, params: params)
@@ -73,21 +70,21 @@ extension CAbi {
             to: writer)
     }
 
-    private static func appendCOMParams(for param: Param, genericArgs: [TypeNode], to comParams: inout [CParamDecl]) throws {
-        let paramType = try param.type.bindGenericParams(typeArgs: genericArgs)
+    private static func appendCOMParams(name: String?, type: TypeNode, genericArgs: [TypeNode], isByRef: Bool, to comParams: inout [CParamDecl]) throws {
+        let paramType = type.bindGenericParams(typeArgs: genericArgs)
         if case .array(let element) = paramType {
             var arrayLengthParamCType = CType.reference(name: "uint32_t")
-            if param.isByRef { arrayLengthParamCType = arrayLengthParamCType.makePointer() }
-            comParams.append(.init(type: arrayLengthParamCType, name: param.name.map { $0 + "Length" }))
+            if isByRef { arrayLengthParamCType = arrayLengthParamCType.makePointer() }
+            comParams.append(.init(type: arrayLengthParamCType, name: name.map { $0 + "Length" }))
 
             var arrayElementsCType = try toCType(element).makePointer()
-            if param.isByRef { arrayElementsCType = arrayElementsCType.makePointer() }
-            comParams.append(.init(type: arrayElementsCType, name: param.name))
+            if isByRef { arrayElementsCType = arrayElementsCType.makePointer() }
+            comParams.append(.init(type: arrayElementsCType, name: name))
         }
         else {
             var paramCType = try toCType(paramType)
-            if param.isByRef { paramCType = paramCType.makePointer() }
-            comParams.append(.init(type: paramCType, name: param.name))
+            if isByRef { paramCType = paramCType.makePointer() }
+            comParams.append(.init(type: paramCType, name: name))
         }
     }
 }
