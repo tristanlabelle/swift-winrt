@@ -76,7 +76,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
             writer.writeStatement("let _factory = try Self.\(interfaceProperty.getter)()")
-            writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).IInspectable>? = nil")
+            writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).\(CAbi.iinspectableName)>? = nil")
             writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
             writer.writeStatement("try HResult.throwIfFailed(_factory.pointee.lpVtbl.pointee.ActivateInstance(_factory, &inspectable))")
             writer.writeStatement("guard let inspectable else { throw COM.HResult.Error.noInterface }")

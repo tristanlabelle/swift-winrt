@@ -19,7 +19,10 @@ extension CAbi {
         guard case .bound(let type) = type else { throw UnexpectedTypeError(type.description) }
 
         if let systemType = try toSystemType(type.definition) {
-            return makeCType(name: getName(systemType: systemType, mangled: false))
+            switch systemType {
+                case .object: return makeCType(name: iinspectableName).makePointer()
+                default: return makeCType(name: getName(systemType: systemType, mangled: false))
+            }
         }
 
         if type.definition.namespace == "Windows.Foundation" {
