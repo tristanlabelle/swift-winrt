@@ -47,7 +47,18 @@ extension SwiftProjection {
                 // Open generic types have no ABI representation
                 guard !type.isParameterized else { return .noAbi(swiftType: swiftValueType) }
 
-                var abiType = SwiftType.identifier(name: try CAbi.mangleName(type: type))
+                var abiType: SwiftType
+                if let classDefinition = type.definition as? ClassDefinition {
+                    // The ABI type for classes is that of their default interface
+                    guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else {
+                        throw WinMDError.missingAttribute
+                    }
+                    abiType = SwiftType.identifier(name: try CAbi.mangleName(type: defaultInterface.asBoundType))
+                }
+                else {
+                    abiType = SwiftType.identifier(name: try CAbi.mangleName(type: type))
+                }
+
                 if type.definition.isReferenceType {
                     abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
                 }
