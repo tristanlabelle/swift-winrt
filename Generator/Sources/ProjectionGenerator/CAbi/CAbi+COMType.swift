@@ -22,6 +22,13 @@ extension CAbi {
             return makeCType(name: getName(systemType: systemType, mangled: false))
         }
 
+        if type.definition.namespace == "Windows.Foundation" {
+            switch type.definition.name {
+                case "EventRegistrationToken": return makeCType(name: eventRegistrationTokenName)
+                default: break
+            }
+        }
+
         // At the ABI level, WinRT classes are represented as pointers to their default interface.
         if let classDefinition = type.definition as? ClassDefinition {
             guard !classDefinition.isStatic else { throw UnexpectedTypeError(classDefinition.fullName, reason: "Values should not be of static class types.") }
