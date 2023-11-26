@@ -110,8 +110,8 @@ extension SwiftProjection {
             case .boolean:
                 return TypeProjection(
                     swiftType: .bool,
-                    abiType: .int(bits: 8, signed: false),
-                    projectionType: .chain("COM", "BooleanProjection"),
+                    abiType: .chain(abiModuleName, CAbi.boolName),
+                    projectionType: .chain("COM", "Bool8Projection"),
                     abiDefaultValue: "0",
                     abiKind: .inert)
             case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8))
@@ -175,7 +175,7 @@ extension SwiftProjection {
                     swiftType: .chain("COM", "HResult"),
                     abiType: .chain(abiModuleName, CAbi.hresultName),
                     projectionType: .chain("COM", "HResultProjection"),
-                    abiDefaultValue: "S_OK",
+                    abiDefaultValue: "0",
                     abiKind: .inert)
 
             default:

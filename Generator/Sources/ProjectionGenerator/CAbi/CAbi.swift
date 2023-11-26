@@ -40,7 +40,7 @@ public enum CAbi {
 
     internal static func getName(systemType: WinRTSystemType, mangled: Bool) -> String {
         switch systemType {
-            case .boolean: return mangled ? "Bool" : "bool"
+            case .boolean: return mangled ? "Bool" : boolName
             case .integer(let type): return getName(integerType: type, mangled: mangled)
             case .float(double: false): return mangled ? "Float" : "float"
             case .float(double: true): return mangled ? "Double" : "double"
@@ -76,6 +76,7 @@ public enum CAbi {
     }
 
     public static var namespacingPrefix: String { "ABI_" }
+    public static var boolName: String { namespacingPrefix + "Bool" }
     public static var hresultName: String { namespacingPrefix + "HResult" }
     public static var guidName: String { namespacingPrefix + "Guid" }
     public static var iunknownName: String { namespacingPrefix + "IUnknown" }

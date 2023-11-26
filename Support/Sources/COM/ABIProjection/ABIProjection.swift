@@ -48,6 +48,13 @@ extension ABIInertProjection {
     public static func release(_ value: inout ABIValue) {}
 }
 
+public protocol ABIIdentityProjection: ABIInertProjection where SwiftValue == ABIValue {}
+
+extension ABIIdentityProjection {
+    public static func toABI(_ value: SwiftValue) -> ABIValue { value }
+    public static func toSwift(_ value: ABIValue) -> SwiftValue { value }
+}
+
 public enum ABIProjectionError: Error {
     case unsupported(Any.Type)
 }

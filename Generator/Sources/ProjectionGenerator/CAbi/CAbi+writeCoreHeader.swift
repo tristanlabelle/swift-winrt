@@ -6,6 +6,9 @@ extension CAbi {
 
         writeBasicTypeIncludes(to: writer)
 
+        // boolean
+        writer.writeTypedef(comment: "boolean", type: .reference(name: "uint8_t"), name: boolName)
+
         // Guid
         writer.writeStruct(comment: "GUID", typedef: true, name: guidName, members: [
             .init(type: .reference(name: "uint32_t"), name: "Data1"),
