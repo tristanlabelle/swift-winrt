@@ -8,8 +8,8 @@ public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 
 public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public typealias SwiftObject = IBufferByteAccess
-    public typealias COMInterface = CWinRTCore.ABI_IBufferByteAccess
-    public typealias COMVirtualTable = CWinRTCore.ABI_IBufferByteAccessVTable
+    public typealias COMInterface = CWinRTCore.SWRT_IBufferByteAccess
+    public typealias COMVirtualTable = CWinRTCore.SWRT_IBufferByteAccessVTable
 
     public static let id = COMInterfaceID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }

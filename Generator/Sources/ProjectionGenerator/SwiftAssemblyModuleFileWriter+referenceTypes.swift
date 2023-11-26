@@ -177,17 +177,17 @@ extension SwiftAssemblyModuleFileWriter {
             interfaceName: String, abiName: String, iid: UUID, staticOf: ClassDefinition? = nil,
             to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceProperty {
 
-        // private [static] var _istringable: UnsafeMutablePointer<__x_ABI_CIStringable>? = nil
+        // private [static] var _istringable: UnsafeMutablePointer<SWRT_WindowsFoundation_IStringable>? = nil
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
         let abiPointerType: SwiftType = .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)])
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
             type: .optional(wrapped: abiPointerType),
             initialValue: "nil")
 
-        // private [static] func _getIStringable() throws -> UnsafeMutablePointer<__x_ABI_CIStringable> {
+        // private [static] func _getIStringable() throws -> UnsafeMutablePointer<SWRT_WindowsFoundation_IStringable> {
         //     if let existing = _istringable { return existing }
         //     let id = COMInterfaceID(00000035, 0000, 0000, C000, 000000000046)
-        //     let new = try _queryInterfacePointer(id).cast(to: __x_ABI_CIStringable.self)
+        //     let new = try _queryInterfacePointer(id).cast(to: SWRT_WindowsFoundation_IStringable.self)
         //     _istringable = new
         //     return new
         // }

@@ -10,7 +10,7 @@ extension COMImport where Projection: COMTwoWayProjection {
         return Optional(_getImplementation(pointer))
     }
 
-    public static func _implement(_ this: Projection.COMPointer?, _ body: (Projection.SwiftObject) throws -> Void) -> CWinRTCore.ABI_HResult {
+    public static func _implement(_ this: Projection.COMPointer?, _ body: (Projection.SwiftObject) throws -> Void) -> CWinRTCore.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.invalidArg.value
@@ -21,7 +21,7 @@ extension COMImport where Projection: COMTwoWayProjection {
     public static func _getter<Value>(
             _ this: Projection.COMPointer?,
             _ value: UnsafeMutablePointer<Value>?,
-            _ code: (Projection.SwiftObject) throws -> Value) -> CWinRTCore.ABI_HResult {
+            _ code: (Projection.SwiftObject) throws -> Value) -> CWinRTCore.SWRT_HResult {
         _implement(this) {
             guard let value else { throw HResult.Error.invalidArg }
             value.pointee = try code($0)
@@ -30,8 +30,8 @@ extension COMImport where Projection: COMTwoWayProjection {
 
     public static func _queryInterface(
             _ this: Projection.COMPointer?,
-            _ iid: UnsafePointer<CWinRTCore.ABI_Guid>?,
-            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.ABI_HResult {
+            _ iid: UnsafePointer<CWinRTCore.SWRT_Guid>?,
+            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.SWRT_HResult {
         guard let ppvObject else { return HResult.invalidArg.value }
         ppvObject.pointee = nil
 

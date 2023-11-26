@@ -2,15 +2,15 @@
 
 #include "COM.h"
 
-typedef struct ABI_IBufferByteAccess ABI_IBufferByteAccess;
+typedef struct SWRT_IBufferByteAccess SWRT_IBufferByteAccess;
 
-struct ABI_IBufferByteAccessVTable {
-    ABI_HResult (__stdcall* QueryInterface)(ABI_IBufferByteAccess* _this, ABI_Guid* riid, void** ppvObject);
-    uint32_t (__stdcall* AddRef)(ABI_IBufferByteAccess* _this);
-    uint32_t (__stdcall* Release)(ABI_IBufferByteAccess* _this);
-    ABI_HResult (__stdcall* Buffer)(ABI_IBufferByteAccess* _this, uint8_t** data);
+struct SWRT_IBufferByteAccessVTable {
+    SWRT_HResult (__stdcall* QueryInterface)(SWRT_IBufferByteAccess* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall* AddRef)(SWRT_IBufferByteAccess* _this);
+    uint32_t (__stdcall* Release)(SWRT_IBufferByteAccess* _this);
+    SWRT_HResult (__stdcall* Buffer)(SWRT_IBufferByteAccess* _this, uint8_t** data);
 };
 
-struct ABI_IBufferByteAccess {
-    struct ABI_IBufferByteAccessVTable* lpVtbl;
+struct SWRT_IBufferByteAccess {
+    struct SWRT_IBufferByteAccessVTable* lpVtbl;
 };

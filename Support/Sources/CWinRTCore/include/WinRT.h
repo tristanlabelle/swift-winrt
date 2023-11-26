@@ -3,47 +3,47 @@
 #include "COM.h"
 
 // HSTRING
-struct ABI_HString_ {};
+struct SWRT_HString_ {};
 
-typedef struct ABI_HString_* ABI_HString;
+typedef struct SWRT_HString_* SWRT_HString;
 
 // TrustLevel
-typedef int32_t ABI_TrustLevel;
+typedef int32_t SWRT_TrustLevel;
 
 // IInspectable
-typedef struct ABI_IInspectable ABI_IInspectable;
+typedef struct SWRT_IInspectable SWRT_IInspectable;
 
-struct ABI_IInspectableVTable {
-    ABI_HResult (__stdcall *QueryInterface)(ABI_IInspectable* _this, ABI_Guid* riid, void** ppvObject);
-    uint32_t (__stdcall *AddRef)(ABI_IInspectable* _this);
-    uint32_t (__stdcall *Release)(ABI_IInspectable* _this);
-    ABI_HResult (__stdcall *GetIids)(ABI_IInspectable* _this, uint32_t* iidCount, ABI_Guid** iids);
-    ABI_HResult (__stdcall *GetRuntimeClassName)(ABI_IInspectable* _this, ABI_HString* className);
-    ABI_HResult (__stdcall *GetTrustLevel)(ABI_IInspectable* _this, ABI_TrustLevel* trustLevel);
+struct SWRT_IInspectableVTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_IInspectable* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_IInspectable* _this);
+    uint32_t (__stdcall *Release)(SWRT_IInspectable* _this);
+    SWRT_HResult (__stdcall *GetIids)(SWRT_IInspectable* _this, uint32_t* iidCount, SWRT_Guid** iids);
+    SWRT_HResult (__stdcall *GetRuntimeClassName)(SWRT_IInspectable* _this, SWRT_HString* className);
+    SWRT_HResult (__stdcall *GetTrustLevel)(SWRT_IInspectable* _this, SWRT_TrustLevel* trustLevel);
 };
 
-typedef struct ABI_IInspectable {
-    struct ABI_IInspectableVTable* lpVtbl;
-} ABI_IInspectable;
+typedef struct SWRT_IInspectable {
+    struct SWRT_IInspectableVTable* lpVtbl;
+} SWRT_IInspectable;
 
 // EventRegistrationToken
-typedef struct ABI_EventRegistrationToken {
+typedef struct SWRT_EventRegistrationToken {
     int64_t value;
-} ABI_EventRegistrationToken;
+} SWRT_EventRegistrationToken;
 
 // IActivationFactory
-typedef struct ABI_IActivationFactory ABI_IActivationFactory;
+typedef struct SWRT_IActivationFactory SWRT_IActivationFactory;
 
-struct ABI_IActivationFactoryVTable {
-    ABI_HResult (__stdcall *QueryInterface)(ABI_IActivationFactory* _this, ABI_Guid* riid, void** ppvObject);
-    uint32_t (__stdcall *AddRef)(ABI_IActivationFactory* _this);
-    uint32_t (__stdcall *Release)(ABI_IActivationFactory* _this);
-    ABI_HResult (__stdcall *GetIids)(ABI_IActivationFactory* _this, uint32_t* iidCount, ABI_Guid** iids);
-    ABI_HResult (__stdcall *GetRuntimeClassName)(ABI_IActivationFactory* _this, ABI_HString* className);
-    ABI_HResult (__stdcall *GetTrustLevel)(ABI_IActivationFactory* _this, ABI_TrustLevel* trustLevel);
-    ABI_HResult (__stdcall *ActivateInstance)(ABI_IActivationFactory* _this, ABI_IInspectable** instance);
+struct SWRT_IActivationFactoryVTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_IActivationFactory* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_IActivationFactory* _this);
+    uint32_t (__stdcall *Release)(SWRT_IActivationFactory* _this);
+    SWRT_HResult (__stdcall *GetIids)(SWRT_IActivationFactory* _this, uint32_t* iidCount, SWRT_Guid** iids);
+    SWRT_HResult (__stdcall *GetRuntimeClassName)(SWRT_IActivationFactory* _this, SWRT_HString* className);
+    SWRT_HResult (__stdcall *GetTrustLevel)(SWRT_IActivationFactory* _this, SWRT_TrustLevel* trustLevel);
+    SWRT_HResult (__stdcall *ActivateInstance)(SWRT_IActivationFactory* _this, SWRT_IInspectable** instance);
 };
 
-typedef struct ABI_IActivationFactory {
-    struct ABI_IActivationFactoryVTable* lpVtbl;
-} ABI_IActivationFactory;
+typedef struct SWRT_IActivationFactory {
+    struct SWRT_IActivationFactoryVTable* lpVtbl;
+} SWRT_IActivationFactory;

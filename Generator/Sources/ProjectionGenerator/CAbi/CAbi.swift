@@ -75,7 +75,7 @@ public enum CAbi {
         }
     }
 
-    public static var namespacingPrefix: String { "ABI_" }
+    public static var namespacingPrefix: String { "SWRT_" }
     public static var boolName: String { namespacingPrefix + "Bool" }
     public static var hresultName: String { namespacingPrefix + "HResult" }
     public static var guidName: String { namespacingPrefix + "Guid" }

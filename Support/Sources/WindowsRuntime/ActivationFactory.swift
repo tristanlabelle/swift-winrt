@@ -7,7 +7,7 @@ public func getActivationFactoryPointer<COMInterface>(activatableId: String, id:
 
     var iid = GUIDProjection.toABI(id)
     var factory: UnsafeMutableRawPointer?
-    try HResult.throwIfFailed(CWinRTCore.ABI_RoGetActivationFactory(activatableId, &iid, &factory))
+    try HResult.throwIfFailed(CWinRTCore.SWRT_RoGetActivationFactory(activatableId, &iid, &factory))
     guard let factory else { throw HResult.Error.noInterface }
 
     return factory.bindMemory(to: COMInterface.self, capacity: 1)

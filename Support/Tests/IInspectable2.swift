@@ -6,8 +6,8 @@ internal typealias IInspectable2 = any IInspectable2Protocol
 
 internal enum IInspectable2Projection: WinRTTwoWayProjection {
     public typealias SwiftObject = IInspectable2
-    public typealias COMInterface = CWinRTCore.ABI_IInspectable
-    public typealias COMVirtualTable = CWinRTCore.ABI_IInspectableVTable
+    public typealias COMInterface = CWinRTCore.SWRT_IInspectable
+    public typealias COMVirtualTable = CWinRTCore.SWRT_IInspectableVTable
 
     public static let id = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }
