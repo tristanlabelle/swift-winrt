@@ -25,6 +25,7 @@ extension CAbi {
         if type.definition.namespace == "Windows.Foundation" {
             switch type.definition.name {
                 case "EventRegistrationToken": return makeCType(name: eventRegistrationTokenName)
+                case "HResult": return makeCType(name: hresultName)
                 default: break
             }
         }
