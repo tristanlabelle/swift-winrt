@@ -11,7 +11,9 @@ typedef struct SWRT_HString_* SWRT_HString;
 typedef int32_t SWRT_TrustLevel;
 
 // IInspectable
-typedef struct SWRT_IInspectable SWRT_IInspectable;
+typedef struct SWRT_IInspectable {
+    struct SWRT_IInspectableVTable* lpVtbl;
+} SWRT_IInspectable;
 
 struct SWRT_IInspectableVTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IInspectable* _this, SWRT_Guid* riid, void** ppvObject);
@@ -22,17 +24,28 @@ struct SWRT_IInspectableVTable {
     SWRT_HResult (__stdcall *GetTrustLevel)(SWRT_IInspectable* _this, SWRT_TrustLevel* trustLevel);
 };
 
-typedef struct SWRT_IInspectable {
-    struct SWRT_IInspectableVTable* lpVtbl;
-} SWRT_IInspectable;
-
 // EventRegistrationToken
 typedef struct SWRT_EventRegistrationToken {
     int64_t value;
 } SWRT_EventRegistrationToken;
 
+// IRestrictedErrorInfo
+typedef struct SWRT_IRestrictedErrorInfo {
+    struct SWRT_IRestrictedErrorInfoVTable* lpVtbl;
+} SWRT_IRestrictedErrorInfo;
+
+struct SWRT_IRestrictedErrorInfoVTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_IRestrictedErrorInfo* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_IRestrictedErrorInfo* _this);
+    uint32_t (__stdcall *Release)(SWRT_IRestrictedErrorInfo* _this);
+    SWRT_HResult (__stdcall *GetErrorDetails)(SWRT_BStr* description, SWRT_HResult* error, SWRT_BStr* restrictedDescription, SWRT_BStr* capabilitySid);
+    SWRT_HResult (__stdcall *GetReference)(SWRT_BStr* reference);
+};
+
 // IActivationFactory
-typedef struct SWRT_IActivationFactory SWRT_IActivationFactory;
+typedef struct SWRT_IActivationFactory {
+    struct SWRT_IActivationFactoryVTable* lpVtbl;
+} SWRT_IActivationFactory;
 
 struct SWRT_IActivationFactoryVTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IActivationFactory* _this, SWRT_Guid* riid, void** ppvObject);
@@ -43,7 +56,3 @@ struct SWRT_IActivationFactoryVTable {
     SWRT_HResult (__stdcall *GetTrustLevel)(SWRT_IActivationFactory* _this, SWRT_TrustLevel* trustLevel);
     SWRT_HResult (__stdcall *ActivateInstance)(SWRT_IActivationFactory* _this, SWRT_IInspectable** instance);
 };
-
-typedef struct SWRT_IActivationFactory {
-    struct SWRT_IActivationFactoryVTable* lpVtbl;
-} SWRT_IActivationFactory;

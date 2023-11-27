@@ -2,9 +2,25 @@
 #include "Functions.h"
 
 #include <Windows.h>
-#include <winstring.h>
-#include <roapi.h>
 
+#include <oleauto.h>
+SWRT_BStr SWRT_SysAllocString(const char16_t* strIn) {
+    return (SWRT_BStr)SysAllocString((const OLECHAR*)strIn);
+}
+
+SWRT_BStr SWRT_SysAllocStringLen(const char16_t* strIn, uint32_t ui) {
+    return (SWRT_BStr)SysAllocStringLen((const OLECHAR*)strIn, (UINT)ui);
+}
+
+void SWRT_SysFreeString(SWRT_BStr bstrString) {
+    SysFreeString((BSTR)bstrString);
+}
+
+uint32_t SWRT_SysStringLen(SWRT_BStr pbstr) {
+    return (uint32_t)SysStringLen((BSTR)pbstr);
+}
+
+#include <winstring.h>
 SWRT_HResult SWRT_WindowsCreateString(const char16_t* sourceString, uint32_t length, SWRT_HString *string) {
     return (SWRT_HResult)WindowsCreateString((PCNZWCH)sourceString, (UINT32)length, (HSTRING*)string);
 }
@@ -18,9 +34,10 @@ SWRT_HResult SWRT_WindowsDuplicateString(SWRT_HString string, SWRT_HString *newS
 }
 
 const char16_t* SWRT_WindowsGetStringRawBuffer(SWRT_HString string, uint32_t *length) {
-    return (const char16_t*)WindowsGetStringRawBuffer((HSTRING)string, (UINT32**)length);
+    return (const char16_t*)WindowsGetStringRawBuffer((HSTRING)string, (UINT32*)length);
 }
 
+#include <roapi.h>
 SWRT_HResult SWRT_RoGetActivationFactory(SWRT_HString activatableClassId, SWRT_Guid* iid, void **factory) {
     return (SWRT_HResult)RoGetActivationFactory((HSTRING)activatableClassId, (IID*)iid, factory);
 }

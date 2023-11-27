@@ -15,8 +15,13 @@ typedef struct SWRT_Guid {
 // HRESULT
 typedef int32_t SWRT_HResult;
 
+// BSTR
+typedef char16_t* SWRT_BStr;
+
 // IUnknown
-typedef struct SWRT_IUnknown SWRT_IUnknown;
+typedef struct SWRT_IUnknown {
+    struct SWRT_IUnknownVTable* lpVtbl;
+} SWRT_IUnknown;
 
 struct SWRT_IUnknownVTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IUnknown* _this, SWRT_Guid* riid, void** ppvObject);
@@ -24,6 +29,18 @@ struct SWRT_IUnknownVTable {
     uint32_t (__stdcall *Release)(SWRT_IUnknown* _this);
 };
 
-typedef struct SWRT_IUnknown {
-    struct SWRT_IUnknownVTable* lpVtbl;
-} SWRT_IUnknown;
+// IErrorInfo
+typedef struct SWRT_IErrorInfo {
+    struct SWRT_IErrorInfoVTable* lpVtbl;
+} SWRT_IErrorInfo;
+
+struct SWRT_IErrorInfoVTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_IErrorInfo* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_IErrorInfo* _this);
+    uint32_t (__stdcall *Release)(SWRT_IErrorInfo* _this);
+    SWRT_HResult (__stdcall *GetGUID)(SWRT_IErrorInfo* _this, SWRT_Guid* guid);
+    SWRT_HResult (__stdcall *GetSource)(SWRT_IErrorInfo* _this, SWRT_BStr* source);
+    SWRT_HResult (__stdcall *GetDescription)(SWRT_IErrorInfo* _this, SWRT_BStr* description);
+    SWRT_HResult (__stdcall *GetHelpFile)(SWRT_IErrorInfo* _this, SWRT_BStr* helpFile);
+    SWRT_HResult (__stdcall *GetHelpContext)(SWRT_IErrorInfo* _this, uint32_t* helpContext);
+};

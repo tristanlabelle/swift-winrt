@@ -39,15 +39,12 @@ extension CAbi {
         }
 
         public func write(comment: String? = nil, forwardDeclared: Bool = false, to writer: CSourceFileWriter) {
-            if !forwardDeclared {
-                writer.writeForwardDecl(comment: comment, typedef: true, kind: .struct, name: interfaceName)
-            }
-
-            writer.writeStruct(comment: forwardDeclared ? comment : nil, name: interfaceName + CAbi.virtualTableSuffix, members: members)
-
-            writer.writeStruct(typedef: !forwardDeclared, name: interfaceName, members: [
+            writer.writeStruct(comment: comment, typedef: !forwardDeclared, name: interfaceName, members: [
+                // Having the data member as "struct IFooVTable*" forward declares the struct.
                 .init(type: .reference(kind: .struct, name: interfaceName + CAbi.virtualTableSuffix).makePointer(), name: CAbi.virtualTableFieldName)
             ])
+
+            writer.writeStruct(name: interfaceName + CAbi.virtualTableSuffix, members: members)
         }
     }
 }
