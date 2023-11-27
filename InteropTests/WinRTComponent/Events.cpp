@@ -5,7 +5,7 @@
 
 namespace
 {
-    class Implementation : public winrt::implements<Implementation, winrt::WinRTComponent::IEvent>
+    class Source : public winrt::implements<Source, winrt::WinRTComponent::IEventSource>
     {
     private:
         std::unordered_map<int64_t, winrt::WinRTComponent::MinimalDelegate> handlers;
@@ -32,14 +32,14 @@ namespace
     class Counter : public winrt::implements<Counter, winrt::WinRTComponent::IEventCounter>
     {
     private:
-        winrt::WinRTComponent::IEvent inner;
+        winrt::WinRTComponent::IEventSource source;
         winrt::event_token token;
         int32_t count = 0;
 
     public:
-        Counter(winrt::WinRTComponent::IEvent inner) : inner(inner)
+        Counter(winrt::WinRTComponent::IEventSource source) : source(source)
         {
-            token = inner.Event([this]() { count++; });
+            token = source.Event([this]() { count++; });
         }
 
         ~Counter() { Detach(); }
@@ -48,7 +48,7 @@ namespace
 
         void Detach()
         {
-            inner.Event(token);
+            source.Event(token);
             token = {};
         }
     };
@@ -56,12 +56,12 @@ namespace
 
 namespace winrt::WinRTComponent::implementation
 {
-    winrt::WinRTComponent::IEvent Events::Create()
+    winrt::WinRTComponent::IEventSource Events::CreateSource()
     {
-        return winrt::make<Implementation>();
+        return winrt::make<Source>();
     }
-    winrt::WinRTComponent::IEventCounter Events::CreateCounter(winrt::WinRTComponent::IEvent const& inner)
+    winrt::WinRTComponent::IEventCounter Events::CreateCounter(winrt::WinRTComponent::IEventSource const& source)
     {
-        return winrt::make<Counter>(inner);
+        return winrt::make<Counter>(source);
     }
 }

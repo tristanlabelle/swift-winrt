@@ -7,8 +7,8 @@ namespace winrt::WinRTComponent::implementation
     {
         Events() = default;
 
-        static winrt::WinRTComponent::IEvent Create();
-        static winrt::WinRTComponent::IEventCounter CreateCounter(winrt::WinRTComponent::IEvent const& inner);
+        static winrt::WinRTComponent::IEventSource CreateSource();
+        static winrt::WinRTComponent::IEventCounter CreateCounter(winrt::WinRTComponent::IEventSource const& source);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

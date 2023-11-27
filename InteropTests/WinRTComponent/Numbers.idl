@@ -1,16 +1,16 @@
 namespace WinRTComponent
 {
-	static runtimeclass Numbers
-	{
-		static Boolean Not(Boolean value);
-		static UInt8 IncrementUInt8(UInt8 value);
-		static Int16 IncrementInt16(Int16 value);
-		static UInt16 IncrementUInt16(UInt16 value);
-		static Int32 IncrementInt32(Int32 value);
-		static UInt32 IncrementUInt32(UInt32 value);
-		static Int64 IncrementInt64(Int64 value);
-		static UInt64 IncrementUInt64(UInt64 value);
-		static Single NegateSingle(Single value);
-		static Double NegateDouble(Double value);
-	};
+    static runtimeclass Numbers
+    {
+        static Boolean Not(Boolean value);
+        static UInt8 IncrementUInt8(UInt8 value);
+        static Int16 IncrementInt16(Int16 value);
+        static UInt16 IncrementUInt16(UInt16 value);
+        static Int32 IncrementInt32(Int32 value);
+        static UInt32 IncrementUInt32(UInt32 value);
+        static Int64 IncrementInt64(Int64 value);
+        static UInt64 IncrementUInt64(UInt64 value);
+        static Single NegateSingle(Single value);
+        static Double NegateDouble(Double value);
+    };
 }

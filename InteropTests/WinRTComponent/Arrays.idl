@@ -2,8 +2,8 @@ import "MinimalTypes.idl";
 
 namespace WinRTComponent
 {
-	static runtimeclass Arrays
-	{
+    static runtimeclass Arrays
+    {
         static Int32 GetLastInt32(Int32[] value);
         static String GetLastString(String[] value);
         static Object GetLastObject(Object[] value);
@@ -39,5 +39,5 @@ namespace WinRTComponent
         static void SwapFirstLastInterface(ref IMinimalInterface[] array);
         static void SwapFirstLastClass(ref MinimalClass[] array);
         static void SwapFirstLastDelegate(ref MinimalDelegate[] array);
-	};
+    };
 }

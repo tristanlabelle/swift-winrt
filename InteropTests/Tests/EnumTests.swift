@@ -1,7 +1,7 @@
 import XCTest
 import WinRTComponent
 
-class EnumTests: XCTestCase {
+class EnumTests: WinRTTestCase {
     func testNonFlags() throws {
         XCTAssert(Enum.RawValue.self == Int32.self)
         XCTAssertEqual(Enum.minusOne.rawValue, -1)

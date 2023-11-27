@@ -2,21 +2,21 @@ import "MinimalTypes.idl";
 
 namespace WinRTComponent
 {
-	interface IEvent
-	{
-		event MinimalDelegate Event;
-		void Fire();
-	};
+    interface IEventSource
+    {
+        event MinimalDelegate Event;
+        void Fire();
+    };
 
-	interface IEventCounter
-	{
-		Int32 Count { get; };
-		void Detach();
-	};
+    interface IEventCounter
+    {
+        Int32 Count { get; };
+        void Detach();
+    };
 
-	static runtimeclass Events
-	{
-		static IEvent Create();
-		static IEventCounter CreateCounter(IEvent inner);
-	};
+    static runtimeclass Events
+    {
+        static IEventSource CreateSource();
+        static IEventCounter CreateCounter(IEventSource source);
+    };
 }
