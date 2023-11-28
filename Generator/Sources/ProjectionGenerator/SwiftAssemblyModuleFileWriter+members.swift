@@ -214,7 +214,7 @@ extension SwiftAssemblyModuleFileWriter {
 
         func writeCall() throws {
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            writer.writeStatement("try HResult.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
+            writer.writeStatement("try WinRTError.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)(\(abiArgs.joined(separator: ", "))))")
         }
 
         if try !method.hasReturnValue {

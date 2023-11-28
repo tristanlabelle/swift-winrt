@@ -9,6 +9,7 @@ public struct HResult: Hashable, CustomStringConvertible {
     public static let invalidArg = HResult(unsigned: 0x80070057)
     public static let notImpl = HResult(unsigned: 0x80004001)
     public static let noInterface = HResult(unsigned: 0x80004002)
+    public static let pointer = HResult(unsigned: 0x80004003)
     public static let outOfMemory = HResult(unsigned: 0x8007000E)
 
     public var value: Value

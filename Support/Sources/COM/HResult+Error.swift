@@ -1,7 +1,3 @@
-public protocol COMError: Error {
-    var hresult: HResult { get }
-}
-
 extension HResult {
     public func throwIfFailed() throws {
         if let error = Error(hresult: self) { throw error }
@@ -34,6 +30,7 @@ extension HResult {
         public static let invalidArg = Self(failed: HResult.invalidArg)
         public static let notImpl = Self(failed: HResult.notImpl)
         public static let noInterface = Self(failed: HResult.noInterface)
+        public static let pointer = Self(failed: HResult.pointer)
         public static let outOfMemory = Self(failed: HResult.outOfMemory)
 
         public let hresult: HResult // Invariant: isFailure

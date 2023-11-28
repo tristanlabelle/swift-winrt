@@ -13,7 +13,7 @@ extension COMImport where Projection: COMTwoWayProjection {
     public static func _implement(_ this: Projection.COMPointer?, _ body: (Projection.SwiftObject) throws -> Void) -> CWinRTCore.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
-            return HResult.invalidArg.value
+            return HResult.pointer.value
         }
         return HResult.catchValue { try body(_getImplementation(this)) }
     }
@@ -23,7 +23,7 @@ extension COMImport where Projection: COMTwoWayProjection {
             _ value: UnsafeMutablePointer<Value>?,
             _ code: (Projection.SwiftObject) throws -> Value) -> CWinRTCore.SWRT_HResult {
         _implement(this) {
-            guard let value else { throw HResult.Error.invalidArg }
+            guard let value else { throw HResult.Error.pointer }
             value.pointee = try code($0)
         }
     }
@@ -32,10 +32,10 @@ extension COMImport where Projection: COMTwoWayProjection {
             _ this: Projection.COMPointer?,
             _ iid: UnsafePointer<CWinRTCore.SWRT_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.SWRT_HResult {
-        guard let ppvObject else { return HResult.invalidArg.value }
+        guard let ppvObject else { return HResult.pointer.value }
         ppvObject.pointee = nil
 
-        guard let this, let iid else { return HResult.invalidArg.value }
+        guard let this, let iid else { return HResult.pointer.value }
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
