@@ -28,7 +28,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
         try toCOM(object, implementation: Implementation.self)
     }
 
-    private final class Implementation: COMImport<IRestrictedErrorInfoProjection> {
+    private final class Implementation: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
         func getErrorDetails(
                 description: inout String?,
                 error: inout HResult,

@@ -27,7 +27,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         try toCOM(object, implementation: Implementation.self)
     }
 
-    private final class Implementation: COMImport<IErrorInfoProjection> {
+    private final class Implementation: COMImport<IErrorInfoProjection>, IErrorInfoProtocol {
         public var guid: Foundation.UUID { get throws { try _getter(_vtable.GetGUID, GUIDProjection.self) } }
         public var source: String? { get throws { try _getter(_vtable.GetSource, BStrProjection.self) } }
         public var description: String? { get throws { try _getter(_vtable.GetDescription, BStrProjection.self) } }
