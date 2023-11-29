@@ -11,6 +11,11 @@ public class FileTextOutputStream: TextOutputStream {
     }
 
     deinit {
-        try? text.write(toFile: path, atomically: true, encoding: .utf8)
+        do {
+            try text.write(toFile: path, atomically: true, encoding: .utf8)
+        }
+        catch let error {
+            assertionFailure(error.localizedDescription)
+        }
     }
 }
