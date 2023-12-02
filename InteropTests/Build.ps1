@@ -46,7 +46,8 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to Swift test package" }
 $SwiftTestBuildOutputDir = "$SwiftTestPackageDir\.build\$SwiftConfiguration"
 
 Write-Host -ForegroundColor Cyan "Embedding the WinRT component activation manifest in the test executable..."
-& mt.exe -manifest $PSScriptRoot\Activation.manifest `
+& mt.exe -nologo `
+    -manifest $PSScriptRoot\Activation.manifest `
     -outputresource:$SwiftTestBuildOutputDir\InteropTestsPackageTests.xctest
     if ($LASTEXITCODE -ne 0) { throw "Failed to embed WinRT component activation manifest in the test executable" }
 

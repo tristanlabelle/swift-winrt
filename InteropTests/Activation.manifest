@@ -3,7 +3,15 @@
     <assemblyIdentity version="1.0.0.0" name="InteropTests" />
     <file name="WinRTComponent.dll">
         <activatableClass
+            name="WinRTComponent.Arrays"
+            threadingModel="both"
+            xmlns="urn:schemas-microsoft-com:winrt.v1" />
+        <activatableClass
             name="WinRTComponent.Events"
+            threadingModel="both"
+            xmlns="urn:schemas-microsoft-com:winrt.v1" />
+        <activatableClass
+            name="WinRTComponent.MinimalClass"
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
@@ -12,6 +20,10 @@
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
             name="WinRTComponent.Numbers"
+            threadingModel="both"
+            xmlns="urn:schemas-microsoft-com:winrt.v1" />
+        <activatableClass
+            name="WinRTComponent.Passthrough"
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
