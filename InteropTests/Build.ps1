@@ -18,13 +18,14 @@ Write-Host -ForegroundColor Cyan "Building WinRT component..."
 $TestComponentProjectDir = "$PSScriptRoot\WinRTComponent"
 & msbuild.exe -restore `
     -p:RestorePackagesConfig=true `
+    -p:Platform=x64 `
     -p:Configuration=$MSBuildConfiguration `
     -p:IntermediateOutputPath=obj\$MSBuildConfiguration\ `
     -p:OutputPath=bin\$MSBuildConfiguration\ `
     -verbosity:minimal `
     $TestComponentProjectDir\WinRTComponent.vcxproj
 if ($LASTEXITCODE -ne 0) { throw "Failed to build WinRT component" }
-$TestComponentDir = "$TestComponentProjectDir\$MSBuildConfiguration\WinRTComponent"
+$TestComponentDir = "$TestComponentProjectDir\bin\$MSBuildConfiguration\x64\WinRTComponent"
 
 Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
 & $SwiftWinRT `
@@ -42,3 +43,12 @@ $SwiftTestPackageDir = $PSScriptRoot
     --build-path "$SwiftTestPackageDir\.build" `
     --build-tests
 if ($LASTEXITCODE -ne 0) { throw "Failed to Swift test package" }
+$SwiftTestBuildOutputDir = "$SwiftTestPackageDir\.build\$SwiftConfiguration"
+
+Write-Host -ForegroundColor Cyan "Embedding the WinRT component activation manifest in the test executable..."
+& mt.exe -manifest $PSScriptRoot\Activation.manifest `
+    -outputresource:$SwiftTestBuildOutputDir\InteropTestsPackageTests.xctest
+    if ($LASTEXITCODE -ne 0) { throw "Failed to embed WinRT component activation manifest in the test executable" }
+
+Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
+Copy-Item -Path $TestComponentDir\WinRTComponent.dll -Destination $SwiftTestBuildOutputDir -Force

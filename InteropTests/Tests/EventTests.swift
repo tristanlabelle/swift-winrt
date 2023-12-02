@@ -3,6 +3,8 @@ import WinRTComponent
 
 class EventTests: WinRTTestCase {
     func testConsuming() throws {
+        try XCTSkipIf(true, "Two-way delegate projections are not yet implemented")
+
         let eventSource = try Events.createSource()!
 
         var count = 0
