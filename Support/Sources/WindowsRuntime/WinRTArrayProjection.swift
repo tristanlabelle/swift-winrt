@@ -9,24 +9,17 @@ public enum WinRTArrayProjection<ElementProjection: ABIProjection>: ABIProjectio
 
     public static func toSwift(copying value: ABIValue) -> SwiftValue {
         guard value.count > 0 else { return [] }
-        return .init(unsafeUninitializedCapacity: Int(value.count)) {
+        return .init(unsafeUninitializedCapacity: Int(value.count)) { buffer, initializedCount in
             for i in 0..<Int(value.count) {
-                $0.initializeElement(at: i, to: ElementProjection.toSwift(copying: value[i]))
-                $1 = i
+                buffer.initializeElement(at: i, to: ElementProjection.toSwift(copying: value[i]))
+                initializedCount = i + 1
             }
         }
     }
 
     public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
-        guard value.count > 0 else { return [] }
-        let result = SwiftValue(unsafeUninitializedCapacity: Int(value.count)) {
-            for i in 0..<Int(value.count) {
-                $0.initializeElement(at: i, to: ElementProjection.toSwift(consuming: &value[i]))
-                $1 = i
-            }
-        }
-        value.deallocate()
-        return result
+        defer { value.deallocate() }
+        return toSwift(copying: value)
     }
 
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
