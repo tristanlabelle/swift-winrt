@@ -39,7 +39,7 @@ Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT componen
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }
 
 Write-Host -ForegroundColor Cyan "Copying Package.swift for the generated code..."
-Copy-Item -Path "$PSScriptRoot\GeneratedPackage.swift" -Destination "$PSScriptRoot\Generated" -Force
+Copy-Item -Path "$PSScriptRoot\GeneratedPackage.swift" -Destination "$PSScriptRoot\Generated\Package.swift" -Force
 
 Write-Host -ForegroundColor Cyan "Building Swift test package..."
 $SwiftTestPackageDir = $PSScriptRoot
