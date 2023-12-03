@@ -1,6 +1,13 @@
 name: Build & Test
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -36,3 +43,13 @@ jobs:
     - name: Test support module
       shell: pwsh
       run: swift test --verbose --skip-build
+
+    - name: Build InteropTests
+      working-directory: InteropTests
+      shell: pwsh
+      run: '& .\Build.ps1'
+
+    - name: Run InteropTests
+      working-directory: InteropTests
+      shell: pwsh
+      run: '& .\Run.ps1'
