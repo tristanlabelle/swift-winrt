@@ -61,11 +61,21 @@ Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the te
 Copy-Item -Path $TestComponentDir\WinRTComponent.dll -Destination $SwiftTestBuildOutputDir -Force
 
 Write-Host -ForegroundColor Cyan "Copying XCTest.dll next to the test..."
+# Swift 5.9:
+# C:\Library\Developer\Toolchains\unknown-Asserts-development.xctoolchain\usr\bin\swift.exe
+# C:\Library\Developer\Platforms\Windows.platform\Developer\Library\XCTest-development\usr\bin64\XCTest.dll
+# Swift 5.10+:
 # %localappdata%\Programs\Swift\Toolchains\0.0.0+Asserts\usr\bin\swift.exe
-# %localappdata%\Programs\Swift\Platforms\0.0.0\Windows.platform\Developer\Library\XCTest-development\usr\bin64
+# %localappdata%\Programs\Swift\Platforms\0.0.0\Windows.platform\Developer\Library\XCTest-development\usr\bin64\XCTest.dll
 $SwiftExePath = @(& where.exe swift.exe)[0]
-$SwiftToolchainPathPrefixMatch = [regex]::Match($SwiftExePath, "^(.*)\\Toolchains\\(\d+\.\d+\.\d+)")
+$SwiftToolchainPathPrefixMatch = [regex]::Match($SwiftExePath, "^(.*)\\Toolchains\\(\d+\.\d+\.\d+)?")
+if (!$SwiftToolchainPathPrefixMatch.Success) { throw "Unexpected Swift toolchain path." }
+
 $SwiftToolchainInstallDir = $SwiftToolchainPathPrefixMatch.Groups[1].Value
-$SwiftToolchainVersion = $SwiftToolchainPathPrefixMatch.Groups[2].Value
-$XCTestDllPath = "$SwiftToolchainInstallDir\Platforms\$SwiftToolchainVersion\Windows.platform\Developer\Library\XCTest-development\usr\bin64\XCTest.dll"
+$SwiftToolchainVersionGroup = $SwiftToolchainPathPrefixMatch.Groups[2]
+
+$XCTestDllPath = "$SwiftToolchainInstallDir\Platforms"
+if ($SwiftToolchainVersionGroup.Success) { $XCTestDllPath += "\$($SwiftToolchainVersionGroup.Value)" }
+$XCTestDllPath += "\Windows.platform\Developer\Library\XCTest-development\usr\bin64\XCTest.dll"
+
 Copy-Item -Path $XCTestDllPath -Destination $SwiftTestBuildOutputDir -Force
