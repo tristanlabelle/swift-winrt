@@ -23,7 +23,7 @@
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
-            name="WinRTComponent.Passthrough"
+            name="WinRTComponent.ReturnArgument"
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass

@@ -2,7 +2,7 @@ import "MinimalTypes.idl";
 
 namespace WinRTComponent
 {
-    interface IPassthrough
+    interface IReturnArgument
     {
         Int32 Int32(Int32 value);
         String String(String value);
@@ -12,13 +12,14 @@ namespace WinRTComponent
         IMinimalInterface Interface(IMinimalInterface value);
         MinimalClass Class(MinimalClass value);
         MinimalDelegate Delegate(MinimalDelegate value);
+        String[] Array(String[] value);
         // TODO(#6): Support IReference<T> projections
         // Windows.Foundation.IReference<Int32> Reference(Windows.Foundation.IReference<Int32> value);
     }
 
-    static runtimeclass Passthrough
+    static runtimeclass ReturnArgument
     {
-        static IPassthrough Create();
-        static IPassthrough CreateProxy(IPassthrough inner);
+        static IReturnArgument Create();
+        static IReturnArgument CreateProxy(IReturnArgument inner);
     }
 }

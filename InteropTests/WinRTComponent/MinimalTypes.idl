@@ -1,6 +1,6 @@
 namespace WinRTComponent
 {
-    enum MinimalEnum { Value };
+    enum MinimalEnum { One = 1 };
     struct MinimalStruct { Int32 Field; };
     interface IMinimalInterface { void Method(); }
     runtimeclass MinimalClass : [default] IMinimalInterface { MinimalClass(); }
