@@ -11,3 +11,5 @@ $OriginalPathExt = $env:PATHEXT
 $env:PATHEXT += ";.xctest"
 & $PSScriptRoot\.build\$SwiftConfiguration\InteropTestsPackageTests.xctest
 $env:PATHEXT = $OriginalPathExt
+
+if ($LASTEXITCODE -ne 0) { throw "Failure running interop tests" }

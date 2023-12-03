@@ -55,7 +55,7 @@ Write-Host -ForegroundColor Cyan "Embedding the WinRT component activation manif
 & mt.exe -nologo `
     -manifest $PSScriptRoot\Activation.manifest `
     -outputresource:$SwiftTestBuildOutputDir\InteropTestsPackageTests.xctest
-    if ($LASTEXITCODE -ne 0) { throw "Failed to embed WinRT component activation manifest in the test executable" }
+if ($LASTEXITCODE -ne 0) { throw "Failed to embed WinRT component activation manifest in the test executable" }
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
 Copy-Item -Path $TestComponentDir\WinRTComponent.dll -Destination $SwiftTestBuildOutputDir -Force
