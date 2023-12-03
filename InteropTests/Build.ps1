@@ -2,6 +2,9 @@ param(
     [switch] $Release
 )
 
+Set-StrictMode -Version 3
+$ErrorActionPreference = "Stop"
+
 $SwiftConfiguration = if ($Release) { "release" } else { "debug" }
 $MSBuildConfiguration = if ($Release) { "Release" } else { "Debug" }
 
@@ -53,3 +56,13 @@ Write-Host -ForegroundColor Cyan "Embedding the WinRT component activation manif
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
 Copy-Item -Path $TestComponentDir\WinRTComponent.dll -Destination $SwiftTestBuildOutputDir -Force
+
+Write-Host -ForegroundColor Cyan "Copying XCTest.dll next to the test..."
+# %localappdata%\Programs\Swift\Toolchains\0.0.0+Asserts\usr\bin\swift.exe
+# %localappdata%\Programs\Swift\Platforms\0.0.0\Windows.platform\Developer\Library\XCTest-development\usr\bin64
+$SwiftExePath = @(& where.exe swift.exe)[0]
+$SwiftToolchainPathPrefixMatch = [regex]::Match($SwiftExePath, "^(.*)\\Toolchains\\(\d+\.\d+\.\d+)")
+$SwiftToolchainInstallDir = $SwiftToolchainPathPrefixMatch.Groups[1].Value
+$SwiftToolchainVersion = $SwiftToolchainPathPrefixMatch.Groups[2].Value
+$XCTestDllPath = "$SwiftToolchainInstallDir\Platforms\$SwiftToolchainVersion\Windows.platform\Developer\Library\XCTest-development\usr\bin64\XCTest.dll"
+Copy-Item -Path $XCTestDllPath -Destination $SwiftTestBuildOutputDir -Force
