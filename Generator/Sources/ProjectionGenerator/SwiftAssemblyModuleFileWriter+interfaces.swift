@@ -117,7 +117,7 @@ extension SwiftAssemblyModuleFileWriter {
                     typeParameters: method.genericParams.map { $0.name },
                     parameters: method.params.map { try projection.toParameter($0) },
                     throws: true,
-                    returnType: projection.toReturnTypeUnlessVoid(method.returnType))
+                    returnType: method.hasReturnValue ? projection.toReturnType(method.returnType) : nil)
             }
         }
     }

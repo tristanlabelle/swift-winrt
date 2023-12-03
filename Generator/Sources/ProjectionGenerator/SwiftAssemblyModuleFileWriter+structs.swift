@@ -106,15 +106,15 @@ extension SwiftAssemblyModuleFileWriter {
                     SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
                     expression += ": "
 
-                    let abiProjection = try projection.getTypeProjection(field.type).abi!
-                    if abiProjection.kind == .identity {
+                    let typeProjection = try projection.getTypeProjection(field.type)
+                    if typeProjection.kind == .identity {
                         expression += "value."
                         SwiftIdentifier.write(field.name, to: &expression)
                     }
                     else {
-                        abiProjection.projectionType.write(to: &expression)
+                        typeProjection.projectionType.write(to: &expression)
                         expression += ".toSwift("
-                        if abiProjection.kind != .inert { expression += "copying: " }
+                        if typeProjection.kind != .inert { expression += "copying: " }
                         expression += "value."
                         SwiftIdentifier.write(field.name, to: &expression)
                         expression += ")"
@@ -137,14 +137,14 @@ extension SwiftAssemblyModuleFileWriter {
                     SwiftIdentifier.write(field.name, to: &expression)
                     expression += ": "
 
-                    let abiProjection = try projection.getTypeProjection(field.type).abi!
-                    if abiProjection.kind == .identity {
+                    let typeProjection = try projection.getTypeProjection(field.type)
+                    if typeProjection.kind == .identity {
                         expression += "value."
                         SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
                     }
                     else {
-                        if abiProjection.kind != .inert { expression.append("try! ") }
-                        abiProjection.projectionType.write(to: &expression)
+                        if typeProjection.kind != .inert { expression.append("try! ") }
+                        typeProjection.projectionType.write(to: &expression)
                         expression += ".toABI("
                         expression += "value."
                         SwiftIdentifier.write(projection.toMemberName(field), to: &expression)

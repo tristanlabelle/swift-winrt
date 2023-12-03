@@ -159,33 +159,28 @@ extension SwiftAssemblyModuleFileWriter {
             }
 
             let typeProjection = try projection.getTypeProjection(param.type.bindGenericParams(typeArgs: genericTypeArgs))
-            guard let abi = typeProjection.abi else {
-                writer.writeNotImplemented()
-                return
-            }
-
-            if abi.kind == .identity {
+            if typeProjection.kind == .identity {
                 addAbiArg(paramName, byRef: param.isByRef, array: false)
                 continue
             }
 
-            let declarator: SwiftVariableDeclarator = param.isByRef || abi.kind != .inert ? .var : .let
+            let declarator: SwiftVariableDeclarator = param.isByRef || typeProjection.kind != .inert ? .var : .let
             let variableName: String = param.isByRef && param.isOut ? "_\(paramName)" : paramName
             if param.isByRef && param.isOut { needsOutParamsEpilogue = true }
 
             if param.isOut && !param.isIn {
-                writer.writeStatement("\(declarator) \(variableName): \(abi.type) = \(abi.defaultValue)")
+                writer.writeStatement("\(declarator) \(variableName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
             }
             else {
-                let tryPrefix = abi.kind == .inert ? "" : "try "
-                writer.writeStatement("\(declarator) \(variableName) = \(tryPrefix)\(abi.projectionType).toABI(\(paramName))")
+                let tryPrefix = typeProjection.kind == .inert ? "" : "try "
+                writer.writeStatement("\(declarator) \(variableName) = \(tryPrefix)\(typeProjection.projectionType).toABI(\(paramName))")
             }
 
-            if abi.kind != .inert {
-                writer.writeStatement("defer { \(abi.projectionType).release(&\(variableName)) }")
+            if typeProjection.kind != .inert {
+                writer.writeStatement("defer { \(typeProjection.projectionType).release(&\(variableName)) }")
             }
 
-            addAbiArg(variableName, byRef: param.isByRef, array: abi.kind == .array)
+            addAbiArg(variableName, byRef: param.isByRef, array: typeProjection.kind == .array)
         }
 
         func writeOutParamsEpilogue() throws {
@@ -196,17 +191,12 @@ extension SwiftAssemblyModuleFileWriter {
                 }
 
                 let typeProjection = try projection.getTypeProjection(param.type.bindGenericParams(typeArgs: genericTypeArgs))
-                guard let abi = typeProjection.abi else {
-                    writer.writeNotImplemented()
-                    return
-                }
-
-                if abi.kind != .identity && param.isOut {
-                    if abi.kind == .inert {
-                        writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(_\(paramName))")
+                if typeProjection.kind != .identity && param.isOut {
+                    if typeProjection.kind == .inert {
+                        writer.writeStatement("\(paramName) = \(typeProjection.projectionType).toSwift(_\(paramName))")
                     }
                     else {
-                        writer.writeStatement("\(paramName) = \(abi.projectionType).toSwift(consuming: &_\(paramName))")
+                        writer.writeStatement("\(paramName) = \(typeProjection.projectionType).toSwift(consuming: &_\(paramName))")
                     }
                 }
             }
@@ -226,19 +216,15 @@ extension SwiftAssemblyModuleFileWriter {
         // Value-returning functions
         let returnTypeProjection = try projection.getTypeProjection(
             method.returnType.bindGenericParams(typeArgs: genericTypeArgs))
-        guard let returnAbi = returnTypeProjection.abi else {
-            writer.writeNotImplemented()
-            return
-        }
 
-        writer.writeStatement("var _result: \(returnAbi.type) = \(returnAbi.defaultValue)")
-        addAbiArg("_result", byRef: true, array: returnAbi.kind == .array)
+        writer.writeStatement("var _result: \(returnTypeProjection.abiType) = \(returnTypeProjection.abiDefaultValue)")
+        addAbiArg("_result", byRef: true, array: returnTypeProjection.kind == .array)
         try writeCall()
 
         if needsOutParamsEpilogue {
             // Don't leak the result if we fail in the out params epilogue
-            if returnAbi.kind != .identity && returnAbi.kind != .inert {
-                writer.writeStatement("defer { \(returnAbi.projectionType).release(&_result) }")
+            if returnTypeProjection.kind != .identity && returnTypeProjection.kind != .inert {
+                writer.writeStatement("defer { \(returnTypeProjection.projectionType).release(&_result) }")
             }
 
             try writeOutParamsEpilogue()
@@ -246,14 +232,14 @@ extension SwiftAssemblyModuleFileWriter {
 
         if let eventRemoveMethodName {
             // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
-            writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration(token: \(returnAbi.projectionType).toSwift(_result), remover: \(eventRemoveMethodName))")
+            writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration(token: \(returnTypeProjection.projectionType).toSwift(_result), remover: \(eventRemoveMethodName))")
             return
         }
 
-        switch returnAbi.kind {
+        switch returnTypeProjection.kind {
             case .identity: writer.writeReturnStatement(value: "_result")
-            case .inert: writer.writeReturnStatement(value: "\(returnAbi.projectionType).toSwift(_result)")
-            default: writer.writeReturnStatement(value: "\(returnAbi.projectionType).toSwift(consuming: &_result)")
+            case .inert: writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(_result)")
+            default: writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(consuming: &_result)")
         }
     }
 }
