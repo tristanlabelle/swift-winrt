@@ -2,36 +2,22 @@ import XCTest
 import WinRTComponent
 
 class ArrayTests: WinRTTestCase {
-    func testInputOfInt32() throws {
-        XCTAssertEqual(try Arrays.getLastInt32([1, 2]), 2)
+    func testInput() throws {
+        XCTAssertEqual(try Arrays.getLast(["a", "b"]), "b")
     }
 
-    func testReturnOfInt32() throws {
-        XCTAssertEqual(try Arrays.makeInt32(1, 2), [1, 2])
+    func testReturn() throws {
+        XCTAssertEqual(try Arrays.make("a", "b"), ["a", "b"])
     }
 
-    func testOutParamOfInt32() throws {
-        var array = [Int32]()
-        try Arrays.outputInt32(1, 2, &array)
-        XCTAssertEqual(array, [1, 2])
-    }
-
-    // func testByRefOfInt32() throws {
-    //     var array: [Int32] = [1, 2]
-    //     try Arrays.swapFirstLastInt32(array)
-    // }
-
-    func testInputOfString() throws {
-        XCTAssertEqual(try Arrays.getLastString(["a", "b"]), "b")
-    }
-
-    func testReturnOfString() throws {
-        XCTAssertEqual(try Arrays.makeString("a", "b"), ["a", "b"])
-    }
-
-    func testOutParamOfString() throws {
+    func testOutParam() throws {
         var array = [String]()
-        try Arrays.outputString("a", "b", &array)
+        try Arrays.output("a", "b", &array)
         XCTAssertEqual(array, ["a", "b"])
     }
+
+    // func testByRef() throws {
+    //     var array: [String] = ["a", "b"]
+    //     try Arrays.swapFirstLastString(array)
+    // }
 }
