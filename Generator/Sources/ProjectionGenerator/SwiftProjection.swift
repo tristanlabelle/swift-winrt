@@ -1,3 +1,4 @@
+import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 
@@ -7,7 +8,7 @@ public class SwiftProjection {
         var documentation: AssemblyDocumentation?
     }
 
-    public private(set) var modulesByName = [String: Module]()
+    public private(set) var modulesByName = OrderedDictionary<String, Module>()
     internal var assembliesToModules = [Assembly: AssemblyEntry]()
     public let abiModuleName: String
     public var referenceReturnNullability: ReferenceNullability { .explicit } 
