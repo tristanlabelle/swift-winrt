@@ -12,4 +12,7 @@ struct GenerateCommand: ParsableCommand {
 
     @Option(help: "A path to the output directory.")
     var out: String
+
+    @Flag(help: "Generate a package.swift file.")
+    var package: Bool = false
 }

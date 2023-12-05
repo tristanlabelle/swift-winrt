@@ -1,3 +1,4 @@
+import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 
@@ -6,7 +7,7 @@ extension SwiftProjection {
         public unowned let projection: SwiftProjection
         public let name: String
         public let flattenNamespaces: Bool
-        public private(set) var typeDefinitionsByNamespace = [String: Set<TypeDefinition>]()
+        public private(set) var typeDefinitionsByNamespace = OrderedDictionary<String, Set<TypeDefinition>>()
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
@@ -40,6 +41,11 @@ extension SwiftProjection {
 
         public func addReference(_ other: Module) {
             weakReferences.insert(Reference(target: other))
+        }
+
+        public func getNamespaceModuleName(namespace: String) -> String {
+            precondition(!flattenNamespaces)
+            return "\(name)_\(SwiftProjection.toCompactNamespace(namespace))"
         }
 
         internal func getName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {

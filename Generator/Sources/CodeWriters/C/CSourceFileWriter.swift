@@ -4,7 +4,7 @@ public class CSourceFileWriter {
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
         if pragmaOnce {
-            self.output.writeLine(grouping: .never, "#pragma once")
+            self.output.writeFullLine(grouping: .never, "#pragma once")
         }
     }
 
@@ -19,7 +19,7 @@ public class CSourceFileWriter {
     }
 
     public func writeForwardDecl(comment: String? = nil, typedef: Bool = false, kind: CTypeDeclKind, name: String) {
-        if let comment { output.writeLine(grouping: .withName("forwardDecl"), "// \(comment)") }
+        if let comment { output.writeFullLine(grouping: .withName("forwardDecl"), "// \(comment)") }
         output.beginLine(grouping: .withName("forwardDecl"))
         if typedef { output.write("typedef ") }
         switch kind {
@@ -36,7 +36,7 @@ public class CSourceFileWriter {
     }
 
     public func writeTypedef(comment: String? = nil, type: CType, name: String) {
-        if let comment { output.writeLine(grouping: .withName("typedef"), "// \(comment)") }
+        if let comment { output.writeFullLine(grouping: .withName("typedef"), "// \(comment)") }
         output.beginLine(grouping: .withName("typedef"))
         output.write("typedef ")
         if !writeType(type, variableName: name) {
@@ -49,7 +49,7 @@ public class CSourceFileWriter {
     public func writeEnum(comment: String? = nil, typedef: Bool = false, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil) {
         let lineGrouping = output.allocateVerticalGrouping()
 
-        if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }
+        if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
 
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }
@@ -77,7 +77,7 @@ public class CSourceFileWriter {
     public func writeStruct(comment: String? = nil, typedef: Bool = false, name: String, members: [CVariableDecl]) {
         let lineGrouping = output.allocateVerticalGrouping()
 
-        if let comment { output.writeLine(grouping: lineGrouping, "// \(comment)") }
+        if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
 
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }

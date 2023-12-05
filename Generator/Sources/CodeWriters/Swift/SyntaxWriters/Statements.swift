@@ -42,7 +42,7 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
     }
 
     public func writeBlankLine() {
-        output.writeLine()
+        output.writeFullLine()
     }
 
     public func writeStatement(_ code: String) {
