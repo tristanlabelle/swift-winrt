@@ -54,7 +54,22 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
             QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
             AddRef: { this in _addRef(this) },
             Release: { this in _release(this) },
-            GetErrorDetails: { this, _, _, _, _ in fatalError("Not implemented: \(#function)") },
+            GetErrorDetails: { this, description, error, restrictedDescription, capabilitySid in _implement(this) {
+                var description_: String? = nil
+                var error_: HResult = .ok
+                var restrictedDescription_: String? = nil
+                var capabilitySid_: String? = nil
+                try $0.getErrorDetails(description: &description_, error: &error_, restrictedDescription: &restrictedDescription_, capabilitySid: &capabilitySid_)
+                var _success = false
+                if let description { description.pointee = try BStrProjection.toABI(description_) }
+                defer { if !_success, let description { BStrProjection.release(&description.pointee) } }
+                if let error { error.pointee = HResultProjection.toABI(error_) }
+                if let restrictedDescription { restrictedDescription.pointee = try BStrProjection.toABI(restrictedDescription_) }
+                defer { if !_success, let restrictedDescription { BStrProjection.release(&restrictedDescription.pointee) } }
+                if let capabilitySid { capabilitySid.pointee = try BStrProjection.toABI(capabilitySid_) }
+                defer { if !_success, let capabilitySid { BStrProjection.release(&capabilitySid.pointee) } }
+                _success = true
+            } },
             GetReference: { this, reference in _getter(this, reference) { try BStrProjection.toABI($0.reference) } }
         )
     }

@@ -38,10 +38,9 @@ extension SwiftAssemblyModuleFileWriter {
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
         if classDefinition == nil {
-            writer.writeComputedProperty(
-                visibility: .public, static: true, name: "virtualTablePointer",
-                type: .identifier("COMVirtualTablePointer"),
-                get: { writer in writer.writeNotImplemented() })
+            try writer.writeStoredProperty(
+                visibility: .public, static: true, declarator: .var, name: "virtualTablePointer",
+                initializer: { try writeVirtualTable(interfaceOrDelegate: interfaceOrDelegate, to: $0) })
         }
 
         let isDelegate = interfaceOrDelegate.definition is DelegateDefinition
