@@ -38,9 +38,12 @@ extension SwiftAssemblyModuleFileWriter {
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
         if classDefinition == nil {
-            try writer.writeStoredProperty(
-                visibility: .public, static: true, declarator: .var, name: "virtualTablePointer",
-                initializer: { try writeVirtualTable(interfaceOrDelegate: interfaceOrDelegate, to: $0) })
+            //public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }
+            writer.writeComputedProperty(
+                    visibility: .public, static: true, name: "virtualTablePointer",
+                    type: .identifier("COMVirtualTablePointer")) { writer in
+                writer.writeStatement("withUnsafePointer(to: &Implementation.virtualTable) { $0 }")
+            }
         }
 
         let isDelegate = interfaceOrDelegate.definition is DelegateDefinition

@@ -9,6 +9,12 @@ public struct EventRegistration {
         self.remover = remover
     }
 
+    public mutating func detachToken() -> EventRegistrationToken {
+        defer { token = .none }
+        remover = Self.nullRemover
+        return token
+    }
+
     public mutating func remove() throws {
         try remover(token)
         token = .none

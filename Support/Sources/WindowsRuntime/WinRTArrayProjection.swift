@@ -22,6 +22,15 @@ public enum WinRTArrayProjection<ElementProjection: ABIProjection>: ABIProjectio
         return toSwift(copying: value)
     }
 
+    public static func toSwift(pointer: UnsafeMutablePointer<ElementProjection.ABIValue>?, count: UInt32) -> SwiftValue {
+        if let pointer {
+            return toSwift(copying: COMArray(pointer: pointer, count: count))
+        } else {
+            assert(count == 0)
+            return []
+        }
+    }
+
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
         guard value.count > 0 else { return .init() }
 

@@ -54,4 +54,11 @@ public struct COMArray<Element> {
             self.count = 0
         }
     }
+
+    public mutating func detach() -> (pointer: UnsafeMutablePointer<Element>?, count: UInt32) {
+        let result = (pointer, count)
+        pointer = nil
+        count = 0
+        return result
+    }
 }

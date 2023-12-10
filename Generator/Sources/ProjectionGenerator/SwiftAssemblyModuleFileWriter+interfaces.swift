@@ -199,6 +199,10 @@ extension SwiftAssemblyModuleFileWriter {
                 else {
                     try writeProjectionMembers(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
                 }
+
+                try writer.writeStoredProperty(
+                    visibility: .public, static: true, declarator: .var, name: "virtualTable",
+                    initializer: { try writeVirtualTable(interfaceOrDelegate: type, to: $0) })
             }
         }
     }

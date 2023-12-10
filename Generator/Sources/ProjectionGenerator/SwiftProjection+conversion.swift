@@ -72,7 +72,18 @@ extension SwiftProjection {
         return result
     }
 
-    func toMemberName(_ member: Member) -> String { Casing.pascalToCamel(member.name) }
+    func toMemberName(_ member: Member) -> String {
+        var name = member.name
+        if member is Method {
+            if let prefixEndIndex = name.findPrefixEndIndex("get_")
+                    ?? name.findPrefixEndIndex("set_")
+                    ?? name.findPrefixEndIndex("add_")
+                    ?? name.findPrefixEndIndex("remove_") {
+                name = String(name[prefixEndIndex...])
+            }
+        }
+        return Casing.pascalToCamel(name)
+    }
 
     func toParameter(label: String = "_", _ param: Param, genericTypeArgs: [TypeNode] = []) throws -> SwiftParameter {
         SwiftParameter(label: label, name: param.name!, `inout`: param.isByRef,
