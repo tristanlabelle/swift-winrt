@@ -197,6 +197,13 @@ extension SwiftAssemblyModuleFileWriter {
                     try writeInterfaceImplementations(type, to: writer)
                 }
                 else {
+                    // public override var swiftObject: SwiftObject { self.invoke }
+                    writer.writeComputedProperty(
+                            visibility: .public, override: true, name: "swiftObject",
+                            type: .identifier("SwiftObject")) { writer in
+                        writer.writeStatement("self.invoke")
+                    }
+
                     try writeProjectionMembers(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
                 }
 

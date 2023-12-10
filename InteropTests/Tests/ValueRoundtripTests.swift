@@ -55,7 +55,13 @@ class ValueRoundtripTests: WinRTTestCase {
     }
 
     func testDelegate() throws {
-        throw XCTSkip("Delegates are not yet implemented")
+        // By design, Swift does not support identity comparisons for closures,
+        // so we can only test that the round-tripped closure is still calling the same code.
+        var called = false
+        let result = try XCTUnwrap(returnArgument.delegate({ called = true }))
+        XCTAssertFalse(called)
+        try result()
+        XCTAssertTrue(called)
     }
 
     func testArray() throws {
