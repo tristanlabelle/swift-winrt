@@ -1,7 +1,7 @@
 import COM
 import CWinRTCore
 
-public struct EventRegistrationToken {
+public struct EventRegistrationToken: Hashable {
     public var value: Int64
     public init(_ value: Int64 = 0) { self.value = value }
 
