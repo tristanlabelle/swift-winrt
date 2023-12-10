@@ -85,11 +85,6 @@ extension SwiftProjection {
         return Casing.pascalToCamel(name)
     }
 
-    func toParameter(label: String = "_", _ param: Param, genericTypeArgs: [TypeNode] = []) throws -> SwiftParameter {
-        SwiftParameter(label: label, name: param.name!, `inout`: param.isByRef,
-            type: try genericTypeArgs.isEmpty ? toType(param.type) : toType(param.type.bindGenericParams(typeArgs: genericTypeArgs)))
-    }
-
     func isOverriding(_ constructor: Constructor) throws -> Bool {
         var type = constructor.definingType
         let paramTypes = try constructor.params.map { try $0.type }
