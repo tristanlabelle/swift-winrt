@@ -1,0 +1,25 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+    interface IOutputArgument
+    {
+        void Int32(Int32 value, out Int32 result);
+        void String(String value, out String result);
+        void Object(Object value, out Object result);
+        void Enum(MinimalEnum value, out MinimalEnum result);
+        void Struct(MinimalStruct value, out MinimalStruct result);
+        void Interface(IMinimalInterface value, out IMinimalInterface result);
+        void Class(MinimalClass value, out MinimalClass result);
+        void Delegate(MinimalDelegate value, out MinimalDelegate result);
+        void Array(String[] value, out String[] result);
+        // TODO(#6): Support IReference<T> projections
+        // void Reference(Windows.Foundation.IReference<Int32> value, out Windows.Foundation.IReference<Int32> result);
+    }
+
+    static runtimeclass OutputArgument
+    {
+        static IOutputArgument Create();
+        static IOutputArgument CreateProxy(IOutputArgument inner);
+    }
+}

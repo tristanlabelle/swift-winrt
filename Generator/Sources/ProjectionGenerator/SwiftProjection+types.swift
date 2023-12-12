@@ -46,15 +46,17 @@ extension SwiftProjection {
                 throw UnexpectedTypeError(param.name, context: "Generic parameters have no projection.")
             case let .array(of: element):
                 let elementProjection = try getTypeProjection(element)
+                let swiftType = SwiftType.array(element: elementProjection.swiftType)
                 return TypeProjection(
-                    swiftType: .array(element: elementProjection.swiftType),
-                    abiType: .chain(
-                        .init("COM"),
-                        .init("COMArray", genericArgs: [elementProjection.abiType])),
-                    kind: .array,
+                    swiftType: swiftType,
+                    swiftDefaultValue: "[]",
                     projectionType: .chain(
                         .init("WindowsRuntime"),
                         .init("WinRTArrayProjection", genericArgs: [elementProjection.projectionType])),
+                    kind: .array,
+                    abiType: .chain(
+                        .init("COM"),
+                        .init("COMArray", genericArgs: [elementProjection.abiType])),
                     abiDefaultValue: ".null")
 
             default:
@@ -105,10 +107,11 @@ extension SwiftProjection {
 
         return TypeProjection(
             swiftType: swiftValueType,
-            abiType: abiType,
-            kind: type.definition.isValueType ? .inert : .allocating,
+            swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             projectionType: projectionType,
-            abiDefaultValue: type.definition.isReferenceType ? "nil" : nil)
+            kind: type.definition.isValueType ? .inert : .allocating,
+            abiType: abiType,
+            abiDefaultValue: type.definition.isReferenceType ? "nil" : .fromProjectionType)
     }
 
     private func getSpecialTypeProjection(_ type: BoundType) throws -> TypeProjection? {
@@ -137,9 +140,10 @@ extension SwiftProjection {
             case .boolean:
                 return TypeProjection(
                     swiftType: .bool,
-                    abiType: .chain(abiModuleName, CAbi.boolName),
-                    kind: .inert,
+                    swiftDefaultValue: "false",
                     projectionType: .chain("COM", "Bool8Projection"),
+                    kind: .inert,
+                    abiType: .chain(abiModuleName, CAbi.boolName),
                     abiDefaultValue: "0")
             case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8))
             case .integer(.int16): return .numeric(swiftType: .int(bits: 16))
@@ -153,29 +157,33 @@ extension SwiftProjection {
             case .char:
                 return TypeProjection(
                     swiftType: .chain("COM", "WideChar"),
-                    abiType: .chain(abiModuleName, "char16_t"),
-                    kind: .inert,
+                    swiftDefaultValue: .defaultInitializer,
                     projectionType: .chain("COM", "WideChar"),
+                    kind: .inert,
+                    abiType: .chain(abiModuleName, "char16_t"),
                     abiDefaultValue: "0")
             case .guid:
                 return TypeProjection(
                     swiftType: .chain("Foundation", "UUID"),
-                    abiType: .chain(abiModuleName, CAbi.guidName),
+                    swiftDefaultValue: .defaultInitializer,
+                    projectionType: .chain("COM", "GUIDProjection"),
                     kind: .inert,
-                    projectionType: .chain("COM", "GUIDProjection"))
+                    abiType: .chain(abiModuleName, CAbi.guidName))
             case .string:
                 return .init(
                     swiftType: .string,
-                    abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
-                    kind: .allocating,
+                    swiftDefaultValue: "\"\"",
                     projectionType: .chain("WindowsRuntime", "HStringProjection"),
+                    kind: .allocating,
+                    abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
                     abiDefaultValue: "nil")
             case .object:
                 return .init(
                     swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
-                    abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
-                    kind: .allocating,
+                    swiftDefaultValue: "nil",
                     projectionType: .chain("WindowsRuntime", "IInspectableProjection"),
+                    kind: .allocating,
+                    abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
                     abiDefaultValue: "nil")
         }
     }
@@ -188,17 +196,19 @@ extension SwiftProjection {
             case "EventRegistrationToken":
                 return TypeProjection(
                     swiftType: .chain("WindowsRuntime", "EventRegistrationToken"),
-                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
-                    kind: .inert,
+                    swiftDefaultValue: .defaultInitializer,
                     projectionType: .chain("WindowsRuntime", "EventRegistrationToken"),
-                    abiDefaultValue: "\(abiModuleName).\(CAbi.eventRegistrationTokenName)()")
+                    kind: .inert,
+                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
+                    abiDefaultValue: .defaultInitializer)
 
             case "HResult":
                 return TypeProjection(
                     swiftType: .chain("COM", "HResult"),
-                    abiType: .chain(abiModuleName, CAbi.hresultName),
-                    kind: .inert,
+                    swiftDefaultValue: .defaultInitializer,
                     projectionType: .chain("COM", "HResultProjection"),
+                    kind: .inert,
+                    abiType: .chain(abiModuleName, CAbi.hresultName),
                     abiDefaultValue: "0")
 
             default:

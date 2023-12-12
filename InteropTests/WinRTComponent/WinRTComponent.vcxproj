@@ -127,12 +127,15 @@
     <ClInclude Include="Numbers.h">
       <DependentUpon>Numbers.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="pch.h" />
     <ClInclude Include="ReturnArgument.h">
       <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClInclude>
-    <ClInclude Include="pch.h" />
     <ClInclude Include="Structs.h">
       <DependentUpon>Structs.idl</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="OutputArgument.h">
+      <DependentUpon>OutputArgument.idl</DependentUpon>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -154,15 +157,18 @@
     <ClCompile Include="Numbers.cpp">
       <DependentUpon>Numbers.idl</DependentUpon>
     </ClCompile>
-    <ClCompile Include="ReturnArgument.cpp">
-      <DependentUpon>ReturnArgument.idl</DependentUpon>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ReturnArgument.cpp">
+      <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="Structs.cpp">
       <DependentUpon>Structs.idl</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="OutputArgument.cpp">
+      <DependentUpon>OutputArgument.idl</DependentUpon>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,11 +176,12 @@
     <Midl Include="Enums.idl" />
     <Midl Include="Errors.idl" />
     <Midl Include="Events.idl" />
+    <Midl Include="MinimalTypes.idl" />
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />
     <Midl Include="ReturnArgument.idl" />
-    <Midl Include="MinimalTypes.idl" />
     <Midl Include="Structs.idl" />
+    <Midl Include="OutputArgument.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

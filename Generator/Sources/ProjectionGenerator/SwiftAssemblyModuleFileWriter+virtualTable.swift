@@ -91,8 +91,12 @@ extension SwiftAssemblyModuleFileWriter {
                 for (index, paramProjection) in paramProjections.enumerated() {
                     if index > 0 { output.write(", ") }
                     if paramProjection.passBy != .value { output.write("&") }
-                    output.write(paramProjection.typeProjection.kind == .identity
-                        ? paramProjection.name : paramProjection.swiftProjectionName)
+                    if paramProjection.typeProjection.kind == .identity {
+                        output.write(paramProjection.name)
+                        if paramProjection.passBy != .value { output.write(".pointee") }
+                    } else {
+                        output.write(paramProjection.swiftProjectionName)
+                    }
                 }
                 output.write(")")
                 if methodKind == .eventAdder { output.write(".token") }
@@ -117,24 +121,21 @@ extension SwiftAssemblyModuleFileWriter {
     }
 
     fileprivate func writePrologueForParam(_ paramProjection: ParamProjection, to output: IndentedTextOutputStream) throws {
-        output.write(paramProjection.passBy == .value ? "let " : "var ")
-        output.write(paramProjection.swiftProjectionName)
-        output.write(" = ")
-
         if paramProjection.passBy.isInput {
+            let declarator: SwiftVariableDeclarator = paramProjection.passBy.isOutput ? .var : .let
+            output.write("\(declarator) \(paramProjection.swiftProjectionName) = \(paramProjection.projectionType).toSwift")
             switch paramProjection.typeProjection.kind {
                 case .identity: fatalError("Case should have been ignored earlier.")
                 case .inert:
-                    output.write("\(paramProjection.projectionType).toSwift(\(paramProjection.name))")
+                    output.write("(\(paramProjection.name))")
                 case .allocating:
-                    output.write("\(paramProjection.projectionType).toSwift(copying: \(paramProjection.name))")
+                    output.write("(copying: \(paramProjection.name))")
                 case .array:
-                    output.write("\(paramProjection.projectionType).toSwift("
-                        + "pointer: \(paramProjection.name), count: \(paramProjection.arrayLengthName))")
+                    output.write("(pointer: \(paramProjection.name), count: \(paramProjection.arrayLengthName))")
             }
         } else {
-            // TODO: Write default value
-            output.write(#"fatalError("Not implemented: out params")"#)
+            output.write("var \(paramProjection.swiftProjectionName): \(paramProjection.typeProjection.swiftType)"
+                + " = \(paramProjection.typeProjection.swiftDefaultValue)")
         }
         output.endLine()
     }

@@ -5,18 +5,19 @@ import WinRTComponent
 
 /// Tests that values can be passed without loss of information
 /// between Swift and WinRT as arguments and return values.
-class ValueRoundtripTests: WinRTTestCase {
+class ValueReturnRoundtripTests: WinRTTestCase {
     private var oneWay: IReturnArgument!
     private var twoWay: IReturnArgument!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        oneWay = ReturnArgumentImplementation()
-        twoWay = try XCTUnwrap(ReturnArgument.createProxy(oneWay))
+        oneWay = try XCTUnwrap(ReturnArgument.create())
+        twoWay = try XCTUnwrap(ReturnArgument.createProxy(ReturnArgumentImplementation()))
     }
 
     override func tearDownWithError() throws {
         twoWay = nil
+        oneWay = nil
         try super.tearDownWithError()
     }
 
