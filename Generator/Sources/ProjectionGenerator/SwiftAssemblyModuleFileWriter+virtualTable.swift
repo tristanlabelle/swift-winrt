@@ -126,10 +126,8 @@ extension SwiftAssemblyModuleFileWriter {
             output.write("\(declarator) \(paramProjection.swiftProjectionName) = \(paramProjection.projectionType).toSwift")
             switch paramProjection.typeProjection.kind {
                 case .identity: fatalError("Case should have been ignored earlier.")
-                case .inert:
+                case .inert, .allocating:
                     output.write("(\(paramProjection.name))")
-                case .allocating:
-                    output.write("(copying: \(paramProjection.name))")
                 case .array:
                     output.write("(pointer: \(paramProjection.name), count: \(paramProjection.arrayLengthName))")
             }

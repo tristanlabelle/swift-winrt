@@ -7,13 +7,7 @@ public enum HStringProjection: ABIProjection {
 
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(consuming value: inout CWinRTCore.SWRT_HString?) -> SwiftValue {
-        let result = CWinRTCore.SWRT_HString.toStringAndDelete(value)
-        value = nil
-        return result
-    }
-
-    public static func toSwift(copying value: CWinRTCore.SWRT_HString?) -> SwiftValue {
+    public static func toSwift(_ value: CWinRTCore.SWRT_HString?) -> SwiftValue {
         value.toString()
     }
 

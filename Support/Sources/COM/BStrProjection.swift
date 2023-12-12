@@ -6,12 +6,7 @@ public enum BStrProjection: ABIProjection {
 
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(consuming value: inout CWinRTCore.SWRT_BStr?) -> String? {
-        defer { release(&value) }
-        return toSwift(copying: value)
-    }
-
-    public static func toSwift(copying value: CWinRTCore.SWRT_BStr?) -> String? {
+    public static func toSwift(_ value: CWinRTCore.SWRT_BStr?) -> String? {
         guard let value else { return nil }
         let length = CWinRTCore.SWRT_SysStringLen(value)
         return String(utf16CodeUnits: value, count: Int(length))

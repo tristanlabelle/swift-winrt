@@ -12,7 +12,7 @@ public protocol ABIProjection {
 
     /// Converts a value from its ABI to its Swift representation
     /// without releasing the original value.
-    static func toSwift(copying value: ABIValue) -> SwiftValue
+    static func toSwift(_ value: ABIValue) -> SwiftValue
 
     /// Converts a value from its ABI to its Swift representation,
     /// releasing the original value.
@@ -27,6 +27,11 @@ public protocol ABIProjection {
 }
 
 extension ABIProjection {
+    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
+        defer { release(&value) }
+        return toSwift(value)
+    }
+
     public static func withABI<Result>(_ value: SwiftValue, _ closure: (ABIValue) throws -> Result) throws -> Result {
         var abiValue = try toABI(value)
         defer { release(&abiValue) }
@@ -39,12 +44,10 @@ extension ABIProjection {
 /// For conformance convenience.
 public protocol ABIInertProjection: ABIProjection {
     static func toABI(_ value: SwiftValue) -> ABIValue // No throw version
-    static func toSwift(_ value: ABIValue) -> SwiftValue
 }
 
 extension ABIInertProjection {
     public static func toSwift(consuming value: inout ABIValue) -> SwiftValue { toSwift(value) }
-    public static func toSwift(copying value: ABIValue) -> SwiftValue { toSwift(value) }
     public static func release(_ value: inout ABIValue) {}
 }
 

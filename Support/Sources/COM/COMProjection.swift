@@ -26,7 +26,7 @@ extension COMProjection {
     // Default ABIProjection implementation
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(copying value: ABIValue) -> SwiftValue {
+    public static func toSwift(_ value: ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
         IUnknownPointer.addRef(comPointer)
         return toSwift(transferringRef: comPointer)

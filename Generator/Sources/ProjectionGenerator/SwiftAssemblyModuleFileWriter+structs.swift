@@ -114,7 +114,6 @@ extension SwiftAssemblyModuleFileWriter {
                     else {
                         typeProjection.projectionType.write(to: &expression)
                         expression += ".toSwift("
-                        if typeProjection.kind != .inert { expression += "copying: " }
                         expression += "value."
                         SwiftIdentifier.write(field.name, to: &expression)
                         expression += ")"
