@@ -29,24 +29,18 @@ class EventTests: WinRTTestCase {
         XCTAssertEqual(try counter.count, 1)
 
         class EventSource: WinRTExport<IEventSourceProjection>, IEventSourceProtocol {
-            private var handlers = [(MinimalDelegate, token: EventRegistrationToken)]()
-            private var nextTokenValue: Int64 = 1
+            private var invocationList: EventInvocationList<MinimalDelegate> = .init()
 
             func event(adding handler: MinimalDelegate?) throws -> EventRegistration {
-                guard let handler else { throw HResult.Error.pointer }
-                let token = EventRegistrationToken(nextTokenValue)
-                handlers.append((handler, token: token))
-                nextTokenValue += 1
-                return EventRegistration(token: token, remover: self.event)
+                try invocationList.add(handler)
             }
 
             func event(removing token: WindowsRuntime.EventRegistrationToken) throws {
-                guard let index = handlers.firstIndex(where: { $0.token == token }) else { throw HResult.Error.invalidArg }
-                handlers.remove(at: index)
+                try invocationList.remove(token)
             }
 
             func fire() throws {
-                for (handler, _) in handlers { try handler() }
+                try invocationList.invoke { try $0() }
             }
         }
     }
