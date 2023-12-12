@@ -28,7 +28,7 @@ class EventTests: WinRTTestCase {
         try eventSource.fire()
         XCTAssertEqual(try counter.count, 1)
 
-        class EventSource: WinRTExportBase<IEventSourceProjection>, IEventSourceProtocol {
+        class EventSource: WinRTExport<IEventSourceProjection>, IEventSourceProtocol {
             private var handlers = [(MinimalDelegate, token: EventRegistrationToken)]()
             private var nextTokenValue: Int64 = 1
 

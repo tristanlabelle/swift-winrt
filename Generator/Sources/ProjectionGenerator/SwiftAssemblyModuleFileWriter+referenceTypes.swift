@@ -68,8 +68,8 @@ extension SwiftAssemblyModuleFileWriter {
                 parameters: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
                 throws: true, returnType: .identifier("COMPointer")) { writer in
             if isDelegate {
-                writer.writeStatement("let comExport = COMExport<Self>(implementation: object, queriableInterfaces: [ .init(Self.self) ])")
-                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(comExport.pointer)")
+                writer.writeStatement("let comObject = COMExportedObject<Self>(implementation: object, queriableInterfaces: [ .init(Self.self) ])")
+                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(comObject.pointer)")
             }
             else {
                 writer.writeStatement("try toCOM(object, implementation: \(implementationTypeName).self)")

@@ -1,7 +1,8 @@
 import COM
 
-open class WinRTExport<Projection: WinRTTwoWayProjection>
-        : COMExport<Projection>, IInspectableProtocol {
+/// Base for classes exported to WinRT.
+open class WinRTExportedObject<Projection: WinRTTwoWayProjection>
+        : COMExportedObject<Projection>, IInspectableProtocol {
     public override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         return id == IInspectableProjection.id
             ? identity.unknown.addingRef()

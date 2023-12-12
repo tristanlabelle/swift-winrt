@@ -75,7 +75,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         throw XCTSkip("Two-way array projections are not implemented yet")
     }
 
-    class ReturnArgumentImplementation: WinRTExportBase<IReturnArgumentProjection>, IReturnArgumentProtocol {
+    class ReturnArgumentImplementation: WinRTExport<IReturnArgumentProjection>, IReturnArgumentProtocol {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
         func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable? { value }

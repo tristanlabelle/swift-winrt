@@ -2,7 +2,7 @@ import CWinRTCore
 
 extension COMImport where Projection: COMTwoWayProjection {
     public static func _getImplementation(_ pointer: Projection.COMPointer) -> Projection.SwiftObject {
-        COMExport<Projection>.from(pointer).implementation
+        COMExportedObject<Projection>.from(pointer).implementation
     }
 
     public static func _getImplementation(_ pointer: Projection.COMPointer?) -> Projection.SwiftObject? {
@@ -39,7 +39,7 @@ extension COMImport where Projection: COMTwoWayProjection {
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
-            let unknownWithRef = try COMExport<Projection>.queryInterface(this, id)
+            let unknownWithRef = try COMExportedObject<Projection>.queryInterface(this, id)
             ppvObject.pointee = UnsafeMutableRawPointer(unknownWithRef)
         }
     }
@@ -49,7 +49,7 @@ extension COMImport where Projection: COMTwoWayProjection {
             assertionFailure("COM this pointer was null")
             return 1
         }
-        return COMExport<Projection>.addRef(this)
+        return COMExportedObject<Projection>.addRef(this)
     }
 
     public static func _release(_ this: Projection.COMPointer?) -> UInt32 {
@@ -57,6 +57,6 @@ extension COMImport where Projection: COMTwoWayProjection {
             assertionFailure("COM this pointer was null")
             return 0
         }
-        return COMExport<Projection>.release(this)
+        return COMExportedObject<Projection>.release(this)
     }
 }
