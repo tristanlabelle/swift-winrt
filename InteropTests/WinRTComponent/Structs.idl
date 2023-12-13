@@ -28,7 +28,6 @@ namespace WinRTComponent
 
 		static void Output(Int32 a, String b, LeafStruct d, out Struct value);
 
-		// Structs do not support in-out byref. "ref Struct value" results in:
-		// MIDL4035: The [in] parameter has a pointer type that is not valid.
+		static Struct ReturnRefConstArgument(ref const Struct value);
 	};
 }

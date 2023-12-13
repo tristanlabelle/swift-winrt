@@ -24,4 +24,8 @@ namespace winrt::WinRTComponent::implementation
     {
         value = { a, b, c };
     }
+    winrt::WinRTComponent::Struct Structs::ReturnRefConstArgument(const winrt::WinRTComponent::Struct& value)
+    {
+        return value;
+    }
 }
