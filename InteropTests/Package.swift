@@ -16,6 +16,10 @@ let package = Package(
             ],
             path: "Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
-            linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ])
+            linkerSettings: [ .unsafeFlags([
+                "-Xlinker", "-ignore:4217",
+                "-Xlinker", "/manifestinput:Activation.manifest",
+                "-Xlinker", "/manifest:embed"
+            ]) ])
     ]
 )
