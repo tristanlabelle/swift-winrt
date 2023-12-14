@@ -131,6 +131,9 @@
     <ClInclude Include="ReturnArgument.h">
       <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="Strings.h">
+      <DependentUpon>Strings.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Structs.h">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClInclude>
@@ -164,6 +167,9 @@
       <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+    <ClCompile Include="Strings.cpp">
+      <DependentUpon>Strings.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="Structs.cpp">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClCompile>
@@ -180,6 +186,7 @@
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />
     <Midl Include="ReturnArgument.idl" />
+    <Midl Include="Strings.idl" />
     <Midl Include="Structs.idl" />
     <Midl Include="OutputArgument.idl" />
   </ItemGroup>

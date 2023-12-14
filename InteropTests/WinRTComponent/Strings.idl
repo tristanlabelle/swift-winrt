@@ -1,0 +1,10 @@
+namespace WinRTComponent
+{
+    static runtimeclass Strings
+    {
+        static String Roundtrip(String value);
+        static Char RoundtripChar(Char value);
+        static String FromChars(Char[] chars);
+        static Char[] ToChars(String value);
+    };
+}

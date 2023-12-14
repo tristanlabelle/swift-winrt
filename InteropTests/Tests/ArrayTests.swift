@@ -16,8 +16,7 @@ class ArrayTests: WinRTTestCase {
         XCTAssertEqual(array, ["a", "b"])
     }
 
-    // func testByRef() throws {
-    //     var array: [String] = ["a", "b"]
-    //     try Arrays.swapFirstLastString(array)
-    // }
+    func testByRef() throws {
+        throw XCTSkip("Not implemented: byref arrays")
+    }
 }

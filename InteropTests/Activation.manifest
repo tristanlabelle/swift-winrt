@@ -35,6 +35,10 @@
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
+            name="WinRTComponent.Strings"
+            threadingModel="both"
+            xmlns="urn:schemas-microsoft-com:winrt.v1" />
+        <activatableClass
             name="WinRTComponent.Structs"
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />

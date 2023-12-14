@@ -1,6 +1,6 @@
 import CWinRTCore
 
-public struct WideChar {
+public struct WideChar: Hashable {
     public var codeUnit: UTF16.CodeUnit
     public init(codeUnit: UTF16.CodeUnit) { self.codeUnit = codeUnit }
 }
