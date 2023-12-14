@@ -43,5 +43,5 @@ Copy-Item -Path "$PSScriptRoot\GeneratedPackage.swift" -Destination "$PSScriptRo
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
 $SwiftTestPackageDir = $PSScriptRoot
-$SwiftTestBuildOutputDir = "$SwiftTestPackageDir\.build\$SwiftConfiguration"
+$SwiftTestBuildOutputDir = "$SwiftTestPackageDir\.build\x86_64-unknown-windows-msvc\$SwiftConfiguration\"
 Copy-Item -Path $TestComponentDir\WinRTComponent.dll -Destination $SwiftTestBuildOutputDir -Force

@@ -44,12 +44,17 @@ jobs:
       shell: pwsh
       run: swift test --verbose --skip-build
 
+    - name: Build Test WinRT Component
+      working-directory: InteropTests
+      shell: pwsh
+      run: '& .\BuildWinRTComponent.ps1'
+
     - name: Build InteropTests
       working-directory: InteropTests
       shell: pwsh
-      run: '& .\Build.ps1'
+      run: swift build --verbose --build-tests
 
     - name: Run InteropTests
       working-directory: InteropTests
       shell: pwsh
-      run: '& .\Run.ps1'
+      run: swift test --verbose --skip-build
