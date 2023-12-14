@@ -13,7 +13,8 @@ public struct WinRTError: COMError, CustomStringConvertible {
 
     public var description: String {
         let details = (try? errorInfo?.details) ?? RestrictedErrorInfoDetails()
-        return details.description ?? details.restrictedDescription ?? hresult.description
+        // RestrictedDescription contains the value reported in RoOriginateError
+        return details.restrictedDescription ?? details.description ?? hresult.description
     }
 
     public static func throwIfFailed(_ hresult: CWinRTCore.SWRT_HResult) throws {

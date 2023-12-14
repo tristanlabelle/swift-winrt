@@ -16,10 +16,16 @@ namespace winrt::WinRTComponent::implementation
     {
         throw winrt::hresult_not_implemented();
     }
-    winrt::hresult Errors::Catch(winrt::WinRTComponent::MinimalDelegate const& callee)
+    winrt::hresult Errors::CatchHResult(winrt::WinRTComponent::MinimalDelegate const& callee)
     {
         try { callee(); }
         catch (const winrt::hresult_error& error) { return error.code(); }
         return winrt::hresult();
+    }
+    winrt::hstring Errors::CatchMessage(winrt::WinRTComponent::MinimalDelegate const& callee)
+    {
+        try { callee(); }
+        catch (const winrt::hresult_error& error) { return error.message(); }
+        return winrt::hstring();
     }
 }

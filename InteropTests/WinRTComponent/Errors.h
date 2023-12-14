@@ -10,7 +10,8 @@ namespace winrt::WinRTComponent::implementation
         static void FailWith(winrt::hresult const& hr, winrt::hstring const& message);
         static hstring NotImplementedProperty();
         static void NotImplementedProperty(hstring const& value);
-        static winrt::hresult Catch(winrt::WinRTComponent::MinimalDelegate const& callee);
+        static winrt::hresult CatchHResult(winrt::WinRTComponent::MinimalDelegate const& callee);
+        static winrt::hstring CatchMessage(winrt::WinRTComponent::MinimalDelegate const& callee);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

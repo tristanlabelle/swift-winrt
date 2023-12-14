@@ -6,6 +6,7 @@ namespace WinRTComponent
     {
         static void FailWith(Windows.Foundation.HResult hr, String message);
         static String NotImplementedProperty;
-        static Windows.Foundation.HResult Catch(MinimalDelegate callee);
+        static Windows.Foundation.HResult CatchHResult(MinimalDelegate callee);
+        static String CatchMessage(MinimalDelegate callee);
     };
 }

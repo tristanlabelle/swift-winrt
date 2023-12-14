@@ -7,6 +7,10 @@
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
         <activatableClass
+            name="WinRTComponent.Errors"
+            threadingModel="both"
+            xmlns="urn:schemas-microsoft-com:winrt.v1" />
+        <activatableClass
             name="WinRTComponent.Events"
             threadingModel="both"
             xmlns="urn:schemas-microsoft-com:winrt.v1" />
