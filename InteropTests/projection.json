@@ -10,7 +10,8 @@
             "assemblies": [
                 "WinRTComponent"
             ],
-            "flattenNamespaces": true
+            "flattenNamespaces": true,
+            "fileNameInManifest": "WinRTComponent.dll"
         }
     }
 }

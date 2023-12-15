@@ -4,19 +4,10 @@ import Foundation
 import ProjectionGenerator
 import WindowsMetadata
 
-internal func createProjection(generateCommand: GenerateCommand, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {
+internal func createProjection(generateCommand: GenerateCommand, projectionConfig: ProjectionConfig, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {
     var allReferences = Set(generateCommand.references)
-    if let sdk = generateCommand.sdk {
+    if let sdk = generateCommand.windowsSdkVersion {
         allReferences.insert("C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\\(sdk)\\Windows.winmd")
-    }
-
-    let projectionConfig: ProjectionConfig
-    if let configFilePath = generateCommand.config {
-        let jsonData = try Data(contentsOf: URL(fileURLWithPath: configFilePath))
-        projectionConfig = try JSONDecoder().decode(ProjectionConfig.self, from: jsonData)
-    }
-    else {
-        projectionConfig = ProjectionConfig()
     }
 
     let projection = SwiftProjection(abiModuleName: projectionConfig.abiModule)

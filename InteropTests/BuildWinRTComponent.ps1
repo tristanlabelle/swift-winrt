@@ -35,7 +35,8 @@ Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT componen
     --config "$PSScriptRoot\projection.json" `
     --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.FoundationContract\4.0.0.0\Windows.Foundation.FoundationContract.winmd" `
     --reference "$TestComponentDir\WinRTComponent.winmd" `
-    --out "$PSScriptRoot\Generated"
+    --out "$PSScriptRoot\Generated" `
+    --out-manifest "$PSScriptRoot\Generated\WinRTComponent.manifest"
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }
 
 Write-Host -ForegroundColor Cyan "Copying Package.swift for the generated code..."

@@ -7,7 +7,7 @@ import ProjectionGenerator
 import WindowsMetadata
 
 func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
-    let abiModuleDirectoryPath = "\(generateCommand.out)\\\(projection.abiModuleName)"
+    let abiModuleDirectoryPath = "\(generateCommand.outputDirectoryPath)\\\(projection.abiModuleName)"
     let abiModuleIncludeDirectoryPath = "\(abiModuleDirectoryPath)\\include"
     try FileManager.default.createDirectory(atPath: abiModuleIncludeDirectoryPath, withIntermediateDirectories: true)
 
@@ -16,7 +16,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
 
-        let moduleRootPath = "\(generateCommand.out)\\\(module.name)"
+        let moduleRootPath = "\(generateCommand.outputDirectoryPath)\\\(module.name)"
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
@@ -66,10 +66,6 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
             }
         }
     }
-
-    if generateCommand.package {
-        writePackageSwiftFile(projection, rootPath: generateCommand.out)
-    }
 }
 
 fileprivate func writeProjectionSwiftFile(
@@ -95,53 +91,4 @@ fileprivate func writeProjectionSwiftFile(
 
     if writeDefinition { try projectionWriter.writeTypeDefinition(typeDefinition) }
     try projectionWriter.writeProjection(typeDefinition, genericArgs: closedGenericArgs)
-}
-
-fileprivate func writePackageSwiftFile(_ projection: SwiftProjection, rootPath: String) {
-    var package = SwiftPackage(name: "Projection")
-
-    package.dependencies.append(.package(url: "https://github.com/tristanlabelle/swift-winrt.git", branch: "main"))
-
-    package.targets.append(
-        .target(name: projection.abiModuleName, path: projection.abiModuleName))
-
-    var productTargets = [String]()
-
-    for module in projection.modulesByName.values {
-        guard !module.isEmpty else { continue }
-
-        // Assembly module
-        var assemblyModuleTarget = SwiftPackage.Target(name: module.name)
-        assemblyModuleTarget.path = "\(module.name)/Assembly"
-
-        assemblyModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))
-
-        for referencedModule in module.references {
-            guard !referencedModule.isEmpty else { continue }
-            assemblyModuleTarget.dependencies.append(.target(name: referencedModule.name))
-        }
-
-        assemblyModuleTarget.dependencies.append(.target(name: projection.abiModuleName))
-
-        package.targets.append(assemblyModuleTarget)
-        productTargets.append(assemblyModuleTarget.name)
-
-        // Namespace modules
-        if !module.flattenNamespaces {
-            for (namespace, _) in module.typeDefinitionsByNamespace {
-                var namespaceModuleTarget = SwiftPackage.Target(
-                    name: module.getNamespaceModuleName(namespace: namespace))
-                let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
-                namespaceModuleTarget.path = "\(module.name)/Namespaces/\(compactNamespace)"
-                namespaceModuleTarget.dependencies.append(.target(name: module.name))
-                package.targets.append(namespaceModuleTarget)
-                productTargets.append(namespaceModuleTarget.name)
-            }
-        }
-    }
-
-    package.products.append(.library(name: "Projection", targets: productTargets))
-
-    let packageFilePath = "\(rootPath)\\Package.swift"
-    package.write(to: FileTextOutputStream(path: packageFilePath))
 }

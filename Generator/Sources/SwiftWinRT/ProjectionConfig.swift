@@ -14,6 +14,7 @@ struct ProjectionConfig: Codable {
         var assemblies: [String] = []
         var types: [String]? = nil
         var flattenNamespaces: Bool = false
+        var fileNameInManifest: String? = nil
 
         init() {}
 
@@ -22,6 +23,7 @@ struct ProjectionConfig: Codable {
             assemblies = try container.decodeIfPresent([String].self, forKey: .assemblies) ?? assemblies
             types = try container.decodeIfPresent([String]?.self, forKey: .types) ?? types
             flattenNamespaces = try container.decodeIfPresent(Bool.self, forKey: .flattenNamespaces) ?? flattenNamespaces
+            fileNameInManifest = try container.decodeIfPresent(String.self, forKey: .fileNameInManifest) ?? fileNameInManifest
         }
     }
 
