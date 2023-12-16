@@ -128,6 +128,9 @@
       <DependentUpon>Numbers.idl</DependentUpon>
     </ClInclude>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="ObjectReferencer.h">
+      <DependentUpon>ObjectReferencer.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="ReturnArgument.h">
       <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClInclude>
@@ -163,6 +166,9 @@
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ObjectReferencer.cpp">
+      <DependentUpon>ObjectReferencer.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="ReturnArgument.cpp">
       <DependentUpon>ReturnArgument.idl</DependentUpon>
     </ClCompile>
@@ -185,6 +191,7 @@
     <Midl Include="MinimalTypes.idl" />
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />
+    <Midl Include="ObjectReferencer.idl" />
     <Midl Include="ReturnArgument.idl" />
     <Midl Include="Strings.idl" />
     <Midl Include="Structs.idl" />

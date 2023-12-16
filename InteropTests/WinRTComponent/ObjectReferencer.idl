@@ -1,0 +1,11 @@
+namespace WinRTComponent
+{
+    runtimeclass ObjectReferencer
+    {
+        ObjectReferencer();
+        void Begin(Object obj);
+        UInt32 CallAddRef();
+        UInt32 CallRelease();
+        UInt32 End();
+    }
+}
