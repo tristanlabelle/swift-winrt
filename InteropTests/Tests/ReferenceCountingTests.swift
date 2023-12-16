@@ -20,14 +20,14 @@ class ReferenceCountingTests: WinRTTestCase {
     func testReleaseFromWinRT() throws {
         var obj: ExportedClass? = ExportedClass()
         weak var weakObj = obj
-        try XCTUnwrap(weakObj).method()
+        XCTAssertNotNil(weakObj)
 
         let referencer = try ObjectReferencer()
         try referencer.begin(obj)
-        try XCTUnwrap(weakObj).method()
+        XCTAssertNotNil(weakObj)
 
         obj = nil // We should now only be kept alive by WinRT
-        try XCTUnwrap(weakObj).method()
+        XCTAssertNotNil(weakObj)
 
         let _ = try referencer.end() // Resulting refcount is unreliable as it includes weak ref counts
         XCTAssertNil(weakObj)
