@@ -61,7 +61,9 @@ extension CAbi {
                 try appendCOMParams(name: "_return", type: try method.returnType, genericArgs: genericArgs, isByRef: true, to: &params)
             }
 
-            decl.addFunction(name: method.name, params: params)
+            decl.addFunction(
+                name: try method.findAttribute(OverloadAttribute.self) ?? method.name,
+                params: params)
         }
 
         decl.write(
