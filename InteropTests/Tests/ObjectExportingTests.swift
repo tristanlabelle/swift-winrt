@@ -2,7 +2,7 @@ import XCTest
 import WindowsRuntime
 import WinRTComponent
 
-class ReferenceCountingTests: WinRTTestCase {
+class ObjectExportingTests: WinRTTestCase {
     class ExportedClass: WinRTExport<IMinimalInterfaceProjection>, IMinimalInterfaceProtocol {
         public func method() throws {}
     }
@@ -31,5 +31,14 @@ class ReferenceCountingTests: WinRTTestCase {
 
         let _ = try referencer.end() // Resulting refcount is unreliable as it includes weak ref counts
         XCTAssertNil(weakObj)
+    }
+
+    func testUnwrapping() throws {
+        try XCTSkipIf(true, "TODO: Implement unwrapping of exported Swift objects")
+        let obj: IInspectable = ExportedClass()
+        let returnArgument = try XCTUnwrap(ReturnArgument.create())
+        let roundtripped = try XCTUnwrap(returnArgument.object(obj))
+        // We shouldn't get a WinRTImport wrapper back, but rather the original object
+        XCTAssertIdentical(roundtripped, obj)
     }
 }
