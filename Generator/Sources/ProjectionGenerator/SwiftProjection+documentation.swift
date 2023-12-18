@@ -41,7 +41,7 @@ extension SwiftProjection {
             swift.summary = toBlocks(summary)
         }
         for param in documentation.params {
-            swift.parameters.append(SwiftDocumentationComment.Param(name: param.name, description: toSpans(param.description)))
+            swift.params.append(SwiftDocumentationComment.Param(name: param.name, description: toSpans(param.description)))
         }
         if let returns = documentation.returns {
             swift.returns = toSpans(returns)

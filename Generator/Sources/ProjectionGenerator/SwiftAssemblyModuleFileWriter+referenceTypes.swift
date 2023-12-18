@@ -58,14 +58,14 @@ extension SwiftAssemblyModuleFileWriter {
         let implementationTypeName = classDefinition == nil ? "Implementation" : "Self"
         writer.writeFunc(
                 visibility: .public, static: true, name: "toSwift",
-                parameters: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
+                params: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
                 returnType: .identifier("SwiftObject")) { writer in
             writer.writeStatement("toSwift(transferringRef: comPointer, implementation: \(implementationTypeName).self)")
         }
 
         writer.writeFunc(
                 visibility: .public, static: true, name: "toCOM",
-                parameters: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
+                params: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
                 throws: true, returnType: .identifier("COMPointer")) { writer in
             if isDelegate {
                 writer.writeStatement("let comObject = COMExportedObject<Self>(implementation: object, queriableInterfaces: [ .init(Self.self) ])")
@@ -146,7 +146,8 @@ extension SwiftAssemblyModuleFileWriter {
                 let interfaceProperty = try writeSecondaryInterfaceProperty(interface, to: writer)
                 try writeProjectionMembers(
                     interfaceOrDelegate: interface.asBoundType,
-                    thisPointer: .getter(interfaceProperty.getter), to: writer)
+                    thisPointer: .getter(interfaceProperty.getter, static: false),
+                    to: writer)
                 nonDefaultInterfaceStoredProperties.append(interfaceProperty.name)
             }
         }

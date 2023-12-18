@@ -1,0 +1,17 @@
+namespace WinRTComponent
+{
+    runtimeclass OverloadedSum
+    {
+        // For testing activation factory overloading
+        OverloadedSum();
+        OverloadedSum(Int32 a);
+        OverloadedSum(Int32 a, Int32 b);
+
+        Int32 Result { get; };
+
+        // For testing method overloading
+        [overload("Of")] static Int32 Of0();
+        [overload("Of")] static Int32 Of1(Int32 a);
+        [overload("Of")] static Int32 Of(Int32 a, Int32 b);
+    }
+}

@@ -93,8 +93,8 @@ extension SwiftDeclarationWriter {
         static: Bool = false,
         override: Bool = false,
         name: String,
-        typeParameters: [String] = [],
-        parameters: [SwiftParameter] = [],
+        typeParams: [String] = [],
+        params: [SwiftParam] = [],
         throws: Bool = false,
         returnType: SwiftType? = nil,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
@@ -106,8 +106,8 @@ extension SwiftDeclarationWriter {
             static: `static`,
             override: `override`,
             name: name,
-            typeParameters: typeParameters,
-            parameters: parameters,
+            typeParams: typeParams,
+            params: params,
             throws: `throws`,
             returnType: returnType)
         try output.writeBracedIndentedBlock() {
@@ -142,7 +142,7 @@ extension SwiftDeclarationWriter {
         convenience: Bool = false,
         override: Bool = false,
         failable: Bool = false,
-        parameters: [SwiftParameter] = [],
+        params: [SwiftParam] = [],
         throws: Bool = false,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
@@ -155,7 +155,7 @@ extension SwiftDeclarationWriter {
         if `override` { output.write("override ") }
         output.write("init")
         if failable { output.write("?") }
-        writeParameters(parameters)
+        writeParams(params)
         if `throws` {
             output.write(" throws")
         }

@@ -19,7 +19,7 @@ extension SwiftAssemblyModuleFileWriter {
             let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
             writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
             writer.writeInit(visibility: .public,
-                parameters: [ .init(name: "rawValue", type: rawValueType, defaultValue: "0") ]) {
+                params: [ .init(name: "rawValue", type: rawValueType, defaultValue: "0") ]) {
                 $0.output.write("self.rawValue = rawValue")
             }
 

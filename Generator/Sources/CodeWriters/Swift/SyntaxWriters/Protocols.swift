@@ -3,7 +3,7 @@ extension SwiftSourceFileWriter {
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
-        typeParameters: [String] = [],
+        typeParams: [String] = [],
         bases: [SwiftType] = [],
         whereClauses: [String] = [],
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
@@ -14,7 +14,7 @@ extension SwiftSourceFileWriter {
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
         SwiftIdentifier.write(name, to: &output)
-        writeTypeParameters(typeParameters)
+        writeTypeParams(typeParams)
         writeInheritanceClause(bases)
         if !whereClauses.isEmpty {
             output.write(" where ")
@@ -70,8 +70,8 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         isPropertySetter: Bool = false,
         static: Bool = false,
         name: String,
-        typeParameters: [String] = [],
-        parameters: [SwiftParameter] = [],
+        typeParams: [String] = [],
+        params: [SwiftParam] = [],
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -81,8 +81,8 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
             visibility: .implicit,
             static: `static`,
             name: name,
-            typeParameters: typeParameters,
-            parameters: parameters,
+            typeParams: typeParams,
+            params: params,
             throws: `throws`,
             returnType: returnType)
         output.endLine()

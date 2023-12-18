@@ -5,7 +5,7 @@ import WindowsMetadata
 extension SwiftAssemblyModuleFileWriter {
     internal enum ThisPointer {
         case name(String)
-        case getter(String)
+        case getter(String, static: Bool)
     }
 
     internal func writeProjectionMembers(
@@ -60,7 +60,7 @@ extension SwiftAssemblyModuleFileWriter {
                     visibility: .public,
                     static: `static`,
                     name: projection.toMemberName(property),
-                    parameters: setter.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+                    params: setter.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
                     throws: true) { writer throws in
                 try writeProjectionMethodBody(
                     setter , genericTypeArgs: typeGenericArgs,
@@ -81,7 +81,7 @@ extension SwiftAssemblyModuleFileWriter {
                     visibility: .public,
                     static: `static`,
                     name: name,
-                    parameters: [ try projection.toParameter(label: "adding", addParameter, genericTypeArgs: typeGenericArgs) ],
+                    params: [ try projection.toParameter(label: "adding", addParameter, genericTypeArgs: typeGenericArgs) ],
                     throws: true,
                     returnType: .chain("WindowsRuntime", "EventRegistration")) { writer throws in
                 try writeProjectionMethodBody(
@@ -96,7 +96,7 @@ extension SwiftAssemblyModuleFileWriter {
                     visibility: .public,
                     static: `static`,
                     name: name,
-                    parameters: [ try projection.toParameter(label: "removing", removeParameter, genericTypeArgs: typeGenericArgs) ],
+                    params: [ try projection.toParameter(label: "removing", removeParameter, genericTypeArgs: typeGenericArgs) ],
                     throws: true) { writer throws in
                 try writeProjectionMethodBody(
                     removeAccessor, genericTypeArgs: typeGenericArgs,
@@ -116,7 +116,7 @@ extension SwiftAssemblyModuleFileWriter {
                 visibility: .public,
                 static: `static`,
                 name: projection.toMemberName(method),
-                parameters: method.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+                params: method.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
                 throws: true,
                 returnType: returnSwiftType) { writer throws in
             try writeProjectionMethodBody(
@@ -125,20 +125,38 @@ extension SwiftAssemblyModuleFileWriter {
         }
     }
 
+
     internal func writeProjectionMethodBody(
             _ method: Method, genericTypeArgs: [TypeNode], thisPointer: ThisPointer,
             eventRemoveMethodName: String? = nil,
+            to writer: SwiftStatementWriter) throws {
+        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: genericTypeArgs)
+        try writeProjectionMethodBody(
+            thisPointer: thisPointer,
+            params: params,
+            returnParam: returnParam,
+            abiName: try method.findAttribute(OverloadAttribute.self) ?? method.name,
+            eventRemoveMethodName: eventRemoveMethodName,
+            to: writer)
+    }
+
+    internal func writeProjectionMethodBody(
+            thisPointer: ThisPointer,
+            params: [ParamProjection],
+            returnParam: ParamProjection?,
+            abiName: String,
+            eventRemoveMethodName: String? = nil,
+            isInitializer: Bool = false,
             to writer: SwiftStatementWriter) throws {
 
         let thisName: String
         switch thisPointer {
             case .name(let name): thisName = name
-            case .getter(let getter):
+            case let .getter(getter, `static`):
                 thisName = "_this"
-                writer.writeStatement("let _this = try \(getter)()")
+                let staticPrefix = `static` ? "Self." : ""
+                writer.writeStatement("let _this = try \(staticPrefix)\(getter)()")
         }
-
-        let (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: genericTypeArgs)
 
         var abiArgs = [thisName]
         func addAbiArg(_ variableName: String, byRef: Bool, array: Bool) {
@@ -154,87 +172,92 @@ extension SwiftAssemblyModuleFileWriter {
         var needsOutParamsEpilogue = false
 
         // Prologue: convert arguments from the Swift to the ABI representation
-        for paramProjection in paramProjections {
-            let typeProjection = paramProjection.typeProjection
-            if paramProjection.typeProjection.kind == .identity {
-                addAbiArg(paramProjection.name, byRef: paramProjection.passBy != .value, array: false)
+        for param in params {
+            let typeProjection = param.typeProjection
+            if param.typeProjection.kind == .identity {
+                addAbiArg(param.name, byRef: param.passBy != .value, array: false)
                 continue
             }
 
-            let declarator: SwiftVariableDeclarator = paramProjection.passBy.isReference || typeProjection.kind != .inert ? .var : .let
-            if paramProjection.passBy.isOutput { needsOutParamsEpilogue = true }
+            let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeProjection.kind != .inert ? .var : .let
+            if param.passBy.isOutput { needsOutParamsEpilogue = true }
 
-            if paramProjection.passBy.isOutput && !paramProjection.passBy.isInput {
-                writer.writeStatement("\(declarator) \(paramProjection.abiProjectionName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
+            if param.passBy.isOutput && !param.passBy.isInput {
+                writer.writeStatement("\(declarator) \(param.abiProjectionName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
             }
             else {
                 let tryPrefix = typeProjection.kind == .inert ? "" : "try "
-                writer.writeStatement("\(declarator) \(paramProjection.abiProjectionName) = "
-                    + "\(tryPrefix)\(typeProjection.projectionType).toABI(\(paramProjection.name))")
+                writer.writeStatement("\(declarator) \(param.abiProjectionName) = "
+                    + "\(tryPrefix)\(typeProjection.projectionType).toABI(\(param.name))")
             }
 
             if typeProjection.kind != .inert {
-                writer.writeStatement("defer { \(typeProjection.projectionType).release(&\(paramProjection.abiProjectionName)) }")
+                writer.writeStatement("defer { \(typeProjection.projectionType).release(&\(param.abiProjectionName)) }")
             }
 
-            addAbiArg(paramProjection.abiProjectionName, byRef: paramProjection.passBy.isReference, array: typeProjection.kind == .array)
+            addAbiArg(param.abiProjectionName, byRef: param.passBy.isReference, array: typeProjection.kind == .array)
         }
 
         func writeOutParamsEpilogue() throws {
-            for paramProjection in paramProjections {
-                let typeProjection = paramProjection.typeProjection
-                if typeProjection.kind != .identity && paramProjection.passBy.isOutput {
+            for param in params {
+                let typeProjection = param.typeProjection
+                if typeProjection.kind != .identity && param.passBy.isOutput {
                     if typeProjection.kind == .inert {
-                        writer.writeStatement("\(paramProjection.name) = \(typeProjection.projectionType).toSwift(\(paramProjection.abiProjectionName))")
+                        writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(\(param.abiProjectionName))")
                     }
                     else {
-                        writer.writeStatement("\(paramProjection.name) = \(typeProjection.projectionType).toSwift(consuming: &\(paramProjection.abiProjectionName))")
+                        writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(consuming: &\(param.abiProjectionName))")
                     }
                 }
             }
         }
 
         func writeCall() throws {
-            let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            writer.writeStatement("try WinRTError.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiMethodName)("
+            writer.writeStatement("try WinRTError.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiName)("
                 + "\(abiArgs.joined(separator: ", "))))")
         }
 
-        guard let returnProjection else {
+        guard let returnParam else {
             try writeCall()
             if needsOutParamsEpilogue { try writeOutParamsEpilogue() }
             return
         }
 
         // Value-returning functions
-        let returnTypeProjection = returnProjection.typeProjection
-        writer.writeStatement("var \(returnProjection.name): \(returnTypeProjection.abiType) = \(returnTypeProjection.abiDefaultValue)")
-        addAbiArg(returnProjection.name, byRef: true, array: returnTypeProjection.kind == .array)
+        let returnTypeProjection = returnParam.typeProjection
+        writer.writeStatement("var \(returnParam.name): \(returnTypeProjection.abiType) = \(returnTypeProjection.abiDefaultValue)")
+        addAbiArg(returnParam.name, byRef: true, array: returnTypeProjection.kind == .array)
         try writeCall()
 
         if needsOutParamsEpilogue {
             // Don't leak the result if we fail in the out params epilogue
             if returnTypeProjection.kind != .identity && returnTypeProjection.kind != .inert {
-                writer.writeStatement("defer { \(returnTypeProjection.projectionType).release(&\(returnProjection.name)) }")
+                writer.writeStatement("defer { \(returnTypeProjection.projectionType).release(&\(returnParam.name)) }")
             }
 
             try writeOutParamsEpilogue()
         }
 
+        // Handle the return value
         if let eventRemoveMethodName {
             // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
             writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration("
-                + "token: \(returnTypeProjection.projectionType).toSwift(\(returnProjection.name)), remover: \(eventRemoveMethodName))")
-            return
+                + "token: \(returnTypeProjection.projectionType).toSwift(\(returnParam.name)), remover: \(eventRemoveMethodName))")
         }
-
-        switch returnTypeProjection.kind {
-            case .identity:
-                writer.writeReturnStatement(value: returnProjection.name)
-            case .inert:
-                writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(\(returnProjection.name))")
-            default:
-                writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnProjection.name))")
+        else if isInitializer {
+            // Initializers don't return a value but rather forward to the base initializer
+            writer.writeStatement("guard let \(returnParam.name) else { throw COM.HResult.Error.noInterface }")
+            writer.writeStatement("self.init(transferringRef: \(returnParam.name))")
+        }
+        else {
+            switch returnTypeProjection.kind {
+                case .identity:
+                    writer.writeReturnStatement(value: returnParam.name)
+                case .inert:
+                    writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))")
+                default:
+                    writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))")
+            }
         }
     }
 }

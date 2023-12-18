@@ -32,31 +32,57 @@ extension SwiftAssemblyModuleFileWriter {
 
         try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
+        try writeInitializers(classDefinition, to: writer)
+
         try writeInterfaceImplementations(classDefinition.bindType(), to: writer)
-
-        // Write initializers from activation factories
-        let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
-        if !activatableAttributes.isEmpty {
-            // As soon as we declare one initializer, we must redeclare required initializers
-            writer.writeInit(visibility: .public, required: true,
-                    parameters: [.init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer"))]) { writer in
-                writer.writeStatement("super.init(transferringRef: comPointer)")
-            } 
-
-            for activatableAttribute in activatableAttributes {
-                if activatableAttribute.factory == nil {
-                    try writeDefaultInitializer(classDefinition, to: writer)
-                }
-            }
-        }
 
         // Write static members from static interfaces
         for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
             let interfaceProperty = try writeSecondaryInterfaceProperty(
                 staticAttribute.interface.bind(), staticOf: classDefinition, to: writer)
             try writeProjectionMembers(
-                interfaceOrDelegate: staticAttribute.interface.bindType(), static: true,
-                thisPointer: .getter(interfaceProperty.getter), to: writer)
+                interfaceOrDelegate: staticAttribute.interface.bindType(),
+                static: true,
+                thisPointer: .getter(interfaceProperty.getter, static: true),
+                to: writer)
+        }
+    }
+
+    fileprivate func writeInitializers(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
+        // Write initializers from activation factories
+        let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
+        guard !activatableAttributes.isEmpty else { return }
+
+        // As soon as we declare one initializer, we must redeclare required initializers
+        writer.writeInit(visibility: .public, required: true,
+                params: [.init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer"))]) { writer in
+            writer.writeStatement("super.init(transferringRef: comPointer)")
+        }
+
+        for activatableAttribute in activatableAttributes {
+            if let activationFactoryInterface = activatableAttribute.factory {
+                let interfaceProperty = try writeSecondaryInterfaceProperty(
+                    activationFactoryInterface.bind(), staticOf: classDefinition, to: writer)
+                for method in activationFactoryInterface.methods {
+                    let (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: [])
+                    try writer.writeInit(
+                            visibility: .public,
+                            convenience: true,
+                            params: paramProjections.map { $0.toSwiftParam() },
+                            throws: true) { writer in
+                        try writeProjectionMethodBody(
+                            thisPointer: .getter(interfaceProperty.getter, static: true),
+                            params: paramProjections,
+                            returnParam: returnProjection,
+                            abiName: method.name,
+                            isInitializer: true,
+                            to: writer)
+                    }
+                }
+            }
+            else {
+                try writeDefaultInitializer(classDefinition, to: writer)
+            }
         }
     }
 

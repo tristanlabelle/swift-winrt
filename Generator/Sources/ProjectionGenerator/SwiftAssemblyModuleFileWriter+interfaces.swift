@@ -24,7 +24,7 @@ extension SwiftAssemblyModuleFileWriter {
             documentation: projection.getDocumentationComment(delegateDefinition),
             visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
             name: try projection.toTypeName(delegateDefinition),
-            typeParameters: delegateDefinition.genericParams.map { $0.name },
+            typeParams: delegateDefinition.genericParams.map { $0.name },
             target: .function(
                 params: delegateDefinition.invokeMethod.params.map { try projection.toType($0.type) },
                 throws: true,
@@ -59,7 +59,7 @@ extension SwiftAssemblyModuleFileWriter {
             documentation: documentation.map { projection.toDocumentationComment($0) },
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             name: projection.toProtocolName(interfaceDefinition),
-            typeParameters: interfaceDefinition.genericParams.map { $0.name },
+            typeParams: interfaceDefinition.genericParams.map { $0.name },
             bases: baseProtocols,
             whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
 
@@ -86,7 +86,7 @@ extension SwiftAssemblyModuleFileWriter {
                     try writer.writeFunc(
                         isPropertySetter: true,
                         name: projection.toMemberName(property),
-                        parameters: setter.params.map { try projection.toParameter($0) },
+                        params: setter.params.map { try projection.toParameter($0) },
                         throws: true)
                 }
             }
@@ -96,7 +96,7 @@ extension SwiftAssemblyModuleFileWriter {
                     try writer.writeFunc(
                         documentation: projection.getDocumentationComment(event),
                         name: projection.toMemberName(event),
-                        parameters: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
+                        params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                         throws: true,
                         returnType: .chain("WindowsRuntime", "EventRegistration"))
                 }
@@ -104,7 +104,7 @@ extension SwiftAssemblyModuleFileWriter {
                 if let removeAccessor = try event.removeAccessor {
                     try writer.writeFunc(
                         name: projection.toMemberName(event),
-                        parameters: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
+                        params: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
                         throws: true)
                 }
             }
@@ -114,8 +114,8 @@ extension SwiftAssemblyModuleFileWriter {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(method),
                     name: projection.toMemberName(method),
-                    typeParameters: method.genericParams.map { $0.name },
-                    parameters: method.params.map { try projection.toParameter($0) },
+                    typeParams: method.genericParams.map { $0.name },
+                    params: method.params.map { try projection.toParameter($0) },
                     throws: true,
                     returnType: method.hasReturnValue ? projection.toReturnType(method.returnType) : nil)
             }
@@ -127,7 +127,7 @@ extension SwiftAssemblyModuleFileWriter {
             documentation: projection.getDocumentationComment(interfaceDefinition),
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             name: try projection.toTypeName(interfaceDefinition),
-            typeParameters: interfaceDefinition.genericParams.map { $0.name },
+            typeParams: interfaceDefinition.genericParams.map { $0.name },
             target: .identifier(
                 protocolModifier: .existential,
                 name: try projection.toProtocolName(interfaceDefinition),

@@ -21,14 +21,14 @@ public struct SwiftNamespaceModuleFileWriter {
             try sourceFileWriter.writeProtocol(
                 visibility: SwiftProjection.toVisibility(interface.visibility),
                 name: projection.toProtocolName(interface, namespaced: false),
-                typeParameters: interface.genericParams.map { $0.name },
+                typeParams: interface.genericParams.map { $0.name },
                 bases: [projection.toBaseProtocol(interface)]) { _ in }
         }
 
         try sourceFileWriter.writeTypeAlias(
             visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
             name: projection.toTypeName(typeDefinition, namespaced: false),
-            typeParameters: typeDefinition.genericParams.map { $0.name },
+            typeParams: typeDefinition.genericParams.map { $0.name },
             target: SwiftType.identifier(
                 name: projection.toTypeName(typeDefinition),
                 genericArgs: typeDefinition.genericParams.map { SwiftType.identifier(name: $0.name) }))

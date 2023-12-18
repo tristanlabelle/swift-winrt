@@ -96,6 +96,13 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
 
             let type: BoundType
             if let classDefinition = typeDefinition as? ClassDefinition {
+                // Also add activation factories
+                for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+                    guard let activationFactoryInterface = activatableAttribute.factory?.bindType() else { continue }
+                    let mangledName = try CAbi.mangleName(type: activationFactoryInterface)
+                    interfacesByMangledName[mangledName] = activationFactoryInterface
+                }
+
                 // Also add static interfaces
                 for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
                     let staticInterface = staticAttribute.interface.bindType()

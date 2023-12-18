@@ -8,7 +8,7 @@ extension SwiftAssemblyModuleFileWriter {
             documentation: projection.getDocumentationComment(structDefinition),
             visibility: SwiftProjection.toVisibility(structDefinition.visibility),
             name: try projection.toTypeName(structDefinition),
-            typeParameters: structDefinition.genericParams.map { $0.name },
+            typeParams: structDefinition.genericParams.map { $0.name },
             protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
 
             try writeStructFields(structDefinition, to: writer)
@@ -50,7 +50,7 @@ extension SwiftAssemblyModuleFileWriter {
             }
         }
 
-        try writer.writeInit(visibility: .public, parameters: []) { writer in
+        try writer.writeInit(visibility: .public, params: []) { writer in
             for field in structDefinition.fields {
                 let name = projection.toMemberName(field)
                 let initializer = getInitializer(type: try field.type)
@@ -62,10 +62,10 @@ extension SwiftAssemblyModuleFileWriter {
     fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, to writer: SwiftTypeDefinitionWriter) throws {
         let params = try structDefinition.fields
             .filter { $0.visibility == .public && $0.isInstance }
-            .map { SwiftParameter(name: projection.toMemberName($0), type: try projection.toType($0.type)) }
+            .map { SwiftParam(name: projection.toMemberName($0), type: try projection.toType($0.type)) }
         guard !params.isEmpty else { return }
 
-        writer.writeInit(visibility: .public, parameters: params) {
+        writer.writeInit(visibility: .public, params: params) {
             for param in params {
                 $0.output.write("self.\(param.name) = \(param.name)", endLine: true)
             }
@@ -96,7 +96,7 @@ extension SwiftAssemblyModuleFileWriter {
             // public static func toSwift(_ value: ABIValue) -> SwiftValue { .init(field: value.Field, ...) }
             try writer.writeFunc(
                     visibility: .public, static: true, name: "toSwift",
-                    parameters: [.init(label: "_", name: "value", type: abiType)], 
+                    params: [.init(label: "_", name: "value", type: abiType)], 
                     returnType: .`self`) { writer in
                 var expression = ".init("
                 for (index, field) in structDefinition.fields.enumerated() {
@@ -126,7 +126,7 @@ extension SwiftAssemblyModuleFileWriter {
             // public static func toABI(_ value: SwiftValue) -> ABIValue { .init(Field: value.field, ...) }
             try writer.writeFunc(
                     visibility: .public, static: true, name: "toABI",
-                    parameters: [.init(label: "_", name: "value", type: .`self`)],
+                    params: [.init(label: "_", name: "value", type: .`self`)],
                     returnType: abiType) { writer in
                 var expression = ".init("
                 for (index, field) in structDefinition.fields.enumerated() {

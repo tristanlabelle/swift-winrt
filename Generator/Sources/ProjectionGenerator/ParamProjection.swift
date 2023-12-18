@@ -20,6 +20,10 @@ internal struct ParamProjection {
         precondition(isArray)
         return name + "Length"
     }
+
+    public func toSwiftParam() -> SwiftParam {
+        SwiftParam(label: "_", name: name, `inout`: passBy.isOutput, type: typeProjection.swiftType)
+    }
 }
 
 extension ParamProjection.PassBy {

@@ -5,7 +5,7 @@ extension SwiftSyntaxWriter {
             for block in summary { writeDocumentationCommentBlock(block) }
         }
 
-        for param in documentationComment.parameters {
+        for param in documentationComment.params {
             output.write("/// - Parameter ")
             output.write(param.name)
             output.write(": ")

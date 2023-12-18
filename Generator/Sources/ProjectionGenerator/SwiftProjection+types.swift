@@ -43,7 +43,7 @@ extension SwiftProjection {
             case let .bound(type):
                 return try getTypeProjection(type)
             case let .genericParam(param):
-                throw UnexpectedTypeError(param.name, context: "Generic parameters have no projection.")
+                throw UnexpectedTypeError(param.name, context: "Generic params have no projection.")
             case let .array(of: element):
                 let elementProjection = try getTypeProjection(element)
                 let swiftType = SwiftType.array(element: elementProjection.swiftType)

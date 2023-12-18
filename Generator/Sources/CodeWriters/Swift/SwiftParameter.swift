@@ -1,4 +1,4 @@
-public struct SwiftParameter: CustomStringConvertible, TextOutputStreamable {
+public struct SwiftParam: CustomStringConvertible, TextOutputStreamable {
     public var label: SwiftIdentifier?
     public var name: SwiftIdentifier
     public var `inout`: Bool

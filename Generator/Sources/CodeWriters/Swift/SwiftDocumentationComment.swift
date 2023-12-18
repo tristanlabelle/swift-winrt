@@ -1,6 +1,6 @@
 public struct SwiftDocumentationComment {
     public var summary: [Block]?
-    public var parameters = [Param]()
+    public var params = [Param]()
     public var returns: [Span]?
 
     public init() {}

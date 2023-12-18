@@ -8,7 +8,7 @@ extension SwiftDeclarationWriter {
         visibility: SwiftVisibility = .implicit,
         final: Bool = false,
         name: String,
-        typeParameters: [String] = [],
+        typeParams: [String] = [],
         base: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
@@ -20,7 +20,7 @@ extension SwiftDeclarationWriter {
         if final { output.write("final ") }
         output.write("class ")
         SwiftIdentifier.write(name, to: &output)
-        writeTypeParameters(typeParameters)
+        writeTypeParams(typeParams)
         writeInheritanceClause([base].compactMap { $0 } + protocolConformances)
         try output.writeBracedIndentedBlock() {
             try definition(.init(output: output))
@@ -31,7 +31,7 @@ extension SwiftDeclarationWriter {
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
-        typeParameters: [String] = [],
+        typeParams: [String] = [],
         protocolConformances: [SwiftType] = [],
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
@@ -41,7 +41,7 @@ extension SwiftDeclarationWriter {
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
         SwiftIdentifier.write(name, to: &output)
-        writeTypeParameters(typeParameters)
+        writeTypeParams(typeParams)
         writeInheritanceClause(protocolConformances)
         try output.writeBracedIndentedBlock() {
             try definition(.init(output: output))
@@ -52,7 +52,7 @@ extension SwiftDeclarationWriter {
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
-        typeParameters: [String] = [],
+        typeParams: [String] = [],
         rawValueType: SwiftType? = nil,
         protocolConformances: [SwiftType] = [],
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
@@ -63,7 +63,7 @@ extension SwiftDeclarationWriter {
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
         SwiftIdentifier.write(name, to: &output)
-        writeTypeParameters(typeParameters)
+        writeTypeParams(typeParams)
         writeInheritanceClause([rawValueType].compactMap { $0 } + protocolConformances)
         try output.writeBracedIndentedBlock() {
             try definition(.init(output: output))
@@ -74,7 +74,7 @@ extension SwiftDeclarationWriter {
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         name: String,
-        typeParameters: [String] = [],
+        typeParams: [String] = [],
         target: SwiftType) {
 
         var output = output
@@ -83,7 +83,7 @@ extension SwiftDeclarationWriter {
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
         SwiftIdentifier.write(name, to: &output)
-        writeTypeParameters(typeParameters)
+        writeTypeParams(typeParams)
         output.write(" = ")
         target.write(to: &output)
         output.endLine()
