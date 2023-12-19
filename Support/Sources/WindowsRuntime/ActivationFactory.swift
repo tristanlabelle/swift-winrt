@@ -12,3 +12,13 @@ public func getActivationFactoryPointer<COMInterface>(activatableId: String, id:
 
     return factory.bindMemory(to: COMInterface.self, capacity: 1)
 }
+
+public func lazyInitActivationFactoryPointer<COMInterface>(
+        _ pointer: inout UnsafeMutablePointer<COMInterface>?,
+        activatableId: String,
+        id: COMInterfaceID) throws -> UnsafeMutablePointer<COMInterface> {
+    if let existing = pointer { return existing }
+    let new: UnsafeMutablePointer<COMInterface> = try getActivationFactoryPointer(activatableId: activatableId, id: id)
+    pointer = new
+    return new
+}
