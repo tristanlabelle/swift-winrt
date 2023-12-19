@@ -29,6 +29,7 @@ extension CAbi {
             switch type.definition.name {
                 case "EventRegistrationToken": return makeCType(name: eventRegistrationTokenName)
                 case "HResult": return makeCType(name: hresultName)
+                case "IReference`1": return makeCType(name: ireferenceName).makePointer()
                 default: break
             }
         }

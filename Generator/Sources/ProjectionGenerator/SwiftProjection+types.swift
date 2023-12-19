@@ -191,7 +191,9 @@ extension SwiftProjection {
     private func getWindowsFoundationTypeProjection(_ type: BoundType) throws -> TypeProjection? {
         guard type.definition.namespace == "Windows.Foundation" else { return nil }
         switch type.definition.name {
-            // TODO(#6): Support IReference<T> and IReferenceArray<T> types.
+            case "IReference`1":
+                guard case let .bound(type) = type.genericArgs[0] else { return nil }
+                return try getIReferenceTypeProjection(of: type)
 
             case "EventRegistrationToken":
                 return TypeProjection(
@@ -214,5 +216,32 @@ extension SwiftProjection {
             default:
                 return nil
         }
+    }
+
+    private func getIReferenceTypeProjection(of type: BoundType) throws -> TypeProjection? {
+        if type.definition.namespace == "System",
+                let systemType = WinRTSystemType(fromName: type.definition.name) {
+            switch systemType {
+                case .integer(.uint8),
+                    .integer(.int16), .integer(.uint16),
+                    .integer(.int32), .integer(.uint32),
+                    .integer(.int64), .integer(.uint64),
+                    .float(double: false), .float(double: true):
+
+                    let swiftType = try toType(type.asNode)
+                    return TypeProjection(
+                        swiftType: .optional(wrapped: swiftType),
+                        swiftDefaultValue: "0",
+                        projectionType: .chain(
+                            .init("WindowsRuntime"),
+                            .init("IReferenceNumericProjection", genericArgs: [ swiftType ])),
+                        kind: .allocating,
+                        abiDefaultValue: "nil")
+
+                default: return nil
+            }
+        }
+
+        return nil
     }
 }

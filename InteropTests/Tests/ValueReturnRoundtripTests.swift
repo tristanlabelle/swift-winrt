@@ -75,6 +75,12 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         throw XCTSkip("Two-way array projections are not implemented yet")
     }
 
+    func testReference() throws {
+        try XCTSkipIf(true, "IReference<T> boxing is not implemented yet")
+        XCTAssertEqual(try oneWay.reference(42), 42)
+        XCTAssertNil(try oneWay.reference(nil))
+    }
+
     class ReturnArgumentImplementation: WinRTExport<IReturnArgumentProjection>, IReturnArgumentProtocol {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
@@ -85,5 +91,6 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         func `class`(_ value: WinRTComponent.MinimalClass?) throws -> WinRTComponent.MinimalClass? { value }
         func delegate(_ value: WinRTComponent.MinimalDelegate?) throws -> WinRTComponent.MinimalDelegate? { value }
         func array(_ value: [String]) throws -> [String] { value }
+        func reference(_ value: Int32?) throws -> Int32? { value }
     }
 }

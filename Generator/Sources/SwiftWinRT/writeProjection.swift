@@ -38,8 +38,10 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
 
             for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
                 // Some types have special handling and should not have their projection code generated
-                guard typeDefinition.fullName != "Windows.Foundation.HResult" else { continue }
-                guard typeDefinition.fullName != "Windows.Foundation.EventRegistrationToken" else { continue }
+                if typeDefinition.namespace == "Windows.Foundation" {
+                    guard typeDefinition.name != "EventRegistrationToken" else { continue }
+                    guard typeDefinition.name != "HResult" else { continue }
+                }
                 guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
@@ -52,6 +54,11 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
         let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
             .sorted { $0.key.fullName < $1.key.fullName }
         for (typeDefinition, instanciations) in closedGenericTypesByDefinition {
+            // Some types have special handling and should not have their projection code generated
+            if typeDefinition.namespace == "Windows.Foundation" {
+                guard typeDefinition.name != "IReference`1" else { continue }
+            }
+
             if !module.hasTypeDefinition(typeDefinition) {
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
                     writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)

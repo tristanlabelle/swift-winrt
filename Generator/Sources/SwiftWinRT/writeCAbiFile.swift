@@ -31,6 +31,7 @@ internal func writeCAbiFile(module: SwiftProjection.Module, toPath path: String)
     }
 
     for interface in interfaces {
+        guard interface.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
         try CAbi.writeCOMInterface(interface.definition, genericArgs: interface.genericArgs, to: cHeaderWriter)
     }
 }

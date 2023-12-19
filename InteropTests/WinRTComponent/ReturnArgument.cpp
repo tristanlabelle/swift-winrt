@@ -16,6 +16,7 @@ namespace
         winrt::WinRTComponent::MinimalClass Class(winrt::WinRTComponent::MinimalClass const& value) { return value; }
         winrt::WinRTComponent::MinimalDelegate Delegate(winrt::WinRTComponent::MinimalDelegate const& value) { return value; }
         winrt::com_array<winrt::hstring> Array(winrt::array_view<winrt::hstring const> value) { return { value.begin(), value.end() }; }
+        winrt::Windows::Foundation::IReference<int32_t> Reference(winrt::Windows::Foundation::IReference<int32_t> const& value) { return value; }
     };
 
     class Proxy : public winrt::implements<Proxy, winrt::WinRTComponent::IReturnArgument>
@@ -35,6 +36,7 @@ namespace
         winrt::WinRTComponent::MinimalClass Class(winrt::WinRTComponent::MinimalClass const& value) { return inner.Class(value); }
         winrt::WinRTComponent::MinimalDelegate Delegate(winrt::WinRTComponent::MinimalDelegate const& value) { return inner.Delegate(value); }
         winrt::com_array<winrt::hstring> Array(winrt::array_view<winrt::hstring const> value) { return inner.Array(value); }
+        winrt::Windows::Foundation::IReference<int32_t> Reference(winrt::Windows::Foundation::IReference<int32_t> const& value) { return inner.Reference(value); }
     };
 }
 

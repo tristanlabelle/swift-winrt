@@ -38,6 +38,13 @@ extension CAbi {
             .init(type: .reference(name: "int64_t"), name: "value")
         ])
 
+        // IReference
+        var ireference = COMInterfaceDecl(interfaceName: ireferenceName, inspectable: true)
+        ireference.addFunction(name: "get_Value", params: [
+            .init(type: .void.makePointer(), name: "value")
+        ])
+        ireference.write(comment: "IReference", to: writer)
+
         // IActivationFactory
         var iactivationFactory = COMInterfaceDecl(interfaceName: iactivationFactoryName, inspectable: true)
         iactivationFactory.addFunction(name: "ActivateInstance", params: [
