@@ -13,8 +13,7 @@ namespace WinRTComponent
         void Class(MinimalClass value, out MinimalClass result);
         void Delegate(MinimalDelegate value, out MinimalDelegate result);
         void Array(String[] value, out String[] result);
-        // TODO(#6): Support IReference<T> projections
-        // void Reference(Windows.Foundation.IReference<Int32> value, out Windows.Foundation.IReference<Int32> result);
+        void Reference(Windows.Foundation.IReference<Int32> value, out Windows.Foundation.IReference<Int32> result);
     }
 
     static runtimeclass OutputArgument

@@ -46,8 +46,9 @@ class ValueReturnRoundtripTests: WinRTTestCase {
 
     func testInterface() throws {
         let original: IMinimalInterface = try MinimalClass()
-        let roundtripped = try XCTUnwrap(twoWay.interface(original))
-        assertCOMIdentical(original, roundtripped)
+        assertCOMIdentical(try XCTUnwrap(twoWay.interface(original)), original)
+
+        XCTAssertNil(try twoWay.interface(nil))
     }
 
     func testClass() throws {
@@ -55,6 +56,8 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         XCTAssertEqual(
             try XCTUnwrap(twoWay.class(instance)).comPointer,
             instance.comPointer)
+
+        XCTAssertNil(try twoWay.class(nil))
     }
 
     func testDelegate() throws {
@@ -65,6 +68,8 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         XCTAssertFalse(called)
         try result()
         XCTAssertTrue(called)
+
+        XCTAssertNil(try twoWay.delegate(nil))
     }
 
     func testArray_oneWay() throws {
@@ -76,9 +81,8 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     }
 
     func testReference() throws {
-        try XCTSkipIf(true, "IReference<T> boxing is not implemented yet")
-        XCTAssertEqual(try oneWay.reference(42), 42)
-        XCTAssertNil(try oneWay.reference(nil))
+        XCTAssertEqual(try twoWay.reference(42), 42)
+        XCTAssertNil(try twoWay.reference(nil))
     }
 
     class ReturnArgumentImplementation: WinRTExport<IReturnArgumentProjection>, IReturnArgumentProtocol {

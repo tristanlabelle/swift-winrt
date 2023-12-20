@@ -20,6 +20,10 @@ namespace winrt::WinRTComponent::implementation
     {
         return value == nullptr;
     }
+    bool NullValues::IsReferenceNull(winrt::Windows::Foundation::IReference<int32_t> const& value)
+    {
+        return value == nullptr;
+    }
     winrt::Windows::Foundation::IInspectable NullValues::GetNullObject()
     {
         return nullptr;
@@ -33,6 +37,10 @@ namespace winrt::WinRTComponent::implementation
         return nullptr;
     }
     winrt::WinRTComponent::MinimalDelegate NullValues::GetNullDelegate()
+    {
+        return nullptr;
+    }
+    winrt::Windows::Foundation::IReference<int32_t> NullValues::GetNullReference()
     {
         return nullptr;
     }

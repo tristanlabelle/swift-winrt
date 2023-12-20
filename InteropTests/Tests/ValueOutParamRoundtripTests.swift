@@ -58,6 +58,9 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         var roundtripped: IMinimalInterface? = nil
         try twoWay.interface(original, &roundtripped)
         assertCOMIdentical(original, try XCTUnwrap(roundtripped))
+
+        try twoWay.interface(nil, &roundtripped)
+        XCTAssertNil(roundtripped)
     }
 
     func testClass() throws {
@@ -65,6 +68,9 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         var roundtripped: MinimalClass? = nil
         try twoWay.class(instance, &roundtripped)
         XCTAssertEqual(try XCTUnwrap(roundtripped).comPointer, instance.comPointer)
+
+        try twoWay.class(nil, &roundtripped)
+        XCTAssertNil(roundtripped)
     }
 
     func testDelegate() throws {
@@ -76,6 +82,9 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         XCTAssertFalse(called)
         try XCTUnwrap(roundtripped)()
         XCTAssertTrue(called)
+
+        try twoWay.delegate(nil, &roundtripped)
+        XCTAssertNil(roundtripped)
     }
 
     func testArray_oneWay() throws {
@@ -88,6 +97,15 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         throw XCTSkip("Two-way array projections are not implemented yet")
     }
 
+    func testReference() throws {
+        var roundtripped: Int32? = nil
+        try twoWay.reference(42, &roundtripped)
+        XCTAssertEqual(roundtripped, 42)
+
+        try twoWay.reference(nil, &roundtripped)
+        XCTAssertNil(roundtripped)
+    }
+
     class OutputArgumentImplementation: WinRTExport<IOutputArgumentProjection>, IOutputArgumentProtocol {
         func int32(_ value: Int32, _ result: inout Int32) throws { result = value }
         func string(_ value: String, _ result: inout String) throws { result = value }
@@ -98,5 +116,6 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         func `class`(_ value: WinRTComponent.MinimalClass?, _ result: inout WinRTComponent.MinimalClass?) throws { result = value }
         func delegate(_ value: WinRTComponent.MinimalDelegate?, _ result: inout WinRTComponent.MinimalDelegate?) throws { result = value }
         func array(_ value: [String], _ result: inout [String]) throws { result = value }
+        func reference(_ value: Int32?, _ result: inout Int32?) throws { result = value }
     }
 }

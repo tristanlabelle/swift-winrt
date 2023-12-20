@@ -12,6 +12,8 @@ class NullValueTests: WinRTTestCase {
         XCTAssertTrue(try NullValues.isClassNull(nil))
         XCTAssertFalse(try NullValues.isDelegateNull({ fatalError() }));
         XCTAssertTrue(try NullValues.isDelegateNull(nil));
+        XCTAssertFalse(try NullValues.isReferenceNull(42));
+        XCTAssertTrue(try NullValues.isReferenceNull(nil));
     }
 
     func testGetNull() throws {
@@ -19,5 +21,6 @@ class NullValueTests: WinRTTestCase {
         XCTAssertNil(try NullValues.getNullInterface())
         XCTAssertNil(try NullValues.getNullDelegate())
         XCTAssertNil(try NullValues.getNullClass())
+        XCTAssertNil(try NullValues.getNullReference())
     }
 }

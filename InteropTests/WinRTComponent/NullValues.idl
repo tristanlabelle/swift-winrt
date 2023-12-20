@@ -8,10 +8,12 @@ namespace WinRTComponent
         static Boolean IsInterfaceNull(IMinimalInterface value);
         static Boolean IsClassNull(MinimalClass value);
         static Boolean IsDelegateNull(MinimalDelegate value);
+        static Boolean IsReferenceNull(Windows.Foundation.IReference<Int32> value);
 
         static Object GetNullObject();
         static IMinimalInterface GetNullInterface();
         static MinimalClass GetNullClass();
         static MinimalDelegate GetNullDelegate();
+        static Windows.Foundation.IReference<Int32> GetNullReference();
     }
 }
