@@ -98,7 +98,7 @@ struct SWRT_IPropertyValueVTable {
     SWRT_HResult (__stdcall *GetUInt64)(SWRT_IPropertyValue* _this, uint64_t* value);
     SWRT_HResult (__stdcall *GetSingle)(SWRT_IPropertyValue* _this, float* value);
     SWRT_HResult (__stdcall *GetDouble)(SWRT_IPropertyValue* _this, double* value);
-    SWRT_HResult (__stdcall *GetChar16)(SWRT_IPropertyValue* _this, uint16_t* value);
+    SWRT_HResult (__stdcall *GetChar16)(SWRT_IPropertyValue* _this, char16_t* value);
     SWRT_HResult (__stdcall *GetBoolean)(SWRT_IPropertyValue* _this, bool* value);
     SWRT_HResult (__stdcall *GetString)(SWRT_IPropertyValue* _this, SWRT_HString* value);
     SWRT_HResult (__stdcall *GetGuid)(SWRT_IPropertyValue* _this, SWRT_Guid* value);
@@ -116,7 +116,7 @@ struct SWRT_IPropertyValueVTable {
     SWRT_HResult (__stdcall *GetUInt64Array)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, uint64_t** value);
     SWRT_HResult (__stdcall *GetSingleArray)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, float** value);
     SWRT_HResult (__stdcall *GetDoubleArray)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, double** value);
-    SWRT_HResult (__stdcall *GetChar16Array)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, uint16_t** value);
+    SWRT_HResult (__stdcall *GetChar16Array)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, char16_t** value);
     SWRT_HResult (__stdcall *GetBooleanArray)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, bool** value);
     SWRT_HResult (__stdcall *GetStringArray)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, SWRT_HString** value);
     SWRT_HResult (__stdcall *GetInspectableArray)(SWRT_IPropertyValue* _this, uint32_t* __valueSize, SWRT_IInspectable*** value);
@@ -150,7 +150,7 @@ struct SWRT_IPropertyValueStaticsVTable {
     SWRT_HResult (__stdcall *CreateUInt64)(SWRT_IPropertyValueStatics* _this, uint64_t value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateSingle)(SWRT_IPropertyValueStatics* _this, float value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateDouble)(SWRT_IPropertyValueStatics* _this, double value, SWRT_IInspectable** propertyValue);
-    SWRT_HResult (__stdcall *CreateChar16)(SWRT_IPropertyValueStatics* _this, uint16_t value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateChar16)(SWRT_IPropertyValueStatics* _this, char16_t value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateBoolean)(SWRT_IPropertyValueStatics* _this, bool value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateString)(SWRT_IPropertyValueStatics* _this, SWRT_HString value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateInspectable)(SWRT_IPropertyValueStatics* _this, SWRT_IInspectable* value, SWRT_IInspectable** propertyValue);
@@ -169,7 +169,7 @@ struct SWRT_IPropertyValueStaticsVTable {
     SWRT_HResult (__stdcall *CreateUInt64Array)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, uint64_t* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateSingleArray)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, float* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateDoubleArray)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, double* value, SWRT_IInspectable** propertyValue);
-    SWRT_HResult (__stdcall *CreateChar16Array)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, uint16_t* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateChar16Array)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, char16_t* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateBooleanArray)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, bool* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateStringArray)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_HString* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateInspectableArray)(SWRT_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_IInspectable** value, SWRT_IInspectable** propertyValue);

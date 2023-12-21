@@ -42,8 +42,4 @@ internal final class WinRTExportTests: XCTestCase {
             _ = try object.queryInterface(IInspectable2Projection.self)
         }
     }
-
-    func testRoundTripToOriginalSwiftObject() throws {
-        throw XCTSkip("TODO: Test that sending a Swift object to WinRT and back returns the original Swift object")
-    }
 }

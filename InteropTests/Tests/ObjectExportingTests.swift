@@ -34,7 +34,6 @@ class ObjectExportingTests: WinRTTestCase {
     }
 
     func testUnwrapping() throws {
-        try XCTSkipIf(true, "TODO: Implement unwrapping of exported Swift objects")
         let obj: IInspectable = ExportedClass()
         let returnArgument = try XCTUnwrap(ReturnArgument.create())
         let roundtripped = try XCTUnwrap(returnArgument.object(obj))

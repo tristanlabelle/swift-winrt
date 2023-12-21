@@ -53,7 +53,12 @@ extension COMProjection {
     public static func toSwift<Implementation: COMImport<Self>>(
             transferringRef comPointer: COMPointer,
             implementation: Implementation.Type) -> SwiftObject {
-        Implementation(transferringRef: comPointer).swiftObject
+        if let unwrappedAny = COMExportedObjectCore.unwrap(IUnknownPointer.cast(comPointer)),
+                let unwrapped = unwrappedAny as? SwiftObject {
+            IUnknownPointer.release(comPointer)
+            return unwrapped
+        }
+        return Implementation(transferringRef: comPointer).swiftObject
     }
 
     public static func toCOM<Implementation: COMImport<Self>>(

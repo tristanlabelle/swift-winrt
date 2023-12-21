@@ -1,15 +1,17 @@
 import COM
 
-/// Base for classes exported to WinRT.
-open class WinRTExportedObject<Projection: WinRTTwoWayProjection>
-        : COMExportedObject<Projection>, IInspectableProtocol {
-    public override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        return id == IInspectableProjection.id
-            ? identity.unknown.addingRef()
-            : try super._queryInterfacePointer(id)
-    }
+open class WinRTExport<Projection: WinRTTwoWayProjection>
+        : COMExport<Projection>, IInspectableProtocol {
+    open class var _runtimeClassName: String { String(describing: Self.self) }
+    open class var _trustLevel: TrustLevel { .base }
 
-    public final func getIids() throws -> [COMInterfaceID] { queriableInterfaces.map { $0.id } }
-    open func getRuntimeClassName() throws -> String { try (implementation as! IInspectable).getRuntimeClassName() }
-    open func getTrustLevel() throws -> TrustLevel { try (implementation as! IInspectable).getTrustLevel() }
+    public override func _createCOMObject() -> COMExportedObject<Projection> {
+        WinRTExportedObject<Projection>(
+            implementation: self as! Projection.SwiftObject,
+            queriableInterfaces: Self.queriableInterfaces)
+    }
+    
+    public final func getIids() throws -> [COMInterfaceID] { Self.queriableInterfaces.map { $0.id } }
+    public final func getRuntimeClassName() throws -> String { Self._runtimeClassName }
+    public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }
