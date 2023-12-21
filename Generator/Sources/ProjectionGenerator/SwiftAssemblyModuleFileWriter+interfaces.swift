@@ -183,8 +183,9 @@ extension SwiftAssemblyModuleFileWriter {
 
             try writeWinRTProjectionConformance(interfaceOrDelegate: type, to: writer)
 
+            // private final class Import: WinRTImport<IFooProjection>, IFooProtocol {}
             try writer.writeClass(
-                visibility: .private, final: true, name: "Implementation",
+                visibility: .private, final: true, name: "Import",
                 base: .identifier(name: importBaseTypeName, genericArgs: [.identifier(name: projectionName)]),
                 protocolConformances: protocolConformances) { writer throws in
 
@@ -206,11 +207,19 @@ extension SwiftAssemblyModuleFileWriter {
 
                     try writeProjectionMembers(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
                 }
-
-                try writer.writeStoredProperty(
-                    visibility: .public, static: true, declarator: .var, name: "virtualTable",
-                    initializer: { try writeVirtualTable(interfaceOrDelegate: type, to: $0) })
             }
+
+            // public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
+            // private static var virtualTable = COMVirtualTable(...)
+            writer.writeComputedProperty(
+                    visibility: .public, static: true, name: "virtualTablePointer",
+                    type: .identifier("COMVirtualTablePointer")) { writer in
+                writer.writeStatement("withUnsafePointer(to: &virtualTable) { $0 }")
+            }
+
+            try writer.writeStoredProperty(
+                visibility: .private, static: true, declarator: .var, name: "virtualTable",
+                initializer: { try writeVirtualTable(interfaceOrDelegate: type, to: $0) })
         }
     }
 }

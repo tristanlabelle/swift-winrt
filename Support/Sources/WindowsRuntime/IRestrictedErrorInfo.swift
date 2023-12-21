@@ -18,17 +18,17 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias COMVirtualTable = CWinRTCore.SWRT_IRestrictedErrorInfoVTable
 
     public static let id = COMInterfaceID(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
-    public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }
+    public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        toSwift(transferringRef: comPointer, implementation: Implementation.self)
+        toSwift(transferringRef: comPointer, importType: Import.self)
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
-        try toCOM(object, implementation: Implementation.self)
+        try toCOM(object, importType: Import.self)
     }
 
-    private final class Implementation: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
+    private final class Import: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
         func getErrorDetails(
                 description: inout String?,
                 error: inout HResult,
@@ -49,28 +49,27 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
         }
 
         public var reference: String? { get throws { try _getter(_vtable.GetReference, BStrProjection.self) } }
-
-        public static var virtualTable: COMVirtualTable = .init(
-            QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
-            AddRef: { this in _addRef(this) },
-            Release: { this in _release(this) },
-            GetErrorDetails: { this, description, error, restrictedDescription, capabilitySid in _implement(this) {
-                var description_: String? = nil
-                var error_: HResult = .ok
-                var restrictedDescription_: String? = nil
-                var capabilitySid_: String? = nil
-                try $0.getErrorDetails(description: &description_, error: &error_, restrictedDescription: &restrictedDescription_, capabilitySid: &capabilitySid_)
-                var _success = false
-                if let description { description.pointee = try BStrProjection.toABI(description_) }
-                defer { if !_success, let description { BStrProjection.release(&description.pointee) } }
-                if let error { error.pointee = HResultProjection.toABI(error_) }
-                if let restrictedDescription { restrictedDescription.pointee = try BStrProjection.toABI(restrictedDescription_) }
-                defer { if !_success, let restrictedDescription { BStrProjection.release(&restrictedDescription.pointee) } }
-                if let capabilitySid { capabilitySid.pointee = try BStrProjection.toABI(capabilitySid_) }
-                defer { if !_success, let capabilitySid { BStrProjection.release(&capabilitySid.pointee) } }
-                _success = true
-            } },
-            GetReference: { this, reference in _getter(this, reference) { try BStrProjection.toABI($0.reference) } }
-        )
     }
+
+    private static var virtualTable: COMVirtualTable = .init(
+        QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
+        AddRef: { this in _addRef(this) },
+        Release: { this in _release(this) },
+        GetErrorDetails: { this, description, error, restrictedDescription, capabilitySid in _implement(this) {
+            var description_: String? = nil
+            var error_: HResult = .ok
+            var restrictedDescription_: String? = nil
+            var capabilitySid_: String? = nil
+            try $0.getErrorDetails(description: &description_, error: &error_, restrictedDescription: &restrictedDescription_, capabilitySid: &capabilitySid_)
+            var _success = false
+            if let description { description.pointee = try BStrProjection.toABI(description_) }
+            defer { if !_success, let description { BStrProjection.release(&description.pointee) } }
+            if let error { error.pointee = HResultProjection.toABI(error_) }
+            if let restrictedDescription { restrictedDescription.pointee = try BStrProjection.toABI(restrictedDescription_) }
+            defer { if !_success, let restrictedDescription { BStrProjection.release(&restrictedDescription.pointee) } }
+            if let capabilitySid { capabilitySid.pointee = try BStrProjection.toABI(capabilitySid_) }
+            defer { if !_success, let capabilitySid { BStrProjection.release(&capabilitySid.pointee) } }
+            _success = true
+        } },
+        GetReference: { this, reference in _getter(this, reference) { try BStrProjection.toABI($0.reference) } })
 }

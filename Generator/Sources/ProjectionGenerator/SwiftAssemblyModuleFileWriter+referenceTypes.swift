@@ -37,15 +37,6 @@ extension SwiftAssemblyModuleFileWriter {
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "id",
             initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
 
-        if classDefinition == nil {
-            //public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &Implementation.virtualTable) { $0 } }
-            writer.writeComputedProperty(
-                    visibility: .public, static: true, name: "virtualTablePointer",
-                    type: .identifier("COMVirtualTablePointer")) { writer in
-                writer.writeStatement("withUnsafePointer(to: &Implementation.virtualTable) { $0 }")
-            }
-        }
-
         let isDelegate = interfaceOrDelegate.definition is DelegateDefinition
         if !isDelegate {
             // Delegates are IUnknown whereas interfaces are IInspectable
@@ -55,12 +46,12 @@ extension SwiftAssemblyModuleFileWriter {
         }
 
         // Classes derive from COMImport directly whereas interfaces and delegates are implemented using a nested class
-        let implementationTypeName = classDefinition == nil ? "Implementation" : "Self"
+        let importTypeName = classDefinition == nil ? "Import" : "Self"
         writer.writeFunc(
                 visibility: .public, static: true, name: "toSwift",
                 params: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
                 returnType: .identifier("SwiftObject")) { writer in
-            writer.writeStatement("toSwift(transferringRef: comPointer, implementation: \(implementationTypeName).self)")
+            writer.writeStatement("toSwift(transferringRef: comPointer, importType: \(importTypeName).self)")
         }
 
         writer.writeFunc(
@@ -72,7 +63,7 @@ extension SwiftAssemblyModuleFileWriter {
                 writer.writeReturnStatement(value: "IUnknownPointer.addingRef(comObject.pointer)")
             }
             else {
-                writer.writeStatement("try toCOM(object, implementation: \(implementationTypeName).self)")
+                writer.writeStatement("try toCOM(object, importType: \(importTypeName).self)")
             }
         }
     }

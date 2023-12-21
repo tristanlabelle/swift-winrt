@@ -50,29 +50,24 @@ extension COMProjection {
     }
 
     // COMProjection implementation helpers
-    public static func toSwift<Implementation: COMImport<Self>>(
+    public static func toSwift<Import: COMImport<Self>>(
             transferringRef comPointer: COMPointer,
-            implementation: Implementation.Type) -> SwiftObject {
+            importType: Import.Type) -> SwiftObject {
         if let unwrappedAny = COMExportedObjectCore.unwrap(IUnknownPointer.cast(comPointer)),
                 let unwrapped = unwrappedAny as? SwiftObject {
             IUnknownPointer.release(comPointer)
             return unwrapped
         }
-        return Implementation(transferringRef: comPointer).swiftObject
+        return Import(transferringRef: comPointer).swiftObject
     }
 
-    public static func toCOM<Implementation: COMImport<Self>>(
+    public static func toCOM<Import: COMImport<Self>>(
             _ object: SwiftObject,
-            implementation: Implementation.Type) throws -> COMPointer {
+            importType: Import.Type) throws -> COMPointer {
         switch object {
-            case let comImport as Implementation: return IUnknownPointer.addingRef(comImport.comPointer)
+            case let comImport as Import: return IUnknownPointer.addingRef(comImport.comPointer)
             case let unknown as COM.IUnknown: return try unknown._queryInterfacePointer(Self.self)
             default: throw ABIProjectionError.unsupported(Self.SwiftObject.self)
         }
     }
-}
-
-// Protocol for strongly-typed two-way COM interface projections into and from Swift.
-public protocol COMTwoWayProjection: COMProjection {
-    static var virtualTablePointer: COMVirtualTablePointer { get }
 }
