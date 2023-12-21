@@ -16,6 +16,9 @@ struct GenerateCommand: ParsableCommand {
     @Flag(help: "Generate a package.swift file.")
     var package: Bool = false
 
+    @Option(name: .customLong("support-package-location"), help: "The file path or url:branch or url@revision of the support package to use.")
+    var supportPackageLocation: String = "https://github.com/tristanlabelle/swift-winrt.git:main"
+
     @Option(name: .customLong("out-manifest"), help: "Path to generate an embeddable exe manifest file to.")
     var exeManifestPath: String? = nil
 }

@@ -1,11 +1,25 @@
 import CodeWriters
 import DotNetMetadata
 import ProjectionGenerator
+import struct Foundation.URL
 
-func writeSwiftPackageFile(_ projection: SwiftProjection, toPath path: String) {
+func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, toPath path: String) {
     var package = SwiftPackage(name: "Projection")
 
-    package.dependencies.append(.package(url: "https://github.com/tristanlabelle/swift-winrt.git", branch: "main"))
+    if supportPackageLocation.starts(with: "https://") {
+        if let separatorIndex = supportPackageLocation.lastIndex(of: ":"),
+                let lastSlashIndex = supportPackageLocation.lastIndex(of: "/"),
+                separatorIndex > lastSlashIndex {
+            let url = String(supportPackageLocation[..<separatorIndex])
+            let branch = String(supportPackageLocation[supportPackageLocation.index(after: separatorIndex)...])
+            package.dependencies.append(.package(url: url, branch: branch))
+        }
+        else {
+            fatalError("Unexpected support package location format: \(supportPackageLocation)")
+        }
+    } else {
+        package.dependencies.append(.package(path: supportPackageLocation))
+    }
 
     package.targets.append(
         .target(name: projection.abiModuleName, path: projection.abiModuleName))

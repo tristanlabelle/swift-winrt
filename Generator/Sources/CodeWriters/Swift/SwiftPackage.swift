@@ -36,13 +36,16 @@ public struct SwiftPackage {
         }
     }
 
-    public struct Dependency {
-        public var name: String?
-        public var url: String
-        public var branch: String
+    public enum Dependency {
+        case fileSystem(name: String? = nil, path: String)
+        case sourceControl(url: String, branch: String)
 
-        public static func package(name: String? = nil, url: String, branch: String) -> Dependency {
-            .init(name: name, url: url, branch: branch)
+        public static func package(name: String? = nil, path: String) -> Dependency {
+            .fileSystem(name: name, path: path)
+        }
+
+        public static func package(url: String, branch: String) -> Dependency {
+            .sourceControl(url: url, branch: branch)
         }
     }
 

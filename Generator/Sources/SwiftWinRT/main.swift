@@ -24,11 +24,17 @@ do {
     guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
     _ = try context.load(path: mscorlibPath)
 
-    let projection = try createProjection(generateCommand: generateCommand, projectionConfig: projectionConfig, assemblyLoadContext: context)
+    let projection = try createProjection(
+        generateCommand: generateCommand,
+        projectionConfig: projectionConfig,
+        assemblyLoadContext: context)
     try writeProjection(projection, generateCommand: generateCommand)
 
     if generateCommand.package {
-        writeSwiftPackageFile(projection, toPath: "\(generateCommand.outputDirectoryPath)\\Package.swift")
+        writeSwiftPackageFile(
+            projection,
+            supportPackageLocation: generateCommand.supportPackageLocation,
+            toPath: "\(generateCommand.outputDirectoryPath)\\Package.swift")
     }
 
     if let exeManifestPath = generateCommand.exeManifestPath {
