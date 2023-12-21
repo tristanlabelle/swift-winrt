@@ -3,9 +3,7 @@ import WindowsRuntime
 import WinRTComponent
 
 class ObjectExportingTests: WinRTTestCase {
-    class ExportedClass: WinRTExport<IMinimalInterfaceProjection>, IMinimalInterfaceProtocol {
-        public func method() throws {}
-    }
+    class ExportedClass: WinRTExport<IInspectableProjection> {}
 
     func testBalancedAddRefRelease() throws {
         let obj: ExportedClass = .init()
@@ -39,5 +37,9 @@ class ObjectExportingTests: WinRTTestCase {
         let roundtripped = try XCTUnwrap(returnArgument.object(obj))
         // We shouldn't get a WinRTImport wrapper back, but rather the original object
         XCTAssertIdentical(roundtripped, obj)
+    }
+
+    func testImplementsIAgileObject() throws {
+        let _ = try ExportedClass().queryInterface(IAgileObjectProjection.self)
     }
 }

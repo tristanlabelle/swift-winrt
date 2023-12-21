@@ -26,7 +26,7 @@ open class COMExportedObjectCore: IUnknownProtocol {
     }
 
     fileprivate enum IdentityData {
-        case own(queriableInterfaces: [COMExportInterface])
+        case own(queriableInterfaces: [COMExportInterface], agile: Bool)
         case foreign(COMExportedObjectCore)
     }
 
@@ -48,7 +48,7 @@ open class COMExportedObjectCore: IUnknownProtocol {
 
     public var queriableInterfaces: [COMExportInterface] {
         switch identityData {
-            case .own(let queriableInterfaces): queriableInterfaces
+            case .own(let queriableInterfaces, _): queriableInterfaces
             case .foreign(let other): other.queriableInterfaces
         }
     }
@@ -64,8 +64,11 @@ open class COMExportedObjectCore: IUnknownProtocol {
 
     open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         switch identityData {
-            case .own(let queriableInterfaces):
-                if id == IUnknownProjection.id || id == Self.markerInterfaceId { return unknown.addingRef() }
+            case .own(let queriableInterfaces, let agile):
+                if id == IUnknownProjection.id || id == Self.markerInterfaceId
+                    || (agile && id == IAgileObjectProjection.id) {
+                    return unknown.addingRef()
+                }
                 guard let interface = queriableInterfaces.first(where: { $0.id == id }) else {
                     throw HResult.Error.noInterface
                 }
@@ -121,11 +124,11 @@ open class COMExportedObject<Projection: COMTwoWayProjection>: COMExportedObject
     public let implementation: Projection.SwiftObject
     public override var anyImplementation: Any { implementation }
 
-    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface]) {
+    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface], agile: Bool = true) {
         self.implementation = implementation
         super.init(
             virtualTable: Projection.virtualTablePointer,
-            identityData: .own(queriableInterfaces: queriableInterfaces))
+            identityData: .own(queriableInterfaces: queriableInterfaces, agile: agile))
     }
 
     fileprivate init(implementation: Projection.SwiftObject, identity: COMExportedObjectCore) {

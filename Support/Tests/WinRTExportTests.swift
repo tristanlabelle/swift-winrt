@@ -42,4 +42,17 @@ internal final class WinRTExportTests: XCTestCase {
             _ = try object.queryInterface(IInspectable2Projection.self)
         }
     }
+
+    func testIAgileObject() throws {
+        final class AgileObject: COMExport<IUnknownProjection> {
+            override class var agile: Bool { true }
+        }
+
+        final class NonAgileObject: COMExport<IUnknownProjection> {
+            override class var agile: Bool { false }
+        }
+
+        let _ = try AgileObject().queryInterface(IAgileObjectProjection.self)
+        XCTAssertThrowsError(try NonAgileObject().queryInterface(IAgileObjectProjection.self))
+    }
 }
