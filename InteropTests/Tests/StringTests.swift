@@ -16,22 +16,17 @@ class StringTests: WinRTTestCase {
     }
 
     func testChars() throws {
-        func testChar(codeUnit: UTF16.CodeUnit) throws {
-            let char = WideChar(codeUnit: codeUnit)
-            XCTAssertEqual(try Strings.roundtripChar(char), char)
-        }
-
-        try testChar(codeUnit: 65) // ascii 'a'
-        try testChar(codeUnit: 0) // NUL
-        try testChar(codeUnit: 0x0142) // non-ascii 'Ł'
-        try testChar(codeUnit: 0xE000) // private use
-        try testChar(codeUnit: 0xDC00) // low surrogate
-        try testChar(codeUnit: 0xD800) // high surrogate
+        XCTAssertEqual(try Strings.roundtripChar(65), 65) // ascii 'a'
+        XCTAssertEqual(try Strings.roundtripChar(0), 0) // NUL
+        XCTAssertEqual(try Strings.roundtripChar(0x0142), 0x0142) // non-ascii 'Ł'
+        XCTAssertEqual(try Strings.roundtripChar(0xE000), 0xE000) // private use
+        XCTAssertEqual(try Strings.roundtripChar(0xDC00), 0xDC00) // low surrogate
+        XCTAssertEqual(try Strings.roundtripChar(0xD800), 0xD800) // high surrogate
     }
 
     func testMalformedUTF16() throws {
         XCTAssertEqual(
-            try Strings.fromChars([WideChar(codeUnit: 0xDC00)]), // Mismatched low surrogate
+            try Strings.fromChars([0xDC00]), // Mismatched low surrogate
             "�") // U+FFFD REPLACEMENT CHARACTER
     }
 }

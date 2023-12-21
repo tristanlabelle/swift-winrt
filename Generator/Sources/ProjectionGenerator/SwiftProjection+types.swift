@@ -154,14 +154,7 @@ extension SwiftProjection {
             case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64))
             case .float(double: false): return .numeric(swiftType: .float)
             case .float(double: true): return .numeric(swiftType: .double)
-            case .char:
-                return TypeProjection(
-                    swiftType: .chain("COM", "WideChar"),
-                    swiftDefaultValue: .defaultInitializer,
-                    projectionType: .chain("COM", "WideChar"),
-                    kind: .inert,
-                    abiType: .chain(abiModuleName, "char16_t"),
-                    abiDefaultValue: "0")
+            case .char: return .numeric(swiftType: .uint(bits: 16))
             case .guid:
                 return TypeProjection(
                     swiftType: .chain("Foundation", "UUID"),
