@@ -154,7 +154,13 @@ extension SwiftProjection {
             case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64))
             case .float(double: false): return .numeric(swiftType: .float)
             case .float(double: true): return .numeric(swiftType: .double)
-            case .char: return .numeric(swiftType: .uint(bits: 16))
+            case .char:
+                return TypeProjection(
+                    swiftType: .chain("Swift", "Unicode", "UTF16", "CodeUnit"),
+                    swiftDefaultValue: "0",
+                    projectionType: .chain("COM", "WideCharProjection"),
+                    kind: .identity,
+                    abiType: .chain("Swift", "UInt16"))
             case .guid:
                 return TypeProjection(
                     swiftType: .chain("Foundation", "UUID"),
@@ -213,26 +219,17 @@ extension SwiftProjection {
 
     private func getIReferenceTypeProjection(of type: BoundType) throws -> TypeProjection? {
         if type.definition.namespace == "System",
-                let systemType = WinRTSystemType(fromName: type.definition.name) {
-            switch systemType {
-                case .integer(.uint8),
-                    .integer(.int16), .integer(.uint16),
-                    .integer(.int32), .integer(.uint32),
-                    .integer(.int64), .integer(.uint64),
-                    .float(double: false), .float(double: true):
-
-                    let swiftType = try toType(type.asNode)
-                    return TypeProjection(
-                        swiftType: .optional(wrapped: swiftType),
-                        swiftDefaultValue: "0",
-                        projectionType: .chain(
-                            .init("WindowsRuntime"),
-                            .init("IReferenceNumericProjection", genericArgs: [ swiftType ])),
-                        kind: .allocating,
-                        abiDefaultValue: "nil")
-
-                default: return nil
-            }
+                let _ = WinRTSystemType(fromName: type.definition.name) {
+            let typeProjection = try getTypeProjection(type.asNode)
+            return TypeProjection(
+                swiftType: .optional(wrapped: typeProjection.swiftType),
+                swiftDefaultValue: "nil",
+                projectionType: .chain(
+                    .init("WindowsRuntime"),
+                    .init("IReferenceProjection"),
+                    .init("Primitive", genericArgs: [ typeProjection.projectionType ])),
+                kind: .allocating,
+                abiDefaultValue: "nil")
         }
 
         return nil
