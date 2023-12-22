@@ -5,7 +5,7 @@ internal struct ParamProjection {
     public enum PassBy: Equatable {
         case value
         case reference(in: Bool, out: Bool, optional: Bool)
-        case `return`
+        case `return`(nullAsError: Bool)
     }
 
     public let name: String

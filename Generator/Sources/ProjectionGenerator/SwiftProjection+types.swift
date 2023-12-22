@@ -20,14 +20,20 @@ extension SwiftProjection {
         }
     }
 
-    public func toReturnType(_ type: TypeNode) throws -> SwiftType {
-        let swiftType = try toType(type)
-        if case .optional(let wrapped, implicitUnwrap: _) = swiftType {
-            return referenceReturnNullability.applyTo(type: wrapped)
+    public func isNullAsErrorEligible(_ type: TypeNode) -> Bool {
+        switch type {
+            case let .bound(type):
+                return type.definition.isReferenceType
+                    && type.definition.fullName != "System.String"
+                    && type.definition.fullName != "Windows.Foundation.IReference`1"
+            default:
+                return false
         }
-        else {
-            return swiftType
-        }
+    }
+
+    public func toReturnType(_ type: TypeNode, typeGenericArgs: [TypeNode]? = nil) throws -> SwiftType {
+        let swiftType = try toType(type.bindGenericParams(typeArgs: typeGenericArgs))
+        return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
     }
 
     private func getSwiftTypeInfo(_ type: BoundType) throws -> (name: String, objectType: SwiftType, valueType: SwiftType) {

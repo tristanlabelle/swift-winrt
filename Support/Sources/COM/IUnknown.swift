@@ -14,10 +14,6 @@ extension IUnknownProtocol {
         let comPointer = try self._queryInterfacePointer(Projection.self)
         return Projection.toSwift(transferringRef: comPointer)
     }
-
-    public func tryQueryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.SwiftObject? {
-       try NullResult.catch { try self.queryInterface(Projection.self) }
-    }
 }
 
 public enum IUnknownProjection: COMTwoWayProjection {

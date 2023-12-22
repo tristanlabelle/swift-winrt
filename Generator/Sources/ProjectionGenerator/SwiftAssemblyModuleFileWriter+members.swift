@@ -37,8 +37,7 @@ extension SwiftAssemblyModuleFileWriter {
             _ property: Property, typeGenericArgs: [TypeNode],
             static: Bool = false, thisPointer: ThisPointer,
             to writer: SwiftTypeDefinitionWriter) throws {
-        let valueType = try projection.toType(
-            property.type.bindGenericParams(typeArgs: typeGenericArgs))
+        let valueType = try projection.toReturnType(property.type, typeGenericArgs: typeGenericArgs)
 
         // public [static] var myProperty: MyPropertyType { get throws { .. } }
         if let getter = try property.getter {
@@ -110,7 +109,7 @@ extension SwiftAssemblyModuleFileWriter {
             static: Bool = false, thisPointer: ThisPointer,
             to writer: SwiftTypeDefinitionWriter) throws {
         let returnSwiftType: SwiftType? = try method.hasReturnValue
-            ? projection.toType(method.returnType.bindGenericParams(typeArgs: typeGenericArgs))
+            ? projection.toReturnType(method.returnType, typeGenericArgs: typeGenericArgs)
             : nil
         try writer.writeFunc(
                 visibility: .public,
@@ -250,13 +249,17 @@ extension SwiftAssemblyModuleFileWriter {
             writer.writeStatement("self.init(transferringRef: \(returnParam.name))")
         }
         else {
-            switch returnTypeProjection.kind {
-                case .identity:
-                    writer.writeReturnStatement(value: returnParam.name)
-                case .inert:
-                    writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))")
-                default:
-                    writer.writeReturnStatement(value: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))")
+            let returnValue: String = switch returnTypeProjection.kind {
+                case .identity: returnParam.name
+                case .inert: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
+                default: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
+            }
+
+            if case .return(nullAsError: true) = returnParam.passBy {
+                writer.writeReturnStatement(value: "try COM.NullResult.unwrap(\(returnValue))")
+            }
+            else {
+                writer.writeReturnStatement(value: returnValue)
             }
         }
     }

@@ -5,7 +5,7 @@ public struct NullResult: Error {
         return value
     }
 
-    public static func `catch`<Value>(_ block: () throws -> Value) rethrows -> Value? {
+    public static func `catch`<Value>(_ block: @autoclosure () throws -> Value) rethrows -> Value? {
         do { return try block() }
         catch is NullResult { return nil }
         catch { throw error }

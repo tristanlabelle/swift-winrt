@@ -17,7 +17,7 @@ extension SwiftProjection {
 
     internal func getParamProjection(_ param: ParamBase, genericTypeArgs: [TypeNode] = []) throws -> ParamProjection {
         let passBy: ParamProjection.PassBy = switch param {
-            case is ReturnParam: .return
+            case is ReturnParam: .return(nullAsError: isNullAsErrorEligible(try param.type))
             case let param as Param:
                 param.isByRef
                     ? .reference(in: param.isIn, out: param.isOut, optional: false)
@@ -28,8 +28,7 @@ extension SwiftProjection {
         return ParamProjection(
             name: toParamName(param),
             typeProjection: try getTypeProjection(
-                try param.type.bindGenericParams(typeArgs: genericTypeArgs)
-            ),
+                param.type.bindGenericParams(typeArgs: genericTypeArgs)),
             passBy: passBy)
     }
 

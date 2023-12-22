@@ -1,3 +1,4 @@
+import COM
 import XCTest
 import WinRTComponent
 
@@ -17,10 +18,10 @@ class NullValueTests: WinRTTestCase {
     }
 
     func testGetNull() throws {
-        XCTAssertNil(try NullValues.getNullObject())
-        XCTAssertNil(try NullValues.getNullInterface())
-        XCTAssertNil(try NullValues.getNullDelegate())
-        XCTAssertNil(try NullValues.getNullClass())
+        XCTAssertNil(try NullResult.catch(NullValues.getNullObject()))
+        XCTAssertNil(try NullResult.catch(NullValues.getNullInterface()))
+        XCTAssertNil(try NullResult.catch(NullValues.getNullDelegate()))
+        XCTAssertNil(try NullResult.catch(NullValues.getNullClass()))
         XCTAssertNil(try NullValues.getNullReference())
     }
 }

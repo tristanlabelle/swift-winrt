@@ -75,6 +75,10 @@ extension SwiftAssemblyModuleFileWriter {
                     }
                     output.write("let \(returnProjection.swiftProjectionName) = ")
                 }
+
+                if case .return(nullAsError: true) = returnProjection.passBy {
+                    output.write("try COM.NullResult.`catch`(")
+                }
             }
 
             // Call the Swift implementation
@@ -100,6 +104,10 @@ extension SwiftAssemblyModuleFileWriter {
                 }
                 output.write(")")
                 if methodKind == .eventAdder { output.write(".token") }
+            }
+
+            if let returnProjection, case .return(nullAsError: true) = returnProjection.passBy {
+                output.write(")") // NullResult.`catch`
             }
             output.endLine()
 

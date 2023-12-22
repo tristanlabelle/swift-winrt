@@ -31,8 +31,9 @@ class ValueReturnRoundtripTests: WinRTTestCase {
 
     func testObject() throws {
         let original: IInspectable = try MinimalClass()
-        let roundtripped = try XCTUnwrap(twoWay.object(original))
-        assertCOMIdentical(original, roundtripped)
+        assertCOMIdentical(try twoWay.object(original), original)
+
+        XCTAssertNil(try NullResult.catch(twoWay.object(nil)))
     }
 
     func testEnum() throws {
@@ -46,30 +47,28 @@ class ValueReturnRoundtripTests: WinRTTestCase {
 
     func testInterface() throws {
         let original: IMinimalInterface = try MinimalClass()
-        assertCOMIdentical(try XCTUnwrap(twoWay.interface(original)), original)
+        assertCOMIdentical(try twoWay.interface(original), original)
 
-        XCTAssertNil(try twoWay.interface(nil))
+        XCTAssertNil(try NullResult.catch(twoWay.interface(nil)))
     }
 
     func testClass() throws {
         let instance = try MinimalClass()
-        XCTAssertEqual(
-            try XCTUnwrap(twoWay.class(instance)).comPointer,
-            instance.comPointer)
+        XCTAssertEqual(try twoWay.class(instance).comPointer, instance.comPointer)
 
-        XCTAssertNil(try twoWay.class(nil))
+        XCTAssertNil(try NullResult.catch(twoWay.class(nil)))
     }
 
     func testDelegate() throws {
         // By design, Swift does not support identity comparisons for closures,
         // so we can only test that the round-tripped closure is still calling the same code.
         var called = false
-        let result = try XCTUnwrap(twoWay.delegate({ called = true }))
+        let result = try twoWay.delegate({ called = true })
         XCTAssertFalse(called)
         try result()
         XCTAssertTrue(called)
 
-        XCTAssertNil(try twoWay.delegate(nil))
+        XCTAssertNil(try NullResult.catch(twoWay.delegate(nil)))
     }
 
     func testArray_oneWay() throws {
@@ -88,12 +87,12 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     class ReturnArgumentImplementation: WinRTExport<IReturnArgumentProjection>, IReturnArgumentProtocol {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
-        func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable? { value }
+        func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable { try NullResult.unwrap(value) }
         func `enum`(_ value: WinRTComponent.MinimalEnum) throws -> WinRTComponent.MinimalEnum { value }
         func `struct`(_ value: WinRTComponent.MinimalStruct) throws -> WinRTComponent.MinimalStruct { value }
-        func interface(_ value: WinRTComponent.IMinimalInterface?) throws -> WinRTComponent.IMinimalInterface? { value }
-        func `class`(_ value: WinRTComponent.MinimalClass?) throws -> WinRTComponent.MinimalClass? { value }
-        func delegate(_ value: WinRTComponent.MinimalDelegate?) throws -> WinRTComponent.MinimalDelegate? { value }
+        func interface(_ value: WinRTComponent.IMinimalInterface?) throws -> WinRTComponent.IMinimalInterface { try NullResult.unwrap(value) }
+        func `class`(_ value: WinRTComponent.MinimalClass?) throws -> WinRTComponent.MinimalClass { try NullResult.unwrap(value) }
+        func delegate(_ value: WinRTComponent.MinimalDelegate?) throws -> WinRTComponent.MinimalDelegate { try NullResult.unwrap(value) }
         func array(_ value: [String]) throws -> [String] { value }
         func reference(_ value: Int32?) throws -> Int32? { value }
     }
