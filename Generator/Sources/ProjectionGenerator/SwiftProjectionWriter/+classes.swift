@@ -4,7 +4,7 @@ import DotNetMetadata
 import WindowsMetadata
 import struct Foundation.UUID
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     internal func writeClassProjection(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
         if classDefinition.isAbstract && classDefinition.isSealed {

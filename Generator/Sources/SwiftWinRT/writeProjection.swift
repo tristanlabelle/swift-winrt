@@ -93,7 +93,7 @@ fileprivate func writeProjectionSwiftFile(
 
     let filePath = "\(namespaceDirectoryPath)\\\(fileNameWithoutExtension).swift"
     try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
-    let projectionWriter = SwiftAssemblyModuleFileWriter(path: filePath, module: module, importAbiModule: true)
+    let projectionWriter = SwiftProjectionWriter(path: filePath, module: module, importAbiModule: true)
 
     if writeDefinition { try projectionWriter.writeTypeDefinition(typeDefinition) }
 

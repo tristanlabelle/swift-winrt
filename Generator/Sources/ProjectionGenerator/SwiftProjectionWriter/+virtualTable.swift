@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import WindowsMetadata
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     func writeVirtualTable(interfaceOrDelegate: BoundType, to output: IndentedTextOutputStream) throws {
         try output.writeIndentedBlock(header: "COMVirtualTable(", footer: ")") {
             // IUnknown methods

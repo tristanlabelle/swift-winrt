@@ -4,7 +4,7 @@ import DotNetMetadata
 import WindowsMetadata
 import struct Foundation.UUID
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     /// Gathers all generic arguments from the given interfaces and writes them as type aliases
     /// For example, if an interface is IMap<String, Int32>, write K = String and V = Int32
     internal func writeGenericTypeAliases(interfaces: [BoundInterface], to writer: SwiftTypeDefinitionWriter) throws {

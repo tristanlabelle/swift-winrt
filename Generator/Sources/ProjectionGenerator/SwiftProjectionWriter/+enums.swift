@@ -1,7 +1,7 @@
 import CodeWriters
 import DotNetMetadata
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     internal func writeEnum(_ enumDefinition: EnumDefinition) throws {
         // Enums are syntactic sugar for integers in .NET,
         // so we cannot guarantee that the enumerants are exhaustive,

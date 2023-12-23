@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import WindowsMetadata
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     internal enum ThisPointer {
         case name(String)
         case getter(String, static: Bool)

@@ -2,7 +2,7 @@ import Collections
 import CodeWriters
 import DotNetMetadata
 
-public struct SwiftAssemblyModuleFileWriter {
+public struct SwiftProjectionWriter {
     internal let sourceFileWriter: SwiftSourceFileWriter
     internal let module: SwiftProjection.Module
     internal var projection: SwiftProjection { module.projection }

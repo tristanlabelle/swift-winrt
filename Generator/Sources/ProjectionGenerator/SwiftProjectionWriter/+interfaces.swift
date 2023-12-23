@@ -4,7 +4,7 @@ import DotNetMetadata
 import DotNetXMLDocs
 import WindowsMetadata
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     // Interfaces are generated as two types: a protocol and an existential typealias.
     // Given an interface IFoo, we generate:
     //

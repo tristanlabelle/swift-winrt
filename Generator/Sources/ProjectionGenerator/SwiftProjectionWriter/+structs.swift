@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import WindowsMetadata
 
-extension SwiftAssemblyModuleFileWriter {
+extension SwiftProjectionWriter {
     internal func writeStruct(_ structDefinition: StructDefinition) throws {
         try sourceFileWriter.writeStruct(
             documentation: projection.getDocumentationComment(structDefinition),
