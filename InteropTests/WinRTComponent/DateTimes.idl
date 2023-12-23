@@ -1,0 +1,10 @@
+namespace WinRTComponent
+{
+    static runtimeclass DateTimes
+    {
+        static Windows.Foundation.TimeSpan FromSeconds(Int32 seconds);
+        static Int32 RoundToSeconds(Windows.Foundation.TimeSpan timeSpan);
+        static Windows.Foundation.DateTime FromUTCYearMonthDay(Int32 year, Int32 month, Int32 day);
+        static void ToUTCYearMonthDay(Windows.Foundation.DateTime dateTime, out Int32 year, out Int32 month, out Int32 day);
+    }
+}

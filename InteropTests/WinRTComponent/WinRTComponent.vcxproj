@@ -115,6 +115,9 @@
     <ClInclude Include="Arrays.h">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="DateTimes.h">
+      <DependentUpon>DateTimes.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Events.h">
       <DependentUpon>Events.idl</DependentUpon>
     </ClInclude>
@@ -159,6 +162,9 @@
     <ClCompile Include="Arrays.cpp">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="DateTimes.cpp">
+      <DependentUpon>DateTimes.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="Events.cpp">
       <DependentUpon>Events.idl</DependentUpon>
     </ClCompile>
@@ -195,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="Arrays.idl" />
+    <Midl Include="DateTimes.idl" />
     <Midl Include="Enums.idl" />
     <Midl Include="Errors.idl" />
     <Midl Include="Events.idl" />

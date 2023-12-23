@@ -40,11 +40,11 @@ extension SwiftProjection {
         }
     }
 
-    func toTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
+    public func toTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
         try getModule(typeDefinition.assembly)!.getName(typeDefinition, namespaced: namespaced)
     }
 
-    func toProtocolName(_ typeDefinition: InterfaceDefinition, namespaced: Bool = true) throws -> String {
+    public func toProtocolName(_ typeDefinition: InterfaceDefinition, namespaced: Bool = true) throws -> String {
         try toTypeName(typeDefinition, namespaced: namespaced) + "Protocol"
     }
 

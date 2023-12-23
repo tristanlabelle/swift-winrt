@@ -1,8 +1,8 @@
 import Collections
 import DotNetMetadata
 
-/// Walks the type graph to discovers all type definitions and closed generic types needed by a module.
-public struct ModuleTypeDiscoverer {
+/// Walks the type graph to discover all type definitions and closed generic types.
+public struct TypeDiscoverer {
     private enum QueueEntry {
         case typeDefinition(TypeDefinition)
         case closedGenericType(BoundType)
@@ -34,6 +34,10 @@ public struct ModuleTypeDiscoverer {
         }
 
         try drainQueue()
+    }
+
+    public mutating func resetClosedGenericTypes() {
+        closedGenericTypes.removeAll()
     }
 
     private mutating func enqueue(_ typeDefinition: TypeDefinition) {

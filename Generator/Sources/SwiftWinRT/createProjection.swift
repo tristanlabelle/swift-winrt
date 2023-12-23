@@ -23,14 +23,19 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     // Gather types from assemblies
+    var typeDiscoverer = TypeDiscoverer(
+        assemblyFilter: { !($0 is Mscorlib) },
+        publicMembersOnly: true)
+
     for assembly in assemblyLoadContext.loadedAssembliesByName.values {
         guard let module = projection.getModule(assembly) else { continue }
 
         print("Gathering types from \(assembly.name)...")
-        var typeDiscoverer = ModuleTypeDiscoverer(assemblyFilter: { $0 === assembly }, publicMembersOnly: true)
 
         let (_, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let typeFilter = FilterSet(moduleConfig.types.map { $0.map { Filter(pattern: $0) } })
+
+        typeDiscoverer.resetClosedGenericTypes()
 
         for typeDefinition in assembly.definedTypes {
             guard typeDefinition.isPublic else { continue }
@@ -41,8 +46,13 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
             try typeDiscoverer.add(typeDefinition)
         }
 
-        for typeDefinition in typeDiscoverer.definitions { module.addTypeDefinition(typeDefinition) }
         for closedGenericType in typeDiscoverer.closedGenericTypes { module.addClosedGenericType(closedGenericType) }
+    }
+
+    // Sort discovered types in their respective modules
+    for typeDefinition in typeDiscoverer.definitions {
+        guard let module = projection.getModule(typeDefinition.assembly) else { continue }
+        module.addTypeDefinition(typeDefinition)
     }
 
     // Establish references between modules

@@ -85,17 +85,19 @@ fileprivate func writeProjectionSwiftFile(
     let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
     let namespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
 
-    var fileName = typeDefinition.nameWithoutGenericSuffix
+    var fileNameWithoutExtension = typeDefinition.nameWithoutGenericSuffix
     if let closedGenericArgs = closedGenericArgs {
-        fileName += "+"
-        fileName += try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: closedGenericArgs)
+        fileNameWithoutExtension += "+"
+        fileNameWithoutExtension += try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: closedGenericArgs)
     }
-    fileName += ".swift"
 
-    let filePath = "\(namespaceDirectoryPath)\\\(fileName)"
+    let filePath = "\(namespaceDirectoryPath)\\\(fileNameWithoutExtension).swift"
     try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
     let projectionWriter = SwiftAssemblyModuleFileWriter(path: filePath, module: module, importAbiModule: true)
 
     if writeDefinition { try projectionWriter.writeTypeDefinition(typeDefinition) }
+
+    try projectionWriter.writeBuiltInExtensions(typeDefinition)
+
     try projectionWriter.writeProjection(typeDefinition, genericArgs: closedGenericArgs)
 }
