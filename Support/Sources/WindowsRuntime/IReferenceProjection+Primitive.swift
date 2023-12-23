@@ -1,6 +1,7 @@
 import COM
 import CWinRTCore
 import struct Foundation.UUID
+import Foundation
 
 extension IReferenceProjection {
     public typealias Bool = Primitive<Bool8Projection>
@@ -44,6 +45,10 @@ extension IReferenceProjection {
 
         public static func toSwift(_ comPointer: ABIValue) -> SwiftValue {
             guard let comPointer else { return nil }
+
+            print("toSwift")
+            fflush(stdout)
+
             var value: Projection.ABIValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &value) { valuePointer in
                 try! WinRTError.throwIfFailed(comPointer.pointee.lpVtbl.pointee.get_Value(
@@ -54,6 +59,9 @@ extension IReferenceProjection {
 
         public static func toABI(_ value: SwiftValue) throws -> ABIValue {
             guard let value else { return nil }
+
+            print("toABI")
+            fflush(stdout)
 
             let propertyValueStatics = try getPropertyValueStaticsNoRef()
             let virtualTable = propertyValueStatics.pointee.lpVtbl!

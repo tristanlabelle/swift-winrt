@@ -1,4 +1,5 @@
 import COM
+import Foundation
 import XCTest
 import WindowsRuntime
 import WinRTComponent
@@ -99,6 +100,19 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
 
     func testReference() throws {
         var roundtripped: Int32? = nil
+
+        print("oneWay")
+        fflush(stdout)
+
+        try oneWay.reference(42, &roundtripped)
+        XCTAssertEqual(roundtripped, 42)
+
+        try oneWay.reference(nil, &roundtripped)
+        XCTAssertNil(roundtripped)
+
+        print("twoWay")
+        fflush(stdout)
+
         try twoWay.reference(42, &roundtripped)
         XCTAssertEqual(roundtripped, 42)
 
