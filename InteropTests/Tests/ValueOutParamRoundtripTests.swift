@@ -101,20 +101,26 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
     func testReference() throws {
         var roundtripped: Int32? = nil
 
-        print("oneWay")
+        print("oneWay:non-nil")
         fflush(stdout)
 
         try oneWay.reference(42, &roundtripped)
         XCTAssertEqual(roundtripped, 42)
 
+        print("oneWay:nil")
+        fflush(stdout)
+
         try oneWay.reference(nil, &roundtripped)
         XCTAssertNil(roundtripped)
 
-        print("twoWay")
+        print("twoWay:non-nil")
         fflush(stdout)
 
         try twoWay.reference(42, &roundtripped)
         XCTAssertEqual(roundtripped, 42)
+
+        print("twoWay:nil")
+        fflush(stdout)
 
         try twoWay.reference(nil, &roundtripped)
         XCTAssertNil(roundtripped)

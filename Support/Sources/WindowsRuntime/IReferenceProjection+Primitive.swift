@@ -65,8 +65,12 @@ extension IReferenceProjection {
 
             let propertyValueStatics = try getPropertyValueStaticsNoRef()
             let virtualTable = propertyValueStatics.pointee.lpVtbl!
+
+            print("toABI:after propertyValueStatics")
+            fflush(stdout)
+
             var boxed: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
-            defer { IUnknownPointer.release(boxed) }
+            defer { IInspectableProjection.release(&boxed) }
             try WinRTError.throwIfFailed({
                 switch value {
                     case let value as Swift.Bool:
@@ -85,6 +89,8 @@ extension IReferenceProjection {
                             : virtualTable.pointee.CreateUInt16(propertyValueStatics, value, &boxed)
 
                     case let value as Swift.Int32:
+                        print("toABI:CreateInt32")
+                        fflush(stdout)
                         return virtualTable.pointee.CreateInt32(propertyValueStatics, value, &boxed)
 
                     case let value as Swift.UInt32:
@@ -117,6 +123,8 @@ extension IReferenceProjection {
 
             guard let boxed else { throw HResult.Error.noInterface }
 
+            print("toABI:QueryInterface")
+            fflush(stdout)
             return try IUnknownPointer.cast(boxed).queryInterface(Self.interfaceID, CWinRTCore.SWRT_IReference.self)
         }
 
