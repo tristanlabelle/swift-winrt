@@ -4,6 +4,11 @@ public struct COMExportInterface {
     public let id: COMInterfaceID
     public let queryPointer: (_ identity: COMExportedObjectCore) throws -> IUnknownPointer
 
+    public init(id: COMInterfaceID, queryPointer: @escaping (_ identity: COMExportedObjectCore) throws -> IUnknownPointer) {
+        self.id = id
+        self.queryPointer = queryPointer
+    }
+
     public init<TargetProjection: COMTwoWayProjection>(_: TargetProjection.Type) {
         self.id = TargetProjection.id
         self.queryPointer = { identity in
@@ -26,7 +31,7 @@ open class COMExportedObjectCore: IUnknownProtocol {
     }
 
     fileprivate enum IdentityData {
-        case own(queriableInterfaces: [COMExportInterface], agile: Bool)
+        case own(queriableInterfaces: [COMExportInterface])
         case foreign(COMExportedObjectCore)
     }
 
@@ -48,7 +53,7 @@ open class COMExportedObjectCore: IUnknownProtocol {
 
     public var queriableInterfaces: [COMExportInterface] {
         switch identityData {
-            case .own(let queriableInterfaces, _): queriableInterfaces
+            case .own(let queriableInterfaces): queriableInterfaces
             case .foreign(let other): other.queriableInterfaces
         }
     }
@@ -64,9 +69,8 @@ open class COMExportedObjectCore: IUnknownProtocol {
 
     open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         switch identityData {
-            case .own(let queriableInterfaces, let agile):
-                if id == IUnknownProjection.id || id == Self.markerInterfaceId
-                    || (agile && id == IAgileObjectProjection.id) {
+            case .own(let queriableInterfaces):
+                if id == IUnknownProjection.id || id == Self.markerInterfaceId {
                     return unknown.addingRef()
                 }
                 guard let interface = queriableInterfaces.first(where: { $0.id == id }) else {
@@ -124,14 +128,14 @@ open class COMExportedObject<Projection: COMTwoWayProjection>: COMExportedObject
     public let implementation: Projection.SwiftObject
     public override var anyImplementation: Any { implementation }
 
-    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface], agile: Bool = true) {
+    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface]) {
         self.implementation = implementation
         super.init(
             virtualTable: Projection.virtualTablePointer,
-            identityData: .own(queriableInterfaces: queriableInterfaces, agile: agile))
+            identityData: .own(queriableInterfaces: queriableInterfaces))
     }
 
-    fileprivate init(implementation: Projection.SwiftObject, identity: COMExportedObjectCore) {
+    public init(implementation: Projection.SwiftObject, identity: COMExportedObjectCore) {
         self.implementation = implementation
         super.init(
             virtualTable: Projection.virtualTablePointer,
