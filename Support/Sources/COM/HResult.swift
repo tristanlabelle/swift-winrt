@@ -5,6 +5,7 @@ public struct HResult: Hashable, CustomStringConvertible {
     public typealias UnsignedValue = UInt32
 
     public static let ok = HResult(0)
+    public static let illegalMethodCall = HResult(unsigned: 0x8000000E)
     public static let fail = HResult(unsigned: 0x80004005)
     public static let invalidArg = HResult(unsigned: 0x80070057)
     public static let notImpl = HResult(unsigned: 0x80004001)

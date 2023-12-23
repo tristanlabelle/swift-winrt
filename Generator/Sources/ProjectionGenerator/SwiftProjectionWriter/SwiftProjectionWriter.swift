@@ -45,10 +45,24 @@ public struct SwiftProjectionWriter {
 
     public func writeBuiltInExtensions(_ typeDefinition: TypeDefinition) throws {
         if typeDefinition.namespace == "Windows.Foundation" {
-            let typeName = try module.projection.toTypeName(typeDefinition)
+            let typeName: String
+            if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
+                typeName = try module.projection.toProtocolName(interfaceDefinition)
+            } else {
+                typeName = try module.projection.toTypeName(typeDefinition)
+            }
+
             switch typeDefinition.name {
-                case "DateTime": try writeDateTimeExtensions(typeName: typeName)
-                case "TimeSpan": try writeTimeSpanExtensions(typeName: typeName)
+                case "DateTime":
+                    try writeDateTimeExtensions(typeName: typeName)
+                case "TimeSpan":
+                    try writeTimeSpanExtensions(typeName: typeName)
+                case "IAsyncAction", "IAsyncActionWithProgress`1":
+                    try writeIAsyncExtensions(protocolName: typeName, resultType: nil)
+                case "IAsyncOperation`1", "IAsyncOperationWithProgress`2":
+                    try writeIAsyncExtensions(
+                        protocolName: typeName,
+                        resultType: .identifier(name: String(typeDefinition.genericParams[0].name)))
                 default: break
             }
         }

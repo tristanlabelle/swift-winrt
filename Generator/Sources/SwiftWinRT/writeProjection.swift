@@ -59,11 +59,6 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 guard typeDefinition.name != "IReference`1" else { continue }
             }
 
-            if !module.hasTypeDefinition(typeDefinition) {
-                try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
-                    writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
-            }
-
             let instanciationsByName = try instanciations
                 .map { (key: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: $0), value: $0) }
                 .sorted { $0.key < $1.key }
@@ -95,9 +90,10 @@ fileprivate func writeProjectionSwiftFile(
     try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
     let projectionWriter = SwiftProjectionWriter(path: filePath, module: module, importAbiModule: true)
 
-    if writeDefinition { try projectionWriter.writeTypeDefinition(typeDefinition) }
-
-    try projectionWriter.writeBuiltInExtensions(typeDefinition)
+    if writeDefinition {
+        try projectionWriter.writeTypeDefinition(typeDefinition)
+        if closedGenericArgs == nil { try projectionWriter.writeBuiltInExtensions(typeDefinition) }
+    }
 
     try projectionWriter.writeProjection(typeDefinition, genericArgs: closedGenericArgs)
 }

@@ -72,6 +72,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
+        async: Bool = false,
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -83,6 +84,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
             name: name,
             typeParams: typeParams,
             params: params,
+            async: `async`,
             throws: `throws`,
             returnType: returnType)
         output.endLine()

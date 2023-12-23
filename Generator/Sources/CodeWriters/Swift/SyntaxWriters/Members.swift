@@ -95,6 +95,7 @@ extension SwiftDeclarationWriter {
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
+        async: Bool = false,
         throws: Bool = false,
         returnType: SwiftType? = nil,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
@@ -108,6 +109,7 @@ extension SwiftDeclarationWriter {
             name: name,
             typeParams: typeParams,
             params: params,
+            async: `async`,
             throws: `throws`,
             returnType: returnType)
         try output.writeBracedIndentedBlock() {

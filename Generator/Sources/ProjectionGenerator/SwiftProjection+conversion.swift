@@ -74,9 +74,10 @@ extension SwiftProjection {
 
     func toMemberName(_ member: Member) -> String {
         var name = member.name
-        if member is Method {
+        if member is Method, member.nameKind == .special {
             if let prefixEndIndex = name.findPrefixEndIndex("get_")
                     ?? name.findPrefixEndIndex("set_")
+                    ?? name.findPrefixEndIndex("put_")
                     ?? name.findPrefixEndIndex("add_")
                     ?? name.findPrefixEndIndex("remove_") {
                 name = String(name[prefixEndIndex...])

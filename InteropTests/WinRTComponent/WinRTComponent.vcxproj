@@ -127,6 +127,9 @@
     <ClInclude Include="Errors.h">
       <DependentUpon>Errors.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="ManualAsyncOperation.h">
+      <DependentUpon>ManualAsyncOperation.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="NullValues.h">
       <DependentUpon>NullValues.idl</DependentUpon>
     </ClInclude>
@@ -174,6 +177,9 @@
     <ClCompile Include="Errors.cpp">
       <DependentUpon>Errors.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="ManualAsyncOperation.cpp">
+      <DependentUpon>ManualAsyncOperation.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="NullValues.cpp">
       <DependentUpon>NullValues.idl</DependentUpon>
     </ClCompile>
@@ -205,6 +211,7 @@
     <Midl Include="Enums.idl" />
     <Midl Include="Errors.idl" />
     <Midl Include="Events.idl" />
+    <Midl Include="ManualAsyncOperation.idl" />
     <Midl Include="MinimalTypes.idl" />
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />

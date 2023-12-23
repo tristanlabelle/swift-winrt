@@ -63,6 +63,7 @@ extension SwiftSyntaxWriter {
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
+        async: Bool = false,
         throws: Bool = false,
         returnType: SwiftType? = nil) {
 
@@ -74,9 +75,8 @@ extension SwiftSyntaxWriter {
         SwiftIdentifier.write(name, to: &output)
         writeTypeParams(typeParams)
         writeParams(params)
-        if `throws` {
-            output.write(" throws")
-        }
+        if `async` { output.write(" async") }
+        if `throws` { output.write(" throws") }
         if let returnType {
             output.write(" -> ")
             returnType.write(to: &output)
