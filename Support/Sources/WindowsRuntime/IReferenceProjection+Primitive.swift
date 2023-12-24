@@ -58,7 +58,7 @@ extension IReferenceProjection {
             let propertyValueStatics = try getPropertyValueStaticsNoRef()
             let virtualTable = propertyValueStatics.pointee.lpVtbl!
             var boxed: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
-            defer { IUnknownPointer.release(boxed) }
+            defer { IInspectableProjection.release(&boxed) }
             try WinRTError.throwIfFailed({
                 switch value {
                     case let value as Swift.Bool:
