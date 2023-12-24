@@ -11,7 +11,7 @@ class WinRTTestCase: XCTestCase {
     }
 
     override func setUpWithError() throws {
-        _ = try Self.initialization?.get()
+        _ = try XCTUnwrap(Self.initialization).get()
     }
 
     override class func tearDown() {
