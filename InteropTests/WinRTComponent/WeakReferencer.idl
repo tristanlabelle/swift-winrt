@@ -1,0 +1,8 @@
+namespace WinRTComponent
+{
+    runtimeclass WeakReferencer
+    {
+        WeakReferencer(Object target);
+        Object Target { get; };
+    }
+}

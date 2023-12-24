@@ -139,6 +139,9 @@
     <ClInclude Include="ObjectReferencer.h">
       <DependentUpon>ObjectReferencer.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="OutputArgument.h">
+      <DependentUpon>OutputArgument.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="OverloadedSum.h">
       <DependentUpon>OverloadedSum.idl</DependentUpon>
     </ClInclude>
@@ -151,8 +154,8 @@
     <ClInclude Include="Structs.h">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClInclude>
-    <ClInclude Include="OutputArgument.h">
-      <DependentUpon>OutputArgument.idl</DependentUpon>
+    <ClInclude Include="WeakReferencer.h">
+      <DependentUpon>WeakReferencer.idl</DependentUpon>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +192,9 @@
     <ClCompile Include="ObjectReferencer.cpp">
       <DependentUpon>ObjectReferencer.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="OutputArgument.cpp">
+      <DependentUpon>OutputArgument.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="OverloadedSum.cpp">
       <DependentUpon>OverloadedSum.idl</DependentUpon>
     </ClCompile>
@@ -201,8 +207,8 @@
     <ClCompile Include="Structs.cpp">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClCompile>
-    <ClCompile Include="OutputArgument.cpp">
-      <DependentUpon>OutputArgument.idl</DependentUpon>
+    <ClCompile Include="WeakReferencer.cpp">
+      <DependentUpon>WeakReferencer.idl</DependentUpon>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -216,11 +222,12 @@
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />
     <Midl Include="ObjectReferencer.idl" />
+    <Midl Include="OutputArgument.idl" />
     <Midl Include="OverloadedSum.idl" />
     <Midl Include="ReturnArgument.idl" />
     <Midl Include="Strings.idl" />
     <Midl Include="Structs.idl" />
-    <Midl Include="OutputArgument.idl" />
+    <Midl Include="WeakReferencer.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

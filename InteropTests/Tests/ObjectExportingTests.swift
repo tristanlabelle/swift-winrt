@@ -7,12 +7,11 @@ class ObjectExportingTests: WinRTTestCase {
 
     func testBalancedAddRefRelease() throws {
         let obj: ExportedClass = .init()
-        let referencer = try ObjectReferencer()
-        try referencer.begin(obj)
+        let referencer = try ObjectReferencer(obj)
         let postAddRefCount = try referencer.callAddRef()
         XCTAssert(postAddRefCount > 1)
         let postReleaseRefCount = try referencer.callRelease()
-        XCTAssert(postReleaseRefCount == postAddRefCount - 1)
+        XCTAssertEqual(postReleaseRefCount, postAddRefCount - 1)
     }
 
     func testReleaseFromWinRT() throws {
@@ -20,14 +19,13 @@ class ObjectExportingTests: WinRTTestCase {
         weak var weakObj = obj
         XCTAssertNotNil(weakObj)
 
-        let referencer = try ObjectReferencer()
-        try referencer.begin(obj)
+        var referencer: ObjectReferencer? = try ObjectReferencer(obj)
         XCTAssertNotNil(weakObj)
 
-        obj = nil // We should now only be kept alive by WinRT
+        obj = withExtendedLifetime(obj) { nil } // We should now only be kept alive by WinRT
         XCTAssertNotNil(weakObj)
 
-        let _ = try referencer.end() // Resulting refcount is unreliable as it includes weak ref counts
+        referencer = withExtendedLifetime(referencer) { nil }
         XCTAssertNil(weakObj)
     }
 
@@ -41,5 +39,16 @@ class ObjectExportingTests: WinRTTestCase {
 
     func testImplementsIAgileObject() throws {
         let _ = try ExportedClass().queryInterface(IAgileObjectProjection.self)
+    }
+
+    func testWeakReference() throws {
+        class Exported: WinRTExport<IInspectableProjection> {}
+
+        var instance: Exported? = Exported()
+        let weakReferencer = try WeakReferencer(XCTUnwrap(instance))
+        XCTAssertNotNil(try NullResult.catch(weakReferencer.target))
+
+        instance = withExtendedLifetime(instance) { nil }
+        XCTAssertNil(try NullResult.catch(weakReferencer.target))
     }
 }
