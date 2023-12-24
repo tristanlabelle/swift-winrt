@@ -89,9 +89,12 @@ extension IReferenceProjection {
                             : virtualTable.pointee.CreateUInt16(propertyValueStatics, value, &boxed)
 
                     case let value as Swift.Int32:
-                        print("toABI:CreateInt32")
+                        print("toABI:Before CreateInt32")
                         fflush(stdout)
-                        return virtualTable.pointee.CreateInt32(propertyValueStatics, value, &boxed)
+                        let result = virtualTable.pointee.CreateInt32(propertyValueStatics, value, &boxed)
+                        print("toABI:After CreateInt32 \(result)")
+                        fflush(stdout)
+                        return result
 
                     case let value as Swift.UInt32:
                         return virtualTable.pointee.CreateUInt32(propertyValueStatics, value, &boxed)
@@ -121,6 +124,8 @@ extension IReferenceProjection {
                 }
             }())
 
+            print("toABI:Before null check")
+            fflush(stdout)
             guard let boxed else { throw HResult.Error.noInterface }
 
             print("toABI:QueryInterface")
