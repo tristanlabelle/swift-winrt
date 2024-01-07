@@ -1,6 +1,6 @@
 /// Base for classes exported to COM.
 open class COMExport<Projection: COMTwoWayProjection>: IUnknownProtocol {
-    open class var queriableInterfaces: [COMExportInterface] { [] }
+    open class var implements: [COMImplements] { [] }
 
     // Must be a weak reference to avoid a retain cycle.
     // COMExportedObject must strongly reference this object
@@ -19,7 +19,7 @@ open class COMExport<Projection: COMTwoWayProjection>: IUnknownProtocol {
     open func _createCOMObject() -> COMExportedObject<Projection> {
         COMExportedObject<Projection>(
             implementation: self as! Projection.SwiftObject,
-            queriableInterfaces: Self.queriableInterfaces)
+            implements: Self.implements)
     }
 
     public func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {

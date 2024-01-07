@@ -1,6 +1,6 @@
 import CWinRTCore
 
-public struct COMExportInterface {
+public struct COMImplements {
     public let id: COMInterfaceID
     public let queryPointer: (_ identity: COMExportedObjectCore) throws -> IUnknownPointer
 
@@ -31,7 +31,7 @@ open class COMExportedObjectCore: IUnknownProtocol {
     }
 
     fileprivate enum IdentityData {
-        case own(queriableInterfaces: [COMExportInterface])
+        case own(implements: [COMImplements])
         case foreign(COMExportedObjectCore)
     }
 
@@ -51,10 +51,10 @@ open class COMExportedObjectCore: IUnknownProtocol {
         }
     }
 
-    public var queriableInterfaces: [COMExportInterface] {
+    public var implements: [COMImplements] {
         switch identityData {
-            case .own(let queriableInterfaces): queriableInterfaces
-            case .foreign(let other): other.queriableInterfaces
+            case .own(let implements): implements
+            case .foreign(let other): other.implements
         }
     }
 
@@ -69,11 +69,11 @@ open class COMExportedObjectCore: IUnknownProtocol {
 
     open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         switch identityData {
-            case .own(let queriableInterfaces):
+            case .own(let implements):
                 if id == IUnknownProjection.id || id == Self.markerInterfaceId {
                     return unknown.addingRef()
                 }
-                guard let interface = queriableInterfaces.first(where: { $0.id == id }) else {
+                guard let interface = implements.first(where: { $0.id == id }) else {
                     throw HResult.Error.noInterface
                 }
                 return try interface.queryPointer(self)
@@ -128,11 +128,11 @@ open class COMExportedObject<Projection: COMTwoWayProjection>: COMExportedObject
     public let implementation: Projection.SwiftObject
     public override var anyImplementation: Any { implementation }
 
-    public init(implementation: Projection.SwiftObject, queriableInterfaces: [COMExportInterface]) {
+    public init(implementation: Projection.SwiftObject, implements: [COMImplements]) {
         self.implementation = implementation
         super.init(
             virtualTable: Projection.virtualTablePointer,
-            identityData: .own(queriableInterfaces: queriableInterfaces))
+            identityData: .own(implements: implements))
     }
 
     public init(implementation: Projection.SwiftObject, identity: COMExportedObjectCore) {

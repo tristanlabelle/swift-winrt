@@ -10,12 +10,12 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
     public override func _createCOMObject() -> COMExportedObject<Projection> {
         WinRTExportedObject<Projection>(
             implementation: self as! Projection.SwiftObject,
-            queriableInterfaces: Self.queriableInterfaces,
+            implements: Self.implements,
             agile: Self.agile,
             weakReferenceSource: Self.weakReferenceSource)
     }
 
-    public final func getIids() throws -> [COMInterfaceID] { Self.queriableInterfaces.map { $0.id } }
+    public final func getIids() throws -> [COMInterfaceID] { Self.implements.map { $0.id } }
     public final func getRuntimeClassName() throws -> String { Self._runtimeClassName }
     public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }

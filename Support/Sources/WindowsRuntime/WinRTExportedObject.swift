@@ -5,19 +5,19 @@ open class WinRTExportedObject<Projection: WinRTTwoWayProjection>
         : COMExportedObject<Projection>, IInspectableProtocol {
     public init(
             implementation: Projection.SwiftObject,
-            queriableInterfaces: [COMExportInterface],
+            implements: [COMImplements],
             agile: Bool = true,
             weakReferenceSource: Bool = true) {
-        var fullQueriableInterfaces = queriableInterfaces
+        var implements = implements
 
         if agile {
-            fullQueriableInterfaces.append(COMExportInterface(
+            implements.append(COMImplements(
                 id: IAgileObjectProjection.id,
                 queryPointer: { identity in identity.unknown.addingRef() }))
         }
 
         if weakReferenceSource, let inspectable = implementation as? IInspectable {
-            fullQueriableInterfaces.append(COMExportInterface(id: IWeakReferenceSourceProjection.id, queryPointer: { identity in
+            implements.append(COMImplements(id: IWeakReferenceSourceProjection.id, queryPointer: { identity in
                 let export = COMExportedObject<IWeakReferenceSourceProjection>(
                     implementation: WeakReferenceSource(target: inspectable),
                     identity: identity)
@@ -27,7 +27,7 @@ open class WinRTExportedObject<Projection: WinRTTwoWayProjection>
 
         super.init(
             implementation: implementation,
-            queriableInterfaces: fullQueriableInterfaces)
+            implements: implements)
     }
 
     public override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
@@ -36,7 +36,7 @@ open class WinRTExportedObject<Projection: WinRTTwoWayProjection>
             : try super._queryInterfacePointer(id)
     }
 
-    public final func getIids() throws -> [COMInterfaceID] { queriableInterfaces.map { $0.id } }
+    public final func getIids() throws -> [COMInterfaceID] { implements.map { $0.id } }
     open func getRuntimeClassName() throws -> String { try (implementation as! IInspectable).getRuntimeClassName() }
     open func getTrustLevel() throws -> TrustLevel { try (implementation as! IInspectable).getTrustLevel() }
 }
