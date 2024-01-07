@@ -64,6 +64,9 @@ open class COMExportBase: IUnknownProtocol {
 /// Base for classes exported to COM.
 open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
     open var implementation: Projection.SwiftObject { self as! Projection.SwiftObject }
+    public var comPointer: Projection.COMPointer {
+        comInterface.pointer.withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
+    }
 
     public init() {
         super.init(later: ())
@@ -76,6 +79,11 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         if id == Projection.id { return unknownPointer.addingRef() }
         return try super._queryInterfacePointer(id)
+    }
+
+    public func toCOM() -> Projection.COMPointer {
+        unknownPointer.addRef()
+        return comPointer
     }
 }
 

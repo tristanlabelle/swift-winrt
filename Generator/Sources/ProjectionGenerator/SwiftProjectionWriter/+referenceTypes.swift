@@ -59,8 +59,7 @@ extension SwiftProjectionWriter {
                 params: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
                 throws: true, returnType: .identifier("COMPointer")) { writer in
             if isDelegate {
-                writer.writeStatement("let comObject = COMExportedObject<Self>(implementation: object, implements: [ .init(Self.self) ])")
-                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(comObject.pointer)")
+                writer.writeReturnStatement(value: "COMWrappingExport<Self>(implementation: object).toCOM()")
             }
             else {
                 writer.writeStatement("try toCOM(object, importType: \(importTypeName).self)")
