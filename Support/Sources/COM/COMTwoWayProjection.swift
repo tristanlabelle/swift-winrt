@@ -8,7 +8,7 @@ public protocol COMTwoWayProjection: COMProjection {
 /// Helpers for implementing virtual tables
 extension COMTwoWayProjection {
     public static func _getImplementation(_ pointer: COMPointer) -> SwiftObject {
-        COMExportedObject<Self>.unwrapUnsafe(pointer)
+        COMExportBase.getImplementationUnsafe(pointer, projection: Self.self)
     }
 
     public static func _getImplementation(_ pointer: COMPointer?) -> SwiftObject? {
@@ -45,7 +45,7 @@ extension COMTwoWayProjection {
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
-            let unknownWithRef = try COMExportedObject<Self>.queryInterfaceUnsafe(this, id)
+            let unknownWithRef = try COMExportedInterface.queryInterfaceUnsafe(IUnknownPointer.cast(this), id)
             ppvObject.pointee = UnsafeMutableRawPointer(unknownWithRef)
         }
     }
@@ -55,7 +55,7 @@ extension COMTwoWayProjection {
             assertionFailure("COM this pointer was null")
             return 1
         }
-        return COMExportedObject<Self>.addRefUnsafe(this)
+        return COMExportedInterface.addRefUnsafe(IUnknownPointer.cast(this))
     }
 
     public static func _release(_ this: COMPointer?) -> UInt32 {
@@ -63,6 +63,6 @@ extension COMTwoWayProjection {
             assertionFailure("COM this pointer was null")
             return 0
         }
-        return COMExportedObject<Self>.releaseUnsafe(this)
+        return COMExportedInterface.releaseUnsafe(IUnknownPointer.cast(this))
     }
 }
