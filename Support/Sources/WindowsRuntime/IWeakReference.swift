@@ -33,9 +33,9 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: COMVirtualTable = .init(
-        QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
-        AddRef: { this in _addRef(this) },
-        Release: { this in _release(this) },
+        QueryInterface: { this, iid, ppvObject in COMExportedInterface.QueryInterface(this, iid, ppvObject) },
+        AddRef: { this in COMExportedInterface.AddRef(this) },
+        Release: { this in COMExportedInterface.Release(this) },
         Resolve: { this, iid, objectReference in _implement(this) {
             guard let iid, let objectReference else { throw HResult.Error.pointer }
             objectReference.pointee = nil

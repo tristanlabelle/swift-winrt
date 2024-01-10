@@ -52,9 +52,9 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: COMVirtualTable = .init(
-        QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
-        AddRef: { this in _addRef(this) },
-        Release: { this in _release(this) },
+        QueryInterface: { this, iid, ppvObject in COMExportedInterface.QueryInterface(this, iid, ppvObject) },
+        AddRef: { this in COMExportedInterface.AddRef(this) },
+        Release: { this in COMExportedInterface.Release(this) },
         GetErrorDetails: { this, description, error, restrictedDescription, capabilitySid in _implement(this) {
             var description_: String? = nil
             var error_: HResult = .ok
