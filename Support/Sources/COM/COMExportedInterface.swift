@@ -25,7 +25,7 @@ public struct COMExportedInterface {
         }
     }
 
-    private static func toUnmanagedUnsafe(_ this: IUnknownPointer) -> Unmanaged<AnyObject> {
+    fileprivate static func toUnmanagedUnsafe(_ this: IUnknownPointer) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: CWinRTCore.SWRT_SwiftCOMObject.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
         }
@@ -51,26 +51,54 @@ public struct COMExportedInterface {
     public static func unwrap(_ this: IUnknownPointer) -> IUnknown? {
         test(this) ? unwrapUnsafe(this) : nil
     }
+}
 
-    @discardableResult
-    public static func addRefUnsafe(_ this: IUnknownPointer) -> UInt32 {
-        let unmanaged = toUnmanagedUnsafe(this)
+// IUnknown virtual table implementations
+extension COMExportedInterface {
+    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let this else {
+            assertionFailure("COM this pointer was null")
+            return 1
+        }
+
+        let unmanaged = toUnmanagedUnsafe(IUnknownPointer.cast(this))
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
     }
 
-    @discardableResult
-    internal static func releaseUnsafe(_ this: IUnknownPointer) -> UInt32 {
-        let unmanaged = toUnmanagedUnsafe(this)
+    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let this else {
+            assertionFailure("COM this pointer was null")
+            return 0
+        }
+
+        let unmanaged = toUnmanagedUnsafe(IUnknownPointer.cast(this))
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
         // Best effort refcount
         return UInt32(oldRetainCount - 1)
     }
 
-    @discardableResult
-    internal static func queryInterfaceUnsafe(_ this: IUnknownPointer, _ id: COMInterfaceID) throws -> IUnknownPointer {
-        id == markerInterfaceId ? this.addingRef() : try unwrapUnsafe(this)._queryInterfacePointer(id)
+    public static func QueryInterface<Interface>(
+        _ this: UnsafeMutablePointer<Interface>?,
+            _ iid: UnsafePointer<CWinRTCore.SWRT_Guid>?,
+            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.SWRT_HResult {
+        guard let this else {
+            assertionFailure("COM this pointer was null")
+            return HResult.pointer.value
+        }
+
+        guard let ppvObject else { return HResult.pointer.value }
+        ppvObject.pointee = nil
+
+        guard let iid else { return HResult.pointer.value }
+
+        return HResult.catchValue {
+            let id = GUIDProjection.toSwift(iid.pointee)
+            let this = IUnknownPointer.cast(this)
+            let unknownWithRef = id == markerInterfaceId ? this.addingRef() : try unwrapUnsafe(this)._queryInterfacePointer(id)
+            ppvObject.pointee = UnsafeMutableRawPointer(unknownWithRef)
+        }
     }
 }
