@@ -24,10 +24,10 @@ open class COMExportBase: IUnknownProtocol {
     open class var implements: [Implements] { [] }
 
     fileprivate var comInterface: COMExportedInterface
-    public var unknownPointer: IUnknownPointer { comInterface.pointer }
+    public var unknownPointer: IUnknownPointer { comInterface.unknownPointer }
     open var anyImplementation: Any { self }
 
-    fileprivate init(later: Void) { comInterface = .null }
+    fileprivate init(later: Void) { comInterface = .uninitialized }
 
     open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         if id == IUnknownProjection.id { return unknownPointer.addingRef() }
@@ -52,12 +52,12 @@ open class COMExportBase: IUnknownProtocol {
     }
 
     public static func getImplementationUnsafe<Projection: COMProjection>(_ this: Projection.COMPointer, projection: Projection.Type) -> Projection.SwiftObject {
-        getImplementation(unwrapped: COMExportedInterface.unwrapObjectUnsafe(IUnknownPointer.cast(this)), projection: Projection.self)!
+        getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this), projection: Projection.self)!
     }
 
     public static func getImplementation<Projection: COMProjection>(_ this: Projection.COMPointer, projection: Projection.Type) -> Projection.SwiftObject? {
-        guard COMExportedInterface.test(IUnknownPointer.cast(this)) else { return nil }
-        return getImplementation(unwrapped: COMExportedInterface.unwrapObjectUnsafe(IUnknownPointer.cast(this)), projection: Projection.self)
+        guard COMExportedInterface.test(this) else { return nil }
+        return getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this), projection: Projection.self)
     }
 }
 
@@ -65,15 +65,12 @@ open class COMExportBase: IUnknownProtocol {
 open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
     open var implementation: Projection.SwiftObject { self as! Projection.SwiftObject }
     public var comPointer: Projection.COMPointer {
-        comInterface.pointer.withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
+        comInterface.unknownPointer.cast(to: Projection.COMInterface.self)
     }
 
     public init() {
         super.init(later: ())
-        comInterface = .init(
-            swiftObject: self,
-            virtualTable: Projection.virtualTablePointer.withMemoryRebound(
-                to: IUnknownProjection.COMVirtualTable.self, capacity: 1) { $0 })
+        comInterface = .init(swiftObject: self, virtualTable: Projection.virtualTablePointer)
     }
 
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
