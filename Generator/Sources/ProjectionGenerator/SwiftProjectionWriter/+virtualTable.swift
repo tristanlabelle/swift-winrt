@@ -6,16 +6,16 @@ extension SwiftProjectionWriter {
     func writeVirtualTable(interfaceOrDelegate: BoundType, to output: IndentedTextOutputStream) throws {
         try output.writeIndentedBlock(header: "COMVirtualTable(", footer: ")") {
             // IUnknown methods
-            output.writeFullLine("QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },")
-            output.writeFullLine("AddRef: { this in _addRef(this) },")
-            output.write("Release: { this in _release(this) }")
+            output.writeFullLine("QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },")
+            output.writeFullLine("AddRef: { COMExportedInterface.AddRef($0) },")
+            output.write("Release: { COMExportedInterface.Release($0) }")
 
             // IInspectable methods (except for delegates)
             if interfaceOrDelegate.definition is InterfaceDefinition {
                 output.write(",", endLine: true)
-                output.writeFullLine("GetIids: { this, iidCount, iids in _getIids(this, iidCount, iids) },")
-                output.writeFullLine("GetRuntimeClassName: { this, className in _getRuntimeClassName(this, className) },")
-                output.write("GetTrustLevel: { this, trustLevel in _getTrustLevel(this, trustLevel) }")
+                output.writeFullLine("GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },")
+                output.writeFullLine("GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },")
+                output.write("GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) }")
             }
 
             // Custom interface/delegate methods

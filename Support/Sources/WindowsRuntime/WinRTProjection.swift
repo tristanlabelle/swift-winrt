@@ -5,3 +5,6 @@ import COM
 public protocol WinRTProjection: COMProjection {
     static var runtimeClassName: String { get }
 }
+
+/// Protocol for strongly-typed two-way WinRT interface/delegate/runtimeclass projections into and from Swift.
+public protocol WinRTTwoWayProjection: WinRTProjection, COMTwoWayProjection {}

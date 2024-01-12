@@ -27,8 +27,8 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: COMVirtualTable = .init(
-        QueryInterface: { this, iid, ppvObject in _queryInterface(this, iid, ppvObject) },
-        AddRef: { this in _addRef(this) },
-        Release: { this in _release(this) },
+        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
+        AddRef: { COMExportedInterface.AddRef($0) },
+        Release: { COMExportedInterface.Release($0) },
         Buffer: { this, value in _getter(this, value) { try $0.buffer } })
 }

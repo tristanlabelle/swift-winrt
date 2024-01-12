@@ -52,10 +52,10 @@ fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: CO
         return try super._queryInterfacePointer(id)
     }
 
-    public override func createSecondaryExport<Projection: COMTwoWayProjection>(
-            projection: Projection.Type,
-            implementation: Projection.SwiftObject) -> COMExport<Projection> {
-        WinRTWrappingExport<Projection>(implementation: implementation, foreignIdentity: self)
+    public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
+            projection: SecondaryProjection.Type,
+            implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
+        WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
     }
 }
 
