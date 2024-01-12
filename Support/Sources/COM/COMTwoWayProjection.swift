@@ -7,21 +7,14 @@ public protocol COMTwoWayProjection: COMProjection {
 
 /// Helpers for implementing virtual tables
 extension COMTwoWayProjection {
-    public static func _getImplementation(_ pointer: COMPointer) -> SwiftObject {
-        COMExportBase.getImplementationUnsafe(pointer, projection: Self.self)
-    }
-
-    public static func _getImplementation(_ pointer: COMPointer?) -> SwiftObject? {
-        guard let pointer else { return nil }
-        return Optional(_getImplementation(pointer))
-    }
-
     public static func _implement(_ this: COMPointer?, _ body: (SwiftObject) throws -> Void) -> CWinRTCore.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.pointer.value
         }
-        return HResult.catchValue { try body(_getImplementation(this)) }
+
+        let implementation = COMExportBase.getImplementationUnsafe(this, projection: Self.self)
+        return HResult.catchValue { try body(implementation) }
     }
 
     public static func _getter<Value>(

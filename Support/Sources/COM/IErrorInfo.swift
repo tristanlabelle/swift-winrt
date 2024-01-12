@@ -36,9 +36,9 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: COMVirtualTable = .init(
-        QueryInterface: { this, iid, ppvObject in COMExportedInterface.QueryInterface(this, iid, ppvObject) },
-        AddRef: { this in COMExportedInterface.AddRef(this) },
-        Release: { this in COMExportedInterface.Release(this) },
+        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
+        AddRef: { COMExportedInterface.AddRef($0) },
+        Release: { COMExportedInterface.Release($0) },
         GetGUID: { this, pguid in _getter(this, pguid) { try GUIDProjection.toABI($0.guid) } },
         GetSource: { this, source in _getter(this, source) { try BStrProjection.toABI($0.source) } },
         GetDescription: { this, description in _getter(this, description) { try BStrProjection.toABI($0.description) } },

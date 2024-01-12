@@ -24,10 +24,10 @@ internal enum IInspectable2Projection: WinRTTwoWayProjection {
     private final class Import: WinRTImport<IInspectable2Projection>, IInspectable2Protocol {}
 
     private static var virtualTable: COMVirtualTable = .init(
-        QueryInterface: { this, iid, ppvObject in WinRTExportedInterface.QueryInterface(this, iid, ppvObject) },
-        AddRef: { this in WinRTExportedInterface.AddRef(this) },
-        Release: { this in WinRTExportedInterface.Release(this) },
-        GetIids: { this, riid, ppvObject in WinRTExportedInterface.GetIids(this, riid, ppvObject) },
-        GetRuntimeClassName: { this, className in WinRTExportedInterface.GetRuntimeClassName(this, className) },
-        GetTrustLevel: { this, trustLevel in WinRTExportedInterface.GetTrustLevel(this, trustLevel) })
+        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
+        AddRef: { COMExportedInterface.AddRef($0) },
+        Release: { COMExportedInterface.Release($0) },
+        GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
+        GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
+        GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) })
 }
