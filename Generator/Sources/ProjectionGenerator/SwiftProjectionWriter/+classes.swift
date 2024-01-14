@@ -75,12 +75,13 @@ extension SwiftProjectionWriter {
                             convenience: true,
                             params: paramProjections.map { $0.toSwiftParam() },
                             throws: true) { writer in
-                        try writeProjectionMethodBody(
-                            thisPointer: .getter(interfaceProperty.getter, static: true),
+                        writer.writeStatement("let _this = try Self.\(interfaceProperty.getter)()")
+                        try writeSwiftToABICall(
                             params: paramProjections,
                             returnParam: returnProjection,
-                            abiName: method.name,
-                            isInitializer: true,
+                            abiThisPointer: "_this",
+                            abiMethodName: method.name,
+                            context: .sealedClassInitializer,
                             to: writer)
                     }
                 }

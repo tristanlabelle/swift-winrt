@@ -48,8 +48,7 @@ extension SwiftProjectionWriter {
                     type: valueType,
                     throws: true) { writer throws in
                 try writeProjectionMethodBody(
-                    getter, genericTypeArgs: typeGenericArgs,
-                    thisPointer: thisPointer, to: writer)
+                    getter, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, to: writer)
             }
         }
 
@@ -62,8 +61,7 @@ extension SwiftProjectionWriter {
                     params: setter.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
                     throws: true) { writer throws in
                 try writeProjectionMethodBody(
-                    setter , genericTypeArgs: typeGenericArgs,
-                    thisPointer: thisPointer, to: writer)
+                    setter, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, to: writer)
             }
         }
     }
@@ -84,8 +82,8 @@ extension SwiftProjectionWriter {
                     throws: true,
                     returnType: .chain("WindowsRuntime", "EventRegistration")) { writer throws in
                 try writeProjectionMethodBody(
-                    addAccessor, genericTypeArgs: typeGenericArgs,
-                    thisPointer: thisPointer, eventRemoveMethodName: name, to: writer)
+                    addAccessor, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer,
+                    context: .eventAdder(removeMethodName: name), to: writer)
             }
         }
 
@@ -98,8 +96,7 @@ extension SwiftProjectionWriter {
                     params: [ try projection.toParameter(label: "removing", removeParameter, genericTypeArgs: typeGenericArgs) ],
                     throws: true) { writer throws in
                 try writeProjectionMethodBody(
-                    removeAccessor, genericTypeArgs: typeGenericArgs,
-                    thisPointer: thisPointer, to: writer)
+                    removeAccessor, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, to: writer)
             }
         }
     }
@@ -119,45 +116,50 @@ extension SwiftProjectionWriter {
                 throws: true,
                 returnType: returnSwiftType) { writer throws in
             try writeProjectionMethodBody(
-                method, genericTypeArgs: typeGenericArgs,
-                thisPointer: thisPointer, to: writer)
+                method, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, to: writer)
         }
     }
-
 
     internal func writeProjectionMethodBody(
             _ method: Method, genericTypeArgs: [TypeNode], thisPointer: ThisPointer,
-            eventRemoveMethodName: String? = nil,
-            to writer: SwiftStatementWriter) throws {
+            context: SwiftToABICallContext = .returnableMethod, to writer: SwiftStatementWriter) throws {
+        let thisPointerName = declareThisPointer(thisPointer, to: writer)
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: genericTypeArgs)
-        try writeProjectionMethodBody(
-            thisPointer: thisPointer,
+        try writeSwiftToABICall(
             params: params,
             returnParam: returnParam,
-            abiName: try method.findAttribute(OverloadAttribute.self) ?? method.name,
-            eventRemoveMethodName: eventRemoveMethodName,
+            abiThisPointer: thisPointerName,
+            abiMethodName: try method.findAttribute(OverloadAttribute.self) ?? method.name,
+            context: context,
             to: writer)
     }
 
-    internal func writeProjectionMethodBody(
-            thisPointer: ThisPointer,
-            params: [ParamProjection],
-            returnParam: ParamProjection?,
-            abiName: String,
-            eventRemoveMethodName: String? = nil,
-            isInitializer: Bool = false,
-            to writer: SwiftStatementWriter) throws {
-
-        let thisName: String
+    internal func declareThisPointer(_ thisPointer: ThisPointer, to writer: SwiftStatementWriter) -> String {
         switch thisPointer {
-            case .name(let name): thisName = name
+            case .name(let name): return name
             case let .getter(getter, `static`):
-                thisName = "_this"
                 let staticPrefix = `static` ? "Self." : ""
                 writer.writeStatement("let _this = try \(staticPrefix)\(getter)()")
+                return "_this"
         }
+    }
 
-        var abiArgs = [thisName]
+    internal enum SwiftToABICallContext {
+        case returnableMethod
+        case eventAdder(removeMethodName: String)
+        case sealedClassInitializer
+    }
+
+    /// Writes a call to an ABI method, converting the Swift parameters to the ABI representation and the return value back to Swift.
+    internal func writeSwiftToABICall(
+            params: [ParamProjection],
+            returnParam: ParamProjection?,
+            abiThisPointer: String,
+            abiMethodName: String,
+            context: SwiftToABICallContext,
+            to writer: SwiftStatementWriter) throws {
+
+        var abiArgs = [abiThisPointer]
         func addAbiArg(_ variableName: String, byRef: Bool, array: Bool) {
             let prefix = byRef ? "&" : ""
             if array {
@@ -212,7 +214,7 @@ extension SwiftProjectionWriter {
         }
 
         func writeCall() throws {
-            writer.writeStatement("try WinRTError.throwIfFailed(\(thisName).pointee.lpVtbl.pointee.\(abiName)("
+            writer.writeStatement("try WinRTError.throwIfFailed(\(abiThisPointer).pointee.lpVtbl.pointee.\(abiMethodName)("
                 + "\(abiArgs.joined(separator: ", "))))")
         }
 
@@ -238,29 +240,30 @@ extension SwiftProjectionWriter {
         }
 
         // Handle the return value
-        if let eventRemoveMethodName {
-            // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
-            writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration("
-                + "token: \(returnTypeProjection.projectionType).toSwift(\(returnParam.name)), remover: \(eventRemoveMethodName))")
-        }
-        else if isInitializer {
-            // Initializers don't return a value but rather forward to the base initializer
-            writer.writeStatement("guard let \(returnParam.name) else { throw COM.HResult.Error.noInterface }")
-            writer.writeStatement("self.init(transferringRef: \(returnParam.name))")
-        }
-        else {
-            let returnValue: String = switch returnTypeProjection.kind {
-                case .identity: returnParam.name
-                case .inert: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
-                default: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
-            }
+        switch context {
+            case .returnableMethod:
+                let returnValue: String = switch returnTypeProjection.kind {
+                    case .identity: returnParam.name
+                    case .inert: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
+                    default: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
+                }
 
-            if case .return(nullAsError: true) = returnParam.passBy {
-                writer.writeReturnStatement(value: "try COM.NullResult.unwrap(\(returnValue))")
-            }
-            else {
-                writer.writeReturnStatement(value: returnValue)
-            }
+                if case .return(nullAsError: true) = returnParam.passBy {
+                    writer.writeReturnStatement(value: "try COM.NullResult.unwrap(\(returnValue))")
+                }
+                else {
+                    writer.writeReturnStatement(value: returnValue)
+                }
+
+            case .eventAdder(let removeMethodName):
+                // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
+                writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration("
+                    + "token: \(returnTypeProjection.projectionType).toSwift(\(returnParam.name)), remover: \(removeMethodName))")
+
+            case .sealedClassInitializer:
+                // Sealed class initializers don't return a value but rather forward to the base initializer
+                writer.writeStatement("guard let \(returnParam.name) else { throw COM.HResult.Error.noInterface }")
+                writer.writeStatement("self.init(transferringRef: \(returnParam.name))")
         }
     }
 }
