@@ -46,7 +46,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     }
 
     func testInterface() throws {
-        let original: IMinimalInterface = try MinimalClass()
+        let original: IMinimalInterface = try MinimalInterfaceFactory.create()
         assertCOMIdentical(try twoWay.interface(original), original)
 
         XCTAssertNil(try NullResult.catch(twoWay.interface(nil)))

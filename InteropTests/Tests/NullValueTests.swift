@@ -5,9 +5,10 @@ import WinRTComponent
 class NullValueTests: WinRTTestCase {
     func testIsNull() throws {
         let minimalClass = try MinimalClass()
+        let minimalInterface = try MinimalInterfaceFactory.create()
         XCTAssertFalse(try NullValues.isObjectNull(minimalClass))
         XCTAssertTrue(try NullValues.isObjectNull(nil))
-        XCTAssertFalse(try NullValues.isInterfaceNull(minimalClass))
+        XCTAssertFalse(try NullValues.isInterfaceNull(minimalInterface))
         XCTAssertTrue(try NullValues.isInterfaceNull(nil))
         XCTAssertFalse(try NullValues.isClassNull(minimalClass))
         XCTAssertTrue(try NullValues.isClassNull(nil))

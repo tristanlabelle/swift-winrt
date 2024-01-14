@@ -54,7 +54,7 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
     }
 
     func testInterface() throws {
-        let original: IMinimalInterface = try MinimalClass()
+        let original: IMinimalInterface = try MinimalInterfaceFactory.create()
         var roundtripped: IMinimalInterface? = nil
         try twoWay.interface(original, &roundtripped)
         assertCOMIdentical(original, try XCTUnwrap(roundtripped))
