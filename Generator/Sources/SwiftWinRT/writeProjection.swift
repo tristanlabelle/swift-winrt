@@ -37,6 +37,8 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
             }
 
             for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
+                guard typeDefinition.isPublic else { continue }
+
                 // Some types have special handling and should not have their projection code generated
                 if typeDefinition.namespace == "Windows.Foundation" {
                     guard typeDefinition.name != "EventRegistrationToken" else { continue }

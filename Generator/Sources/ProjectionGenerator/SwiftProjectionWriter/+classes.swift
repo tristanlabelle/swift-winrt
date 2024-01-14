@@ -15,8 +15,13 @@ extension SwiftProjectionWriter {
                 name: typeName) { try writeClassBody(classDefinition, to: $0) }
         }
         else {
-            let protocolConformances: [SwiftType] = try [.identifier("WinRTProjection")]
-                + classDefinition.baseInterfaces.map { .identifier(try projection.toProtocolName($0.interface.definition)) }
+            var protocolConformances: [SwiftType] = [.identifier("WinRTProjection")]
+            for baseInterface in classDefinition.baseInterfaces {
+                let interfaceDefinition = try baseInterface.interface.definition
+                guard interfaceDefinition.isPublic else { continue }
+                protocolConformances.append(.identifier(try projection.toProtocolName(interfaceDefinition)))
+            }
+
             try sourceFileWriter.writeClass(
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
                 base: .identifier(name: "WinRTImport", genericArgs: [.identifier(name: typeName)]),
