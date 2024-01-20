@@ -30,8 +30,8 @@ public struct SwiftProjectionWriter {
         switch typeDefinition {
             case let interfaceDefinition as InterfaceDefinition:
                 try writeInterface(interfaceDefinition)
-            case is ClassDefinition:
-                break // Unified with the projection for now
+            case let classDefinition as ClassDefinition:
+                try writeClass(classDefinition)
             case let structDefinition as StructDefinition:
                 try writeStruct(structDefinition)
             case let enumDefinition as EnumDefinition:

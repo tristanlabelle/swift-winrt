@@ -5,17 +5,22 @@ import WindowsMetadata
 import struct Foundation.UUID
 
 extension SwiftProjectionWriter {
-    internal func writeClassProjection(_ classDefinition: ClassDefinition) throws {
+    internal func writeClass(_ classDefinition: ClassDefinition) throws {
         let typeName = try projection.toTypeName(classDefinition)
-        if classDefinition.isAbstract && classDefinition.isSealed {
-            // Static class
+        if classDefinition.isStatic {
             assert(classDefinition.baseInterfaces.isEmpty)
             try sourceFileWriter.writeEnum(
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-                name: typeName) { try writeClassBody(classDefinition, to: $0) }
+                    visibility: SwiftProjection.toVisibility(classDefinition.visibility), name: typeName) {
+                try writeClassBody(classDefinition, to: $0)
+            }
         }
         else {
-            var protocolConformances: [SwiftType] = [.identifier("WinRTProjection")]
+            let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
+            let base: SwiftType = .chain(
+                .init("WindowsRuntime"),
+                .init("WinRTImport", genericArgs: [ .identifier(projectionTypeName) ]))
+
+            var protocolConformances: [SwiftType] = []
             for baseInterface in classDefinition.baseInterfaces {
                 let interfaceDefinition = try baseInterface.interface.definition
                 guard interfaceDefinition.isPublic else { continue }
@@ -23,18 +28,14 @@ extension SwiftProjectionWriter {
             }
 
             try sourceFileWriter.writeClass(
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
-                base: .identifier(name: "WinRTImport", genericArgs: [.identifier(name: typeName)]),
-                protocolConformances: protocolConformances) { try writeClassBody(classDefinition, to: $0) }
+                    visibility: SwiftProjection.toVisibility(classDefinition.visibility), final: true, name: typeName,
+                    base: base, protocolConformances: protocolConformances) {
+                try writeClassBody(classDefinition, to: $0)
+            }
         }
     }
 
     fileprivate func writeClassBody(_ classDefinition: ClassDefinition, to writer: SwiftTypeDefinitionWriter) throws {
-        if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
-            try writeWinRTProjectionConformance(
-                interfaceOrDelegate: defaultInterface.asBoundType, classDefinition: classDefinition, to: writer)
-        }
-
         try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, to: writer)
 
         try writeInitializers(classDefinition, to: writer)
@@ -57,12 +58,6 @@ extension SwiftProjectionWriter {
         // Write initializers from activation factories
         let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
         guard !activatableAttributes.isEmpty else { return }
-
-        // As soon as we declare one initializer, we must redeclare required initializers
-        writer.writeInit(visibility: .public, required: true,
-                params: [.init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer"))]) { writer in
-            writer.writeStatement("super.init(transferringRef: comPointer)")
-        }
 
         for activatableAttribute in activatableAttributes {
             if let activationFactoryInterface = activatableAttribute.factory {
@@ -106,19 +101,26 @@ extension SwiftProjectionWriter {
             interfaceName: "IActivationFactory", abiName: CAbi.iactivationFactoryName, iid: iactivationFactoryID,
             staticOf: classDefinition, to: writer)
 
-        writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
-            writer.writeStatement("let _factory = try Self.\(interfaceProperty.getter)()")
-            writer.writeStatement("var inspectable: UnsafeMutablePointer<\(projection.abiModuleName).\(CAbi.iinspectableName)>? = nil")
-            writer.writeStatement("defer { IUnknownPointer.release(inspectable) }")
-            writer.writeStatement("try WinRTError.throwIfFailed(_factory.pointee.lpVtbl.pointee.ActivateInstance(_factory, &inspectable))")
-            writer.writeStatement("guard let inspectable else { throw COM.HResult.Error.noInterface }")
-            writer.writeBlankLine()
-            writer.writeStatement("var iid = COM.GUIDProjection.toABI(Self.id)")
-            writer.writeStatement("var instance: UnsafeMutableRawPointer? = nil")
-            writer.writeStatement("try HResult.throwIfFailed(inspectable.pointee.lpVtbl.pointee.QueryInterface(inspectable, &iid, &instance))")
-            writer.writeStatement("guard let instance else { throw COM.HResult.Error.noInterface }")
-            writer.writeBlankLine()
-            writer.writeStatement("self.init(transferringRef: instance.bindMemory(to: COMInterface.self, capacity: 1))")
+        try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
+            let projectionClassName = try projection.toProjectionTypeName(classDefinition)
+            writer.writeStatement("let factory = try Self.\(interfaceProperty.getter)()")
+            writer.writeStatement("let instance = try factory.activateInstance(projection: \(projectionClassName).self)")
+            writer.writeStatement("self.init(transferringRef: instance)")
+        }
+    }
+
+    internal func writeClassProjection(_ classDefinition: ClassDefinition) throws {
+        if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
+            try sourceFileWriter.writeEnum(
+                    visibility: SwiftProjection.toVisibility(classDefinition.visibility),
+                    name: try projection.toProjectionTypeName(classDefinition),
+                    protocolConformances: [ .identifier("WinRTProjection") ]) { writer throws in
+                try writeWinRTProjectionConformance(
+                    interfaceOrDelegate: defaultInterface.asBoundType, classDefinition: classDefinition, to: writer)
+            }
+        }
+        else {
+            assert(classDefinition.isStatic)
         }
     }
 }

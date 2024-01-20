@@ -109,7 +109,7 @@ extension IReferenceProjection {
 
             guard let boxed else { throw HResult.Error.noInterface }
 
-            return try IUnknownPointer.cast(boxed).queryInterface(Self.interfaceID, CWinRTCore.SWRT_IReference.self)
+            return try IUnknownPointer.queryInterface(boxed, Self.interfaceID).cast(to: CWinRTCore.SWRT_IReference.self)
         }
 
         public static func release(_ value: inout ABIValue) {

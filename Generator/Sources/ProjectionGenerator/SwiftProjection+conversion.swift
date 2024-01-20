@@ -50,7 +50,9 @@ extension SwiftProjection {
 
     public func toProjectionTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
         var typeName = try toTypeName(typeDefinition, namespaced: namespaced)
-        if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
+        if typeDefinition is InterfaceDefinition
+            || typeDefinition is DelegateDefinition
+            || typeDefinition is ClassDefinition {
             // protocols and function pointers cannot serve as the projection class,
             // so an accompanying type provides the ABIProjection conformance.
             typeName += "Projection"

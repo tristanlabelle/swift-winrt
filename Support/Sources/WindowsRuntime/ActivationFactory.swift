@@ -22,3 +22,16 @@ public func lazyInitActivationFactoryPointer<COMInterface>(
     pointer = new
     return new
 }
+
+extension UnsafeMutablePointer where Pointee == CWinRTCore.SWRT_IActivationFactory {
+    public func activateInstance() throws -> IInspectablePointer {
+        var inspectable: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
+        try WinRTError.throwIfFailed(self.pointee.lpVtbl.pointee.ActivateInstance(self, &inspectable))
+        guard let inspectable else { throw COM.HResult.Error.noInterface }
+        return inspectable
+    }
+
+    public func activateInstance<Projection: WinRTProjection>(projection: Projection.Type) throws -> Projection.COMPointer {
+        try IUnknownPointer.queryInterface(try activateInstance(), projection)
+    }
+}

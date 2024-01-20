@@ -26,7 +26,7 @@ extension IUnknownPointer {
         return postRelease
     }
 
-    public func queryInterface<Interface>(_ id: COMInterfaceID, _ type: Interface.Type) throws -> UnsafeMutablePointer<Interface> {
+    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownPointer {
         var iid = GUIDProjection.toABI(id)
         var pointer: UnsafeMutableRawPointer? = nil
         try HResult.throwIfFailed(self.pointee.lpVtbl.pointee.QueryInterface(self, &iid, &pointer))
@@ -35,11 +35,11 @@ extension IUnknownPointer {
             throw HResult.Error.noInterface
         }
 
-        return pointer.bindMemory(to: Interface.self, capacity: 1)
+        return pointer.bindMemory(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1)
     }
 
-    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        try self.queryInterface(id, IUnknownPointer.Pointee.self)
+    public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {
+        try queryInterface(Projection.id).cast(to: Projection.COMInterface.self)
     }
 
     public func cast<COMInterface>(to type: COMInterface.Type) -> UnsafeMutablePointer<COMInterface> {
@@ -73,18 +73,26 @@ extension IUnknownPointer {
     }
 
     @discardableResult
-    public static func addRef<Interface>(_ pointer: UnsafeMutablePointer<Interface>) -> UInt32 {
-        cast(pointer).addRef()
+    public static func addRef<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UInt32 {
+        cast(this).addRef()
     }
 
-    public static func addingRef<Interface>(_ pointer: UnsafeMutablePointer<Interface>) -> UnsafeMutablePointer<Interface> {
-        addRef(pointer)
-        return pointer
+    public static func addingRef<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UnsafeMutablePointer<Interface> {
+        addRef(this)
+        return this
     }
 
     @discardableResult
-    public static func release<Interface>(_ pointer: UnsafeMutablePointer<Interface>?) -> UInt32 {
-        guard let pointer else { return 0 }
-        return cast(pointer).release()
+    public static func release<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let this else { return 0 }
+        return cast(this).release()
+    }
+
+    public static func queryInterface<Interface, Projection: COMProjection>(_ this: UnsafeMutablePointer<Interface>, _: Projection.Type) throws -> Projection.COMPointer {
+        try cast(this).queryInterface(Projection.self)
+    }
+
+    public static func queryInterface<Interface>(_ this: UnsafeMutablePointer<Interface>, _ id: COMInterfaceID) throws -> IUnknownPointer {
+        try cast(this).queryInterface(id)
     }
 }

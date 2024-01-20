@@ -10,7 +10,10 @@ extension SwiftProjection {
                     return specialTypeProjection.swiftType
                 }
 
-                return try getSwiftTypeInfo(type).valueType
+                let swiftObjectType = SwiftType.identifier(
+                    name: try toTypeName(type.definition),
+                    genericArgs: try type.genericArgs.map { try toType($0) })
+                return type.definition.isValueType ? swiftObjectType : .optional(wrapped: swiftObjectType)
             case let .genericParam(param):
                 return .identifier(param.name)
             case let .array(of: element):
@@ -34,14 +37,6 @@ extension SwiftProjection {
     public func toReturnType(_ type: TypeNode, typeGenericArgs: [TypeNode]? = nil) throws -> SwiftType {
         let swiftType = try toType(type.bindGenericParams(typeArgs: typeGenericArgs))
         return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
-    }
-
-    private func getSwiftTypeInfo(_ type: BoundType) throws -> (name: String, objectType: SwiftType, valueType: SwiftType) {
-        let swiftName = try toTypeName(type.definition)
-        let swiftGenericArgs = try type.genericArgs.map { try toType($0) }
-        let swiftObjectType = SwiftType.identifier(name: swiftName, genericArgs: swiftGenericArgs)
-        let swiftValueType = type.definition.isValueType ? swiftObjectType : .optional(wrapped: swiftObjectType)
-        return (swiftName, swiftObjectType, swiftValueType)
     }
 
     internal func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
@@ -91,28 +86,21 @@ extension SwiftProjection {
             abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
         }
 
-        let (swiftTypeName, swiftObjectType, swiftValueType) = try getSwiftTypeInfo(type)
-
-        let projectionType: SwiftType
-        if type.definition is InterfaceDefinition || type.definition is DelegateDefinition {
-            // Interfaces and delegates have an accompanying ABIProjection-conforming class
+        let projectionType: SwiftType = try {
+            let projectionTypeName = try toProjectionTypeName(type.definition)
             if type.genericArgs.isEmpty {
-                projectionType = .identifier(swiftTypeName + "Projection")
+                return .identifier(projectionTypeName)
             }
             else {
-                projectionType = .chain([
-                    .init(swiftTypeName + "Projection"),
+                return .chain([
+                    .init(projectionTypeName),
                     .init(try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: type.genericArgs))
                 ])
             }
-        }
-        else {
-            // Structs, enums and classes conform to ABIProjection directly and cannot be generic
-            projectionType = swiftObjectType
-        }
+        }()
 
         return TypeProjection(
-            swiftType: swiftValueType,
+            swiftType: try toType(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             projectionType: projectionType,
             kind: type.definition.isValueType ? .inert : .allocating,

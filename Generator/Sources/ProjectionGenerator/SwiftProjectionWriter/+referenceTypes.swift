@@ -25,8 +25,9 @@ extension SwiftProjectionWriter {
     }
 
     internal func writeWinRTProjectionConformance(interfaceOrDelegate: BoundType, classDefinition: ClassDefinition? = nil, to writer: SwiftTypeDefinitionWriter) throws {
-        writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
-            target: try projection.toType(classDefinition?.bindNode() ?? interfaceOrDelegate.asNode).unwrapOptional())
+        let swiftObjectType = try projection.toType(classDefinition?.bindNode() ?? interfaceOrDelegate.asNode).unwrapOptional()
+
+        writer.writeTypeAlias(visibility: .public, name: "SwiftObject", target: swiftObjectType)
 
         let abiName = try CAbi.mangleName(type: interfaceOrDelegate)
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
@@ -45,13 +46,20 @@ extension SwiftProjectionWriter {
                 initialValue: "\"\(runtimeClassName)\"")
         }
 
-        // Classes derive from COMImport directly whereas interfaces and delegates are implemented using a nested class
-        let importTypeName = classDefinition == nil ? "Import" : "Self"
+        // Interfaces and delegates hide their implementation in a nested "Import" class,
+        // whereas sealed classes are derived from WinRTImport directly and are never two-way.
         writer.writeFunc(
                 visibility: .public, static: true, name: "toSwift",
                 params: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
                 returnType: .identifier("SwiftObject")) { writer in
-            writer.writeStatement("toSwift(transferringRef: comPointer, importType: \(importTypeName).self)")
+            if classDefinition == nil {
+                // Let COMImport attempt unwrapping first
+                writer.writeStatement("toSwift(transferringRef: comPointer, importType: Import.self)")
+            }
+            else {
+                // Sealed classes are always created by WinRT, so don't need unwrapping
+                writer.writeStatement("return \(swiftObjectType)(transferringRef: comPointer)")
+            }
         }
 
         writer.writeFunc(
@@ -59,10 +67,16 @@ extension SwiftProjectionWriter {
                 params: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
                 throws: true, returnType: .identifier("COMPointer")) { writer in
             if isDelegate {
+                // Delegates have no identity, so create one for them
                 writer.writeReturnStatement(value: "COMWrappingExport<Self>(implementation: object).toCOM()")
             }
+            else if classDefinition == nil {
+                // Interfaces might be SwiftObjects or previous COMImports
+                writer.writeStatement("try toCOM(object, importType: Import.self)")
+            }
             else {
-                writer.writeStatement("try toCOM(object, importType: \(importTypeName).self)")
+                // Classes always have a COMPointer
+                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(object.comPointer)")
             }
         }
     }
