@@ -14,13 +14,25 @@ extension SwiftProjectionWriter {
     // This provides a more natural (C#-like) syntax when using those types:
     //
     //     var foo: IFoo? = getFoo()
-    internal func writeInterface(_ interface: InterfaceDefinition) throws {
-        try writeProtocol(interface)
-        try writeProtocolTypeAlias(interface)
+    internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
+        try writeProtocol(interface, to: writer)
+        try writeProtocolTypeAlias(interface, to: writer)
+
+        let typeName = try projection.toProtocolName(interface)
+        switch interface.name {
+            case "IAsyncAction", "IAsyncActionWithProgress`1":
+                try writeIAsyncExtensions(protocolName: typeName, resultType: nil, to: writer)
+            case "IAsyncOperation`1", "IAsyncOperationWithProgress`2":
+                try writeIAsyncExtensions(
+                    protocolName: typeName,
+                    resultType: .identifier(name: String(interface.genericParams[0].name)),
+                    to: writer)
+            default: break
+        }
     }
 
-    internal func writeDelegate(_ delegateDefinition: DelegateDefinition) throws {
-        try sourceFileWriter.writeTypeAlias(
+    internal func writeDelegateDefinition(_ delegateDefinition: DelegateDefinition, to writer: SwiftSourceFileWriter) throws {
+        try writer.writeTypeAlias(
             documentation: projection.getDocumentationComment(delegateDefinition),
             visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
             name: try projection.toTypeName(delegateDefinition),
@@ -35,7 +47,7 @@ extension SwiftProjectionWriter {
         )
     }
 
-    fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition) throws {
+    fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
         var baseProtocols = [SwiftType]()
         var whereGenericConstraints = OrderedDictionary<String, SwiftType>()
         for baseInterface in interfaceDefinition.baseInterfaces {
@@ -55,7 +67,7 @@ extension SwiftProjectionWriter {
         if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
 
         let documentation = projection.getDocumentation(interfaceDefinition)
-        try sourceFileWriter.writeProtocol(
+        try writer.writeProtocol(
             documentation: documentation.map { projection.toDocumentationComment($0) },
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             name: projection.toProtocolName(interfaceDefinition),
@@ -122,8 +134,8 @@ extension SwiftProjectionWriter {
         }
     }
 
-    fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition) throws {
-        sourceFileWriter.writeTypeAlias(
+    fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, to writer: SwiftSourceFileWriter) throws {
+        writer.writeTypeAlias(
             documentation: projection.getDocumentationComment(interfaceDefinition),
             visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
             name: try projection.toTypeName(interfaceDefinition),
@@ -134,18 +146,20 @@ extension SwiftProjectionWriter {
                 genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
     }
 
-    internal func writeInterfaceOrDelegateProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?) throws {
+    internal func writeInterfaceOrDelegateProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, to writer: SwiftSourceFileWriter) throws {
         if typeDefinition.genericArity == 0 {
+            // Non-generic type, create a standard projection type.
             // enum IVectorProjection: WinRTProjection... {}
             try writeInterfaceOrDelegateProjection(typeDefinition.bindType(),
                 projectionName: try projection.toProjectionTypeName(typeDefinition),
-                to: sourceFileWriter)
+                to: writer)
         }
         else if let genericArgs {
+            // Generic type specialization. Create a projection for the specialization.
             // extension IVectorProjection {
             //     internal final class Boolean: WinRTProjection... {}
             // }
-            try sourceFileWriter.writeExtension(
+            try writer.writeExtension(
                     name: projection.toProjectionTypeName(typeDefinition)) { writer in
                 try writeInterfaceOrDelegateProjection(
                     typeDefinition.bindType(genericArgs: genericArgs),
@@ -154,8 +168,9 @@ extension SwiftProjectionWriter {
             }
         }
         else {
+            // Generic type definition. Create a namespace for projections of specializations.
             // public enum IVectorProjection {}
-            try sourceFileWriter.writeEnum(
+            try writer.writeEnum(
                 visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
                 name: projection.toProjectionTypeName(typeDefinition)) { _ in }
         }
@@ -181,7 +196,23 @@ extension SwiftProjectionWriter {
                 name: projectionName,
                 protocolConformances: [ .identifier(projectionProtocolName) ]) { writer throws in
 
-            try writeWinRTProjectionConformance(interfaceOrDelegate: type, to: writer)
+            try writeCOMProjectionConformance(
+                apiType: type, abiType: type,
+                toSwiftBody: { writer, paramName in
+                    // Let COMImport attempt unwrapping first
+                    writer.writeStatement("toSwift(transferringRef: \(paramName), importType: Import.self)")
+                },
+                toCOMBody: { writer, paramName in
+                    if type.definition is InterfaceDefinition {
+                        // Interfaces might be SwiftObjects or previous COMImports
+                        writer.writeStatement("try toCOM(\(paramName), importType: Import.self)")
+                    }
+                    else {
+                        // Delegates have no identity, so create one for them
+                        writer.writeReturnStatement(value: "COMWrappingExport<Self>(implementation: \(paramName)).toCOM()")
+                    }
+                },
+                to: writer)
 
             // private final class Import: WinRTImport<IFooProjection>, IFooProtocol {}
             try writer.writeClass(
@@ -194,18 +225,39 @@ extension SwiftProjectionWriter {
                 }
                 try writeGenericTypeAliases(interfaces: interfaces, to: writer)
 
-                if type.definition is InterfaceDefinition {
-                    try writeInterfaceImplementations(type, to: writer)
-                }
-                else {
+                if type.definition is DelegateDefinition {
                     // public override var swiftObject: SwiftObject { self.invoke }
                     writer.writeComputedProperty(
                             visibility: .public, override: true, name: "swiftObject",
                             type: .identifier("SwiftObject")) { writer in
                         writer.writeStatement("self.invoke")
                     }
+                }
 
-                    try writeProjectionMembers(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
+                // Primary interface implementation
+                try writer.writeCommentLine(WinRTTypeName.from(type: type).description)
+                try writeInterfaceImplementation(interfaceOrDelegate: type, thisPointer: .name("comPointer"), to: writer)
+
+                // Secondary interface implementations
+                if type.definition is InterfaceDefinition {
+                    var propertiesToRelease = [String]()
+                    for secondaryInterface in try getAllBaseInterfaces(type) {
+                        try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
+                        let property = try writeSecondaryInterfaceProperty(secondaryInterface, to: writer)
+                        try writeInterfaceImplementation(
+                            interfaceOrDelegate: secondaryInterface.asBoundType,
+                            thisPointer: .getter(property.getter, static: false),
+                            to: writer)
+                        propertiesToRelease.append(property.name)
+                    }
+
+                    if !propertiesToRelease.isEmpty {
+                        writer.writeDeinit { writer in
+                            for storedProperty in propertiesToRelease {
+                                writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
+                            }
+                        }
+                    }
                 }
             }
 
@@ -220,6 +272,24 @@ extension SwiftProjectionWriter {
             try writer.writeStoredProperty(
                 visibility: .private, static: true, declarator: .var, name: "virtualTable",
                 initializer: { try writeVirtualTable(interfaceOrDelegate: type, to: $0) })
+        }
+    }
+
+    fileprivate func writeIAsyncExtensions(protocolName: String, resultType: SwiftType?, to writer: SwiftSourceFileWriter) throws {
+        writer.writeExtension(name: protocolName) { writer in
+            // public get() async throws
+            writer.writeFunc(visibility: .public, name: "get", async: true, throws: true, returnType: resultType) { writer in
+                writer.output.writeIndentedBlock(header: "if try status == .started {", footer: "}") {
+                    // We can't await if the completed handler is already set
+                    writer.writeStatement("guard try COM.NullResult.catch(completed) == nil else { throw COM.HResult.Error.illegalMethodCall }")
+                    writer.writeStatement("let awaiter = WindowsRuntime.AsyncAwaiter()")
+                    writer.writeStatement("try completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })")
+                    writer.writeStatement("await awaiter.wait()")
+                }
+
+                // Handles exceptions and cancelation
+                writer.writeStatement("return try getResults()")
+            }
         }
     }
 }

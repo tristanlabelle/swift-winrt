@@ -2,19 +2,19 @@ import CodeWriters
 import DotNetMetadata
 
 extension SwiftProjectionWriter {
-    internal func writeEnum(_ enumDefinition: EnumDefinition) throws {
+    internal func writeEnumDefinitionAndProjection(_ enumDefinition: EnumDefinition, to writer: SwiftSourceFileWriter) throws {
         // Enums are syntactic sugar for integers in .NET,
         // so we cannot guarantee that the enumerants are exhaustive,
         // therefore we cannot project them to Swift enums
         // since they would be unable to represent unknown values.
-        try sourceFileWriter.writeStruct(
-            documentation: projection.getDocumentationComment(enumDefinition),
-            visibility: SwiftProjection.toVisibility(enumDefinition.visibility),
-            name: try projection.toTypeName(enumDefinition),
-            protocolConformances: [
-                .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
-                .identifier("Hashable"),
-                .identifier("Codable") ]) { writer throws in
+        try writer.writeStruct(
+                documentation: projection.getDocumentationComment(enumDefinition),
+                visibility: SwiftProjection.toVisibility(enumDefinition.visibility),
+                name: try projection.toTypeName(enumDefinition),
+                protocolConformances: [
+                    .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
+                    .identifier("Hashable"),
+                    .identifier("Codable") ]) { writer throws in
 
             let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
             writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
@@ -32,10 +32,9 @@ extension SwiftProjectionWriter {
                     initialValue: "Self(rawValue: \(value))")
             }
         }
-    }
 
-    internal func writeEnumProjection(_ enumDefinition: EnumDefinition) throws {
-        try sourceFileWriter.writeExtension(
+        // Write ABIProjection conformance as an extension
+        try writer.writeExtension(
             name: projection.toTypeName(enumDefinition),
             protocolConformances: [SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")]) { _ in }
     }

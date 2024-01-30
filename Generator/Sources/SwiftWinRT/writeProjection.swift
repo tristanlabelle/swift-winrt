@@ -47,7 +47,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
-                    writeDefinition: true, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
+                    assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
 
                 if typeDefinition.isPublic { try aliasesWriter?.writeAliases(typeDefinition) }
             }
@@ -66,7 +66,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 .sorted { $0.key < $1.key }
             for (_, genericArgs) in instanciationsByName {
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: genericArgs,
-                    writeDefinition: false, assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
+                    assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
             }
         }
     }
@@ -76,9 +76,7 @@ fileprivate func writeProjectionSwiftFile(
         module: SwiftProjection.Module,
         typeDefinition: TypeDefinition,
         closedGenericArgs: [TypeNode]? = nil,
-        writeDefinition: Bool,
         assemblyModuleDirectoryPath: String) throws {
-
     let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
     let namespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
 
@@ -90,12 +88,7 @@ fileprivate func writeProjectionSwiftFile(
 
     let filePath = "\(namespaceDirectoryPath)\\\(fileNameWithoutExtension).swift"
     try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
-    let projectionWriter = SwiftProjectionWriter(path: filePath, module: module, importAbiModule: true)
-
-    if writeDefinition {
-        try projectionWriter.writeTypeDefinition(typeDefinition)
-        if closedGenericArgs == nil { try projectionWriter.writeBuiltInExtensions(typeDefinition) }
-    }
-
-    try projectionWriter.writeProjection(typeDefinition, genericArgs: closedGenericArgs)
+    try SwiftProjectionWriter.write(
+        typeDefinition: typeDefinition, closedGenericArgs: closedGenericArgs,
+        module: module, toPath: filePath)
 }

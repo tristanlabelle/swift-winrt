@@ -8,7 +8,7 @@ extension SwiftProjectionWriter {
         case getter(String, static: Bool)
     }
 
-    internal func writeProjectionMembers(
+    internal func writeInterfaceImplementation(
             interfaceOrDelegate: BoundType, static: Bool = false, thisPointer: ThisPointer,
             to writer: SwiftTypeDefinitionWriter) throws {
         for property in interfaceOrDelegate.definition.properties {

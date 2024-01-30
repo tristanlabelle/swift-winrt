@@ -24,60 +24,45 @@ extension SwiftProjectionWriter {
         }
     }
 
-    internal func writeWinRTProjectionConformance(interfaceOrDelegate: BoundType, classDefinition: ClassDefinition? = nil, to writer: SwiftTypeDefinitionWriter) throws {
-        let swiftObjectType = try projection.toType(classDefinition?.bindNode() ?? interfaceOrDelegate.asNode).unwrapOptional()
+    /// Writes members implementing the COMProjection or WinRTProjection protocol
+    internal func writeCOMProjectionConformance(
+            apiType: BoundType, abiType: BoundType,
+            toSwiftBody: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
+            toCOMBody: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
+            to writer: SwiftTypeDefinitionWriter) throws {
+        let abiName = try CAbi.mangleName(type: abiType)
 
-        writer.writeTypeAlias(visibility: .public, name: "SwiftObject", target: swiftObjectType)
-
-        let abiName = try CAbi.mangleName(type: interfaceOrDelegate)
+        writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
+            target: try projection.toType(apiType.asNode).unwrapOptional())
         writer.writeTypeAlias(visibility: .public, name: "COMInterface",
             target: .chain(projection.abiModuleName, abiName))
         writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
             target: .chain(projection.abiModuleName, abiName + CAbi.virtualTableSuffix))
 
         writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "id",
-            initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(interfaceOrDelegate)))
+            initialValue: try Self.toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
 
-        let isDelegate = interfaceOrDelegate.definition is DelegateDefinition
-        if !isDelegate {
+        if !(abiType.definition is DelegateDefinition) {
             // Delegates are IUnknown whereas interfaces are IInspectable
-            let runtimeClassName = try WinRTTypeName.from(type: classDefinition?.bindType() ?? interfaceOrDelegate).description
+            let runtimeClassName = try WinRTTypeName.from(type: apiType).description
             writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
                 initialValue: "\"\(runtimeClassName)\"")
         }
 
         // Interfaces and delegates hide their implementation in a nested "Import" class,
         // whereas sealed classes are derived from WinRTImport directly and are never two-way.
-        writer.writeFunc(
+        try writer.writeFunc(
                 visibility: .public, static: true, name: "toSwift",
                 params: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
                 returnType: .identifier("SwiftObject")) { writer in
-            if classDefinition == nil {
-                // Let COMImport attempt unwrapping first
-                writer.writeStatement("toSwift(transferringRef: comPointer, importType: Import.self)")
-            }
-            else {
-                // Sealed classes are always created by WinRT, so don't need unwrapping
-                writer.writeStatement("return \(swiftObjectType)(transferringRef: comPointer)")
-            }
+            try toSwiftBody(&writer, "comPointer")
         }
 
-        writer.writeFunc(
+        try writer.writeFunc(
                 visibility: .public, static: true, name: "toCOM",
-                params: [ .init(label: "_", name: "object", escaping: isDelegate, type: .identifier("SwiftObject")) ],
+                params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
                 throws: true, returnType: .identifier("COMPointer")) { writer in
-            if isDelegate {
-                // Delegates have no identity, so create one for them
-                writer.writeReturnStatement(value: "COMWrappingExport<Self>(implementation: object).toCOM()")
-            }
-            else if classDefinition == nil {
-                // Interfaces might be SwiftObjects or previous COMImports
-                writer.writeStatement("try toCOM(object, importType: Import.self)")
-            }
-            else {
-                // Classes always have a COMPointer
-                writer.writeReturnStatement(value: "IUnknownPointer.addingRef(object.comPointer)")
-            }
+            try toCOMBody(&writer, "object")
         }
     }
 
@@ -109,12 +94,12 @@ extension SwiftProjectionWriter {
         return "COMInterfaceID(\(arguments.joined(separator: ", ")))"
     }
 
-    internal func writeInterfaceImplementations(_ type: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
-        var recursiveInterfaces = [BoundInterface]()
+    internal func getAllInterfaces(_ type: BoundType) throws -> [BoundInterface] {
+        var interfaces = [BoundInterface]()
 
         func visit(_ interface: BoundInterface) throws {
-            guard !recursiveInterfaces.contains(interface) else { return }
-            recursiveInterfaces.append(interface)
+            guard !interfaces.contains(interface) else { return }
+            interfaces.append(interface)
 
             for baseInterface in interface.definition.baseInterfaces {
                 try visit(baseInterface.interface.bindGenericParams(
@@ -122,47 +107,35 @@ extension SwiftProjectionWriter {
             }
         }
 
-        var defaultInterface: BoundInterface?
         if let interfaceDefinition = type.definition as? InterfaceDefinition {
-            let interface = interfaceDefinition.bind(genericArgs: type.genericArgs)
-            defaultInterface = interface
-            try visit(interface)
+            try visit(interfaceDefinition.bind(genericArgs: type.genericArgs))
+        }
+        else {
+            for baseInterface in type.definition.baseInterfaces {
+                try visit(try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs))
+            }
+        }
+
+        return interfaces
+    }
+
+    internal func getAllBaseInterfaces(_ type: BoundType) throws -> [BoundInterface] {
+        var interfaces = [BoundInterface]()
+
+        func visit(_ interface: BoundInterface) throws {
+            guard !interfaces.contains(interface) else { return }
+            interfaces.append(interface)
+
+            for baseInterface in interface.definition.baseInterfaces {
+                try visit(baseInterface.interface.bindGenericParams(typeArgs: interface.genericArgs))
+            }
         }
 
         for baseInterface in type.definition.baseInterfaces {
-            let interface = try baseInterface.interface.bindGenericParams(
-                typeArgs: type.genericArgs)
-            if try defaultInterface == nil && baseInterface.hasAttribute(DefaultAttribute.self) {
-                defaultInterface = interface
-            }
-            try visit(interface)
+            try visit(try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs))
         }
 
-        var nonDefaultInterfaceStoredProperties = [String]()
-        for interface in recursiveInterfaces {
-            try writer.writeCommentLine(WinRTTypeName.from(type: interface.asBoundType).description)
-            if interface == defaultInterface {
-                try writeProjectionMembers(
-                    interfaceOrDelegate: interface.asBoundType,
-                    thisPointer: .name("comPointer"), to: writer)
-            }
-            else {
-                let interfaceProperty = try writeSecondaryInterfaceProperty(interface, to: writer)
-                try writeProjectionMembers(
-                    interfaceOrDelegate: interface.asBoundType,
-                    thisPointer: .getter(interfaceProperty.getter, static: false),
-                    to: writer)
-                nonDefaultInterfaceStoredProperties.append(interfaceProperty.name)
-            }
-        }
-
-        if !nonDefaultInterfaceStoredProperties.isEmpty {
-            writer.writeDeinit { writer in
-                for storedProperty in nonDefaultInterfaceStoredProperties {
-                    writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
-                }
-            }
-        }
+        return interfaces
     }
 
     struct SecondaryInterfaceProperty {
@@ -186,7 +159,7 @@ extension SwiftProjectionWriter {
 
         // private [static] var _istringable: UnsafeMutablePointer<SWRT_WindowsFoundation_IStringable>? = nil
         let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
-        let abiPointerType: SwiftType = .identifier("UnsafeMutablePointer", genericArgs: [.identifier(abiName)])
+        let abiPointerType: SwiftType = .unsafeMutablePointer(to: .identifier(abiName))
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
             type: .optional(wrapped: abiPointerType),
             initialValue: "nil")
@@ -199,7 +172,7 @@ extension SwiftProjectionWriter {
         //     return new
         // }
         let getter = "_get" + interfaceName
-        try writer.writeFunc(visibility: .private, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
+        try writer.writeFunc(visibility: .fileprivate, static: staticOf != nil, name: getter, throws: true, returnType: abiPointerType) {
             $0.writeStatement("if let existing = \(storedPropertyName) { return existing }")
             $0.writeStatement("let id = \(try Self.toIIDExpression(iid))")
             if let staticOf {

@@ -3,18 +3,27 @@ import DotNetMetadata
 import WindowsMetadata
 
 extension SwiftProjectionWriter {
-    internal func writeStruct(_ structDefinition: StructDefinition) throws {
-        try sourceFileWriter.writeStruct(
-            documentation: projection.getDocumentationComment(structDefinition),
-            visibility: SwiftProjection.toVisibility(structDefinition.visibility),
-            name: try projection.toTypeName(structDefinition),
-            typeParams: structDefinition.genericParams.map { $0.name },
-            protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
-
+    internal func writeStructDefinitionAndProjection(_ structDefinition: StructDefinition, to writer: SwiftSourceFileWriter) throws {
+        try writer.writeStruct(
+                documentation: projection.getDocumentationComment(structDefinition),
+                visibility: SwiftProjection.toVisibility(structDefinition.visibility),
+                name: try projection.toTypeName(structDefinition),
+                typeParams: structDefinition.genericParams.map { $0.name },
+                protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
             try writeStructFields(structDefinition, to: writer)
             try writeDefaultInitializer(structDefinition, to: writer)
             try writeFieldwiseInitializer(structDefinition, to: writer)
         }
+
+        if structDefinition.fullName == "Windows.Foundation.DateTime" {
+            try writeDateTimeExtensions(typeName: try projection.toTypeName(structDefinition), to: writer)
+        }
+        else if structDefinition.fullName == "Windows.Foundation.TimeSpan" {
+            try writeTimeSpanExtensions(typeName: try projection.toTypeName(structDefinition), to: writer)
+        }
+
+        // Write ABIProjection conformance as an extension
+        try writeStructProjection(structDefinition, to: writer)
     }
 
     fileprivate func writeStructFields(_ structDefinition: StructDefinition, to writer: SwiftTypeDefinitionWriter) throws {
@@ -72,12 +81,12 @@ extension SwiftProjectionWriter {
         }
     }
 
-    internal func writeStructProjection(_ structDefinition: StructDefinition) throws {
+    fileprivate func writeStructProjection(_ structDefinition: StructDefinition, to writer: SwiftSourceFileWriter) throws {
         let abiType = SwiftType.chain(projection.abiModuleName, try CAbi.mangleName(type: structDefinition.bindType()))
 
         // TODO: Support strings and IReference<T> field types (non-inert)
         // extension <struct>: ABIInertProjection
-        try sourceFileWriter.writeExtension(
+        try writer.writeExtension(
                 name: try projection.toTypeName(structDefinition),
                 protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
 
@@ -153,6 +162,50 @@ extension SwiftProjectionWriter {
                 expression += ")"
                 writer.writeStatement(expression)
             }
+        }
+    }
+
+    fileprivate func writeDateTimeExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
+        writer.writeImport(module: "Foundation", struct: "Date")
+
+        writer.writeExtension(name: typeName) { writer in
+            // public init(foundationDate: Date)
+            writer.writeInit(visibility: .public,
+                    params: [.init(name: "foundationDate", type: .chain("Foundation", "Date"))]) { writer in
+                // TimeInterval has limited precision to work with (it is a Double), so explicitly work at millisecond precision
+                writer.writeStatement("self.init(universalTime: (Int64(foundationDate.timeIntervalSince1970 * 1000) + 11_644_473_600_000) * 10_000)")
+            }
+
+            // public var foundationDate: Date
+            writer.writeComputedProperty(visibility: .public, name: "foundationDate", type: .chain("Foundation", "Date"),
+                get: { writer in
+                    // TimeInterval has limited precision to work with (it is a Double), so explicitly work at millisecond precision
+                    writer.writeStatement("Date(timeIntervalSince1970: Double(universalTime / 10_000) / 1000 - 11_644_473_600)")
+                },
+                set: { writer in
+                    writer.writeStatement("self = Self(foundationDate: newValue)")
+                })
+        }
+    }
+
+    fileprivate func writeTimeSpanExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
+        writer.writeImport(module: "Foundation", struct: "TimeInterval")
+
+        writer.writeExtension(name: typeName) { writer in
+            // public init(timeInterval: TimeInterval)
+            writer.writeInit(visibility: .public,
+                    params: [.init(name: "timeInterval", type: .chain("Foundation", "TimeInterval"))]) { writer in
+                writer.writeStatement("self.init(duration: Int64(timeInterval * 10_000_000))")
+            }
+
+            // public var timeInterval: TimeInterval
+            writer.writeComputedProperty(visibility: .public, name: "timeInterval", type: .chain("Foundation", "TimeInterval"),
+                get: { writer in
+                    writer.writeStatement("Double(duration) / 10_000_000")
+                },
+                set: { writer in
+                    writer.writeStatement("self = Self(timeInterval: newValue)")
+                })
         }
     }
 }

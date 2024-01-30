@@ -118,4 +118,8 @@ extension SwiftType {
             default: return self
         }
     }
+
+    public static func unsafeMutablePointer(to pointee: SwiftType) -> SwiftType {
+        .chain(.init("Swift"), .init("UnsafeMutablePointer", genericArgs: [pointee]))
+    }
 }

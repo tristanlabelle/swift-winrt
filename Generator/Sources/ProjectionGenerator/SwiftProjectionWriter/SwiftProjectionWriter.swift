@@ -3,19 +3,17 @@ import CodeWriters
 import DotNetMetadata
 
 public struct SwiftProjectionWriter {
-    internal let sourceFileWriter: SwiftSourceFileWriter
     internal let module: SwiftProjection.Module
     internal var projection: SwiftProjection { module.projection }
 
-    public init(path: String, module: SwiftProjection.Module, importAbiModule: Bool) {
-        self.sourceFileWriter = SwiftSourceFileWriter(output: FileTextOutputStream(path: path))
-        self.module = module
+    public static func write(
+            typeDefinition: TypeDefinition, closedGenericArgs: [TypeNode]? = nil,
+            module: SwiftProjection.Module, toPath path: String) throws {
+        let sourceFileWriter = SwiftSourceFileWriter(output: FileTextOutputStream(path: path))
 
         writeGeneratedCodePreamble(to: sourceFileWriter)
 
-        if importAbiModule {
-            sourceFileWriter.writeImport(module: projection.abiModuleName)
-        }
+        sourceFileWriter.writeImport(module: module.projection.abiModuleName)
         sourceFileWriter.writeImport(module: "WindowsRuntime")
 
         for referencedModule in module.references {
@@ -24,72 +22,33 @@ public struct SwiftProjectionWriter {
         }
 
         sourceFileWriter.writeImport(module: "Foundation", struct: "UUID")
-    }
 
-    public func writeTypeDefinition(_ typeDefinition: TypeDefinition) throws {
+        let hasGenericArgs = (closedGenericArgs?.count ?? 0) > 0
+
+        let instance = SwiftProjectionWriter(module: module)
         switch typeDefinition {
             case let interfaceDefinition as InterfaceDefinition:
-                try writeInterface(interfaceDefinition)
-            case let classDefinition as ClassDefinition:
-                try writeClass(classDefinition)
-            case let structDefinition as StructDefinition:
-                try writeStruct(structDefinition)
-            case let enumDefinition as EnumDefinition:
-                try writeEnum(enumDefinition)
+                if !hasGenericArgs { try instance.writeInterfaceDefinition(interfaceDefinition, to: sourceFileWriter) }
+                try instance.writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: closedGenericArgs, to: sourceFileWriter)
+
             case let delegateDefinition as DelegateDefinition:
-                try writeDelegate(delegateDefinition)
+                if !hasGenericArgs { try instance.writeDelegateDefinition(delegateDefinition, to: sourceFileWriter) }
+                try instance.writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: closedGenericArgs, to: sourceFileWriter)
+
+            case let classDefinition as ClassDefinition:
+                assert(!hasGenericArgs)
+                try instance.writeClassDefinitionAndProjection(classDefinition, to: sourceFileWriter)
+
+            case let structDefinition as StructDefinition:
+                assert(!hasGenericArgs)
+                try instance.writeStructDefinitionAndProjection(structDefinition, to: sourceFileWriter)
+
+            case let enumDefinition as EnumDefinition:
+                assert(!hasGenericArgs)
+                try instance.writeEnumDefinitionAndProjection(enumDefinition, to: sourceFileWriter)
+
             default:
                 assertionFailure("Unexpected TypeDefinition kind: \(typeDefinition.kind)")
-        }
-    }
-
-    public func writeBuiltInExtensions(_ typeDefinition: TypeDefinition) throws {
-        if typeDefinition.namespace == "Windows.Foundation" {
-            let typeName: String
-            if let interfaceDefinition = typeDefinition as? InterfaceDefinition {
-                typeName = try module.projection.toProtocolName(interfaceDefinition)
-            } else {
-                typeName = try module.projection.toTypeName(typeDefinition)
-            }
-
-            switch typeDefinition.name {
-                case "DateTime":
-                    try writeDateTimeExtensions(typeName: typeName)
-                case "TimeSpan":
-                    try writeTimeSpanExtensions(typeName: typeName)
-                case "IAsyncAction", "IAsyncActionWithProgress`1":
-                    try writeIAsyncExtensions(protocolName: typeName, resultType: nil)
-                case "IAsyncOperation`1", "IAsyncOperationWithProgress`2":
-                    try writeIAsyncExtensions(
-                        protocolName: typeName,
-                        resultType: .identifier(name: String(typeDefinition.genericParams[0].name)))
-                default: break
-            }
-        }
-    }
-
-    public func writeProjection(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]? = nil) throws {
-        let hasGenericArgs = (genericArgs?.count ?? 0) > 0
-        switch typeDefinition {
-            case is InterfaceDefinition:
-                try writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: genericArgs)
-
-            case let classDefinition as ClassDefinition:
-                assert(!hasGenericArgs)
-                try writeClassProjection(classDefinition)
-
-            case let enumDefinition as EnumDefinition:
-                assert(!hasGenericArgs)
-                try writeEnumProjection(enumDefinition)
-
-            case let structDefinition as StructDefinition:
-                assert(!hasGenericArgs)
-                try writeStructProjection(structDefinition)
-
-            case is DelegateDefinition:
-                try writeInterfaceOrDelegateProjection(typeDefinition, genericArgs: genericArgs)
-
-            default: fatalError("Unexpected type definition kind")
         }
     }
 }

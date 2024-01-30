@@ -83,7 +83,7 @@ extension SwiftProjection {
         }
 
         if type.definition.isReferenceType {
-            abiType = .optional(wrapped: .identifier("UnsafeMutablePointer", genericArgs: [abiType]))
+            abiType = .optional(wrapped: .unsafeMutablePointer(to: abiType))
         }
 
         let projectionType: SwiftType = try {
