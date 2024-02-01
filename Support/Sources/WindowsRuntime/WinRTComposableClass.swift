@@ -18,33 +18,46 @@ open class WinRTComposableClass: IInspectableProtocol {
     }
 
     public typealias ComposableFactory<Interface> = (
-        _ outer: IInspectablePointer,
-        _ inner: UnsafeMutablePointer<IInspectablePointer?>,
+        _ outer: IInspectablePointer?,
+        _ inner: UnsafeMutablePointer<IInspectablePointer?>?,
         _ value: UnsafeMutablePointer<UnsafeMutablePointer<Interface>?>) -> HResultProjection.ABIValue
 
     /// Initializer for instances created in Swift
-    public init<Interface>(_factory: ComposableFactory<Interface>) throws {
-        // Dummy-initialize all fields so we can reference "self"
-        outer = .uninitialized
-        inner = IInspectablePointer.cast(outer.unknownPointer)
+    /// - Parameter _compose: Whether to create a composed object that supports method overrides in Swift.
+    /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
+    public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
+        if _compose {
+            // We're overriding methods, so create the outer object to be composed.
+            // Dummy-initialize all fields so we can reference "self"
+            outer = .uninitialized
+            inner = IInspectablePointer.cast(outer.unknownPointer)
 
-        // Reinitialize the outer object correctly
-        outer = .init(
-            swiftObject: self,
-            virtualTable: withUnsafePointer(to: &Self.outerVirtualTable) { $0 })
+            // Reinitialize the outer object correctly
+            outer = .init(
+                swiftObject: self,
+                virtualTable: withUnsafePointer(to: &Self.outerVirtualTable) { $0 })
 
-        // Create the inner object
-        var inner: IInspectablePointer? = nil
-        var composed: UnsafeMutablePointer<Interface>? = nil
-        try WinRTError.throwIfFailed(_factory(IInspectablePointer.cast(outer.unknownPointer), &inner, &composed))
+            // Create the inner object
+            var inner: IInspectablePointer? = nil
+            var composed: UnsafeMutablePointer<Interface>? = nil
+            try WinRTError.throwIfFailed(_factory(IInspectablePointer.cast(outer.unknownPointer), &inner, &composed))
 
-        // Like C++/WinRT, discard the composed object and only use the inner object
-        // See "[[maybe_unused]] auto winrt_impl_discarded = f.CreateInstance(*this, this->minner);"
-        // The composed object is useful when not providing an outer object.
-        IUnknownPointer.release(composed)
+            // Like C++/WinRT, discard the composed object and only use the inner object
+            // See "[[maybe_unused]] auto winrt_impl_discarded = f.CreateInstance(*this, this->minner);"
+            // The composed object is useful when not providing an outer object.
+            IUnknownPointer.release(composed)
 
-        guard let inner else { throw HResult.Error.fail }
-        self.inner = inner
+            guard let inner else { throw HResult.Error.fail }
+            self.inner = inner
+        }
+        else {
+            // We're not overriding any methods, so create a vanilla composed object to avoid indirections.
+            var composed: UnsafeMutablePointer<Interface>? = nil
+            try WinRTError.throwIfFailed(_factory(nil, nil, &composed))
+            guard let composed else { throw HResult.Error.fail }
+            inner = IInspectablePointer.cast(composed)
+            outer = .uninitialized
+        }
     }
 
     // Virtual table for the outer IInspectable object, which calls methods on the Swift object, allowing overriding
