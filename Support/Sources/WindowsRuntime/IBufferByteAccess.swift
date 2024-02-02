@@ -23,7 +23,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     }
 
     private final class Import: COMImport<IBufferByteAccessProjection>, IBufferByteAccessProtocol {
-        public var buffer: UnsafeMutablePointer<UInt8> { get throws { try NullResult.unwrap(_getter(_vtable.Buffer)) } }
+        public var buffer: UnsafeMutablePointer<UInt8> { get throws { try NullResult.unwrap(_interop.buffer()) } }
     }
 
     private static var virtualTable: COMVirtualTable = .init(
@@ -31,4 +31,12 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },
         Buffer: { this, value in _getter(this, value) { try $0.buffer } })
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IBufferByteAccess {
+    public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
+        var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.Buffer(_pointer, &value))
+        return value
+    }
 }

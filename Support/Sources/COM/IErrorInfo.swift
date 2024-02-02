@@ -28,11 +28,11 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     }
 
     private final class Import: COMImport<IErrorInfoProjection>, IErrorInfoProtocol {
-        public var guid: Foundation.UUID { get throws { try _getter(_vtable.GetGUID, GUIDProjection.self) } }
-        public var source: String? { get throws { try _getter(_vtable.GetSource, BStrProjection.self) } }
-        public var description: String? { get throws { try _getter(_vtable.GetDescription, BStrProjection.self) } }
-        public var helpFile: String? { get throws { try _getter(_vtable.GetHelpFile, BStrProjection.self) } }
-        public var helpContext: UInt32 { get throws { try _getter(_vtable.GetHelpContext) } }
+        public var guid: Foundation.UUID { get throws { try _interop.getGuid() } }
+        public var source: String? { get throws { try _interop.getSource() } }
+        public var description: String? { get throws { try _interop.getDescription() } }
+        public var helpFile: String? { get throws { try _interop.getHelpFile() } }
+        public var helpContext: UInt32 { get throws { try _interop.getHelpContext() } }
     }
 
     private static var virtualTable: COMVirtualTable = .init(
@@ -44,4 +44,36 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         GetDescription: { this, description in _getter(this, description) { try BStrProjection.toABI($0.description) } },
         GetHelpFile: { this, helpFile in _getter(this, helpFile) { try BStrProjection.toABI($0.helpFile) } },
         GetHelpContext: { this, helpContext in _getter(this, helpContext) { try $0.helpContext } })
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IErrorInfo {
+    public func getGuid() throws -> Foundation.UUID {
+        var value = GUIDProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetGUID(_pointer, &value))
+        return GUIDProjection.toSwift(value)
+    }
+
+    public func getSource() throws ->  String? {
+        var value = BStrProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetSource(_pointer, &value))
+        return BStrProjection.toSwift(consuming: &value)
+    }
+
+    public func getDescription() throws ->  String? {
+        var value = BStrProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetDescription(_pointer, &value))
+        return BStrProjection.toSwift(consuming: &value)
+    }
+
+    public func getHelpFile() throws ->  String? {
+        var value = BStrProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetHelpFile(_pointer, &value))
+        return BStrProjection.toSwift(consuming: &value)
+    }
+
+    public func getHelpContext() throws ->  UInt32 {
+        var value = UInt32()
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetHelpContext(_pointer, &value))
+        return value
+    }
 }

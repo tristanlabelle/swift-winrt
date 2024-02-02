@@ -34,21 +34,10 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
                 error: inout HResult,
                 restrictedDescription: inout String?,
                 capabilitySid: inout String?) throws {
-            var description_: CWinRTCore.SWRT_BStr? = nil
-            defer { BStrProjection.release(&description_) }
-            var error_: CWinRTCore.SWRT_HResult = 0
-            var restrictedDescription_: CWinRTCore.SWRT_BStr? = nil
-            defer { BStrProjection.release(&restrictedDescription_) }
-            var capabilitySid_: CWinRTCore.SWRT_BStr? = nil
-            defer { BStrProjection.release(&capabilitySid_) }
-            try HResult.throwIfFailed(_vtable.GetErrorDetails(comPointer, &description_, &error_, &restrictedDescription_, &capabilitySid_))
-            description = BStrProjection.toSwift(consuming: &description_)
-            error = HResultProjection.toSwift(error_)
-            restrictedDescription = BStrProjection.toSwift(consuming: &restrictedDescription_)
-            capabilitySid = BStrProjection.toSwift(consuming: &capabilitySid_)
+            try _interop.getErrorDetails(&description, &error, &restrictedDescription, &capabilitySid)
         }
 
-        public var reference: String? { get throws { try _getter(_vtable.GetReference, BStrProjection.self) } }
+        public var reference: String? { get throws { try _interop.getReference() } }
     }
 
     private static var virtualTable: COMVirtualTable = .init(
@@ -72,4 +61,31 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
             _success = true
         } },
         GetReference: { this, reference in _getter(this, reference) { try BStrProjection.toABI($0.reference) } })
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IRestrictedErrorInfo {
+    public func getErrorDetails(
+            _ description: inout String?,
+            _ error: inout HResult,
+            _ restrictedDescription: inout String?,
+            _ capabilitySid: inout String?) throws {
+        var description_: CWinRTCore.SWRT_BStr? = nil
+        defer { BStrProjection.release(&description_) }
+        var error_: CWinRTCore.SWRT_HResult = 0
+        var restrictedDescription_: CWinRTCore.SWRT_BStr? = nil
+        defer { BStrProjection.release(&restrictedDescription_) }
+        var capabilitySid_: CWinRTCore.SWRT_BStr? = nil
+        defer { BStrProjection.release(&capabilitySid_) }
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetErrorDetails(_pointer, &description_, &error_, &restrictedDescription_, &capabilitySid_))
+        description = BStrProjection.toSwift(consuming: &description_)
+        error = HResultProjection.toSwift(error_)
+        restrictedDescription = BStrProjection.toSwift(consuming: &restrictedDescription_)
+        capabilitySid = BStrProjection.toSwift(consuming: &capabilitySid_)
+    }
+
+    public func getReference() throws -> String? {
+        var value = BStrProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetReference(_pointer, &value))
+        return BStrProjection.toSwift(consuming: &value)
+    }
 }

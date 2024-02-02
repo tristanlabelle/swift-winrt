@@ -24,11 +24,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
 
     private final class Import: COMImport<IWeakReferenceProjection>, IWeakReferenceProtocol {
         public func resolve() throws -> IInspectable? {
-            var iid = GUIDProjection.toABI(IInspectableProjection.id)
-            var objectReference: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>?
-            try HResult.throwIfFailed(_vtable.Resolve(comPointer, &iid, &objectReference))
-            guard let objectReference else { return nil }
-            return IInspectableProjection.toSwift(transferringRef: objectReference)
+            try _interop.resolve(IInspectableProjection.id)
         }
     }
 
@@ -45,4 +41,13 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
             let result = try IUnknownPointer.cast(inspectable).queryInterface(GUIDProjection.toSwift(iid.pointee))
             objectReference.pointee = result.cast(to: CWinRTCore.SWRT_IInspectable.self)
         } })
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReference {
+    public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
+        var iid = GUIDProjection.toABI(iid)
+        var objectReference = IInspectableProjection.abiDefaultValue
+        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.Resolve(_pointer, &iid, &objectReference))
+        return IInspectableProjection.toSwift(consuming: &objectReference)
+    }
 }

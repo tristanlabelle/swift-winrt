@@ -24,7 +24,15 @@ public enum IActivationFactoryProjection: WinRTProjection {
 
     private final class Import: WinRTImport<IActivationFactoryProjection>, IActivationFactoryProtocol {
         public func activateInstance() throws -> IInspectable {
-            try NullResult.unwrap(_getter(_vtable.ActivateInstance, IInspectableProjection.self))
+            try NullResult.unwrap(_interop.activateInstance())
         }
+    }
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
+    public func activateInstance() throws -> IInspectable? {
+        var instance = IInspectableProjection.abiDefaultValue
+        try WinRTError.throwIfFailed(_pointer.pointee.lpVtbl.pointee.ActivateInstance(_pointer, &instance))
+        return IInspectableProjection.toSwift(consuming: &instance)
     }
 }

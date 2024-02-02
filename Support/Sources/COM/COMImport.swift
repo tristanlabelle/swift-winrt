@@ -4,6 +4,7 @@ import CWinRTCore
 open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     /// Gets the COM interface pointer.
     public let comPointer: Projection.COMPointer
+    public var _interop: COMInterop<Projection.COMInterface> { COMInterop(comPointer) }
 
     /// Gets the Swift object corresponding to the COM interface.
     open var swiftObject: Projection.SwiftObject { self as! Projection.SwiftObject }
