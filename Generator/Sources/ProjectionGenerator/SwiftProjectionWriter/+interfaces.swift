@@ -200,12 +200,12 @@ extension SwiftProjectionWriter {
                 apiType: type, abiType: type,
                 toSwiftBody: { writer, paramName in
                     // Let COMImport attempt unwrapping first
-                    writer.writeStatement("toSwift(transferringRef: \(paramName), importType: Import.self)")
+                    writer.writeStatement("Import.toSwift(transferringRef: \(paramName))")
                 },
                 toCOMBody: { writer, paramName in
                     if type.definition is InterfaceDefinition {
                         // Interfaces might be SwiftObjects or previous COMImports
-                        writer.writeStatement("try toCOM(\(paramName), importType: Import.self)")
+                        writer.writeStatement("try Import.toCOM(\(paramName))")
                     }
                     else {
                         // Delegates have no identity, so create one for them

@@ -23,7 +23,7 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     deinit { IUnknownPointer.release(comPointer) }
 
     public func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        return try IUnknownPointer.cast(comPointer).queryInterface(id)
+        try _interop.queryInterface(id)
     }
 
     public var _unknown: IUnknownPointer {
@@ -39,4 +39,26 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     }
 
     public var _unsafeRefCount: UInt32 { _unknown._unsafeRefCount }
+
+    // COMProjection implementation helpers
+    public static func toSwift(transferringRef comPointer: Projection.COMPointer) -> Projection.SwiftObject {
+        // If this was originally a Swift object, return it
+        if let implementation = COMExportBase.getImplementation(comPointer, projection: Projection.self) {
+            IUnknownPointer.release(comPointer)
+            return implementation
+        }
+
+        // Wrap the COM object in a Swift object
+        return Self(transferringRef: comPointer).swiftObject
+    }
+
+    open class func toCOM(_ object: Projection.SwiftObject) throws -> Projection.COMPointer {
+        switch object {
+            // If this is already a wrapped COM object, return the wrapped object
+            case let comImport as Self: return IUnknownPointer.addingRef(comImport.comPointer)
+            // Otherwise ask the object to project itself to a COM object
+            case let unknown as COM.IUnknown: return try unknown._queryInterfacePointer(Projection.self)
+            default: throw ABIProjectionError.unsupported(Projection.SwiftObject.self)
+        }
+    }
 }

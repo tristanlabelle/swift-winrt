@@ -48,25 +48,4 @@ extension COMProjection {
         IUnknownPointer.release(comPointer)
         value = nil
     }
-
-    // COMProjection implementation helpers
-    public static func toSwift<Import: COMImport<Self>>(
-            transferringRef comPointer: COMPointer,
-            importType: Import.Type) -> SwiftObject {
-        if let implementation = COMExportBase.getImplementation(comPointer, projection: Self.self) {
-            IUnknownPointer.release(comPointer)
-            return implementation
-        }
-        return Import(transferringRef: comPointer).swiftObject
-    }
-
-    public static func toCOM<Import: COMImport<Self>>(
-            _ object: SwiftObject,
-            importType: Import.Type) throws -> COMPointer {
-        switch object {
-            case let comImport as Import: return IUnknownPointer.addingRef(comImport.comPointer)
-            case let unknown as COM.IUnknown: return try unknown._queryInterfacePointer(Self.self)
-            default: throw ABIProjectionError.unsupported(Self.SwiftObject.self)
-        }
-    }
 }

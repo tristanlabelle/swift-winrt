@@ -15,11 +15,11 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        toSwift(transferringRef: comPointer, importType: Import.self)
+        Import.toSwift(transferringRef: comPointer)
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
-        try toCOM(object, importType: Import.self)
+        try Import.toCOM(object)
     }
 
     private final class Import: COMImport<IBufferByteAccessProjection>, IBufferByteAccessProtocol {
