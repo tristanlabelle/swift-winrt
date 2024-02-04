@@ -29,6 +29,8 @@ public enum IActivationFactoryProjection: WinRTProjection {
     }
 }
 
+extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {}
+
 extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
     public func activateInstance() throws -> IInspectable? {
         var instance = IInspectableProjection.abiDefaultValue

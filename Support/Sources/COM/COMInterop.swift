@@ -9,8 +9,12 @@ public struct COMInterop<Interface> {
         self._pointer = pointer
     }
 
-    public static func cast<Source>(_ source: COMInterop<Source>) -> COMInterop<Interface> {
-        COMInterop<Interface>(source._pointer.withMemoryRebound(to: Interface.self, capacity: 1) { $0 })
+    public init<Other>(casting pointer: UnsafeMutablePointer<Other>) {
+        self.init(pointer.withMemoryRebound(to: Interface.self, capacity: 1) { $0 })
+    }
+
+    public init<Other>(casting other: COMInterop<Other>) {
+        self.init(casting: other._pointer)
     }
 
     private var _unknownPointer: UnsafeMutablePointer<CWinRTCore.SWRT_IUnknown>{

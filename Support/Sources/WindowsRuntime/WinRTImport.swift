@@ -9,23 +9,14 @@ open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IIns
     }
 
     public func getIids() throws -> [Foundation.UUID] {
-        var iids: COMArray<CWinRTCore.SWRT_Guid> = .null
-        try WinRTError.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetIids(_inspectable, &iids.count, &iids.pointer))
-        defer { iids.deallocate() }
-        return WinRTArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
+        try COMInterop(_inspectable).getIids()
     }
 
     public func getRuntimeClassName() throws -> String {
-        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>
-        var runtimeClassName: CWinRTCore.SWRT_HString?
-        try WinRTError.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetRuntimeClassName(_inspectable, &runtimeClassName))
-        return HStringProjection.toSwift(consuming: &runtimeClassName)
+        try COMInterop(_inspectable).getRuntimeClassName()
     }
 
     public func getTrustLevel() throws -> TrustLevel {
-        // Can't use _getter because comPointer is not of type UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>
-        var trustLevel: CWinRTCore.SWRT_TrustLevel = 0
-        try WinRTError.throwIfFailed(_inspectable.pointee.lpVtbl.pointee.GetTrustLevel(_inspectable, &trustLevel))
-        return TrustLevel.toSwift(trustLevel)
+        try COMInterop(_inspectable).getTrustLevel()
     }
 }
