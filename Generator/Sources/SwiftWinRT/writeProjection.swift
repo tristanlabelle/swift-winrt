@@ -20,6 +20,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
+        try writeCOMInteropExtensionsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\_COMInterop.swift")
 
         for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)

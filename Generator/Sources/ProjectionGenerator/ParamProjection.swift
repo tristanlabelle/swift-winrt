@@ -1,7 +1,7 @@
 import CodeWriters
 import DotNetMetadata
 
-internal struct ParamProjection {
+public struct ParamProjection {
     public enum PassBy: Equatable {
         case value
         case reference(in: Bool, out: Bool, optional: Bool)

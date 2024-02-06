@@ -1,5 +1,6 @@
 import Collections
 import DotNetMetadata
+import WindowsMetadata
 
 /// Walks the type graph to discover all type definitions and closed generic types.
 public struct TypeDiscoverer {
@@ -9,14 +10,12 @@ public struct TypeDiscoverer {
     }
 
     private let assemblyFilter: (Assembly) -> Bool
-    private let publicMembersOnly: Bool
     private var queue = Deque<QueueEntry>()
     public private(set) var definitions = Set<TypeDefinition>()
     public private(set) var closedGenericTypes = Set<BoundType>()
 
-    public init(assemblyFilter: @escaping (Assembly) -> Bool, publicMembersOnly: Bool = true) {
+    public init(assemblyFilter: @escaping (Assembly) -> Bool) {
         self.assemblyFilter = assemblyFilter
-        self.publicMembersOnly = publicMembersOnly
     }
 
     public mutating func add(_ type: TypeDefinition) throws {
@@ -86,32 +85,43 @@ public struct TypeDiscoverer {
         }
     }
 
-    private mutating func enqueueMembers(_ type: TypeDefinition, genericContext: [TypeNode]?) throws {
-        if let base = try type.base {
+    private mutating func enqueueMembers(_ typeDefinition: TypeDefinition, genericContext: [TypeNode]?) throws {
+        if let base = try typeDefinition.base {
             try enqueue(base, genericContext: genericContext)
         }
 
-        for baseInterface in type.baseInterfaces {
+        for baseInterface in typeDefinition.baseInterfaces {
             try enqueue(baseInterface.interface.asBoundType, genericContext: genericContext)
+
+            if let composableAttribute = try baseInterface.findAttribute(ComposableAttribute.self) {
+                enqueue(composableAttribute.factory)
+            }
         }
 
-        for field in type.fields {
-            guard !publicMembersOnly || field.visibility == .public else { continue }
+        if let classDefinition = typeDefinition as? ClassDefinition {
+            for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+                guard let activationFactoryInterface = activatableAttribute.factory else { continue }
+                enqueue(activationFactoryInterface)
+            }
+
+            for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
+                enqueue(staticAttribute.interface)
+            }
+        }
+
+        for field in typeDefinition.fields {
             try enqueue(field.type, genericContext: genericContext)
         }
 
-        for property in type.properties {
-            guard try !publicMembersOnly || property.getter?.visibility == .public else { continue }
+        for property in typeDefinition.properties {
             try enqueue(property.type, genericContext: genericContext)
         }
 
-        for event in type.events {
-            guard try !publicMembersOnly || event.addAccessor?.visibility == .public else { continue }
+        for event in typeDefinition.events {
             try enqueue(event.handlerType.asBoundType, genericContext: genericContext)
         }
 
-        for method in type.methods {
-            guard !publicMembersOnly || method.visibility == .public else { continue }
+        for method in typeDefinition.methods {
             for param in try method.params {
                 try enqueue(param.type, genericContext: genericContext)
             }

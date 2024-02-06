@@ -23,9 +23,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     // Gather types from assemblies
-    var typeDiscoverer = TypeDiscoverer(
-        assemblyFilter: { !($0 is Mscorlib) },
-        publicMembersOnly: true)
+    var typeDiscoverer = TypeDiscoverer(assemblyFilter: { !($0 is Mscorlib) })
 
     for assembly in assemblyLoadContext.loadedAssembliesByName.values {
         guard let module = projection.getModule(assembly) else { continue }

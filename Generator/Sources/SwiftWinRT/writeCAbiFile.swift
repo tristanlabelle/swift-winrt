@@ -92,36 +92,11 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
     // Add nongeneric type definitions
     for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
         for typeDefinition in typeDefinitions {
-            guard typeDefinition.genericArity == 0 else { continue }
             guard typeDefinition.isReferenceType else { continue }
+            guard !(typeDefinition is ClassDefinition) else { continue }
+            guard typeDefinition.genericArity == 0 else { continue }
 
-            let type: BoundType
-            if let classDefinition = typeDefinition as? ClassDefinition {
-                // Also add activation factories
-                for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
-                    guard let activationFactoryInterface = activatableAttribute.factory?.bindType() else { continue }
-                    let mangledName = try CAbi.mangleName(type: activationFactoryInterface)
-                    interfacesByMangledName[mangledName] = activationFactoryInterface
-                }
-
-                // Also add static interfaces
-                for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
-                    let staticInterface = staticAttribute.interface.bindType()
-                    let mangledName = try CAbi.mangleName(type: staticInterface)
-                    interfacesByMangledName[mangledName] = staticInterface
-                }
-
-                // To represent instances, Use the default interface iff it is exclusive
-                guard !classDefinition.isStatic else { continue }
-                guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else { throw WinMDError.missingAttribute }
-                guard let exclusiveTo = try defaultInterface.definition.findAttribute(ExclusiveToAttribute.self), exclusiveTo == classDefinition else { continue }
-
-                type = defaultInterface.asBoundType
-            }
-            else {
-                type = typeDefinition.bindType()
-            }
-
+            let type = typeDefinition.bindType()
             let mangledName = try CAbi.mangleName(type: type)
             interfacesByMangledName[mangledName] = type
         }

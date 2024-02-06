@@ -1,5 +1,5 @@
-enum Casing {
-    static func pascalToCamel(_ str: String) -> String {
+public enum Casing {
+    public static func pascalToCamel(_ str: String) -> String {
         // "" -> ""
         // fooBar -> fooBar
         guard str.first?.isUppercase == true else { return str }

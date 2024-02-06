@@ -1,7 +1,7 @@
 import CodeWriters
 
 /// Describes a type's Swift and ABI representation, and how to project between the two.
-struct TypeProjection {
+public struct TypeProjection {
     public enum DefaultValue: ExpressibleByStringLiteral {
         case fromProjectionType // Projection.abiDefaultValue
         case defaultInitializer // .init()
