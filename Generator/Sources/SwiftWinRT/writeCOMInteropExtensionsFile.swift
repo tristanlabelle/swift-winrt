@@ -3,6 +3,7 @@ import DotNetMetadata
 import WindowsMetadata
 import ProjectionGenerator
 import CodeWriters
+import struct Foundation.UUID
 
 /// Writes a file that extendends COMInterop<I> for every COM interface with
 /// methods that translate from the Swift shape to the ABI shape.
@@ -53,16 +54,20 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
 
 fileprivate func writeCOMInteropExtension(interface: BoundInterface, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
     let qualifiedAbiName = "\(module.projection.abiModuleName).\(abiName)"
+    let visibility: SwiftVisibility = interface.genericArgs.isEmpty ? .public : .internal
 
     // Mark the COM interface as being IInspectable-compatible.
     writer.output.writeFullLine(grouping: .never, "extension \(qualifiedAbiName): @retroactive WindowsRuntime.COMIInspectableStruct {}")
 
     try writer.writeExtension(name: "COMInterop", whereClauses: [ "Interface == \(qualifiedAbiName)" ]) { writer in
+        // static let iid: COMInterfaceID = COMInterfaceID(...)
+        writer.writeStoredProperty(visibility: visibility, static: true, declarator: .let, name: "iid",
+            initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(interface.asBoundType)))
+
         for method in interface.definition.methods {
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
             let (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: interface.genericArgs)
             // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
-            let visibility: SwiftVisibility = interface.genericArgs.isEmpty ? .public : .internal
             try writer.writeFunc(
                     visibility: visibility, name: Casing.pascalToCamel(abiMethodName),
                     params: paramProjections.map { $0.toSwiftParam() },
@@ -75,6 +80,34 @@ fileprivate func writeCOMInteropExtension(interface: BoundInterface, abiName: St
             }
         }
     }
+}
+
+fileprivate func toIIDExpression(_ uuid: UUID) throws -> String {
+    func toPrefixedPaddedHex<Value: UnsignedInteger & FixedWidthInteger>(
+        _ value: Value,
+        minimumLength: Int = MemoryLayout<Value>.size * 2) -> String {
+
+        var hex = String(value, radix: 16, uppercase: true)
+        if hex.count < minimumLength {
+            hex.insert(contentsOf: String(repeating: "0", count: minimumLength - hex.count), at: hex.startIndex)
+        }
+        hex.insert(contentsOf: "0x", at: hex.startIndex)
+        return hex
+    }
+
+    let uuid = uuid.uuid
+    let arguments = [
+        toPrefixedPaddedHex((UInt32(uuid.0) << 24) | (UInt32(uuid.1) << 16) | (UInt32(uuid.2) << 8) | (UInt32(uuid.3) << 0)),
+        toPrefixedPaddedHex((UInt16(uuid.4) << 8) | (UInt16(uuid.5) << 0)),
+        toPrefixedPaddedHex((UInt16(uuid.6) << 8) | (UInt16(uuid.7) << 0)),
+        toPrefixedPaddedHex((UInt16(uuid.8) << 8) | (UInt16(uuid.9) << 0)),
+        toPrefixedPaddedHex(
+            (UInt64(uuid.10) << 40) | (UInt64(uuid.11) << 32)
+            | (UInt64(uuid.12) << 24) | (UInt64(uuid.13) << 16)
+            | (UInt64(uuid.14) << 8) | (UInt64(uuid.15) << 0),
+            minimumLength: 12)
+    ]
+    return "COMInterfaceID(\(arguments.joined(separator: ", ")))"
 }
 
 fileprivate func writeSwiftToAbiCall(
