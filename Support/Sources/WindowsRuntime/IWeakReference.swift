@@ -47,7 +47,7 @@ extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReference {
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
         var iid = GUIDProjection.toABI(iid)
         var objectReference = IInspectableProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.Resolve(_pointer, &iid, &objectReference))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.Resolve(this, &iid, &objectReference))
         return IInspectableProjection.toSwift(consuming: &objectReference)
     }
 }

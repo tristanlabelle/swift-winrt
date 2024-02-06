@@ -83,7 +83,7 @@ fileprivate func writeSwiftToAbiCall(
         returnParam: ParamProjection?,
         to writer: SwiftStatementWriter) throws {
 
-    var abiArgs = ["_pointer"]
+    var abiArgs = ["this"]
     func addAbiArg(_ variableName: String, byRef: Bool, array: Bool) {
         let prefix = byRef ? "&" : ""
         if array {
@@ -139,7 +139,7 @@ fileprivate func writeSwiftToAbiCall(
 
     func writeCall() throws {
         writer.writeStatement("try WinRTError.throwIfFailed("
-            + "_pointer.pointee.lpVtbl.pointee.\(abiMethodName)("
+            + "this.pointee.lpVtbl.pointee.\(abiMethodName)("
             + "\(abiArgs.joined(separator: ", "))))")
     }
 

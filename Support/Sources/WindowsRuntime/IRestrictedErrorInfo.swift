@@ -76,7 +76,7 @@ extension COMInterop where Interface == CWinRTCore.SWRT_IRestrictedErrorInfo {
         defer { BStrProjection.release(&restrictedDescription_) }
         var capabilitySid_: CWinRTCore.SWRT_BStr? = nil
         defer { BStrProjection.release(&capabilitySid_) }
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetErrorDetails(_pointer, &description_, &error_, &restrictedDescription_, &capabilitySid_))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
         description = BStrProjection.toSwift(consuming: &description_)
         error = HResultProjection.toSwift(error_)
         restrictedDescription = BStrProjection.toSwift(consuming: &restrictedDescription_)
@@ -85,7 +85,7 @@ extension COMInterop where Interface == CWinRTCore.SWRT_IRestrictedErrorInfo {
 
     public func getReference() throws -> String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetReference(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetReference(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 }

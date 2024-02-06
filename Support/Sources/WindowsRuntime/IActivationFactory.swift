@@ -34,7 +34,7 @@ extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectable
 extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
     public func activateInstance() throws -> IInspectable? {
         var instance = IInspectableProjection.abiDefaultValue
-        try WinRTError.throwIfFailed(_pointer.pointee.lpVtbl.pointee.ActivateInstance(_pointer, &instance))
+        try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.ActivateInstance(this, &instance))
         return IInspectableProjection.toSwift(consuming: &instance)
     }
 }

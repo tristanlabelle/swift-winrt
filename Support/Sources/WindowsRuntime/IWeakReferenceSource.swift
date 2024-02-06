@@ -38,7 +38,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
 extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetWeakReference(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetWeakReference(this, &value))
         return IWeakReferenceProjection.toSwift(consuming: &value)
     }
 }

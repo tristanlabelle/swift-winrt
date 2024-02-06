@@ -3,10 +3,10 @@ import CWinRTCore
 /// Wraps a COM interface pointer and exposes projected versions of its methods.
 /// This struct is extended with methods for each COM interface it wraps.
 public struct COMInterop<Interface> {
-    public let _pointer: UnsafeMutablePointer<Interface>
+    public let this: UnsafeMutablePointer<Interface>
 
     public init(_ pointer: UnsafeMutablePointer<Interface>) {
-        self._pointer = pointer
+        self.this = pointer
     }
 
     public init<Other>(casting pointer: UnsafeMutablePointer<Other>) {
@@ -14,27 +14,27 @@ public struct COMInterop<Interface> {
     }
 
     public init<Other>(casting other: COMInterop<Other>) {
-        self.init(casting: other._pointer)
+        self.init(casting: other.this)
     }
 
-    private var _unknownPointer: UnsafeMutablePointer<CWinRTCore.SWRT_IUnknown>{
-        _pointer.withMemoryRebound(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1) { $0 }
+    private var unknown: UnsafeMutablePointer<CWinRTCore.SWRT_IUnknown>{
+        this.withMemoryRebound(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1) { $0 }
     }
 
     @discardableResult
     public func addRef() -> UInt32 {
-        _unknownPointer.pointee.lpVtbl.pointee.AddRef(_unknownPointer)
+        unknown.pointee.lpVtbl.pointee.AddRef(unknown)
     }
 
     @discardableResult
     public func release() -> UInt32 {
-        _unknownPointer.pointee.lpVtbl.pointee.Release(_unknownPointer)
+        unknown.pointee.lpVtbl.pointee.Release(unknown)
     }
 
     public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownPointer {
         var iid = GUIDProjection.toABI(id)
         var pointer: UnsafeMutableRawPointer? = nil
-        try HResult.throwIfFailed(_unknownPointer.pointee.lpVtbl.pointee.QueryInterface(_unknownPointer, &iid, &pointer))
+        try HResult.throwIfFailed(unknown.pointee.lpVtbl.pointee.QueryInterface(unknown, &iid, &pointer))
         guard let pointer else {
             assertionFailure("QueryInterface succeeded but returned a null pointer")
             throw HResult.Error.noInterface

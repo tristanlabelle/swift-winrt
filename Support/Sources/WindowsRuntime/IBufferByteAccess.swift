@@ -36,7 +36,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
 extension COMInterop where Interface == CWinRTCore.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.Buffer(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.Buffer(this, &value))
         return value
     }
 }

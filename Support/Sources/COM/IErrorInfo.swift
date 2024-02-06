@@ -49,31 +49,31 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
 extension COMInterop where Interface == CWinRTCore.SWRT_IErrorInfo {
     public func getGuid() throws -> Foundation.UUID {
         var value = GUIDProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetGUID(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetGUID(this, &value))
         return GUIDProjection.toSwift(value)
     }
 
     public func getSource() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetSource(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetSource(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getDescription() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetDescription(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetDescription(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpFile() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetHelpFile(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetHelpFile(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpContext() throws ->  UInt32 {
         var value = UInt32()
-        try HResult.throwIfFailed(_pointer.pointee.lpVtbl.pointee.GetHelpContext(_pointer, &value))
+        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetHelpContext(this, &value))
         return value
     }
 }
