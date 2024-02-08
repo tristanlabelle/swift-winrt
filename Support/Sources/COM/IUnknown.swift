@@ -21,7 +21,7 @@ public enum IUnknownProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IUnknown
     public typealias COMVirtualTable = CWinRTCore.SWRT_IUnknownVTable
 
-    public static let id = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
+    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -38,4 +38,8 @@ public enum IUnknownProjection: COMTwoWayProjection {
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) })
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IUnknown {
+    public static let iid = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }

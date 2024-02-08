@@ -24,49 +24,54 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
 
     writer.writeImport(module: "Foundation", struct: "UUID")
 
-    // Gather bound interfaces, generic or not, sorted by ABI name
-    var boundInterfaces = [(interface: BoundInterface, abiName: String)]()
+    // Gather bound interfaces and delegates, generic or not, sorted by ABI name
+    var boundAbiTypes = [(interface: BoundType, abiName: String)]()
     for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
         for typeDefinition in typeDefinitions {
             guard typeDefinition.genericArity == 0 else { continue }
-            guard let interfaceDefinition = typeDefinition as? InterfaceDefinition else { continue }
-            let boundInterface = interfaceDefinition.bind()
-            boundInterfaces.append((boundInterface, try CAbi.mangleName(type: boundInterface.asBoundType)))
+            guard typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition else { continue }
+            let boundType = typeDefinition.bindType()
+            boundAbiTypes.append((boundType, try CAbi.mangleName(type: boundType)))
         }
     }
 
     for (typeDefinition, instantiations) in module.closedGenericTypesByDefinition {
-        guard let interfaceDefinition = typeDefinition as? InterfaceDefinition else { continue }
+        assert(typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition)
         for genericArgs in instantiations {
-            let boundInterface = interfaceDefinition.bind(genericArgs: genericArgs)
-            boundInterfaces.append((boundInterface, try CAbi.mangleName(type: boundInterface.asBoundType)))
+            let boundType = typeDefinition.bindType(genericArgs: genericArgs)
+            boundAbiTypes.append((boundType, try CAbi.mangleName(type: boundType)))
         }
     }
 
     // Write the COMInterop<I> extension for each interface
-    boundInterfaces.sort { $0.abiName < $1.abiName }
-    for (boundInterface, abiName) in boundInterfaces {
+    boundAbiTypes.sort { $0.abiName < $1.abiName }
+    for (boundType, abiName) in boundAbiTypes {
         // IReference is special cased, with a single definition for all generic instantiations
-        guard boundInterface.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
-        try writeCOMInteropExtension(interface: boundInterface, abiName: abiName, module: module, to: writer)
+        guard boundType.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
+        try writeCOMInteropExtension(abiType: boundType, abiName: abiName, module: module, to: writer)
     }
 }
 
-fileprivate func writeCOMInteropExtension(interface: BoundInterface, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
+fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
     let qualifiedAbiName = "\(module.projection.abiModuleName).\(abiName)"
-    let visibility: SwiftVisibility = interface.genericArgs.isEmpty ? .public : .internal
+    let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
-    // Mark the COM interface as being IInspectable-compatible.
-    writer.output.writeFullLine(grouping: .never, "extension \(qualifiedAbiName): @retroactive WindowsRuntime.COMIInspectableStruct {}")
+    if abiType.definition is InterfaceDefinition {
+        // COM interfaces for WinRT interfaces are IInspectable-compatible. This is not true for delegates.
+        writer.output.writeFullLine(grouping: .never, "extension \(qualifiedAbiName): @retroactive WindowsRuntime.COMIInspectableStruct {}")
+    }
 
     try writer.writeExtension(name: "COMInterop", whereClauses: [ "Interface == \(qualifiedAbiName)" ]) { writer in
         // static let iid: COMInterfaceID = COMInterfaceID(...)
         writer.writeStoredProperty(visibility: visibility, static: true, declarator: .let, name: "iid",
-            initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(interface.asBoundType)))
+            initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
 
-        for method in interface.definition.methods {
+        for method in abiType.definition.methods {
+            // For delegates, only expose the Invoke method
+            guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
+
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            let (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: interface.genericArgs)
+            let (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
             // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
             try writer.writeFunc(
                     visibility: visibility, name: Casing.pascalToCamel(abiMethodName),

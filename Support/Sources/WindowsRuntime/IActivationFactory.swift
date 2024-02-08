@@ -11,7 +11,7 @@ public enum IActivationFactoryProjection: WinRTProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IActivationFactory
     public typealias COMVirtualTable = CWinRTCore.SWRT_IActivationFactoryVTable
 
-    public static let id = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
+    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
     public static var runtimeClassName: String { "IActivationFactory" }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -32,6 +32,8 @@ public enum IActivationFactoryProjection: WinRTProjection {
 extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {}
 
 extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
+    public static let iid = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
+
     public func activateInstance() throws -> IInspectable? {
         var instance = IInspectableProjection.abiDefaultValue
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.ActivateInstance(this, &instance))

@@ -11,7 +11,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IWeakReference
     public typealias COMVirtualTable = CWinRTCore.SWRT_IWeakReferenceVTable
 
-    public static let id = COMInterfaceID(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
+    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -44,6 +44,8 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
 }
 
 extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReference {
+    public static let iid = COMInterfaceID(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
+
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
         var iid = GUIDProjection.toABI(iid)
         var objectReference = IInspectableProjection.abiDefaultValue

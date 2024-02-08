@@ -11,7 +11,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IBufferByteAccess
     public typealias COMVirtualTable = CWinRTCore.SWRT_IBufferByteAccessVTable
 
-    public static let id = COMInterfaceID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
+    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -34,6 +34,8 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
 }
 
 extension COMInterop where Interface == CWinRTCore.SWRT_IBufferByteAccess {
+    public static let iid = COMInterfaceID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
+
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.Buffer(this, &value))

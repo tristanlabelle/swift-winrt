@@ -17,7 +17,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IRestrictedErrorInfo
     public typealias COMVirtualTable = CWinRTCore.SWRT_IRestrictedErrorInfoVTable
 
-    public static let id = COMInterfaceID(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
+    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -64,6 +64,8 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
 }
 
 extension COMInterop where Interface == CWinRTCore.SWRT_IRestrictedErrorInfo {
+    public static let iid = COMInterfaceID(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
+
     public func getErrorDetails(
             _ description: inout String?,
             _ error: inout HResult,

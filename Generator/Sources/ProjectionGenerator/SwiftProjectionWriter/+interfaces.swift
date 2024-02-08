@@ -209,7 +209,7 @@ extension SwiftProjectionWriter {
                     }
                     else {
                         // Delegates have no identity, so create one for them
-                        writer.writeReturnStatement(value: "COMWrappingExport<Self>(implementation: \(paramName)).toCOM()")
+                        writer.writeStatement("COMWrappingExport<Self>(implementation: \(paramName)).toCOM()")
                     }
                 },
                 to: writer)
