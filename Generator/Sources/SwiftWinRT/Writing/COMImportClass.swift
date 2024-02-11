@@ -46,20 +46,20 @@ internal func writeCOMImportClass(
 
         // Primary interface implementation
         try writer.writeCommentLine(WinRTTypeName.from(type: type).description)
-        try writeInterfaceImplementation(interfaceOrDelegate: type, thisPointer: .name("comPointer"), projection: projection, to: writer)
+        try writeInterfaceImplementation(
+            interfaceOrDelegate: type, thisPointer: .init(name: "comPointer"),
+            projection: projection, to: writer)
 
         // Secondary interface implementations
         if type.definition is InterfaceDefinition {
             var propertiesToRelease = [String]()
             for secondaryInterface in try getAllBaseInterfaces(type) {
                 try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
-                let property = try writeSecondaryInterfaceProperty(secondaryInterface, projection: projection, to: writer)
+                let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
                 try writeInterfaceImplementation(
-                    interfaceOrDelegate: secondaryInterface.asBoundType,
-                    thisPointer: .getter(property.getter, static: false),
-                    projection: projection,
-                    to: writer)
-                propertiesToRelease.append(property.name)
+                    interfaceOrDelegate: secondaryInterface.asBoundType, thisPointer: declaration.thisPointer,
+                    projection: projection, to: writer)
+                propertiesToRelease.append(declaration.storedPropertyName)
             }
 
             if !propertiesToRelease.isEmpty {

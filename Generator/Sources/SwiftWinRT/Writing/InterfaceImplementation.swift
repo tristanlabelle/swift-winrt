@@ -3,9 +3,14 @@ import DotNetMetadata
 import ProjectionGenerator
 import WindowsMetadata
 
-internal enum ThisPointer {
-    case name(String)
-    case getter(String, static: Bool)
+internal struct ThisPointer {
+    public let name: String
+    public let lazy: Bool
+
+    public init(name: String, lazy: Bool = false) {
+        self.name = name
+        self.lazy = lazy
+    }
 }
 
 internal func writeInterfaceImplementation(
@@ -134,12 +139,12 @@ internal func writeInterfaceMethodImplementationBody(
 }
 
 internal func declareThisPointer(_ thisPointer: ThisPointer, to writer: SwiftStatementWriter) -> String {
-    switch thisPointer {
-        case .name(let name): return name
-        case let .getter(getter, `static`):
-            let staticPrefix = `static` ? "Self." : ""
-            writer.writeStatement("let _this = try \(staticPrefix)\(getter)()")
-            return "_this"
+    if thisPointer.lazy {
+        writer.writeStatement("let this = try \(thisPointer.name)")
+        return "this"
+    }
+    else {
+        return thisPointer.name
     }
 }
 

@@ -84,7 +84,10 @@ fileprivate func writeInterfaceImplementations(
     if !composable {
         // Default interface implementation
         try writer.writeCommentLine(WinRTTypeName.from(type: defaultInterface.asBoundType).description)
-        try writeInterfaceImplementation(interfaceOrDelegate: defaultInterface.asBoundType, thisPointer: .name("comPointer"), projection: projection, to: writer)
+        try writeInterfaceImplementation(
+            interfaceOrDelegate: defaultInterface.asBoundType,
+            thisPointer: .init(name: "comPointer"),
+            projection: projection, to: writer)
     }
 
     // Secondary interface implementations
@@ -93,13 +96,12 @@ fileprivate func writeInterfaceImplementations(
         if !composable, secondaryInterface == defaultInterface { continue }
 
         try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
-        let property = try writeSecondaryInterfaceProperty(secondaryInterface, projection: projection, to: writer)
+        let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
         try writeInterfaceImplementation(
             interfaceOrDelegate: secondaryInterface.asBoundType,
-            thisPointer: .getter(property.getter, static: false),
-            projection: projection,
-            to: writer)
-        propertiesToRelease.append(property.name)
+            thisPointer: declaration.thisPointer,
+            projection: projection, to: writer)
+        propertiesToRelease.append(declaration.storedPropertyName)
     }
 
     if !propertiesToRelease.isEmpty {
@@ -115,14 +117,12 @@ fileprivate func writeStaticMembers(_ classDefinition: ClassDefinition, projecti
     // Write static members from static interfaces
     for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
         writer.writeCommentLine(try WinRTTypeName.from(type: staticAttribute.interface.bindType()).description)
-        let interfaceProperty = try writeSecondaryInterfaceProperty(
+        let declaration = try writeSecondaryInterfaceDeclaration(
             staticAttribute.interface.bind(), staticOf: classDefinition, projection: projection, to: writer)
         try writeInterfaceImplementation(
             interfaceOrDelegate: staticAttribute.interface.bindType(),
-            static: true,
-            thisPointer: .getter(interfaceProperty.getter, static: true),
-            projection: projection,
-            to: writer)
+            static: true, thisPointer: declaration.thisPointer,
+            projection: projection, to: writer)
     }
 }
 
@@ -146,7 +146,7 @@ fileprivate func writeActivationFactoryInitializers(
         activationFactory: InterfaceDefinition,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeCommentLine(try WinRTTypeName.from(type: activationFactory.bindType()).description)
-    let interfaceProperty = try writeSecondaryInterfaceProperty(
+    let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
         activationFactory.bind(), staticOf: classDefinition, projection: projection, to: writer)
     for method in activationFactory.methods {
         let (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: [])
@@ -155,7 +155,7 @@ fileprivate func writeActivationFactoryInitializers(
                 convenience: true,
                 params: paramProjections.map { $0.toSwiftParam() },
                 throws: true) { writer in
-            writer.writeStatement("let this = try Self.\(interfaceProperty.getter)()")
+            writer.writeStatement("let this = try Self.\(interfaceDeclaration.lazyComputedPropertyName)")
             try writeSwiftToABICall(
                 params: paramProjections,
                 returnParam: returnProjection,
@@ -180,13 +180,13 @@ fileprivate func writeDefaultActivatableInitializer(
         0x00, 0x00,
         0xC0, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
-    let interfaceProperty = try writeSecondaryInterfaceProperty(
+    let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
         interfaceName: "IActivationFactory", abiName: CAbi.iactivationFactoryName, iid: iactivationFactoryID,
         staticOf: classDefinition, projection: projection, to: writer)
 
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("let factory = try Self.\(interfaceProperty.getter)()")
+        writer.writeStatement("let factory = try Self.\(interfaceDeclaration.lazyComputedPropertyName)")
         writer.writeStatement("let instance = try factory.activateInstance(projection: \(projectionClassName).self)")
         writer.writeStatement("self.init(transferringRef: instance)")
     }
