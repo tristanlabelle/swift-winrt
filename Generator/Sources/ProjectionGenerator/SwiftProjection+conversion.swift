@@ -3,7 +3,7 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 extension SwiftProjection {
-    static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
+    public static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
         switch visibility {
             case .compilerControlled: return .fileprivate
             case .private: return .private
@@ -18,12 +18,12 @@ extension SwiftProjection {
         namespace.replacing(".", with: "")
     }
 
-    func toBaseProtocol(_ interface: InterfaceDefinition) throws -> SwiftType {
+    public func toBaseProtocol(_ interface: InterfaceDefinition) throws -> SwiftType {
         // Protocols have no generic arguments in base type lists
         .identifier(name: try toProtocolName(interface))
     }
 
-    func toBaseType(_ type: BoundType?) throws -> SwiftType? {
+    public func toBaseType(_ type: BoundType?) throws -> SwiftType? {
         guard let type else { return nil }
         if let mscorlib = type.definition.assembly as? Mscorlib,
             type.definition === mscorlib.specialTypes.object {
@@ -60,7 +60,7 @@ extension SwiftProjection {
         return typeName
     }
 
-    public static func toProjectionInstanciationTypeName(genericArgs: [TypeNode]) throws -> String {
+    public static func toProjectionInstantiationTypeName(genericArgs: [TypeNode]) throws -> String {
         var result = ""
         func visit(_ type: TypeNode) throws {
             guard case .bound(let type) = type else { fatalError() }
@@ -74,7 +74,7 @@ extension SwiftProjection {
         return result
     }
 
-    func toMemberName(_ member: Member) -> String {
+    public func toMemberName(_ member: Member) -> String {
         var name = member.name
         if member is Method, member.nameKind == .special {
             if let prefixEndIndex = name.findPrefixEndIndex("get_")
@@ -88,29 +88,7 @@ extension SwiftProjection {
         return Casing.pascalToCamel(name)
     }
 
-    func isOverriding(_ constructor: Constructor) throws -> Bool {
-        var type = constructor.definingType
-        let paramTypes = try constructor.params.map { try $0.type }
-        while let baseType = try type.base {
-            // We don't generate mscorlib types, so we can't shadow their constructors
-            guard !(baseType.definition.assembly is Mscorlib) else { break }
-
-            // Base classes should not be generic, see:
-            // https://learn.microsoft.com/en-us/uwp/winrt-cref/winrt-type-system
-            // "WinRT supports parameterization of interfaces and delegates."
-            assert(baseType.genericArgs.isEmpty)
-            if let matchingConstructor = baseType.definition.findMethod(name: Constructor.name, paramTypes: paramTypes),
-                Self.toVisibility(matchingConstructor.visibility) == .public {
-                return true
-            }
-
-            type = baseType.definition
-        }
-
-        return false
-    }
-
-    static func toConstant(_ constant: Constant) -> String {
+    public static func toConstant(_ constant: Constant) -> String {
         switch constant {
             case let .boolean(value): return value ? "true" : "false"
             case let .char(value): return String(UInt16(value))

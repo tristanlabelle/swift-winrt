@@ -3,16 +3,16 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 extension SwiftProjection {
-    internal func getDocumentation(_ typeDefinition: TypeDefinition) -> MemberDocumentation? {
+    public func getDocumentation(_ typeDefinition: TypeDefinition) -> MemberDocumentation? {
         guard let documentation = assembliesToModules[typeDefinition.assembly]?.documentation else { return nil }
         return documentation.members[.type(toDocumentationTypeReference(typeDefinition))]
     }
 
-    internal func getDocumentationComment(_ typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
+    public func getDocumentationComment(_ typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
         getDocumentation(typeDefinition).map { toDocumentationComment($0) }
     }
 
-    internal func getDocumentationComment(_ member: Member) throws -> SwiftDocumentationComment? {
+    public func getDocumentationComment(_ member: Member) throws -> SwiftDocumentationComment? {
         guard let documentation = assembliesToModules[member.definingType.assembly]?.documentation else { return nil }
         let declaringType = toDocumentationTypeReference(member.definingType)
 
@@ -35,7 +35,7 @@ extension SwiftProjection {
         return documentation.members[memberKey].map { toDocumentationComment($0) }
     }
 
-    internal func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
+    public func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
         var swift = SwiftDocumentationComment()
         if let summary = documentation.summary {
             swift.summary = toBlocks(summary)
@@ -49,7 +49,7 @@ extension SwiftProjection {
         return swift
     }
 
-    internal func toDocumentationComment(_ textNode: DocumentationTextNode) -> SwiftDocumentationComment {
+    public func toDocumentationComment(_ textNode: DocumentationTextNode) -> SwiftDocumentationComment {
         var swift = SwiftDocumentationComment()
         swift.summary = toBlocks(textNode)
         return swift

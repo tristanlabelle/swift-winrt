@@ -26,7 +26,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
             print("Generating types for namespace \(namespace)...")
 
-            let aliasesWriter: SwiftNamespaceModuleFileWriter?
+            let aliasesWriter: SwiftSourceFileWriter?
             if module.flattenNamespaces {
                 aliasesWriter = nil
             }
@@ -34,7 +34,11 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
                 let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
                 try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
-                aliasesWriter = SwiftNamespaceModuleFileWriter(path: namespaceAliasesPath, module: module)
+
+                let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: namespaceAliasesPath))
+                writeGeneratedCodePreamble(to: writer)
+                writer.writeImport(module: module.name)
+                aliasesWriter = writer
             }
 
             for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
@@ -50,7 +54,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: nil,
                     assemblyModuleDirectoryPath: assemblyModuleDirectoryPath)
 
-                if typeDefinition.isPublic { try aliasesWriter?.writeAliases(typeDefinition) }
+                if let aliasesWriter { try writeNamespaceAlias(typeDefinition, projection: projection, to: aliasesWriter) }
             }
         }
 
@@ -63,7 +67,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
             }
 
             let instanciationsByName = try instanciations
-                .map { (key: try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: $0), value: $0) }
+                .map { (key: try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: $0), value: $0) }
                 .sorted { $0.key < $1.key }
             for (_, genericArgs) in instanciationsByName {
                 try writeProjectionSwiftFile(module: module, typeDefinition: typeDefinition, closedGenericArgs: genericArgs,
@@ -84,12 +88,19 @@ fileprivate func writeProjectionSwiftFile(
     var fileNameWithoutExtension = typeDefinition.nameWithoutGenericSuffix
     if let closedGenericArgs = closedGenericArgs {
         fileNameWithoutExtension += "+"
-        fileNameWithoutExtension += try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: closedGenericArgs)
+        fileNameWithoutExtension += try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: closedGenericArgs)
     }
 
     let filePath = "\(namespaceDirectoryPath)\\\(fileNameWithoutExtension).swift"
     try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
-    try SwiftProjectionWriter.write(
-        typeDefinition: typeDefinition, closedGenericArgs: closedGenericArgs,
-        module: module, toPath: filePath)
+
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: filePath))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+
+    if closedGenericArgs?.isEmpty != false {
+        try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
+    }
+    
+    try writeABIProjectionConformance(typeDefinition, genericArgs: closedGenericArgs, projection: module.projection, to: writer)
 }

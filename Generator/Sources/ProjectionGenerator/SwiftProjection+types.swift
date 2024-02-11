@@ -39,7 +39,7 @@ extension SwiftProjection {
         return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
     }
 
-    internal func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
+    public func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
         switch type {
             case let .bound(type):
                 return try getTypeProjection(type)
@@ -94,7 +94,7 @@ extension SwiftProjection {
             else {
                 return .chain([
                     .init(projectionTypeName),
-                    .init(try SwiftProjection.toProjectionInstanciationTypeName(genericArgs: type.genericArgs))
+                    .init(try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: type.genericArgs))
                 ])
             }
         }()

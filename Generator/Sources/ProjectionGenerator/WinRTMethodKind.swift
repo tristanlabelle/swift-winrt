@@ -1,6 +1,6 @@
 import DotNetMetadata
 
-enum WinRTMethodKind {
+public enum WinRTMethodKind {
     case regular
     case constructor
     case propertyGetter
