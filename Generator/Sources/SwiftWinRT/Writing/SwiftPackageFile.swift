@@ -61,5 +61,5 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
 
     package.products.append(.library(name: "Projection", targets: productTargets))
 
-    package.write(to: FileTextOutputStream(path: path))
+    package.write(to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 }

@@ -5,7 +5,7 @@ import ProjectionGenerator
 import WindowsMetadata
 
 internal func writeCAbiFile(module: SwiftProjection.Module, toPath path: String) throws {
-    let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path))
+    let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 
     // Write includes
     cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)

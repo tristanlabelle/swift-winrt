@@ -8,7 +8,7 @@ import struct Foundation.UUID
 /// Writes a file that extends COMInterop<I> for every COM interface with
 /// methods that translate from the Swift shape to the ABI shape.
 internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPath path: String) throws {
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path))
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
 

@@ -9,9 +9,7 @@ import WindowsMetadata
 func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
     let abiModuleDirectoryPath = "\(generateCommand.outputDirectoryPath)\\\(projection.abiModuleName)"
     let abiModuleIncludeDirectoryPath = "\(abiModuleDirectoryPath)\\include"
-    try FileManager.default.createDirectory(atPath: abiModuleIncludeDirectoryPath, withIntermediateDirectories: true)
-
-    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h"))
+    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h", directoryCreation: .ancestors))
 
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
@@ -33,9 +31,7 @@ func writeProjection(_ projection: SwiftProjection, generateCommand: GenerateCom
             else {
                 let namespaceModuleDirectoryPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)"
                 let namespaceAliasesPath = "\(namespaceModuleDirectoryPath)\\Aliases.swift"
-                try FileManager.default.createDirectory(atPath: namespaceModuleDirectoryPath, withIntermediateDirectories: true)
-
-                let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: namespaceAliasesPath))
+                let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: namespaceAliasesPath, directoryCreation: .ancestors))
                 writeGeneratedCodePreamble(to: writer)
                 writer.writeImport(module: module.name)
                 aliasesWriter = writer
@@ -92,9 +88,7 @@ fileprivate func writeProjectionSwiftFile(
     }
 
     let filePath = "\(namespaceDirectoryPath)\\\(fileNameWithoutExtension).swift"
-    try FileManager.default.createDirectory(atPath: namespaceDirectoryPath, withIntermediateDirectories: true)
-
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: filePath))
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: filePath, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
 
