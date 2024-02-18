@@ -98,7 +98,7 @@ fileprivate func writeStructProjectionExtension(
                 guard field.isInstance else { continue }
                 if index > 0 { expression += ", " }
 
-                SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                SwiftIdentifier.write(SwiftProjection.toMemberName(field), to: &expression)
                 expression += ": "
 
                 let typeProjection = try projection.getTypeProjection(field.type)
@@ -134,14 +134,14 @@ fileprivate func writeStructProjectionExtension(
                 let typeProjection = try projection.getTypeProjection(field.type)
                 if typeProjection.kind == .identity {
                     expression += "value."
-                    SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                    SwiftIdentifier.write(SwiftProjection.toMemberName(field), to: &expression)
                 }
                 else {
                     if typeProjection.kind != .inert { expression.append("try! ") }
                     typeProjection.projectionType.write(to: &expression)
                     expression += ".toABI("
                     expression += "value."
-                    SwiftIdentifier.write(projection.toMemberName(field), to: &expression)
+                    SwiftIdentifier.write(SwiftProjection.toMemberName(field), to: &expression)
                     expression += ")"
                 }
             }
@@ -176,11 +176,11 @@ fileprivate func writeClassProjectionType(
             toCOMBody: { writer, paramName in
                 if composable {
                     let lazyComputedPropertyName = getSecondaryInterfaceLazyComputedPropertyName(defaultInterface.definition)
-                    writer.writeReturnStatement(value: "IUnknownPointer.addingRef(try object.\(lazyComputedPropertyName))")
+                    writer.writeStatement("IUnknownPointer.addingRef(try object.\(lazyComputedPropertyName).this)")
                 }
                 else {
                     // WinRTImport exposes comPointer
-                    writer.writeReturnStatement(value: "IUnknownPointer.addingRef(object.comPointer)")
+                    writer.writeStatement("IUnknownPointer.addingRef(object.comPointer)")
                 }
             },
             projection: projection,

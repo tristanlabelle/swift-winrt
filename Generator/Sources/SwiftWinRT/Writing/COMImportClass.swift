@@ -47,7 +47,7 @@ internal func writeCOMImportClass(
         // Primary interface implementation
         try writer.writeCommentLine(WinRTTypeName.from(type: type).description)
         try writeInterfaceImplementation(
-            interfaceOrDelegate: type, thisPointer: .init(name: "comPointer"),
+            interfaceOrDelegate: type, thisPointer: .init(name: "_interop"),
             projection: projection, to: writer)
 
         // Secondary interface implementations
@@ -65,7 +65,7 @@ internal func writeCOMImportClass(
             if !propertiesToRelease.isEmpty {
                 writer.writeDeinit { writer in
                     for storedProperty in propertiesToRelease {
-                        writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
+                        writer.writeStatement("\(storedProperty)?.release()")
                     }
                 }
             }

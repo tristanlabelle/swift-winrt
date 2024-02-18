@@ -72,15 +72,16 @@ internal func writeSecondaryInterfaceDeclaration(
         interfaceName: String, abiName: String, iid: UUID, staticOf: ClassDefinition? = nil,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws -> SecondaryInterfaceDeclaration {
 
-    // private [static] var _istringable: UnsafeMutablePointer<SWRT_WindowsFoundation_IStringable>? = nil
+    // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable>? = nil
     let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
     let abiStructType: SwiftType = .chain(projection.abiModuleName, abiName)
     let abiPointerType: SwiftType = .unsafeMutablePointer(to: abiStructType)
+    let abiInteropType: SwiftType = .chain([.init("COM"), .init("COMInterop", genericArgs: [ abiStructType ])])
     writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
-        type: .optional(wrapped: abiPointerType),
+        type: .optional(wrapped: abiInteropType),
         initialValue: "nil")
 
-    // private [static] var _lazyIStringable: UnsafeMutablePointer<SWRT_WindowsFoundation_IStringable> { get throws {
+    // private [static] var _lazyIStringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
     //     if let existing = _istringable { return existing }
     //     let id = COM.COMInterop<SWRT_IStringable>.iid
     //     let new = try _queryInterfacePointer(id).cast(to: SWRT_WindowsFoundation_IStringable.self)
@@ -90,19 +91,18 @@ internal func writeSecondaryInterfaceDeclaration(
     let lazyComputedPropertyName = getSecondaryInterfaceLazyComputedPropertyName(interfaceName)
     try writer.writeComputedProperty(
             visibility: .internal, static: staticOf != nil, name: lazyComputedPropertyName,
-            type: abiPointerType, throws: true, get: { writer in
+            type: abiInteropType, throws: true, get: { writer in
         writer.writeStatement("if let existing = \(storedPropertyName) { return existing }")
-        writer.writeStatement("let id = COM.COMInterop<\(abiStructType)>.iid")
         if let staticOf {
             let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
             writer.writeStatement("let new: \(abiPointerType) = try WindowsRuntime.getActivationFactoryPointer(\n"
-                + "activatableId: \"\(activatableId)\", id: id)")
+                + "activatableId: \"\(activatableId)\", id: \(abiInteropType).iid)")
         }
         else {
-            writer.writeStatement("let new = try _queryInterfacePointer(id).cast(to: \(abiName).self)")
+            writer.writeStatement("let new = try _queryInterfacePointer(\(abiInteropType).iid).cast(to: \(abiName).self)")
         }
-        writer.writeStatement("\(storedPropertyName) = new")
-        writer.writeStatement("return new")
+        writer.writeStatement("\(storedPropertyName) = .init(new)")
+        writer.writeStatement("return .init(new)")
     })
 
     return .init(storedPropertyName: storedPropertyName, lazyComputedPropertyName: lazyComputedPropertyName)

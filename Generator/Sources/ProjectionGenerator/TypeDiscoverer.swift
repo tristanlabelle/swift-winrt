@@ -93,9 +93,9 @@ public struct TypeDiscoverer {
         for baseInterface in typeDefinition.baseInterfaces {
             try enqueue(baseInterface.interface.asBoundType, genericContext: genericContext)
 
-            if let composableAttribute = try baseInterface.findAttribute(ComposableAttribute.self) {
-                enqueue(composableAttribute.factory)
-            }
+            // if let composableAttribute = try baseInterface.findAttribute(ComposableAttribute.self) {
+            //     enqueue(composableAttribute.factory)
+            // }
         }
 
         if let classDefinition = typeDefinition as? ClassDefinition {

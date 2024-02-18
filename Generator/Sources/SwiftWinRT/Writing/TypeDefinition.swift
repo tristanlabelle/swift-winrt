@@ -45,7 +45,7 @@ fileprivate func writeEnumDefinition(_ enumDefinition: EnumDefinition, projectio
             try writer.writeStoredProperty(
                 documentation: projection.getDocumentationComment(field),
                 visibility: .public, static: true, declarator: .let,
-                name: projection.toMemberName(field),
+                name: SwiftProjection.toMemberName(field),
                 initialValue: "Self(rawValue: \(value))")
         }
     }

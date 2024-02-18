@@ -40,6 +40,29 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
     }
 }
 
+fileprivate enum ABIInterfaceUsage {
+    case activationFactory
+    case compositionFactory
+    case other
+}
+
+fileprivate func getABIInterfaceUsage(_ typeDefinition: TypeDefinition) throws -> ABIInterfaceUsage {
+    if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self) {
+        for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+            if activatableAttribute.factory == typeDefinition {
+                return .activationFactory
+            }
+        }
+
+        // for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
+        //     if composableAttribute.factory == typeDefinition {
+        //         return .activationFactory
+        //     }
+        // }
+    }
+    return .other
+}
+
 fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
     let qualifiedAbiName = "\(module.projection.abiModuleName).\(abiName)"
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
@@ -59,10 +82,32 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, m
             guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
 
             let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
-            let (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
+            var (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
+
+            switch try getABIInterfaceUsage(abiType.definition) {
+                case .activationFactory:
+                    // Prevent the return value from being projected to Swift.
+                    // Activation factory methods are called in class constructors,
+                    // which need the resulting COM pointer for initialization.
+                    let oldReturnProjection = returnProjection!
+                    let pointerType = oldReturnProjection.typeProjection.abiType
+                    returnProjection = ParamProjection(
+                        name: oldReturnProjection.name,
+                        typeProjection: TypeProjection(
+                            swiftType: pointerType,
+                            swiftDefaultValue: .expression("nil"),
+                            projectionType: .void, // No projection needed
+                            kind: .identity,
+                            abiType: pointerType,
+                            abiDefaultValue: .expression("nil")),
+                        passBy: oldReturnProjection.passBy)
+                default: break
+            }
+
             // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
             try writer.writeFunc(
-                    visibility: visibility, name: Casing.pascalToCamel(abiMethodName),
+                    visibility: visibility,
+                    name: SwiftProjection.toInteropMethodName(method),
                     params: paramProjections.map { $0.toSwiftParam() },
                     throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
                 try writeSwiftToAbiCall(

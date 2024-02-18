@@ -41,31 +41,35 @@ internal func writeInterfaceImplementation(
 fileprivate func writeInterfacePropertyImplementation(
         _ property: Property, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    let valueType = try projection.toReturnType(property.type, typeGenericArgs: typeGenericArgs)
-
     // public [static] var myProperty: MyPropertyType { get throws { .. } }
-    if let getter = try property.getter {
+    if let getter = try property.getter, try getter.hasReturnValue {
+        let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeComputedProperty(
                 visibility: .public,
                 static: `static`,
-                name: projection.toMemberName(property),
-                type: valueType,
+                name: SwiftProjection.toMemberName(property),
+                type: returnParamProjection.toSwiftReturnType(),
                 throws: true) { writer throws in
-            try writeInterfaceMethodImplementationBody(
-                getter, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, projection: projection, to: writer)
+            try writeInteropMethodCall(
+                name: SwiftProjection.toInteropMethodName(getter), params: [], returnParam: returnParamProjection,
+                thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
 
     // public [static] func myProperty(_ newValue: MyPropertyType) throws { ... }
     if let setter = try property.setter {
+        guard let newValueParam = try setter.params.first else { fatalError() }
+        let newValueParamProjection = try projection.getParamProjection(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 visibility: .public,
                 static: `static`,
-                name: projection.toMemberName(property),
-                params: setter.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+                name: SwiftProjection.toMemberName(property),
+                params: [ newValueParamProjection.toSwiftParam() ],
                 throws: true) { writer throws in
-            try writeInterfaceMethodImplementationBody(
-                setter, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, projection: projection, to: writer)
+            try writeInteropMethodCall(
+                name: SwiftProjection.toInteropMethodName(setter),
+                params: [ newValueParamProjection ], returnParam: nil,
+                thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
 }
@@ -73,33 +77,42 @@ fileprivate func writeInterfacePropertyImplementation(
 fileprivate func writeInterfaceEventImplementation(
         _ event: Event, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    let name = projection.toMemberName(event)
+    let name = SwiftProjection.toMemberName(event)
 
     // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
-    if let addAccessor = try event.addAccessor, let addParameter = try addAccessor.params.first {
+    if let addAccessor = try event.addAccessor, let handlerParameter = try addAccessor.params.first {
+        let handlerParamProjection = try projection.getParamProjection(handlerParameter, genericTypeArgs: typeGenericArgs)
+        let eventRegistrationType: SwiftType = .chain("WindowsRuntime", "EventRegistration")
         try writer.writeFunc(
-                visibility: .public,
-                static: `static`,
-                name: name,
-                params: [ try projection.toParameter(label: "adding", addParameter, genericTypeArgs: typeGenericArgs) ],
-                throws: true,
-                returnType: .chain("WindowsRuntime", "EventRegistration")) { writer throws in
-            try writeInterfaceMethodImplementationBody(
-                addAccessor, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer,
-                context: .eventAdder(removeMethodName: name), projection: projection, to: writer)
+                visibility: .public, static: `static`, name: name,
+                params: [ handlerParamProjection.toSwiftParam(label: "adding") ], throws: true,
+                returnType: eventRegistrationType) { writer throws in
+            // Convert the return token into an EventRegistration type for ease of unregistering
+            let output = writer.output
+            output.write("let _token = ")
+            try writeInteropMethodCall(
+                name: SwiftProjection.toInteropMethodName(addAccessor),
+                params: [ handlerParamProjection ], returnParam: nil,
+                thisPointer: thisPointer, projection: projection, to: output)
+            output.endLine()
+
+            writer.writeReturnStatement(value: "\(eventRegistrationType)(token: _token, remover: \(name))")
         }
     }
 
-    // public [static] func myEvent(removing handler: EventRegistrationToken) throws { ... }
-    if let removeAccessor = try event.removeAccessor, let removeParameter = try removeAccessor.params.first {
+    // public [static] func myEvent(removing token: EventRegistrationToken) throws { ... }
+    if let removeAccessor = try event.removeAccessor, let tokenParameter = try removeAccessor.params.first {
+        let tokenParamProjection = try projection.getParamProjection(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 visibility: .public,
                 static: `static`,
                 name: name,
-                params: [ try projection.toParameter(label: "removing", removeParameter, genericTypeArgs: typeGenericArgs) ],
+                params: [ tokenParamProjection.toSwiftParam(label: "removing") ],
                 throws: true) { writer throws in
-            try writeInterfaceMethodImplementationBody(
-                removeAccessor, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, projection: projection, to: writer)
+            try writeInteropMethodCall(
+                name: SwiftProjection.toInteropMethodName(removeAccessor),
+                params: [ tokenParamProjection ], returnParam: nil,
+                thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
 }
@@ -107,167 +120,38 @@ fileprivate func writeInterfaceEventImplementation(
 fileprivate func writeInterfaceMethodImplementation(
         _ method: Method, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    let returnSwiftType: SwiftType? = try method.hasReturnValue
-        ? projection.toReturnType(method.returnType, typeGenericArgs: typeGenericArgs)
-        : nil
+    let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             visibility: .public,
             static: `static`,
-            name: projection.toMemberName(method),
-            params: method.params.map { try projection.toParameter($0, genericTypeArgs: typeGenericArgs) },
+            name: SwiftProjection.toMemberName(method),
+            params: params.map { $0.toSwiftParam() },
             throws: true,
-            returnType: returnSwiftType) { writer throws in
-        try writeInterfaceMethodImplementationBody(
-            method, genericTypeArgs: typeGenericArgs, thisPointer: thisPointer, projection: projection, to: writer)
+            returnType: returnParam?.toSwiftReturnType()) { writer throws in
+        try writeInteropMethodCall(
+            name: SwiftProjection.toInteropMethodName(method),
+            params: params, returnParam: returnParam,
+            thisPointer: thisPointer, projection: projection, to: writer.output)
     }
 }
 
-internal func writeInterfaceMethodImplementationBody(
-        _ method: Method, genericTypeArgs: [TypeNode], thisPointer: ThisPointer,
-        context: SwiftToABICallContext = .returnableMethod,
-        projection: SwiftProjection, to writer: SwiftStatementWriter) throws {
-    let thisPointerName = declareThisPointer(thisPointer, to: writer)
-    let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: genericTypeArgs)
-    try writeSwiftToABICall(
-        params: params,
-        returnParam: returnParam,
-        abiThisPointer: thisPointerName,
-        abiMethodName: try method.findAttribute(OverloadAttribute.self) ?? method.name,
-        context: context,
-        projection: projection,
-        to: writer)
-}
+internal func writeInteropMethodCall(
+        name: String, params: [ParamProjection], returnParam: ParamProjection?, thisPointer: ThisPointer,
+        projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
 
-internal func declareThisPointer(_ thisPointer: ThisPointer, to writer: SwiftStatementWriter) -> String {
-    if thisPointer.lazy {
-        writer.writeStatement("let this = try \(thisPointer.name)")
-        return "this"
+    let nullReturnAsError = {
+        if let returnParam, case .return(nullAsError: true) = returnParam.passBy { return true }
+        return false
+    }()
+
+    output.write("try ")
+    if nullReturnAsError { output.write("COM.NullResult.unwrap(") }
+    output.write("\(thisPointer.name).\(name)(")
+    for (i, param) in params.enumerated() {
+        if i > 0 { output.write(", ") }
+        if case .reference(in: _, out: true, optional: _) = param.passBy { output.write("&") }
+        output.write(param.name)
     }
-    else {
-        return thisPointer.name
-    }
-}
-
-internal enum SwiftToABICallContext {
-    case returnableMethod
-    case eventAdder(removeMethodName: String)
-    case sealedClassInitializer
-}
-
-/// Writes a call to an ABI method, converting the Swift parameters to the ABI representation and the return value back to Swift.
-internal func writeSwiftToABICall(
-        params: [ParamProjection],
-        returnParam: ParamProjection?,
-        abiThisPointer: String,
-        abiMethodName: String,
-        context: SwiftToABICallContext,
-        projection: SwiftProjection,
-        to writer: SwiftStatementWriter) throws {
-
-    var abiArgs = [abiThisPointer]
-    func addAbiArg(_ variableName: String, byRef: Bool, array: Bool) {
-        let prefix = byRef ? "&" : ""
-        if array {
-            abiArgs.append("\(prefix)\(variableName).count")
-            abiArgs.append("\(prefix)\(variableName).pointer")
-        } else {
-            abiArgs.append("\(prefix)\(variableName)")
-        }
-    }
-
-    var needsOutParamsEpilogue = false
-
-    // Prologue: convert arguments from the Swift to the ABI representation
-    for param in params {
-        let typeProjection = param.typeProjection
-        if param.typeProjection.kind == .identity {
-            addAbiArg(param.name, byRef: param.passBy != .value, array: false)
-            continue
-        }
-
-        let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeProjection.kind != .inert ? .var : .let
-        if param.passBy.isOutput { needsOutParamsEpilogue = true }
-
-        if param.passBy.isOutput && !param.passBy.isInput {
-            writer.writeStatement("\(declarator) \(param.abiProjectionName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
-        }
-        else {
-            let tryPrefix = typeProjection.kind == .inert ? "" : "try "
-            writer.writeStatement("\(declarator) \(param.abiProjectionName) = "
-                + "\(tryPrefix)\(typeProjection.projectionType).toABI(\(param.name))")
-        }
-
-        if typeProjection.kind != .inert {
-            writer.writeStatement("defer { \(typeProjection.projectionType).release(&\(param.abiProjectionName)) }")
-        }
-
-        addAbiArg(param.abiProjectionName, byRef: param.passBy.isReference, array: typeProjection.kind == .array)
-    }
-
-    func writeOutParamsEpilogue() throws {
-        for param in params {
-            let typeProjection = param.typeProjection
-            if typeProjection.kind != .identity && param.passBy.isOutput {
-                if typeProjection.kind == .inert {
-                    writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(\(param.abiProjectionName))")
-                }
-                else {
-                    writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(consuming: &\(param.abiProjectionName))")
-                }
-            }
-        }
-    }
-
-    func writeCall() throws {
-        writer.writeStatement("try WinRTError.throwIfFailed(\(abiThisPointer).pointee.lpVtbl.pointee.\(abiMethodName)("
-            + "\(abiArgs.joined(separator: ", "))))")
-    }
-
-    guard let returnParam else {
-        try writeCall()
-        if needsOutParamsEpilogue { try writeOutParamsEpilogue() }
-        return
-    }
-
-    // Value-returning functions
-    let returnTypeProjection = returnParam.typeProjection
-    writer.writeStatement("var \(returnParam.name): \(returnTypeProjection.abiType) = \(returnTypeProjection.abiDefaultValue)")
-    addAbiArg(returnParam.name, byRef: true, array: returnTypeProjection.kind == .array)
-    try writeCall()
-
-    if needsOutParamsEpilogue {
-        // Don't leak the result if we fail in the out params epilogue
-        if returnTypeProjection.kind != .identity && returnTypeProjection.kind != .inert {
-            writer.writeStatement("defer { \(returnTypeProjection.projectionType).release(&\(returnParam.name)) }")
-        }
-
-        try writeOutParamsEpilogue()
-    }
-
-    // Handle the return value
-    switch context {
-        case .returnableMethod:
-            let returnValue: String = switch returnTypeProjection.kind {
-                case .identity: returnParam.name
-                case .inert: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
-                default: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
-            }
-
-            if case .return(nullAsError: true) = returnParam.passBy {
-                writer.writeReturnStatement(value: "try COM.NullResult.unwrap(\(returnValue))")
-            }
-            else {
-                writer.writeReturnStatement(value: returnValue)
-            }
-
-        case .eventAdder(let removeMethodName):
-            // Special case for event add accessors: Wrap the resulting EventRegistrationToken in an EventRegistration object
-            writer.writeReturnStatement(value: "WindowsRuntime.EventRegistration("
-                + "token: \(returnTypeProjection.projectionType).toSwift(\(returnParam.name)), remover: \(removeMethodName))")
-
-        case .sealedClassInitializer:
-            // Sealed class initializers don't return a value but rather forward to the base initializer
-            writer.writeStatement("guard let \(returnParam.name) else { throw COM.HResult.Error.noInterface }")
-            writer.writeStatement("self.init(transferringRef: \(returnParam.name))")
-    }
+    if nullReturnAsError { output.write(")") }
+    output.write(")")
 }

@@ -12,6 +12,12 @@ public struct ParamProjection {
     public let typeProjection: TypeProjection
     public let passBy: PassBy
 
+    public init(name: String, typeProjection: TypeProjection, passBy: PassBy) {
+        self.name = name
+        self.typeProjection = typeProjection
+        self.passBy = passBy
+    }
+
     public var projectionType: SwiftType { typeProjection.projectionType }
     public var abiProjectionName: String { name + "_abi" }
     public var swiftProjectionName: String { name + "_swift" }
@@ -21,8 +27,13 @@ public struct ParamProjection {
         return name + "Length"
     }
 
-    public func toSwiftParam() -> SwiftParam {
-        SwiftParam(label: "_", name: name, `inout`: passBy.isOutput, type: typeProjection.swiftType)
+    public func toSwiftParam(label: String = "_") -> SwiftParam {
+        SwiftParam(label: label, name: name, `inout`: passBy.isOutput, type: typeProjection.swiftType)
+    }
+
+    public func toSwiftReturnType() -> SwiftType {
+        if case .return(nullAsError: true) = passBy { return typeProjection.swiftType.unwrapOptional() }
+        return typeProjection.swiftType
     }
 }
 

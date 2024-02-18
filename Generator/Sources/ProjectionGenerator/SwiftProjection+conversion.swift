@@ -1,6 +1,7 @@
 import CodeWriters
 import DotNetMetadata
 import DotNetXMLDocs
+import WindowsMetadata
 
 extension SwiftProjection {
     public static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
@@ -74,7 +75,7 @@ extension SwiftProjection {
         return result
     }
 
-    public func toMemberName(_ member: Member) -> String {
+    public static func toMemberName(_ member: Member) -> String {
         var name = member.name
         if member is Method, member.nameKind == .special {
             if let prefixEndIndex = name.findPrefixEndIndex("get_")
@@ -86,6 +87,10 @@ extension SwiftProjection {
             }
         }
         return Casing.pascalToCamel(name)
+    }
+
+    public static func toInteropMethodName(_ method: Method) throws -> String {
+        Casing.pascalToCamel(try method.findAttribute(OverloadAttribute.self) ?? method.name)
     }
 
     public static func toConstant(_ constant: Constant) -> String {

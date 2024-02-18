@@ -86,7 +86,7 @@ fileprivate func writeInterfaceImplementations(
         try writer.writeCommentLine(WinRTTypeName.from(type: defaultInterface.asBoundType).description)
         try writeInterfaceImplementation(
             interfaceOrDelegate: defaultInterface.asBoundType,
-            thisPointer: .init(name: "comPointer"),
+            thisPointer: .init(name: "_interop"),
             projection: projection, to: writer)
     }
 
@@ -107,7 +107,7 @@ fileprivate func writeInterfaceImplementations(
     if !propertiesToRelease.isEmpty {
         writer.writeDeinit { writer in
             for storedProperty in propertiesToRelease {
-                writer.writeStatement("if let \(storedProperty) { IUnknownPointer.release(\(storedProperty)) }")
+                writer.writeStatement("\(storedProperty)?.release()")
             }
         }
     }
@@ -149,21 +149,23 @@ fileprivate func writeActivationFactoryInitializers(
     let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
         activationFactory.bind(), staticOf: classDefinition, projection: projection, to: writer)
     for method in activationFactory.methods {
-        let (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: [])
+        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
         try writer.writeInit(
                 visibility: .public,
                 convenience: true,
-                params: paramProjections.map { $0.toSwiftParam() },
+                params: params.map { $0.toSwiftParam() },
                 throws: true) { writer in
-            writer.writeStatement("let this = try Self.\(interfaceDeclaration.lazyComputedPropertyName)")
-            try writeSwiftToABICall(
-                params: paramProjections,
-                returnParam: returnProjection,
-                abiThisPointer: "this",
-                abiMethodName: method.name,
-                context: .sealedClassInitializer,
-                projection: projection,
-                to: writer)
+
+            // Activation factory interop methods are special-cased to return the raw factory pointer,
+            // so we can initialize our instance with it.
+            let output = writer.output
+            output.write("self.init(transferringRef: ")
+            try writeInteropMethodCall(
+                name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
+                thisPointer: .init(name: "Self.\(interfaceDeclaration.lazyComputedPropertyName)", lazy: true),
+                projection: projection, to: writer.output)
+            output.write(")")
+            output.endLine()
         }
     }
 }
@@ -186,8 +188,7 @@ fileprivate func writeDefaultActivatableInitializer(
 
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("let factory = try Self.\(interfaceDeclaration.lazyComputedPropertyName)")
-        writer.writeStatement("let instance = try factory.activateInstance(projection: \(projectionClassName).self)")
-        writer.writeStatement("self.init(transferringRef: instance)")
+        writer.writeStatement("self.init(transferringRef: try Self.\(interfaceDeclaration.lazyComputedPropertyName)"
+            + ".activateInstance(projection: \(projectionClassName).self))")
     }
 }

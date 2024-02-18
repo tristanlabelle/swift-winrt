@@ -85,7 +85,7 @@ fileprivate func writeVirtualTableFunc(_ method: Method, genericTypeArgs: [TypeN
         let methodKind = WinRTMethodKind(from: method)
         output.write("try ")
         output.write(methodKind == .delegateInvoke
-            ? "this" : "this.\(projection.toMemberName(method))")
+            ? "this" : "this.\(SwiftProjection.toMemberName(method))")
         if methodKind != .propertyGetter {
             output.write("(")
             if methodKind == .eventAdder || methodKind == .eventRemover {

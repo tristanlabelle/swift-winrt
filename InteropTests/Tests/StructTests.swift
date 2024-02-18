@@ -29,9 +29,9 @@ class StructTests: WinRTTestCase {
     }
 
     func testAsConstByRefArgument() throws {
-        // Currently "ref const" maps to "inout"
-        var value = Struct(int32: 1, string: "a", nested: LeafStruct(int32: 2, string: "b"))
-        let roundtripped = try Structs.returnRefConstArgument(&value)
+        // Currently "ref const" maps to in params
+        let value = Struct(int32: 1, string: "a", nested: LeafStruct(int32: 2, string: "b"))
+        let roundtripped = try Structs.returnRefConstArgument(value)
         XCTAssertEqual(roundtripped.int32, 1)
         XCTAssertEqual(roundtripped.string, "a")
         XCTAssertEqual(roundtripped.nested.int32, 2)
