@@ -23,7 +23,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     // Gather types from assemblies
-    var typeDiscoverer = TypeDiscoverer(assemblyFilter: { !($0 is Mscorlib) })
+    var typeDiscoverer = TypeDiscoverer(assemblyFilter: { $0.name != "mscorlib" })
 
     for assembly in assemblyLoadContext.loadedAssembliesByName.values {
         guard let module = projection.getModule(assembly) else { continue }
@@ -35,7 +35,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
 
         typeDiscoverer.resetClosedGenericTypes()
 
-        for typeDefinition in assembly.definedTypes {
+        for typeDefinition in assembly.typeDefinitions {
             guard typeDefinition.isPublic else { continue }
             guard typeDefinition.namespace != "Windows.Foundation.Metadata" else { continue }
             guard try !typeDefinition.hasAttribute(AttributeUsageAttribute.self) else { continue }
@@ -55,7 +55,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
 
     // Establish references between modules
     for assembly in assemblyLoadContext.loadedAssembliesByName.values {
-        guard !(assembly is Mscorlib) else { continue }
+        guard assembly.name != "mscorlib" else { continue }
 
         if let sourceModule = projection.getModule(assembly) {
             for reference in assembly.references {

@@ -26,10 +26,15 @@ public struct TypeDiscoverer {
     public mutating func add(_ assembly: Assembly, namespace: String? = nil) throws {
         guard assemblyFilter(assembly) else { return }
 
-        for type in assembly.definedTypes {
-            guard type.visibility == .public else { continue }
-            guard namespace == nil || type.namespace == namespace else { continue }
-            enqueue(type)
+        for typeDefinition in assembly.typeDefinitions {
+            guard typeDefinition.visibility == .public else { continue }
+            guard namespace == nil || typeDefinition.namespace == namespace else { continue }
+            enqueue(typeDefinition)
+        }
+
+        for exportedType in assembly.exportedTypes {
+            guard namespace == nil || exportedType.namespace == namespace else { continue }
+            enqueue(try exportedType.definition)
         }
 
         try drainQueue()

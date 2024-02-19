@@ -105,7 +105,7 @@ extension SwiftProjection {
     }
 
     private func getSpecialTypeProjection(_ type: BoundType) throws -> TypeProjection? {
-        if type.definition.assembly is Mscorlib {
+        if type.definition.namespace == "System" {
             guard let typeProjection = try getCoreLibraryTypeProjection(type) else {
                 throw UnexpectedTypeError(type.description, context: "Not a valid WinRT System type.")
             }

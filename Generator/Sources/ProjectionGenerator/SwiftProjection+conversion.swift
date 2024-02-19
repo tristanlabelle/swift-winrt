@@ -26,10 +26,7 @@ extension SwiftProjection {
 
     public func toBaseType(_ type: BoundType?) throws -> SwiftType? {
         guard let type else { return nil }
-        if let mscorlib = type.definition.assembly as? Mscorlib,
-            type.definition === mscorlib.specialTypes.object {
-            return nil
-        }
+        guard try type.definition != type.definition.context.coreLibrary.systemObject else { return nil }
 
         guard type.definition.visibility == .public else { return nil }
         // Generic arguments do not appear on base types in Swift, but as separate typealiases
