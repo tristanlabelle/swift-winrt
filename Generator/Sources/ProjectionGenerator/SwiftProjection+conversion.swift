@@ -87,7 +87,7 @@ extension SwiftProjection {
     }
 
     public static func toInteropMethodName(_ method: Method) throws -> String {
-        Casing.pascalToCamel(try method.findAttribute(OverloadAttribute.self) ?? method.name)
+        Casing.pascalToCamel(try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name)
     }
 
     public static func toConstant(_ constant: Constant) -> String {

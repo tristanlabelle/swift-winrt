@@ -47,7 +47,7 @@ fileprivate enum ABIInterfaceUsage {
 }
 
 fileprivate func getABIInterfaceUsage(_ typeDefinition: TypeDefinition) throws -> ABIInterfaceUsage {
-    if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self) {
+    if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self)?.target {
         for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
             if activatableAttribute.factory == typeDefinition {
                 return .activationFactory
@@ -87,7 +87,7 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, m
             // For delegates, only expose the Invoke method
             guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
 
-            let abiMethodName = try method.findAttribute(OverloadAttribute.self) ?? method.name
+            let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
             var (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
 
             switch try getABIInterfaceUsage(abiType.definition) {

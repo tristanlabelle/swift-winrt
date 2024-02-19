@@ -62,7 +62,7 @@ extension CAbi {
             }
 
             decl.addFunction(
-                name: try method.findAttribute(OverloadAttribute.self) ?? method.name,
+                name: try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name,
                 params: params)
         }
 

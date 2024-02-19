@@ -42,7 +42,7 @@ fileprivate func writeVirtualTableFunc(_ method: Method, genericTypeArgs: [TypeN
     }
 
     try writeVirtualTableFuncImplementation(
-            name: method.findAttribute(OverloadAttribute.self) ?? method.name,
+            name: method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name,
             paramNames: abiParamNames,
             to: output) {
         // Ensure non-optional by reference params are non-null pointers
