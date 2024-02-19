@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections",
       "state" : {
-        "revision" : "a902f1823a7ff3c9ab2fba0f992396b948eda307",
-        "version" : "1.0.5"
+        "revision" : "d029d9d39c87bed85b1c50adee7c41795261a192",
+        "version" : "1.0.6"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/tristanlabelle/swift-dotnetmetadata",
       "state" : {
         "branch" : "main",
-        "revision" : "f37f88e48f94af4b94d3271d0e427e706f5f3137"
+        "revision" : "634e6e4679dd3abb085f81c623acc7c57a019bba"
       }
     }
   ],
