@@ -51,13 +51,9 @@ extension SwiftProjection {
                 return TypeProjection(
                     swiftType: swiftType,
                     swiftDefaultValue: "[]",
-                    projectionType: .chain(
-                        .init("WindowsRuntime"),
-                        .init("WinRTArrayProjection", genericArgs: [elementProjection.projectionType])),
+                    projectionType: SupportModule.winRTArrayProjection(of: elementProjection.projectionType),
                     kind: .array,
-                    abiType: .chain(
-                        .init("COM"),
-                        .init("COMArray", genericArgs: [elementProjection.abiType])),
+                    abiType: SupportModule.comArray(of: elementProjection.abiType),
                     abiDefaultValue: ".null")
 
             default:
@@ -135,7 +131,7 @@ extension SwiftProjection {
                 return TypeProjection(
                     swiftType: .bool,
                     swiftDefaultValue: "false",
-                    projectionType: .chain("COM", "Bool8Projection"),
+                    projectionType: SupportModule.bool8Projection,
                     kind: .inert,
                     abiType: .chain(abiModuleName, CAbi.boolName),
                     abiDefaultValue: "0")
@@ -152,29 +148,29 @@ extension SwiftProjection {
                 return TypeProjection(
                     swiftType: .chain("Swift", "Unicode", "UTF16", "CodeUnit"),
                     swiftDefaultValue: "0",
-                    projectionType: .chain("COM", "WideCharProjection"),
+                    projectionType: SupportModule.wideCharProjection,
                     kind: .identity,
                     abiType: .chain("Swift", "UInt16"))
             case .guid:
                 return TypeProjection(
                     swiftType: .chain("Foundation", "UUID"),
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: .chain("COM", "GUIDProjection"),
+                    projectionType: SupportModule.guidProjection,
                     kind: .inert,
                     abiType: .chain(abiModuleName, CAbi.guidName))
             case .string:
                 return .init(
                     swiftType: .string,
                     swiftDefaultValue: "\"\"",
-                    projectionType: .chain("WindowsRuntime", "HStringProjection"),
+                    projectionType: SupportModule.hstringProjection,
                     kind: .allocating,
                     abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
                     abiDefaultValue: "nil")
             case .object:
                 return .init(
-                    swiftType: .optional(wrapped: .chain("WindowsRuntime", "IInspectable")),
+                    swiftType: .optional(wrapped: SupportModule.iinspectable),
                     swiftDefaultValue: "nil",
-                    projectionType: .chain("WindowsRuntime", "IInspectableProjection"),
+                    projectionType: SupportModule.iinspectableProjection,
                     kind: .allocating,
                     abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
                     abiDefaultValue: "nil")
@@ -190,18 +186,18 @@ extension SwiftProjection {
 
             case "EventRegistrationToken":
                 return TypeProjection(
-                    swiftType: .chain("WindowsRuntime", "EventRegistrationToken"),
+                    swiftType: SupportModule.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: .chain("WindowsRuntime", "EventRegistrationToken"),
+                    projectionType: SupportModule.eventRegistrationToken,
                     kind: .inert,
                     abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
                     abiDefaultValue: .defaultInitializer)
 
             case "HResult":
                 return TypeProjection(
-                    swiftType: .chain("COM", "HResult"),
+                    swiftType: SupportModule.hresult,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: .chain("COM", "HResultProjection"),
+                    projectionType: SupportModule.hresultProjection,
                     kind: .inert,
                     abiType: .chain(abiModuleName, CAbi.hresultName),
                     abiDefaultValue: "0")

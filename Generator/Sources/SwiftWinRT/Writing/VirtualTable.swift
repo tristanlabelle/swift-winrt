@@ -77,7 +77,7 @@ fileprivate func writeVirtualTableFunc(_ method: Method, genericTypeArgs: [TypeN
             }
 
             if case .return(nullAsError: true) = returnProjection.passBy {
-                output.write("try COM.NullResult.`catch`(")
+                output.write("try \(SupportModule.nullResult).`catch`(")
             }
         }
 

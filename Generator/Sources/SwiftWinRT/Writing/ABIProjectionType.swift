@@ -74,7 +74,7 @@ fileprivate func writeStructProjectionExtension(
     // extension <struct>: ABIInertProjection
     try writer.writeExtension(
             name: try projection.toTypeName(structDefinition),
-            protocolConformances: [SwiftType.chain("COM", "ABIInertProjection")]) { writer in
+            protocolConformances: [SupportModule.abiInertProjection]) { writer in
 
         // public typealias SwiftValue = Self
         writer.writeTypeAlias(visibility: .public, name: "SwiftValue", target: .`self`)
@@ -257,8 +257,9 @@ internal func writeCOMProjectionConformance(
         target: .chain(projection.abiModuleName, abiName + CAbi.virtualTableSuffix))
 
     // public static var id: COM.COMInterfaceID { COM.COMInterop<COMInterface>.iid }
-    writer.writeComputedProperty(visibility: .public, static: true, name: "id", type: .chain("COM", "COMInterfaceID")) { writer in
-        writer.writeStatement("COM.COMInterop<COMInterface>.iid")
+    writer.writeComputedProperty(visibility: .public, static: true, name: "id", type: SupportModule.comInterfaceID) { writer in
+        let comInterop = SupportModule.comInterop(of: .identifier("COMInterface"))
+        writer.writeStatement("\(comInterop).iid")
     }
 
     if !(abiType.definition is DelegateDefinition) {

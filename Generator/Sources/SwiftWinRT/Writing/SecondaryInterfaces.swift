@@ -76,7 +76,7 @@ internal func writeSecondaryInterfaceDeclaration(
     let storedPropertyName = "_" + Casing.pascalToCamel(interfaceName)
     let abiStructType: SwiftType = .chain(projection.abiModuleName, abiName)
     let abiPointerType: SwiftType = .unsafeMutablePointer(to: abiStructType)
-    let abiInteropType: SwiftType = .chain([.init("COM"), .init("COMInterop", genericArgs: [ abiStructType ])])
+    let abiInteropType: SwiftType = SupportModule.comInterop(of: abiStructType)
     writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
         type: .optional(wrapped: abiInteropType),
         initialValue: "nil")
