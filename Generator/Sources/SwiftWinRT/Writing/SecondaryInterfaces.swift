@@ -5,50 +5,6 @@ import ProjectionGenerator
 import WindowsMetadata
 import struct Foundation.UUID
 
-internal func getAllInterfaces(_ type: BoundType) throws -> [BoundInterface] {
-    var interfaces = [BoundInterface]()
-
-    func visit(_ interface: BoundInterface) throws {
-        guard !interfaces.contains(interface) else { return }
-        interfaces.append(interface)
-
-        for baseInterface in interface.definition.baseInterfaces {
-            try visit(baseInterface.interface.bindGenericParams(
-                typeArgs: interface.genericArgs))
-        }
-    }
-
-    if let interfaceDefinition = type.definition as? InterfaceDefinition {
-        try visit(interfaceDefinition.bind(genericArgs: type.genericArgs))
-    }
-    else {
-        for baseInterface in type.definition.baseInterfaces {
-            try visit(try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs))
-        }
-    }
-
-    return interfaces
-}
-
-internal func getAllBaseInterfaces(_ type: BoundType) throws -> [BoundInterface] {
-    var interfaces = [BoundInterface]()
-
-    func visit(_ interface: BoundInterface) throws {
-        guard !interfaces.contains(interface) else { return }
-        interfaces.append(interface)
-
-        for baseInterface in interface.definition.baseInterfaces {
-            try visit(baseInterface.interface.bindGenericParams(typeArgs: interface.genericArgs))
-        }
-    }
-
-    for baseInterface in type.definition.baseInterfaces {
-        try visit(try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs))
-    }
-
-    return interfaces
-}
-
 struct SecondaryInterfaceDeclaration {
     public let storedPropertyName: String
     public let lazyComputedPropertyName: String

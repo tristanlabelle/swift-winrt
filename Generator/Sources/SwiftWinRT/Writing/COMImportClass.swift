@@ -53,7 +53,8 @@ internal func writeCOMImportClass(
         // Secondary interface implementations
         if type.definition is InterfaceDefinition {
             var propertiesToRelease = [String]()
-            for secondaryInterface in try getAllBaseInterfaces(type) {
+            for baseInterface in type.definition.baseInterfaces {
+                let secondaryInterface = try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs)
                 try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
                 let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
                 try writeInterfaceImplementation(

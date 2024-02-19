@@ -14,18 +14,20 @@ internal struct ThisPointer {
 }
 
 internal func writeInterfaceImplementation(
-        interfaceOrDelegate: BoundType, static: Bool = false, thisPointer: ThisPointer,
+        interfaceOrDelegate: BoundType, overridable: Bool = false, static: Bool = false, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     for property in interfaceOrDelegate.definition.properties {
         try writeInterfacePropertyImplementation(
             property, typeGenericArgs: interfaceOrDelegate.genericArgs,
-            static: `static`, thisPointer: thisPointer, projection: projection, to: writer)
+            overridable: overridable, static: `static`, thisPointer: thisPointer,
+            projection: projection, to: writer)
     }
 
     for event in interfaceOrDelegate.definition.events {
         try writeInterfaceEventImplementation(
             event, typeGenericArgs: interfaceOrDelegate.genericArgs,
-            static: `static`, thisPointer: thisPointer, projection: projection, to: writer)
+            overridable: overridable, static: `static`, thisPointer: thisPointer,
+            projection: projection, to: writer)
     }
 
     for method in interfaceOrDelegate.definition.methods {
@@ -34,19 +36,20 @@ internal func writeInterfaceImplementation(
         guard method.nameKind == .regular || interfaceOrDelegate.definition is DelegateDefinition else { continue }
         try writeInterfaceMethodImplementation(
             method, typeGenericArgs: interfaceOrDelegate.genericArgs,
-            static: `static`, thisPointer: thisPointer, projection: projection, to: writer)
+            overridable: overridable, static: `static`, thisPointer: thisPointer,
+            projection: projection, to: writer)
     }
 }
 
 fileprivate func writeInterfacePropertyImplementation(
-        _ property: Property, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
+        _ property: Property, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     // public [static] var myProperty: MyPropertyType { get throws { .. } }
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeComputedProperty(
                 documentation: try projection.getDocumentationComment(property),
-                visibility: .public,
+                visibility: overridable ? .open : .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
                 type: returnParamProjection.toSwiftReturnType(),
@@ -77,7 +80,7 @@ fileprivate func writeInterfacePropertyImplementation(
 }
 
 fileprivate func writeInterfaceEventImplementation(
-        _ event: Event, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
+        _ event: Event, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let name = SwiftProjection.toMemberName(event)
 
@@ -87,7 +90,7 @@ fileprivate func writeInterfaceEventImplementation(
         let eventRegistrationType = SupportModule.eventRegistration
         try writer.writeFunc(
                 documentation: try projection.getDocumentationComment(event),
-                visibility: .public, static: `static`, name: name,
+                visibility: overridable ? .open : .public, static: `static`, name: name,
                 params: [ handlerParamProjection.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
             // Convert the return token into an EventRegistration type for ease of unregistering
@@ -108,7 +111,7 @@ fileprivate func writeInterfaceEventImplementation(
         let tokenParamProjection = try projection.getParamProjection(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 documentation: try projection.getDocumentationComment(event),
-                visibility: .public,
+                visibility: overridable ? .open : .public,
                 static: `static`,
                 name: name,
                 params: [ tokenParamProjection.toSwiftParam(label: "removing") ],
@@ -122,12 +125,12 @@ fileprivate func writeInterfaceEventImplementation(
 }
 
 fileprivate func writeInterfaceMethodImplementation(
-        _ method: Method, typeGenericArgs: [TypeNode], static: Bool = false, thisPointer: ThisPointer,
+        _ method: Method, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             documentation: try projection.getDocumentationComment(method),
-            visibility: .public,
+            visibility: overridable ? .open : .public,
             static: `static`,
             name: SwiftProjection.toMemberName(method),
             params: params.map { $0.toSwiftParam() },

@@ -144,6 +144,7 @@ extension SwiftDeclarationWriter {
         convenience: Bool = false,
         override: Bool = false,
         failable: Bool = false,
+        genericParams: [String] = [],
         params: [SwiftParam] = [],
         throws: Bool = false,
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
@@ -157,6 +158,11 @@ extension SwiftDeclarationWriter {
         if `override` { output.write("override ") }
         output.write("init")
         if failable { output.write("?") }
+        if !genericParams.isEmpty {
+            output.write("<")
+            output.write(genericParams.joined(separator: ", "))
+            output.write(">")
+        }
         writeParams(params)
         if `throws` {
             output.write(" throws")

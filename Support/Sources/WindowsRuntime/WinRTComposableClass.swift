@@ -19,8 +19,7 @@ open class WinRTComposableClass: IInspectableProtocol {
 
     public typealias ComposableFactory<Interface> = (
         _ outer: IInspectablePointer?,
-        _ inner: UnsafeMutablePointer<IInspectablePointer?>?,
-        _ value: UnsafeMutablePointer<UnsafeMutablePointer<Interface>?>) -> HResultProjection.ABIValue
+        _ inner: inout IInspectablePointer?) throws -> UnsafeMutablePointer<Interface>?
 
     /// Initializer for instances created in Swift
     /// - Parameter _compose: Whether to create a composed object that supports method overrides in Swift.
@@ -39,8 +38,7 @@ open class WinRTComposableClass: IInspectableProtocol {
 
             // Create the inner object
             var inner: IInspectablePointer? = nil
-            var composed: UnsafeMutablePointer<Interface>? = nil
-            try WinRTError.throwIfFailed(_factory(IInspectablePointer.cast(outer.unknownPointer), &inner, &composed))
+            let composed: UnsafeMutablePointer<Interface>? = try _factory(IInspectablePointer.cast(outer.unknownPointer), &inner)
 
             // Like C++/WinRT, discard the composed object and only use the inner object
             // See "[[maybe_unused]] auto winrt_impl_discarded = f.CreateInstance(*this, this->minner);"
@@ -52,11 +50,11 @@ open class WinRTComposableClass: IInspectableProtocol {
         }
         else {
             // We're not overriding any methods, so create a vanilla composed object to avoid indirections.
-            var composed: UnsafeMutablePointer<Interface>? = nil
-            try WinRTError.throwIfFailed(_factory(nil, nil, &composed))
-            guard let composed else { throw HResult.Error.fail }
-            inner = IInspectablePointer.cast(composed)
-            outer = .uninitialized
+            var inner: IInspectablePointer? = nil
+            defer { IInspectableProjection.release(&inner) }
+            guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
+            self.inner = IInspectablePointer.cast(composed)
+            self.outer = .uninitialized
         }
     }
 

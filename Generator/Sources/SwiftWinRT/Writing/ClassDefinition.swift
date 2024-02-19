@@ -92,13 +92,15 @@ fileprivate func writeInterfaceImplementations(
 
     // Secondary interface implementations
     var propertiesToRelease = [String]()
-    for secondaryInterface in try getAllBaseInterfaces(classDefinition.bindType()) {
+    for baseInterface in classDefinition.baseInterfaces {
+        let secondaryInterface = try baseInterface.interface
         if !composable, secondaryInterface == defaultInterface { continue }
 
         try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
         let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
         try writeInterfaceImplementation(
             interfaceOrDelegate: secondaryInterface.asBoundType,
+            overridable: try baseInterface.hasAttribute(OverridableAttribute.self),
             thisPointer: declaration.thisPointer,
             projection: projection, to: writer)
         propertiesToRelease.append(declaration.storedPropertyName)
@@ -138,6 +140,48 @@ fileprivate func writeComposableInitializers(
         type: .unsafeMutablePointer(to: .chain(projection.abiModuleName, defaultInterfaceABIName)))
     writer.writeInit(visibility: .public, params: [param]) { writer in
         writer.writeStatement("super.init(_transferringRef: IInspectablePointer.cast(comPointer))")
+    }
+
+    let factoryInterfaces = try classDefinition.getAttributes(ComposableAttribute.self).map { $0.factory }
+    if !factoryInterfaces.isEmpty {
+        // public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
+        writer.writeInit(visibility: .public,
+                override: true,
+                genericParams: [ "Interface" ],
+                params: [ SwiftParam(name: "_compose", type: .bool),
+                          SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("Interface") ])) ],
+                throws: true) { writer in
+            writer.writeStatement("try super.init(_compose: _compose, _factory: _factory)")
+        }
+    }
+
+    for factoryInterface in factoryInterfaces {
+        writer.writeCommentLine(try WinRTTypeName.from(type: factoryInterface.bindType()).description)
+        let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
+            factoryInterface.bind(), staticOf: classDefinition, projection: projection, to: writer)
+
+        for method in factoryInterface.methods {
+            // The last 2 params should be the IInspectable outer and inner pointers
+            let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
+            try writer.writeInit(
+                    documentation: try projection.getDocumentationComment(method),
+                    visibility: .public,
+                    convenience: true,
+                    params: params.dropLast(2).map { $0.toSwiftParam() },
+                    throws: true) { writer in
+                let output = writer.output
+                let composeCondition = "Self.self == \(try projection.toTypeName(classDefinition)).self"
+                try output.writeIndentedBlock(header: "try self.init(_compose: \(composeCondition)) {", footer: "}") {
+                    let outerObjectParamName = params[params.count - 2].name
+                    let innerObjectParamName = params[params.count - 1].name
+                    output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
+                    try writeInteropMethodCall(
+                        name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
+                        thisPointer: .init(name: "Self.\(interfaceDeclaration.lazyComputedPropertyName)", lazy: true),
+                        projection: projection, to: writer.output)
+                }
+            }
+        }
     }
 }
 
