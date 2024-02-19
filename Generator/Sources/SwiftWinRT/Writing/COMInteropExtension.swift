@@ -69,7 +69,13 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, m
 
     if abiType.definition is InterfaceDefinition {
         // COM interfaces for WinRT interfaces are IInspectable-compatible. This is not true for delegates.
-        writer.output.writeFullLine(grouping: .never, "extension \(qualifiedAbiName): @retroactive WindowsRuntime.COMIInspectableStruct {}")
+        // @retroactive is only supported in Swift 5.10 and above.
+        let group = writer.output.allocateVerticalGrouping()
+        writer.output.writeFullLine(grouping: group, "#if swift(>=5.10)")
+        writer.output.writeFullLine(grouping: group, "extension \(qualifiedAbiName): @retroactive \(SupportModule.comIInspectableStruct) {}")
+        writer.output.writeFullLine(grouping: group, "#else")
+        writer.output.writeFullLine(grouping: group, "extension \(qualifiedAbiName): \(SupportModule.comIInspectableStruct) {}")
+        writer.output.writeFullLine(grouping: group, "#endif")
     }
 
     try writer.writeExtension(name: "COMInterop", whereClauses: [ "Interface == \(qualifiedAbiName)" ]) { writer in

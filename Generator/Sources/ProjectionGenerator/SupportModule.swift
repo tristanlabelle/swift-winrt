@@ -26,6 +26,7 @@ public enum SupportModule {
 extension SupportModule {
     public static var winrtModuleName: String { "WindowsRuntime" }
 
+    public static var comIInspectableStruct: SwiftType { .chain(winrtModuleName, "COMIInspectableStruct") }
     public static var eventRegistration: SwiftType { .chain(winrtModuleName, "EventRegistration") }
     public static var eventRegistrationToken: SwiftType { .chain(winrtModuleName, "EventRegistrationToken") }
     public static var hstringProjection: SwiftType { .chain(winrtModuleName, "HStringProjection") }

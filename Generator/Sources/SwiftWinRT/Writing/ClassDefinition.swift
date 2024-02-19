@@ -151,6 +151,7 @@ fileprivate func writeActivationFactoryInitializers(
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
         try writer.writeInit(
+                documentation: try projection.getDocumentationComment(method),
                 visibility: .public,
                 convenience: true,
                 params: params.map { $0.toSwiftParam() },

@@ -45,6 +45,7 @@ fileprivate func writeInterfacePropertyImplementation(
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeComputedProperty(
+                documentation: try projection.getDocumentationComment(property),
                 visibility: .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
@@ -61,6 +62,7 @@ fileprivate func writeInterfacePropertyImplementation(
         guard let newValueParam = try setter.params.first else { fatalError() }
         let newValueParamProjection = try projection.getParamProjection(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
+                documentation: try projection.getDocumentationComment(property),
                 visibility: .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
@@ -84,6 +86,7 @@ fileprivate func writeInterfaceEventImplementation(
         let handlerParamProjection = try projection.getParamProjection(handlerParameter, genericTypeArgs: typeGenericArgs)
         let eventRegistrationType = SupportModule.eventRegistration
         try writer.writeFunc(
+                documentation: try projection.getDocumentationComment(event),
                 visibility: .public, static: `static`, name: name,
                 params: [ handlerParamProjection.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
@@ -104,6 +107,7 @@ fileprivate func writeInterfaceEventImplementation(
     if let removeAccessor = try event.removeAccessor, let tokenParameter = try removeAccessor.params.first {
         let tokenParamProjection = try projection.getParamProjection(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
+                documentation: try projection.getDocumentationComment(event),
                 visibility: .public,
                 static: `static`,
                 name: name,
@@ -122,6 +126,7 @@ fileprivate func writeInterfaceMethodImplementation(
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
+            documentation: try projection.getDocumentationComment(method),
             visibility: .public,
             static: `static`,
             name: SwiftProjection.toMemberName(method),
