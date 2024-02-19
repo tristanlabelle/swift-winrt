@@ -42,25 +42,25 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
 
 fileprivate enum ABIInterfaceUsage {
     case activationFactory
-    case compositionFactory
+    case composableFactory
     case other
-}
 
-fileprivate func getABIInterfaceUsage(_ typeDefinition: TypeDefinition) throws -> ABIInterfaceUsage {
-    if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self)?.target {
-        for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
-            if activatableAttribute.factory == typeDefinition {
-                return .activationFactory
+    static func from(typeDefinition: TypeDefinition) throws -> ABIInterfaceUsage {
+        if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self)?.target {
+            for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
+                if activatableAttribute.factory == typeDefinition {
+                    return .activationFactory
+                }
+            }
+
+            for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
+                if composableAttribute.factory == typeDefinition {
+                    return .composableFactory
+                }
             }
         }
-
-        // for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
-        //     if composableAttribute.factory == typeDefinition {
-        //         return .activationFactory
-        //     }
-        // }
+        return .other
     }
-    return .other
 }
 
 fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
@@ -78,6 +78,8 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, m
         writer.output.writeFullLine(grouping: group, "#endif")
     }
 
+    let interfaceUsage = try ABIInterfaceUsage.from(typeDefinition: abiType.definition)
+
     try writer.writeExtension(name: "COMInterop", whereClauses: [ "Interface == \(qualifiedAbiName)" ]) { writer in
         // static let iid: COMInterfaceID = COMInterfaceID(...)
         writer.writeStoredProperty(visibility: visibility, static: true, declarator: .let, name: "iid",
@@ -86,42 +88,10 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, m
         for method in abiType.definition.methods {
             // For delegates, only expose the Invoke method
             guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
-
-            let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
-            var (paramProjections, returnProjection) = try module.projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
-
-            switch try getABIInterfaceUsage(abiType.definition) {
-                case .activationFactory:
-                    // Prevent the return value from being projected to Swift.
-                    // Activation factory methods are called in class constructors,
-                    // which need the resulting COM pointer for initialization.
-                    let oldReturnProjection = returnProjection!
-                    let pointerType = oldReturnProjection.typeProjection.abiType
-                    returnProjection = ParamProjection(
-                        name: oldReturnProjection.name,
-                        typeProjection: TypeProjection(
-                            swiftType: pointerType,
-                            swiftDefaultValue: .expression("nil"),
-                            projectionType: .void, // No projection needed
-                            kind: .identity,
-                            abiType: pointerType,
-                            abiDefaultValue: .expression("nil")),
-                        passBy: oldReturnProjection.passBy)
-                default: break
-            }
-
-            // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
-            try writer.writeFunc(
-                    visibility: visibility,
-                    name: SwiftProjection.toInteropMethodName(method),
-                    params: paramProjections.map { $0.toSwiftParam() },
-                    throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
-                try writeSwiftToAbiCall(
-                    abiMethodName: abiMethodName,
-                    params: paramProjections,
-                    returnParam: returnProjection,
-                    to: writer)
-            }
+            try writeCOMInteropMethod(
+                method, typeGenericArgs: abiType.genericArgs,
+                visibility: visibility, interfaceUsage: interfaceUsage,
+                projection: module.projection, to: writer)
         }
     }
 }
@@ -152,6 +122,58 @@ fileprivate func toIIDExpression(_ uuid: UUID) throws -> String {
             minimumLength: 12)
     ]
     return "COMInterfaceID(\(arguments.joined(separator: ", ")))"
+}
+
+fileprivate func writeCOMInteropMethod(
+        _ method: Method, typeGenericArgs: [TypeNode],
+        visibility: SwiftVisibility, interfaceUsage: ABIInterfaceUsage,
+        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+    let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
+    var (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
+
+    func preserveAbi(_ param: ParamProjection) -> ParamProjection {
+        let abiType = param.typeProjection.abiType
+        return ParamProjection(
+            name: param.name,
+            typeProjection: TypeProjection(
+                swiftType: abiType,
+                swiftDefaultValue: .expression("nil"),
+                projectionType: .void, // No projection needed
+                kind: .identity,
+                abiType: abiType,
+                abiDefaultValue: .expression("nil")),
+            passBy: param.passBy)
+    }
+
+    switch interfaceUsage {
+        case .activationFactory:
+            // Prevent the return value from being projected to Swift.
+            // Activation factory methods are called in class constructors,
+            // which need the resulting COM pointer for initialization.
+            returnProjection = preserveAbi(returnProjection!)
+
+        case .composableFactory:
+            let paramCount = paramProjections.count
+            // Preserve the pointer to the outer and inner inspectables
+            paramProjections[paramCount - 1] = preserveAbi(paramProjections[paramCount - 1])
+            paramProjections[paramCount - 2] = preserveAbi(paramProjections[paramCount - 2])
+            returnProjection = preserveAbi(returnProjection!)
+
+        default: break
+    }
+
+    // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
+    try writer.writeFunc(
+            visibility: visibility,
+            name: SwiftProjection.toInteropMethodName(method),
+            params: paramProjections.map { $0.toSwiftParam() },
+            throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
+        try writeSwiftToAbiCall(
+            abiMethodName: abiMethodName,
+            params: paramProjections,
+            returnParam: returnProjection,
+            to: writer)
+    }
 }
 
 fileprivate func writeSwiftToAbiCall(
