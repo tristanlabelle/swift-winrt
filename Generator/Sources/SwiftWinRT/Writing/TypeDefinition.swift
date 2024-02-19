@@ -42,11 +42,13 @@ fileprivate func writeEnumDefinition(_ enumDefinition: EnumDefinition, projectio
 
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             let value = SwiftProjection.toConstant(try field.literalValue!)
+            // Avoid "warning: static property '<foo>' produces an empty option set"
+            let initializer = value == "0" ? "Self()" : "Self(rawValue: \(value))"
             try writer.writeStoredProperty(
                 documentation: projection.getDocumentationComment(field),
                 visibility: .public, static: true, declarator: .let,
                 name: SwiftProjection.toMemberName(field),
-                initialValue: "Self(rawValue: \(value))")
+                initialValue: initializer)
         }
     }
 }
