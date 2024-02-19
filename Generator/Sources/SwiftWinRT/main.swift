@@ -28,7 +28,7 @@ do {
         generateCommand: generateCommand,
         projectionConfig: projectionConfig,
         assemblyLoadContext: context)
-    try writeProjection(projection, generateCommand: generateCommand)
+    try writeProjectionFiles(projection, generateCommand: generateCommand)
 
     if generateCommand.package {
         writeSwiftPackageFile(
@@ -38,7 +38,7 @@ do {
     }
 
     if let exeManifestPath = generateCommand.exeManifestPath {
-        try writeExeManifest(projectionConfig: projectionConfig, projection: projection, path: exeManifestPath)
+        try writeExeManifestFile(projectionConfig: projectionConfig, projection: projection, toPath: exeManifestPath)
     }
 }
 catch let error {

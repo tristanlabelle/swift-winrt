@@ -4,7 +4,7 @@ import ProjectionGenerator
 import FoundationXML
 import struct Foundation.URL
 
-func writeExeManifest(projectionConfig: ProjectionConfig, projection: SwiftProjection, path: String) throws {
+internal func writeExeManifestFile(projectionConfig: ProjectionConfig, projection: SwiftProjection, toPath path: String) throws {
     var activatableClassesPerFileName: OrderedDictionary<String, [String]> = [:]
     for module in projection.modulesByName.values {
         guard let moduleConfig = projectionConfig.modules[module.name],

@@ -5,6 +5,32 @@ import ProjectionGenerator
 import CodeWriters
 import struct Foundation.UUID
 
+internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+
+    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
+        for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
+            guard typeDefinition.isPublic,
+                !SupportModule.hasBuiltInProjection(typeDefinition),
+                try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
+
+            try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
+        }
+    }
+
+    let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
+        .sorted { $0.key.fullName < $1.key.fullName }
+    for (typeDefinition, instantiations) in closedGenericTypesByDefinition {
+        guard !SupportModule.hasBuiltInProjection(typeDefinition) else { continue }
+
+        for genericArgs in instantiations {
+            try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
+        }
+    }
+}
+
 /// Writes a type or extension providing the ABIProjection conformance for a given projected WinRT type.
 internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     if let structDefinition = typeDefinition as? StructDefinition {

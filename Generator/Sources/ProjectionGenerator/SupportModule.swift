@@ -1,4 +1,5 @@
 import CodeWriters
+import DotNetMetadata
 
 public enum SupportModule {
     public static var comModuleName: String { "COM" }
@@ -35,5 +36,17 @@ extension SupportModule {
 
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(winrtModuleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
+    }
+}
+
+extension SupportModule {
+    public static func hasBuiltInProjection(_ typeDefinition: TypeDefinition) -> Bool {
+        if typeDefinition.namespace == "Windows.Foundation" {
+            switch typeDefinition.name {
+                case "EventRegistrationToken", "HResult", "IReference`1": return true
+                default: return false
+            }
+        }
+        return false
     }
 }
