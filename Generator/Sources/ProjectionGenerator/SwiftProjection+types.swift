@@ -131,10 +131,10 @@ extension SwiftProjection {
                 return TypeProjection(
                     swiftType: .bool,
                     swiftDefaultValue: "false",
-                    projectionType: SupportModule.bool8Projection,
+                    projectionType: SupportModule.boolProjection,
                     kind: .inert,
-                    abiType: .chain(abiModuleName, CAbi.boolName),
-                    abiDefaultValue: "0")
+                    abiType: .bool,
+                    abiDefaultValue: "false")
             case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8))
             case .integer(.int16): return .numeric(swiftType: .int(bits: 16))
             case .integer(.uint16): return .numeric(swiftType: .uint(bits: 16))

@@ -3,7 +3,7 @@ import CWinRTCore
 import struct Foundation.UUID
 
 extension IReferenceProjection {
-    public typealias Bool = Primitive<Bool8Projection>
+    public typealias Bool = Primitive<BoolProjection>
     public typealias UInt8 = Primitive<NumericProjection<Swift.UInt8>>
     public typealias Int16 = Primitive<NumericProjection<Swift.Int16>>
     public typealias UInt16 = Primitive<NumericProjection<Swift.UInt16>>
@@ -25,7 +25,7 @@ extension IReferenceProjection {
 
         public static var interfaceID: COMInterfaceID {
             switch Projection.self {
-                case is Bool8Projection.Type: COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A)
+                case is BoolProjection.Type: COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A)
                 case is NumericProjection<Swift.UInt8>.Type: COMInterfaceID(0xE5198CC8, 0x2873, 0x55F5, 0xB0A1, 0x84FF9E4AAD62)
                 case is NumericProjection<Swift.Int16>.Type: COMInterfaceID(0x6EC9E41B, 0x6709, 0x5647, 0x9918, 0xA1270110FC4E)
                 case is NumericProjection<Swift.UInt16>.Type: COMInterfaceID(0x5AB7D2C3, 0x6B62, 0x5E71, 0xA4B6, 0x2D49C4F238FD)
