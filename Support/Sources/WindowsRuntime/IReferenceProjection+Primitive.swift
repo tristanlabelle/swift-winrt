@@ -55,61 +55,33 @@ extension IReferenceProjection {
         public static func toABI(_ value: SwiftValue) throws -> ABIValue {
             guard let value else { return nil }
 
-            let propertyValueStatics = try getPropertyValueStaticsNoRef()
-            let virtualTable = propertyValueStatics.pointee.lpVtbl!
-            var boxed: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
-            defer { IInspectableProjection.release(&boxed) }
-            try WinRTError.throwIfFailed({
-                switch value {
-                    case let value as Swift.Bool:
-                        return virtualTable.pointee.CreateBoolean(propertyValueStatics, value, &boxed)
+            var propertyValue: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
+            defer { IInspectableProjection.release(&propertyValue) }
+            switch value {
+                case let value as Swift.Bool: propertyValue = try propertyValueStatics.createBoolean(value)
+                case let value as Swift.UInt8: propertyValue = try propertyValueStatics.createUInt8(value)
+                case let value as Swift.Int16: propertyValue = try propertyValueStatics.createInt16(value)
 
-                    case let value as Swift.UInt8:
-                        return virtualTable.pointee.CreateUInt8(propertyValueStatics, value, &boxed)
+                // UInt16 aka Unicode.UTF16.CodeUnit must be disambiguated from the projection type
+                case let value as Swift.UInt16:
+                    propertyValue = try Projection.self == COM.WideCharProjection.self
+                        ? propertyValueStatics.createChar16(value)
+                        : propertyValueStatics.createUInt16(value)
 
-                    case let value as Swift.Int16:
-                        return virtualTable.pointee.CreateInt16(propertyValueStatics, value, &boxed)
+                case let value as Swift.Int32: propertyValue = try propertyValueStatics.createInt32(value)
+                case let value as Swift.UInt32: propertyValue = try propertyValueStatics.createUInt32(value)
+                case let value as Swift.Int64: propertyValue = try propertyValueStatics.createInt64(value)
+                case let value as Swift.UInt64: propertyValue = try propertyValueStatics.createUInt64(value)
+                case let value as Swift.Float: propertyValue = try propertyValueStatics.createSingle(value)
+                case let value as Swift.Double: propertyValue = try propertyValueStatics.createDouble(value)
+                case let value as Swift.String: propertyValue = try propertyValueStatics.createString(value)
+                case let value as Foundation.UUID: propertyValue = try propertyValueStatics.createGuid(value)
+                default: throw HResult.Error.fail
+            }
 
-                    // UInt16 aka Unicode.UTF16.CodeUnit must be disambiguated from the projection type
-                    case let value as Swift.UInt16:
-                        return Projection.self == COM.WideCharProjection.self
-                            ? virtualTable.pointee.CreateChar16(propertyValueStatics, value, &boxed)
-                            : virtualTable.pointee.CreateUInt16(propertyValueStatics, value, &boxed)
+            guard let propertyValue else { throw HResult.Error.noInterface }
 
-                    case let value as Swift.Int32:
-                        return virtualTable.pointee.CreateInt32(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.UInt32:
-                        return virtualTable.pointee.CreateUInt32(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.Int64:
-                        return virtualTable.pointee.CreateInt64(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.UInt64:
-                        return virtualTable.pointee.CreateUInt64(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.Float:
-                        return virtualTable.pointee.CreateSingle(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.Double:
-                        return virtualTable.pointee.CreateDouble(propertyValueStatics, value, &boxed)
-
-                    case let value as Swift.String:
-                        var abiValue = try HStringProjection.toABI(value)
-                        defer { HStringProjection.release(&abiValue) }
-                        return virtualTable.pointee.CreateString(propertyValueStatics, abiValue, &boxed)
-
-                    case let value as Foundation.UUID:
-                        let abiValue = COM.GUIDProjection.toABI(value)
-                        return virtualTable.pointee.CreateGuid(propertyValueStatics, abiValue, &boxed)
-
-                    default: return HResult.fail.value
-                }
-            }())
-
-            guard let boxed else { throw HResult.Error.noInterface }
-
-            return try IUnknownPointer.queryInterface(boxed, Self.interfaceID).cast(to: CWinRTCore.SWRT_IReference.self)
+            return try IUnknownPointer.queryInterface(propertyValue, Self.interfaceID).cast(to: CWinRTCore.SWRT_IReference.self)
         }
 
         public static func release(_ value: inout ABIValue) {
