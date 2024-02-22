@@ -52,7 +52,7 @@ fileprivate func writeInterfacePropertyImplementation(
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
-                type: returnParamProjection.toSwiftReturnType(),
+                type: returnParamProjection.swiftType,
                 throws: true) { writer throws in
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(getter), params: [], returnParam: returnParamProjection,
@@ -135,7 +135,7 @@ fileprivate func writeInterfaceMethodImplementation(
             name: SwiftProjection.toMemberName(method),
             params: params.map { $0.toSwiftParam() },
             throws: true,
-            returnType: returnParam?.toSwiftReturnType()) { writer throws in
+            returnType: returnParam?.swiftType) { writer throws in
         try writeInteropMethodCall(
             name: SwiftProjection.toInteropMethodName(method),
             params: params, returnParam: returnParam,

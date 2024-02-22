@@ -2,12 +2,23 @@ import CodeWriters
 
 /// Describes a type's Swift and ABI representation, and how to project between the two.
 public struct TypeProjection {
-    public enum DefaultValue: ExpressibleByStringLiteral {
-        case fromProjectionType // Projection.abiDefaultValue
+    public enum DefaultValue: ExpressibleByStringLiteral, CustomStringConvertible {
         case defaultInitializer // .init()
         case expression(String)
 
         public init(stringLiteral value: String) { self = .expression(value) }
+
+        public static var zero: DefaultValue { .expression("0") }
+        public static var `false`: DefaultValue { .expression("false") }
+        public static var `nil`: DefaultValue { .expression("nil") }
+        public static var emptyString: DefaultValue { .expression("\"\"") }
+
+        public var description: String {
+            switch self {
+                case .defaultInitializer: return ".init()"
+                case .expression(let expression): return expression
+            }
+        }
     }
 
     public enum Kind: Hashable {
@@ -21,59 +32,38 @@ public struct TypeProjection {
         case array
     }
 
+    /// The type for the ABI representation of values, e.g. `UnsafeMutablePointer<SWRT_IFoo>?`.
+    public let abiType: SwiftType
+    /// The default value for the ABI representation, e.g. `nil`.
+    public let abiDefaultValue: DefaultValue
     /// The type for the Swift representation of values, e.g. `IFoo`.
     public let swiftType: SwiftType
     /// The default value for the Swift representation, e.g. `nil`.
-    public let swiftDefaultValueEnum: DefaultValue
-    /// The type for the ABI representation of values, e.g. `UnsafeMutablePointer<SWRT_IFoo>?`.
-    public let abiType: SwiftType
-    /// The kind of projection to be performed.
-    public let kind: Kind
+    public let swiftDefaultValue: DefaultValue
     /// The type implementing the `ABIProjection` protocol, e.g. `IFooProjection`.
     public let projectionType: SwiftType
-    /// The default value for the ABI representation, e.g. `nil`.
-    public let abiDefaultValueEnum: DefaultValue
-
-    public var swiftDefaultValue: String {
-        switch swiftDefaultValueEnum {
-            case .fromProjectionType: fatalError()
-            case .defaultInitializer: return "\(swiftType)()"
-            case .expression(let expression): return expression
-        }
-    }
-
-    public var abiDefaultValue: String {
-        switch abiDefaultValueEnum {
-            case .fromProjectionType: return "\(projectionType).abiDefaultValue"
-            case .defaultInitializer: return "\(abiType)()"
-            case .expression(let expression): return expression
-        }
-    }
+    /// The kind of projection to be performed.
+    public let kind: Kind
 
     public init(
-            swiftType: SwiftType,
-            swiftDefaultValue: DefaultValue,
-            projectionType: SwiftType,
-            kind: Kind,
-            abiType: SwiftType? = nil,
-            abiDefaultValue: DefaultValue = .fromProjectionType) {
-        guard case .chain(let projectionTypeChain) = projectionType else { preconditionFailure() }
-
+            abiType: SwiftType, abiDefaultValue: DefaultValue,
+            swiftType: SwiftType, swiftDefaultValue: DefaultValue,
+            projectionType: SwiftType, kind: Kind) {
+        self.abiType = abiType
+        self.abiDefaultValue = abiDefaultValue
         self.swiftType = swiftType
-        self.swiftDefaultValueEnum = swiftDefaultValue
+        self.swiftDefaultValue = swiftDefaultValue
         self.projectionType = projectionType
         self.kind = kind
-        self.abiType = abiType ?? .chain(projectionTypeChain.appending("ABIValue"))
-        self.abiDefaultValueEnum = abiDefaultValue
     }
 
-    public static func numeric(swiftType: SwiftType, abiType: SwiftType? = nil) -> TypeProjection {
+    public static func numeric(_ type: SwiftType) -> TypeProjection {
         TypeProjection(
-            swiftType: swiftType,
+            abiType: type,
+            abiDefaultValue: "0",
+            swiftType: type,
             swiftDefaultValue: "0",
-            projectionType: .identifier("NumericProjection", genericArgs: [swiftType]),
-            kind: .identity,
-            abiType: abiType ?? swiftType,
-            abiDefaultValue: "0")
+            projectionType: .identifier("NumericProjection", genericArgs: [type]),
+            kind: .identity)
     }
 }

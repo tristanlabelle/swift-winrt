@@ -49,12 +49,12 @@ extension SwiftProjection {
                 let elementProjection = try getTypeProjection(element)
                 let swiftType = SwiftType.array(element: elementProjection.swiftType)
                 return TypeProjection(
+                    abiType: SupportModule.comArray(of: elementProjection.abiType),
+                    abiDefaultValue: .defaultInitializer,
                     swiftType: swiftType,
                     swiftDefaultValue: "[]",
                     projectionType: SupportModule.winRTArrayProjection(of: elementProjection.projectionType),
-                    kind: .array,
-                    abiType: SupportModule.comArray(of: elementProjection.abiType),
-                    abiDefaultValue: ".null")
+                    kind: .array)
 
             default:
                 fatalError("Not implemented: projecting values of type \(type)")
@@ -96,12 +96,12 @@ extension SwiftProjection {
         }()
 
         return TypeProjection(
+            abiType: abiType,
+            abiDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             swiftType: try toType(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             projectionType: projectionType,
-            kind: type.definition.isValueType ? .inert : .allocating,
-            abiType: abiType,
-            abiDefaultValue: type.definition.isReferenceType ? "nil" : .fromProjectionType)
+            kind: type.definition.isValueType ? .inert : .allocating)
     }
 
     private func getSpecialTypeProjection(_ type: BoundType) throws -> TypeProjection? {
@@ -129,51 +129,53 @@ extension SwiftProjection {
         switch systemType {
             case .boolean:
                 return TypeProjection(
-                    swiftType: .bool,
-                    swiftDefaultValue: "false",
-                    projectionType: SupportModule.boolProjection,
-                    kind: .inert,
                     abiType: .bool,
-                    abiDefaultValue: "false")
-            case .integer(.uint8): return .numeric(swiftType: .uint(bits: 8))
-            case .integer(.int16): return .numeric(swiftType: .int(bits: 16))
-            case .integer(.uint16): return .numeric(swiftType: .uint(bits: 16))
-            case .integer(.int32): return .numeric(swiftType: .int(bits: 32))
-            case .integer(.uint32): return .numeric(swiftType: .uint(bits: 32))
-            case .integer(.int64): return .numeric(swiftType: .int(bits: 64))
-            case .integer(.uint64): return .numeric(swiftType: .uint(bits: 64))
-            case .float(double: false): return .numeric(swiftType: .float)
-            case .float(double: true): return .numeric(swiftType: .double)
+                    abiDefaultValue: .`false`,
+                    swiftType: .bool,
+                    swiftDefaultValue: .`false`,
+                    projectionType: SupportModule.boolProjection,
+                    kind: .inert)
+            case .integer(.uint8): return .numeric(.uint(bits: 8))
+            case .integer(.int16): return .numeric(.int(bits: 16))
+            case .integer(.uint16): return .numeric(.uint(bits: 16))
+            case .integer(.int32): return .numeric(.int(bits: 32))
+            case .integer(.uint32): return .numeric(.uint(bits: 32))
+            case .integer(.int64): return .numeric(.int(bits: 64))
+            case .integer(.uint64): return .numeric(.uint(bits: 64))
+            case .float(double: false): return .numeric(.float)
+            case .float(double: true): return .numeric(.double)
             case .char:
                 return TypeProjection(
+                    abiType: .chain("Swift", "UInt16"),
+                    abiDefaultValue: .zero,
                     swiftType: .chain("Swift", "Unicode", "UTF16", "CodeUnit"),
-                    swiftDefaultValue: "0",
+                    swiftDefaultValue: .zero,
                     projectionType: SupportModule.wideCharProjection,
-                    kind: .identity,
-                    abiType: .chain("Swift", "UInt16"))
+                    kind: .identity)
             case .guid:
                 return TypeProjection(
+                    abiType: .chain(abiModuleName, CAbi.guidName),
+                    abiDefaultValue: .defaultInitializer,
                     swiftType: .chain("Foundation", "UUID"),
                     swiftDefaultValue: .defaultInitializer,
                     projectionType: SupportModule.guidProjection,
-                    kind: .inert,
-                    abiType: .chain(abiModuleName, CAbi.guidName))
+                    kind: .inert)
             case .string:
                 return .init(
-                    swiftType: .string,
-                    swiftDefaultValue: "\"\"",
-                    projectionType: SupportModule.hstringProjection,
-                    kind: .allocating,
                     abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
-                    abiDefaultValue: "nil")
+                    abiDefaultValue: .nil,
+                    swiftType: .string,
+                    swiftDefaultValue: .emptyString,
+                    projectionType: SupportModule.hstringProjection,
+                    kind: .allocating)
             case .object:
                 return .init(
-                    swiftType: .optional(wrapped: SupportModule.iinspectable),
-                    swiftDefaultValue: "nil",
-                    projectionType: SupportModule.iinspectableProjection,
-                    kind: .allocating,
                     abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
-                    abiDefaultValue: "nil")
+                    abiDefaultValue: .nil,
+                    swiftType: .optional(wrapped: SupportModule.iinspectable),
+                    swiftDefaultValue: .nil,
+                    projectionType: SupportModule.iinspectableProjection,
+                    kind: .allocating)
         }
     }
 
@@ -186,21 +188,21 @@ extension SwiftProjection {
 
             case "EventRegistrationToken":
                 return TypeProjection(
+                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
+                    abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModule.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
                     projectionType: SupportModule.eventRegistrationToken,
-                    kind: .inert,
-                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
-                    abiDefaultValue: .defaultInitializer)
+                    kind: .inert)
 
             case "HResult":
                 return TypeProjection(
+                    abiType: .chain(abiModuleName, CAbi.hresultName),
+                    abiDefaultValue: .zero,
                     swiftType: SupportModule.hresult,
                     swiftDefaultValue: .defaultInitializer,
                     projectionType: SupportModule.hresultProjection,
-                    kind: .inert,
-                    abiType: .chain(abiModuleName, CAbi.hresultName),
-                    abiDefaultValue: "0")
+                    kind: .inert)
 
             default:
                 return nil
@@ -212,14 +214,15 @@ extension SwiftProjection {
                 let _ = WinRTSystemType(fromName: type.definition.name) {
             let typeProjection = try getTypeProjection(type.asNode)
             return TypeProjection(
+                abiType: .optional(wrapped: .unsafeMutablePointer(to: .chain(abiModuleName, CAbi.ireferenceName))),
+                abiDefaultValue: .nil,
                 swiftType: .optional(wrapped: typeProjection.swiftType),
-                swiftDefaultValue: "nil",
+                swiftDefaultValue: .nil,
                 projectionType: .chain(
                     .init("WindowsRuntime"),
                     .init("IReferenceProjection"),
                     .init("Primitive", genericArgs: [ typeProjection.projectionType ])),
-                kind: .allocating,
-                abiDefaultValue: "nil")
+                kind: .allocating)
         }
 
         return nil

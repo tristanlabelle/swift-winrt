@@ -131,17 +131,17 @@ fileprivate func writeCOMInteropMethod(
     let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
     var (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
 
-    func preserveAbi(_ param: ParamProjection) -> ParamProjection {
+    func preserveABIPointer(_ param: ParamProjection) -> ParamProjection {
         let abiType = param.typeProjection.abiType
         return ParamProjection(
             name: param.name,
             typeProjection: TypeProjection(
-                swiftType: abiType,
-                swiftDefaultValue: .expression("nil"),
-                projectionType: .void, // No projection needed
-                kind: .identity,
                 abiType: abiType,
-                abiDefaultValue: .expression("nil")),
+                abiDefaultValue: .`nil`,
+                swiftType: abiType,
+                swiftDefaultValue: .`nil`,
+                projectionType: .void, // No projection needed
+                kind: .identity),
             passBy: param.passBy)
     }
 
@@ -150,14 +150,14 @@ fileprivate func writeCOMInteropMethod(
             // Prevent the return value from being projected to Swift.
             // Activation factory methods are called in class constructors,
             // which need the resulting COM pointer for initialization.
-            returnProjection = preserveAbi(returnProjection!)
+            returnProjection = preserveABIPointer(returnProjection!)
 
         case .composableFactory:
             let paramCount = paramProjections.count
             // Preserve the pointer to the outer and inner inspectables
-            paramProjections[paramCount - 1] = preserveAbi(paramProjections[paramCount - 1])
-            paramProjections[paramCount - 2] = preserveAbi(paramProjections[paramCount - 2])
-            returnProjection = preserveAbi(returnProjection!)
+            paramProjections[paramCount - 1] = preserveABIPointer(paramProjections[paramCount - 1])
+            paramProjections[paramCount - 2] = preserveABIPointer(paramProjections[paramCount - 2])
+            returnProjection = preserveABIPointer(returnProjection!)
 
         default: break
     }
