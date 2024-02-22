@@ -131,7 +131,6 @@ fileprivate func writeStaticMembers(_ classDefinition: ClassDefinition, projecti
 fileprivate func writeComposableInitializers(
         _ classDefinition: ClassDefinition, defaultInterface: BoundInterface,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    // TODO: Use signatures from composable factory methods
     let defaultInterfaceABIName = try CAbi.mangleName(type: defaultInterface.asBoundType)
     // public init(transferringRef comPointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
     //     super.init(_transferringRef: IInspectablePointer.cast(comPointer))
@@ -170,7 +169,7 @@ fileprivate func writeComposableInitializers(
                     params: params.dropLast(2).map { $0.toSwiftParam() },
                     throws: true) { writer in
                 let output = writer.output
-                let composeCondition = "Self.self == \(try projection.toTypeName(classDefinition)).self"
+                let composeCondition = "Self.self != \(try projection.toTypeName(classDefinition)).self"
                 try output.writeIndentedBlock(header: "try self.init(_compose: \(composeCondition)) {", footer: "}") {
                     let outerObjectParamName = params[params.count - 2].name
                     let innerObjectParamName = params[params.count - 1].name

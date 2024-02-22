@@ -1,12 +1,17 @@
 import COM
 
 /// Base class for composable (unsealed) WinRT classes, implemented using COM aggregration.
+///
+/// There are three scenarios to support:
+/// - Wrapping an existing WinRT object pointer
+/// - Creating a new WinRT object, which does not need to support method overrides
+/// - Creating a derived Swift class that can override methods
 open class WinRTComposableClass: IInspectableProtocol {
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
     private var inner: IInspectablePointer // Strong ref'd
 
-    /// The outer interface, for Swift-created instances which may override methods
-    /// and which aggregate an inner pointer from WinRT as the base implementation.
+    /// The outer object, which brokers QueryInterface calls between the inner object
+    /// and any Swift overrides. This is only initialized for derived Swift classes.
     private var outer: COMExportedInterface
 
     /// Initializer for instances created in WinRT
@@ -34,7 +39,7 @@ open class WinRTComposableClass: IInspectableProtocol {
             // Reinitialize the outer object correctly
             outer = .init(
                 swiftObject: self,
-                virtualTable: withUnsafePointer(to: &Self.outerVirtualTable) { $0 })
+                virtualTable: IInspectableProjection.virtualTablePointer)
 
             // Create the inner object
             var inner: IInspectablePointer? = nil
@@ -50,32 +55,21 @@ open class WinRTComposableClass: IInspectableProtocol {
         }
         else {
             // We're not overriding any methods, so create a vanilla composed object to avoid indirections.
+            outer = .uninitialized
+
             var inner: IInspectablePointer? = nil
             defer { IInspectableProjection.release(&inner) }
             guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
             self.inner = IInspectablePointer.cast(composed)
-            self.outer = .uninitialized
         }
     }
-
-    // Virtual table for the outer IInspectable object, which calls methods on the Swift object, allowing overriding
-    private static var outerVirtualTable: IInspectableProjection.COMVirtualTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
-        GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
-        GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
-        GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) })
 
     deinit {
         IUnknownPointer.release(inner)
     }
 
-    public func _lazyInitInnerInterfacePointer<Interface>(_ pointer: inout UnsafeMutablePointer<Interface>?, _ id: COM.COMInterfaceID) throws -> UnsafeMutablePointer<Interface> {
-        if let existing = pointer { return existing }
-        let new = try IUnknownPointer.cast(inner).queryInterface(id).cast(to: Interface.self)
-        pointer = new
-        return new
+    public func _queryInnerInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer {
+        try IUnknownPointer.cast(inner).queryInterface(id)
     }
 
     open func _queryInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer {
@@ -117,7 +111,7 @@ open class WinRTComposableClass: IInspectableProtocol {
             return HResult.pointer.value
         }
 
-        let implementation = COMExportedInterface.unwrap(this) as! SwiftObject
+        let implementation = COMExportedInterface.unwrapUnsafe(this) as! SwiftObject
         return HResult.catchValue { try body(implementation) }
     }
 }
