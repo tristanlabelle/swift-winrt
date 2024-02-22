@@ -132,10 +132,10 @@ fileprivate func writeComposableInitializers(
         _ classDefinition: ClassDefinition, defaultInterface: BoundInterface,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let defaultInterfaceABIName = try CAbi.mangleName(type: defaultInterface.asBoundType)
-    // public init(transferringRef comPointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
+    // public init(_transferringRef comPointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
     //     super.init(_transferringRef: IInspectablePointer.cast(comPointer))
     // }
-    let param = SwiftParam(label: "transferringRef", name: "comPointer",
+    let param = SwiftParam(label: "_transferringRef", name: "comPointer",
         type: .unsafeMutablePointer(to: .chain(projection.abiModuleName, defaultInterfaceABIName)))
     writer.writeInit(visibility: .public, params: [param]) { writer in
         writer.writeStatement("super.init(_transferringRef: IInspectablePointer.cast(comPointer))")
@@ -203,7 +203,7 @@ fileprivate func writeActivationFactoryInitializers(
             // Activation factory interop methods are special-cased to return the raw factory pointer,
             // so we can initialize our instance with it.
             let output = writer.output
-            output.write("self.init(transferringRef: ")
+            output.write("self.init(_transferringRef: ")
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
                 thisPointer: .init(name: "Self.\(interfaceDeclaration.lazyComputedPropertyName)", lazy: true),
@@ -232,7 +232,7 @@ fileprivate func writeDefaultActivatableInitializer(
 
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("self.init(transferringRef: try Self.\(interfaceDeclaration.lazyComputedPropertyName)"
+        writer.writeStatement("self.init(_transferringRef: try Self.\(interfaceDeclaration.lazyComputedPropertyName)"
             + ".activateInstance(projection: \(projectionClassName).self))")
     }
 }

@@ -4,19 +4,19 @@ import WinSDK
 import struct Foundation.UUID
 
 open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IInspectableProtocol {
-    private var _inspectable: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable> {
-        comPointer.withMemoryRebound(to: CWinRTCore.SWRT_IInspectable.self, capacity: 1) { $0 }
+    private var _inspectableInterop: COMInterop<CWinRTCore.SWRT_IInspectable> {
+        .init(casting: _interop)
     }
 
     public func getIids() throws -> [Foundation.UUID] {
-        try COMInterop(_inspectable).getIids()
+        try _inspectableInterop.getIids()
     }
 
     public func getRuntimeClassName() throws -> String {
-        try COMInterop(_inspectable).getRuntimeClassName()
+        try _inspectableInterop.getRuntimeClassName()
     }
 
     public func getTrustLevel() throws -> TrustLevel {
-        try COMInterop(_inspectable).getTrustLevel()
+        try _inspectableInterop.getTrustLevel()
     }
 }

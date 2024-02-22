@@ -197,7 +197,7 @@ fileprivate func writeClassProjectionType(
             abiType: defaultInterface.asBoundType,
             toSwiftBody: { writer, paramName in
                 // Sealed classes are always created by WinRT, so don't need unwrapping
-                writer.writeStatement("\(typeName)(transferringRef: \(paramName))")
+                writer.writeStatement("\(typeName)(_transferringRef: \(paramName))")
             },
             toCOMBody: { writer, paramName in
                 if composable {
@@ -206,7 +206,7 @@ fileprivate func writeClassProjectionType(
                 }
                 else {
                     // WinRTImport exposes comPointer
-                    writer.writeStatement("IUnknownPointer.addingRef(object.comPointer)")
+                    writer.writeStatement("IUnknownPointer.addingRef(object._pointer)")
                 }
             },
             projection: projection,
@@ -232,8 +232,14 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         try writeCOMProjectionConformance(
             apiType: type, abiType: type,
             toSwiftBody: { writer, paramName in
-                // Let COMImport attempt unwrapping first
-                writer.writeStatement("\(importClassName).toSwift(transferringRef: \(paramName))")
+                if type.definition is InterfaceDefinition {
+                    // Let COMImport attempt unwrapping first
+                    writer.writeStatement("\(importClassName).toSwift(transferringRef: \(paramName))")
+                }
+                else {
+                    // Delegates have no identity so cannot be unwrapped
+                    writer.writeStatement("\(importClassName)(_transferringRef: \(paramName)).invoke")
+                }
             },
             toCOMBody: { writer, paramName in
                 if type.definition is InterfaceDefinition {

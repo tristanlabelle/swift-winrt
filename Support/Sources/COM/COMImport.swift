@@ -2,46 +2,26 @@ import CWinRTCore
 
 // Base class for COM objects projected into Swift.
 open class COMImport<Projection: COMProjection>: IUnknownProtocol {
-    /// Gets the COM interface pointer.
-    public let comPointer: Projection.COMPointer
-    public var _interop: COMInterop<Projection.COMInterface> { COMInterop(comPointer) }
+    /// Gets the COM interop wrapper which exposes projected COM methods.
+    public let _interop: COMInterop<Projection.COMInterface>
 
-    /// Gets the Swift object corresponding to the COM interface.
-    open var swiftObject: Projection.SwiftObject { self as! Projection.SwiftObject }
+    /// Gets the COM interface pointer.
+    public var _pointer: Projection.COMPointer { _interop.this }
 
     /// Initializes a new projection from a COM interface pointer,
     /// transferring its ownership to the newly created object.
-    public required init(transferringRef pointer: Projection.COMPointer) {
-        self.comPointer = pointer
+    public required init(_transferringRef pointer: Projection.COMPointer) {
+        self._interop = COMInterop(pointer)
     }
 
-    public convenience init(_ pointer: Projection.COMPointer) {
-        IUnknownPointer.addRef(pointer)
-        self.init(transferringRef: pointer)
-    }
-
-    deinit { IUnknownPointer.release(comPointer) }
+    deinit { _interop.release() }
 
     public func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         try _interop.queryInterface(id)
     }
 
-    public var _unknown: IUnknownPointer {
-        IUnknownPointer.cast(comPointer)
-    }
-
-    public var _vtable: Projection.COMVirtualTable {
-        _read {
-            let unknownVTable = UnsafePointer(_unknown.pointee.lpVtbl!)
-            let pointer = unknownVTable.withMemoryRebound(to: Projection.COMVirtualTable.self, capacity: 1) { $0 }
-            yield pointer.pointee
-        }
-    }
-
-    public var _unsafeRefCount: UInt32 { _unknown._unsafeRefCount }
-
     // COMProjection implementation helpers
-    public static func toSwift(transferringRef comPointer: Projection.COMPointer) -> Projection.SwiftObject {
+    public class func toSwift(transferringRef comPointer: Projection.COMPointer) -> Projection.SwiftObject {
         // If this was originally a Swift object, return it
         if let implementation = COMExportBase.getImplementation(comPointer, projection: Projection.self) {
             IUnknownPointer.release(comPointer)
@@ -49,13 +29,13 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
         }
 
         // Wrap the COM object in a Swift object
-        return Self(transferringRef: comPointer).swiftObject
+        return Self(_transferringRef: comPointer) as! Projection.SwiftObject
     }
 
     open class func toCOM(_ object: Projection.SwiftObject) throws -> Projection.COMPointer {
         switch object {
             // If this is already a wrapped COM object, return the wrapped object
-            case let comImport as Self: return IUnknownPointer.addingRef(comImport.comPointer)
+            case let comImport as Self: return IUnknownPointer.addingRef(comImport._pointer)
             // Otherwise ask the object to project itself to a COM object
             case let unknown as COM.IUnknown: return try unknown._queryInterfacePointer(Projection.self)
             default: throw ABIProjectionError.unsupported(Projection.SwiftObject.self)

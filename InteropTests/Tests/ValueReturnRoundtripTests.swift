@@ -54,7 +54,9 @@ class ValueReturnRoundtripTests: WinRTTestCase {
 
     func testClass() throws {
         let instance = try MinimalClass()
-        XCTAssertEqual(try twoWay.class(instance).comPointer, instance.comPointer)
+        let roundtripped = try twoWay.class(instance)
+        XCTAssertNotIdentical(roundtripped, instance)
+        XCTAssertEqual(roundtripped._pointer, instance._pointer)
 
         XCTAssertNil(try NullResult.catch(twoWay.class(nil)))
     }

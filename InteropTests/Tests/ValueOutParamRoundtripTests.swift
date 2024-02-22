@@ -67,7 +67,8 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         let instance = try MinimalClass()
         var roundtripped: MinimalClass? = nil
         try twoWay.class(instance, &roundtripped)
-        XCTAssertEqual(try XCTUnwrap(roundtripped).comPointer, instance.comPointer)
+        XCTAssertNotIdentical(try XCTUnwrap(roundtripped), instance)
+        XCTAssertEqual(try XCTUnwrap(roundtripped)._pointer, instance._pointer)
 
         try twoWay.class(nil, &roundtripped)
         XCTAssertNil(roundtripped)

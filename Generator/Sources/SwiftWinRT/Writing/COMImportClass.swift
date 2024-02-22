@@ -35,15 +35,6 @@ internal func writeCOMImportClass(
         }
         try writeGenericTypeAliases(interfaces: interfaces, projection: projection, to: writer)
 
-        if type.definition is DelegateDefinition {
-            // public override var swiftObject: SwiftObject { self.invoke }
-            writer.writeComputedProperty(
-                    visibility: .public, override: true, name: "swiftObject",
-                    type: .identifier("SwiftObject")) { writer in
-                writer.writeStatement("self.invoke")
-            }
-        }
-
         // Primary interface implementation
         try writer.writeCommentLine(WinRTTypeName.from(type: type).description)
         try writeInterfaceImplementation(
