@@ -1,7 +1,7 @@
 import DotNetMetadata
 import DotNetXMLDocs
 import Foundation
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 internal func createProjection(generateCommand: GenerateCommand, projectionConfig: ProjectionConfig, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {

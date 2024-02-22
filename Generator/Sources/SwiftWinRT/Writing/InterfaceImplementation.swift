@@ -1,6 +1,6 @@
 import CodeWriters
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 internal struct ThisPointer {

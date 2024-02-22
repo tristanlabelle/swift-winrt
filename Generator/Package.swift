@@ -18,17 +18,17 @@ let package = Package(
             name: "CodeWriters",
             path: "Sources/CodeWriters"),
         .target(
-            name: "ProjectionGenerator",
+            name: "ProjectionModel",
             dependencies: [
                 "CodeWriters",
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
             ],
-            path: "Sources/ProjectionGenerator"),
+            path: "Sources/ProjectionModel"),
         .executableTarget(
             name: "SwiftWinRT",
             dependencies: [
-                "ProjectionGenerator",
+                "ProjectionModel",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
@@ -38,7 +38,7 @@ let package = Package(
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
         .testTarget(
             name: "Tests",
-            dependencies: [ "CodeWriters", "ProjectionGenerator" ],
+            dependencies: [ "CodeWriters", "ProjectionModel" ],
             path: "Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ])

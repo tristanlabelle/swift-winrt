@@ -2,7 +2,7 @@ import CodeWriters
 import Collections
 import DotNetMetadata
 import DotNetXMLDocs
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 // Interfaces are generated as two types: a protocol and an existential typealias.

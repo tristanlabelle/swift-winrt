@@ -1,5 +1,5 @@
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import Foundation
 
 // Introduce a scope to workaround a compiler bug which allows

@@ -1,6 +1,6 @@
 import CodeWriters
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import struct Foundation.URL
 
 func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, toPath path: String) {

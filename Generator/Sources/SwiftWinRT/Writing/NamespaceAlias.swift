@@ -1,6 +1,6 @@
 import CodeWriters
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 
 internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: SwiftProjection.Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))

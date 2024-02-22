@@ -1,7 +1,7 @@
 import CodeWriters
 import Collections
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 /// Writes a class implementing COMImport/WinRTImport for an interface, delegate or activatable class

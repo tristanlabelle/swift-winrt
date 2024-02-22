@@ -3,7 +3,7 @@ import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 import Foundation
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 internal func writeProjectionFiles(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {

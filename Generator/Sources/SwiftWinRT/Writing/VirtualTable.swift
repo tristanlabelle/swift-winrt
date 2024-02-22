@@ -1,6 +1,6 @@
 import CodeWriters
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 func writeVirtualTable(interfaceOrDelegate: BoundType, projection: SwiftProjection, to output: IndentedTextOutputStream) throws {

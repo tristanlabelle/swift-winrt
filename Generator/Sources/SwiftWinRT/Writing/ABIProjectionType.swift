@@ -1,7 +1,7 @@
 import Collections
 import DotNetMetadata
 import WindowsMetadata
-import ProjectionGenerator
+import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 

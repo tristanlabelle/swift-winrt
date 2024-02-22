@@ -1,6 +1,6 @@
 import Collections
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import FoundationXML
 import struct Foundation.URL
 

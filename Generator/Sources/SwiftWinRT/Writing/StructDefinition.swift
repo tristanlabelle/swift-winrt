@@ -1,6 +1,6 @@
 import CodeWriters
 import DotNetMetadata
-import ProjectionGenerator
+import ProjectionModel
 import WindowsMetadata
 
 internal func writeStructDefinition(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
