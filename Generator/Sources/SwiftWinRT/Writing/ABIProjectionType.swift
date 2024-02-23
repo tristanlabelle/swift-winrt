@@ -201,8 +201,8 @@ fileprivate func writeClassProjectionType(
             },
             toCOMBody: { writer, paramName in
                 if composable {
-                    let lazyComputedPropertyName = getSecondaryInterfaceLazyComputedPropertyName(defaultInterface.definition)
-                    writer.writeStatement("IUnknownPointer.addingRef(try object.\(lazyComputedPropertyName).this)")
+                    let propertyName = SecondaryInterfaces.getPropertyName(defaultInterface)
+                    writer.writeStatement("IUnknownPointer.addingRef(try object.\(propertyName).this)")
                 }
                 else {
                     // WinRTImport exposes comPointer

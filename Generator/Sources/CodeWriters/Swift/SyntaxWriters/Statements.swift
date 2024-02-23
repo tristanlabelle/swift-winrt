@@ -55,4 +55,10 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
             }
         }
     }
+
+    public func writeBracedBlock(_ header: String, _ body: (_ writer: SwiftStatementWriter) throws -> Void) rethrows {
+        try output.writeBracedIndentedBlock(header) {
+            try body(SwiftStatementWriter(output: output))
+        }
+    }
 }

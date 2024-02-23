@@ -43,3 +43,16 @@ public struct COMInterop<Interface> {
         return pointer.bindMemory(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1)
     }
 }
+
+extension Optional {
+    /// Helper to initialize a COMInterop? property from a pointer, used in generated code.
+    public mutating func lazyInit<Interface>(
+            _ initializer: () throws -> UnsafeMutablePointer<Interface>)
+            rethrows -> COMInterop<Interface>
+            where Wrapped == COMInterop<Interface> {
+        if let value = self { return value }
+        let value = try COMInterop(initializer())
+        self = value
+        return value
+    }
+}

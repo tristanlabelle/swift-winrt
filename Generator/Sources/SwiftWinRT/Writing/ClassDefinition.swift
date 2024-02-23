@@ -90,27 +90,28 @@ fileprivate func writeInterfaceImplementations(
             projection: projection, to: writer)
     }
 
-    // Secondary interface implementations
-    var propertiesToRelease = [String]()
-    for baseInterface in classDefinition.baseInterfaces {
-        let secondaryInterface = try baseInterface.interface
-        if !composable, secondaryInterface == defaultInterface { continue }
+    let secondaryInterfaces = try classDefinition.baseInterfaces
+        .filter { try composable || $0.interface != defaultInterface }
+    guard !secondaryInterfaces.isEmpty else { return }
 
-        try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
-        let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
+    // Write secondary interface implementations
+    for secondaryInterface in secondaryInterfaces {
+        let boundType = try secondaryInterface.interface.asBoundType
+        try writer.writeCommentLine(WinRTTypeName.from(type: boundType).description)
         try writeInterfaceImplementation(
-            interfaceOrDelegate: secondaryInterface.asBoundType,
-            overridable: try baseInterface.hasAttribute(OverridableAttribute.self),
-            thisPointer: declaration.thisPointer,
+            interfaceOrDelegate: boundType,
+            overridable: secondaryInterface.hasAttribute(OverridableAttribute.self),
+            thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface.interface), lazy: true),
             projection: projection, to: writer)
-        propertiesToRelease.append(declaration.storedPropertyName)
     }
 
-    if !propertiesToRelease.isEmpty {
-        writer.writeDeinit { writer in
-            for storedProperty in propertiesToRelease {
-                writer.writeStatement("\(storedProperty)?.release()")
-            }
+    for secondaryInterface in secondaryInterfaces {
+        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, projection: projection, to: writer)
+    }
+
+    try writer.writeDeinit { writer in
+        for secondaryInterface in secondaryInterfaces {
+            try SecondaryInterfaces.writeCleanup(secondaryInterface.interface, to: writer)
         }
     }
 }
@@ -119,11 +120,12 @@ fileprivate func writeStaticMembers(_ classDefinition: ClassDefinition, projecti
     // Write static members from static interfaces
     for staticAttribute in try classDefinition.getAttributes(StaticAttribute.self) {
         writer.writeCommentLine(try WinRTTypeName.from(type: staticAttribute.interface.bindType()).description)
-        let declaration = try writeSecondaryInterfaceDeclaration(
+        try SecondaryInterfaces.writeDeclaration(
             staticAttribute.interface.bind(), staticOf: classDefinition, projection: projection, to: writer)
         try writeInterfaceImplementation(
             interfaceOrDelegate: staticAttribute.interface.bindType(),
-            static: true, thisPointer: declaration.thisPointer,
+            static: true,
+            thisPointer: .init(name: SecondaryInterfaces.getPropertyName(staticAttribute.interface.bind()), lazy: true),
             projection: projection, to: writer)
     }
 }
@@ -156,8 +158,9 @@ fileprivate func writeComposableInitializers(
 
     for factoryInterface in factoryInterfaces {
         writer.writeCommentLine(try WinRTTypeName.from(type: factoryInterface.bindType()).description)
-        let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
+        try SecondaryInterfaces.writeDeclaration(
             factoryInterface.bind(), staticOf: classDefinition, projection: projection, to: writer)
+        let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
         for method in factoryInterface.methods {
             // The last 2 params should be the IInspectable outer and inner pointers
@@ -176,7 +179,7 @@ fileprivate func writeComposableInitializers(
                     output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
                     try writeInteropMethodCall(
                         name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
-                        thisPointer: .init(name: "Self.\(interfaceDeclaration.lazyComputedPropertyName)", lazy: true),
+                        thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                         projection: projection, to: writer.output)
                 }
             }
@@ -189,8 +192,9 @@ fileprivate func writeActivationFactoryInitializers(
         activationFactory: InterfaceDefinition,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeCommentLine(try WinRTTypeName.from(type: activationFactory.bindType()).description)
-    let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
+    try SecondaryInterfaces.writeDeclaration(
         activationFactory.bind(), staticOf: classDefinition, projection: projection, to: writer)
+    let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
         try writer.writeInit(
@@ -206,7 +210,7 @@ fileprivate func writeActivationFactoryInitializers(
             output.write("self.init(_transferringRef: ")
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
-                thisPointer: .init(name: "Self.\(interfaceDeclaration.lazyComputedPropertyName)", lazy: true),
+                thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                 projection: projection, to: writer.output)
             output.write(")")
             output.endLine()
@@ -226,13 +230,14 @@ fileprivate func writeDefaultActivatableInitializer(
         0x00, 0x00,
         0xC0, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
-    let interfaceDeclaration = try writeSecondaryInterfaceDeclaration(
-        interfaceName: "IActivationFactory", abiName: CAbi.iactivationFactoryName, iid: iactivationFactoryID,
-        staticOf: classDefinition, projection: projection, to: writer)
+    try SecondaryInterfaces.writeDeclaration(
+        interfaceName: "IActivationFactory", abiStructType: .chain(projection.abiModuleName, CAbi.iactivationFactoryName),
+        iid: iactivationFactoryID, staticOf: classDefinition, projection: projection, to: writer)
+    let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
 
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("self.init(_transferringRef: try Self.\(interfaceDeclaration.lazyComputedPropertyName)"
+        writer.writeStatement("self.init(_transferringRef: try Self.\(propertyName)"
             + ".activateInstance(projection: \(projectionClassName).self))")
     }
 }

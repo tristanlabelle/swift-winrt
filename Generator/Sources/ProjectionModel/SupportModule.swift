@@ -18,6 +18,8 @@ public enum SupportModule {
     public static func comInterop(of type: SwiftType) -> SwiftType {
         .chain([ .init(comModuleName), .init("COMInterop", genericArgs: [type]) ])
     }
+    
+    public static var comInteropLazyInitFunc: String { "lazyInit" }
 
     public static func comArray(of type: SwiftType) -> SwiftType {
         .chain([ .init(comModuleName), .init("COMArray", genericArgs: [type]) ])

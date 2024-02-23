@@ -43,21 +43,26 @@ internal func writeCOMImportClass(
 
         // Secondary interface implementations
         if type.definition is InterfaceDefinition {
-            var propertiesToRelease = [String]()
-            for baseInterface in type.definition.baseInterfaces {
-                let secondaryInterface = try baseInterface.interface.bindGenericParams(typeArgs: type.genericArgs)
-                try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
-                let declaration = try writeSecondaryInterfaceDeclaration(secondaryInterface, projection: projection, to: writer)
-                try writeInterfaceImplementation(
-                    interfaceOrDelegate: secondaryInterface.asBoundType, thisPointer: declaration.thisPointer,
-                    projection: projection, to: writer)
-                propertiesToRelease.append(declaration.storedPropertyName)
+            let secondaryInterfaces = try type.definition.baseInterfaces.map {
+                try $0.interface.bindGenericParams(typeArgs: type.genericArgs)
             }
 
-            if !propertiesToRelease.isEmpty {
+            if !secondaryInterfaces.isEmpty {
+                for secondaryInterface in secondaryInterfaces {
+                    try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
+                    try writeInterfaceImplementation(
+                        interfaceOrDelegate: secondaryInterface.asBoundType,
+                        thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface), lazy: true),
+                        projection: projection, to: writer)
+                }
+
+                for secondaryInterface in secondaryInterfaces {
+                    try SecondaryInterfaces.writeDeclaration(secondaryInterface, projection: projection, to: writer)
+                }
+
                 writer.writeDeinit { writer in
-                    for storedProperty in propertiesToRelease {
-                        writer.writeStatement("\(storedProperty)?.release()")
+                    for secondaryInterface in secondaryInterfaces {
+                        SecondaryInterfaces.writeCleanup(secondaryInterface, to: writer)
                     }
                 }
             }
