@@ -3,6 +3,13 @@ public struct SwiftTypeDefinitionWriter: SwiftDeclarationWriter {
 }
 
 extension SwiftDeclarationWriter {
+    public func writeMarkComment(_ text: String) {
+        output.beginLine(grouping: .never)
+        output.write("// MARK: ")
+        output.write(text)
+        output.endLine()
+    }
+
     public func writeClass(
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
