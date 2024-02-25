@@ -11,7 +11,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IWeakReferenceSource
     public typealias COMVirtualTable = CWinRTCore.SWRT_IWeakReferenceSourceVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -35,9 +35,15 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         GetWeakReference: { this, weakReference in _getter(this, weakReference) { try IWeakReferenceProjection.toABI($0.getWeakReference()) } })
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReferenceSource {
-    public static let iid = COMInterfaceID(0x00000038, 0x0000, 0x0000, 0xC000, 0x000000000046);
+#if swift(>=5.10)
+extension CWinRTCore.SWRT_IWeakReferenceSource: @retroactive COMIUnknownStruct {}
+#endif
 
+extension CWinRTCore.SWRT_IWeakReferenceSource: /* @retroactive */ COMIInspectableStruct {
+    public static let iid = COMInterfaceID(0x00000038, 0x0000, 0x0000, 0xC000, 0x000000000046);
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetWeakReference(this, &value))

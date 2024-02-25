@@ -20,7 +20,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
     }
 
     public func writeExtension(
-        name: String,
+        type: SwiftType,
         protocolConformances: [SwiftType] = [],
         whereClauses: [String] = [],
         members: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
@@ -28,7 +28,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
         var output = output
         output.beginLine(grouping: .never)
         output.write("extension ")
-        SwiftIdentifier.write(name, to: &output)
+        type.write(to: &output)
         writeInheritanceClause(protocolConformances)
         if !whereClauses.isEmpty {
             output.write(" where ")

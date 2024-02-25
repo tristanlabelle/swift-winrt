@@ -42,7 +42,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
         try writer.writeExtension(
-            name: projection.toTypeName(enumDefinition),
+            type: .identifier(projection.toTypeName(enumDefinition)),
             protocolConformances: [SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")]) { _ in }
         return
     }
@@ -72,7 +72,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
         //     internal final class Boolean: WinRTProjection... {}
         // }
         try writer.writeExtension(
-                name: projection.toProjectionTypeName(typeDefinition)) { writer in
+                type: .identifier(projection.toProjectionTypeName(typeDefinition))) { writer in
             try writeInterfaceOrDelegateProjectionType(
                 typeDefinition.bindType(genericArgs: genericArgs),
                 projectionName: try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: genericArgs),
@@ -99,7 +99,7 @@ fileprivate func writeStructProjectionExtension(
     // TODO: Support strings and IReference<T> field types (non-inert)
     // extension <struct>: ABIInertProjection
     try writer.writeExtension(
-            name: try projection.toTypeName(structDefinition),
+            type: .identifier(projection.toTypeName(structDefinition)),
             protocolConformances: [SupportModule.abiInertProjection]) { writer in
 
         // public typealias SwiftValue = Self
@@ -299,10 +299,9 @@ internal func writeCOMProjectionConformance(
     writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
         target: try projection.toABIVirtualTableType(abiType))
 
-    // public static var id: COM.COMInterfaceID { COM.COMInterop<COMInterface>.iid }
-    writer.writeComputedProperty(visibility: .public, static: true, name: "id", type: SupportModule.comInterfaceID) { writer in
-        let comInterop = SupportModule.comInterop(of: .identifier("COMInterface"))
-        writer.writeStatement("\(comInterop).iid")
+    // public static var interfaceID: COM.COMInterfaceID { COMInterface.iid }
+    writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModule.comInterfaceID) { writer in
+        writer.writeStatement("COMInterface.iid")
     }
 
     if !(abiType.definition is DelegateDefinition) {

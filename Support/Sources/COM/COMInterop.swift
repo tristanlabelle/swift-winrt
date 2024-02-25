@@ -1,8 +1,19 @@
 import CWinRTCore
 
+/// Extends COM IUnknown-derived struct definitions with an interface ID.
+/// All conformances will be @retroactive, so this shouldn't be used for dynamic casts.
+public protocol COMIUnknownStruct {
+    // Conceptually, we should have this member:
+    // static var iid: COMInterfaceID { get }
+    //
+    // However this won't work because generic specializations don't belong
+    // to any single module, so we'd run into retroactive conformance issues,
+    // where multiple modules are defining the iid.
+}
+
 /// Wraps a COM interface pointer and exposes projected versions of its methods.
 /// This struct is extended with methods for each COM interface it wraps.
-public struct COMInterop<Interface> {
+public struct COMInterop<Interface> where Interface: COMIUnknownStruct {
     public let this: UnsafeMutablePointer<Interface>
 
     public init(_ pointer: UnsafeMutablePointer<Interface>) {

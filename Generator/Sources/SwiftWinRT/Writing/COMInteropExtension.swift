@@ -33,10 +33,10 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
 
     // Write the COMInterop<I> extension for each interface
     boundAbiTypes.sort { $0.abiName < $1.abiName }
-    for (boundType, abiName) in boundAbiTypes {
+    for (boundType, _) in boundAbiTypes {
         // IReference is special cased, with a single definition for all generic instantiations
         guard boundType.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
-        try writeCOMInteropExtension(abiType: boundType, abiName: abiName, module: module, to: writer)
+        try writeCOMInteropExtension(abiType: boundType, projection: module.projection, to: writer)
     }
 }
 
@@ -63,35 +63,35 @@ fileprivate enum ABIInterfaceUsage {
     }
 }
 
-fileprivate func writeCOMInteropExtension(abiType: BoundType, abiName: String, module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) throws {
-    let qualifiedAbiName = "\(module.projection.abiModuleName).\(abiName)"
+fileprivate func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+    let abiSwiftType = try projection.toABIType(abiType)
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
-    if abiType.definition is InterfaceDefinition {
-        // COM interfaces for WinRT interfaces are IInspectable-compatible. This is not true for delegates.
-        // @retroactive is only supported in Swift 5.10 and above.
-        let group = writer.output.allocateVerticalGrouping()
-        writer.output.writeFullLine(grouping: group, "#if swift(>=5.10)")
-        writer.output.writeFullLine(grouping: group, "extension \(qualifiedAbiName): @retroactive \(SupportModule.comIInspectableStruct) {}")
-        writer.output.writeFullLine(grouping: group, "#else")
-        writer.output.writeFullLine(grouping: group, "extension \(qualifiedAbiName): \(SupportModule.comIInspectableStruct) {}")
-        writer.output.writeFullLine(grouping: group, "#endif")
-    }
+    // Mark the COM interface struct as conforming to IUnknown (delegates) or IInspectable (interfaces)
+    // @retroactive is only supported in Swift 5.10 and above.
+    let group = writer.output.allocateVerticalGrouping()
+    let comStructProtocol = abiType.definition is InterfaceDefinition ? SupportModule.comIInspectableStruct : SupportModule.comIUnknownStruct
+    writer.output.writeFullLine(grouping: group, "#if swift(>=5.10)")
+    writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): @retroactive \(comStructProtocol) {}")
+    writer.output.writeFullLine(grouping: group, "#else")
+    writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): \(comStructProtocol) {}")
+    writer.output.writeFullLine(grouping: group, "#endif")
 
-    let interfaceUsage = try ABIInterfaceUsage.from(typeDefinition: abiType.definition)
-
-    try writer.writeExtension(name: "COMInterop", whereClauses: [ "Interface == \(qualifiedAbiName)" ]) { writer in
+    try writer.writeExtension(type: abiSwiftType) { writer in
         // static let iid: COMInterfaceID = COMInterfaceID(...)
         writer.writeStoredProperty(visibility: visibility, static: true, declarator: .let, name: "iid",
             initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
+    }
 
+    try writer.writeExtension(type: SupportModule.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
+        let interfaceUsage = try ABIInterfaceUsage.from(typeDefinition: abiType.definition)
         for method in abiType.definition.methods {
             // For delegates, only expose the Invoke method
             guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
             try writeCOMInteropMethod(
                 method, typeGenericArgs: abiType.genericArgs,
                 visibility: visibility, interfaceUsage: interfaceUsage,
-                projection: module.projection, to: writer)
+                projection: projection, to: writer)
         }
     }
 }

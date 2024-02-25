@@ -14,11 +14,11 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
 
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         // QI for IInspectable should return the identity interface just like IUnknown.
-        if id == IInspectableProjection.id { return unknownPointer.addingRef() }
+        if id == IInspectableProjection.interfaceID { return unknownPointer.addingRef() }
 
         // Implement WinRT core interfaces
-        if Self.agile && id == IAgileObjectProjection.id { return unknownPointer.addingRef() }
-        if Self.weakReferenceSource && id == IWeakReferenceSourceProjection.id {
+        if Self.agile && id == IAgileObjectProjection.interfaceID { return unknownPointer.addingRef() }
+        if Self.weakReferenceSource && id == IWeakReferenceSourceProjection.interfaceID {
             let export = createSecondaryExport(
                 projection: IWeakReferenceSourceProjection.self,
                 implementation: WeakReferenceSource(target: self))
@@ -36,8 +36,8 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
 
     open func getIids() throws -> [COMInterfaceID] {
         var iids = Self.implements.map { $0.id }
-        if Self.agile { iids.append(IAgileObjectProjection.id) }
-        if Self.weakReferenceSource { iids.append(IWeakReferenceSourceProjection.id) }
+        if Self.agile { iids.append(IAgileObjectProjection.interfaceID) }
+        if Self.weakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
         return iids
     }
 
@@ -48,7 +48,7 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
 fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: COMWrappingExport<Projection> {
     override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         // Delegate our identity
-        if let foreignIdentity, id == IInspectableProjection.id { return foreignIdentity.unknownPointer.addingRef() }
+        if let foreignIdentity, id == IInspectableProjection.interfaceID { return foreignIdentity.unknownPointer.addingRef() }
         return try super._queryInterfacePointer(id)
     }
 

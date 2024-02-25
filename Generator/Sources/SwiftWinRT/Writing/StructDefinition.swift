@@ -81,7 +81,7 @@ fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition,
 fileprivate func writeDateTimeExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
     writer.writeImport(module: "Foundation", struct: "Date")
 
-    writer.writeExtension(name: typeName) { writer in
+    writer.writeExtension(type: .identifier(typeName)) { writer in
         // public init(foundationDate: Date)
         writer.writeInit(visibility: .public,
                 params: [.init(name: "foundationDate", type: .chain("Foundation", "Date"))]) { writer in
@@ -104,7 +104,7 @@ fileprivate func writeDateTimeExtensions(typeName: String, to writer: SwiftSourc
 fileprivate func writeTimeSpanExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
     writer.writeImport(module: "Foundation", struct: "TimeInterval")
 
-    writer.writeExtension(name: typeName) { writer in
+    writer.writeExtension(type: .identifier(typeName)) { writer in
         // public init(timeInterval: TimeInterval)
         writer.writeInit(visibility: .public,
                 params: [.init(name: "timeInterval", type: .chain("Foundation", "TimeInterval"))]) { writer in

@@ -2,13 +2,12 @@ import COM
 import CWinRTCore
 import struct Foundation.UUID
 
-/// Marker protocol for COM interface structs deriving from IInspectable.
-/// This protocol shouldn't be used for dynamic casting because conformances will be @retroactive.
-public protocol COMIInspectableStruct {}
+/// Identifies COM interface structs as deriving from IInspectable.
+/// Do not use for dynamic casting because conformances will be @retroactive.
+public protocol COMIInspectableStruct: COMIUnknownStruct {
+}
 
-extension CWinRTCore.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {}
-
-extension COMInterop where Interface: COMIInspectableStruct {
+extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
     private var inspectable: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>{
         this.withMemoryRebound(to: CWinRTCore.SWRT_IInspectable.self, capacity: 1) { $0 }
     }

@@ -39,7 +39,7 @@ extension IUnknownPointer {
     }
 
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {
-        try queryInterface(Projection.id).cast(to: Projection.COMInterface.self)
+        try queryInterface(Projection.interfaceID).cast(to: Projection.COMInterface.self)
     }
 
     public func cast<COMInterface>(to type: COMInterface.Type) -> UnsafeMutablePointer<COMInterface> {

@@ -8,6 +8,7 @@ public enum SupportModule {
 
     public static var iunknownPointer: SwiftType { .chain(comModuleName, "IUnknownPointer") }
     public static var comInterfaceID: SwiftType { .chain(comModuleName, "COMInterfaceID") }
+    public static var comIUnknownStruct: SwiftType { .chain(winrtModuleName, "COMIUnknownStruct") }
     public static var nullResult: SwiftType { .chain(comModuleName, "NullResult") }
 
     public static var hresult: SwiftType { .chain(comModuleName, "HResult") }
@@ -19,6 +20,8 @@ public enum SupportModule {
     public static var hresultProjection: SwiftType { .chain(comModuleName, "HResultProjection") }
 
     public static var comExportedInterface: SwiftType { .chain(comModuleName, "COMExportedInterface") }
+
+    public static var comInterop: SwiftType { .chain(comModuleName, "COMInterop") }
 
     public static func comInterop(of type: SwiftType) -> SwiftType {
         .chain([ .init(comModuleName), .init("COMInterop", genericArgs: [type]) ])

@@ -11,7 +11,7 @@ public enum IActivationFactoryProjection: WinRTProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IActivationFactory
     public typealias COMVirtualTable = CWinRTCore.SWRT_IActivationFactoryVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var runtimeClassName: String { "IActivationFactory" }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -30,11 +30,15 @@ public enum IActivationFactoryProjection: WinRTProjection {
     }
 }
 
-extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {}
+#if swift(>=5.10)
+extension SWRT_IActivationFactory: @retroactive COMIUnknownStruct {}
+#endif
+
+extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {
+    public static let iid = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
+}
 
 extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
-    public static let iid = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
-
     // Activation factory methods are special-cased to return the pointer.
     public func activateInstance() throws -> IInspectablePointer? {
         var instance = IInspectableProjection.abiDefaultValue
@@ -49,6 +53,6 @@ extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
         defer { IInspectableProjection.release(&inspectable) }
         guard let inspectable else { throw COM.HResult.Error.noInterface }
         return try COMInterop<IInspectableProjection.COMInterface>(inspectable)
-            .queryInterface(projection.id).cast(to: Projection.COMInterface.self)
+            .queryInterface(projection.interfaceID).cast(to: Projection.COMInterface.self)
     }
 }

@@ -8,7 +8,7 @@ public enum IAgileObjectProjection: COMProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IAgileObject
     public typealias COMVirtualTable = CWinRTCore.SWRT_IAgileObjectVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
         IUnknownProjection.toSwift(transferringRef: IUnknownPointer.cast(comPointer))
@@ -19,6 +19,6 @@ public enum IAgileObjectProjection: COMProjection {
     }
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IAgileObject {
+extension CWinRTCore.SWRT_IAgileObject: /* @retroactive */ COMIUnknownStruct {
     public static let iid = COMInterfaceID(0x94EA2B94, 0xE9CC, 0x49E0, 0xC0FF, 0xEE64CA8F5B90)
 }

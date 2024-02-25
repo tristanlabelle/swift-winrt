@@ -29,7 +29,7 @@ internal enum SecondaryInterfaces {
             initialValue: "nil")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
-        //     try _istringable_storage.lazyInit { try _queryInterfacePointer(SWRT_IStringable.IID) }
+        //     try _istringable_storage.lazyInit { try _queryInterfacePointer(SWRT_IStringable.iid) }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
         try writer.writeComputedProperty(
@@ -39,11 +39,11 @@ internal enum SecondaryInterfaces {
                 if let staticOf {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                     writer.writeStatement("try WindowsRuntime.getActivationFactoryPointer("
-                        + "activatableId: \"\(activatableId)\", id: \(abiInteropType).iid)")
+                        + "activatableId: \"\(activatableId)\", id: \(abiStructType).iid)")
                 }
                 else {
                     let qiMethodName = composable ? "_queryInnerInterfacePointer" : "_queryInterfacePointer"
-                    writer.writeStatement("try \(qiMethodName)(\(abiInteropType).iid).cast(to: \(abiStructType).self)")
+                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).cast(to: \(abiStructType).self)")
                 }
             }
         })

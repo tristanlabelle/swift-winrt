@@ -16,7 +16,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IErrorInfo
     public typealias COMVirtualTable = CWinRTCore.SWRT_IErrorInfoVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -46,9 +46,11 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         GetHelpContext: { this, helpContext in _getter(this, helpContext) { try $0.helpContext } })
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IErrorInfo {
+extension CWinRTCore.SWRT_IErrorInfo: /* @retroactive */ COMIUnknownStruct {
     public static let iid = COMInterfaceID(0x1CF2B120, 0x547D, 0x101B, 0x8E65, 0x08002B2BD119)
+}
 
+extension COMInterop where Interface == CWinRTCore.SWRT_IErrorInfo {
     public func getGuid() throws -> Foundation.UUID {
         var value = GUIDProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetGUID(this, &value))

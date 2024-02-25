@@ -7,7 +7,7 @@ public typealias IUnknown = any IUnknownProtocol
 
 extension IUnknownProtocol {
     public func _queryInterfacePointer<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {
-        try _queryInterfacePointer(Projection.id).withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
+        try _queryInterfacePointer(Projection.interfaceID).withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
     }
 
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.SwiftObject {
@@ -21,7 +21,7 @@ public enum IUnknownProjection: COMTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IUnknown
     public typealias COMVirtualTable = CWinRTCore.SWRT_IUnknownVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
@@ -40,6 +40,6 @@ public enum IUnknownProjection: COMTwoWayProjection {
         Release: { COMExportedInterface.Release($0) })
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IUnknown {
+extension CWinRTCore.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {
     public static let iid = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }

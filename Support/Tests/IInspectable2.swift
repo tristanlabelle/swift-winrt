@@ -9,7 +9,7 @@ internal enum IInspectable2Projection: WinRTTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IInspectable
     public typealias COMVirtualTable = CWinRTCore.SWRT_IInspectableVTable
 
-    public static let id = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
+    public static let interfaceID = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
     public static var runtimeClassName: String { "IInspectable2" }
 

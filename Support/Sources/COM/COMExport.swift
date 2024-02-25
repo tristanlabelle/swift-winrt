@@ -11,7 +11,7 @@ open class COMExportBase: IUnknownProtocol {
         }
 
         public init<Projection: COMTwoWayProjection>(_: Projection.Type) {
-            self.id = Projection.id
+            self.id = Projection.interfaceID
             self.queryPointer = { identity in
                 let export = identity.createSecondaryExport(
                     projection: Projection.self,
@@ -30,7 +30,7 @@ open class COMExportBase: IUnknownProtocol {
     fileprivate init(later: Void) { comInterface = .uninitialized }
 
     open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        if id == IUnknownProjection.id { return unknownPointer.addingRef() }
+        if id == IUnknownProjection.interfaceID { return unknownPointer.addingRef() }
         guard let interface = Self.implements.first(where: { $0.id == id }) else {
             throw HResult.Error.noInterface
         }
@@ -74,7 +74,7 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
     }
 
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        if id == Projection.id { return unknownPointer.addingRef() }
+        if id == Projection.interfaceID { return unknownPointer.addingRef() }
         return try super._queryInterfacePointer(id)
     }
 
@@ -100,7 +100,7 @@ open class COMWrappingExport<Projection: COMTwoWayProjection>: COMExport<Project
 
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
         // Delegate our identity
-        if let foreignIdentity, id == IUnknownProjection.id { return foreignIdentity.unknownPointer.addingRef() }
+        if let foreignIdentity, id == IUnknownProjection.interfaceID { return foreignIdentity.unknownPointer.addingRef() }
         return try super._queryInterfacePointer(id)
     }
 }

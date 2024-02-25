@@ -13,7 +13,7 @@ public enum IInspectableProjection: WinRTTwoWayProjection {
     public typealias COMInterface = CWinRTCore.SWRT_IInspectable
     public typealias COMVirtualTable = CWinRTCore.SWRT_IInspectableVTable
 
-    public static var id: COMInterfaceID { COMInterop<COMInterface>.iid }
+    public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
     public static var runtimeClassName: String { "IInspectable" }
 
@@ -36,6 +36,10 @@ public enum IInspectableProjection: WinRTTwoWayProjection {
         GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) })
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IInspectable {
+#if swift(>=5.10)
+extension CWinRTCore.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
+#endif
+
+extension CWinRTCore.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }

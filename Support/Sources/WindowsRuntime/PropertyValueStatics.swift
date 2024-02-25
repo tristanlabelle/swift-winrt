@@ -1,20 +1,27 @@
+import COM
 import CWinRTCore
 import struct Foundation.UUID
 
-fileprivate var _propertyValueStatics: UnsafeMutablePointer<SWRT_IPropertyValueStatics>? = nil
+fileprivate var _propertyValueStatics: UnsafeMutablePointer<CWinRTCore.SWRT_IPropertyValueStatics>? = nil
 
-internal var propertyValueStatics: COMInterop<SWRT_IPropertyValueStatics> {
+internal var propertyValueStatics: COMInterop<CWinRTCore.SWRT_IPropertyValueStatics> {
     get throws {
         try COMInterop(lazyInitActivationFactoryPointer(
             &_propertyValueStatics,
             activatableId: "Windows.Foundation.PropertyValue",
-            id: COMInterop<SWRT_IPropertyValueStatics>.iid))
+            id: CWinRTCore.SWRT_IPropertyValueStatics.iid))
     }
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IPropertyValueStatics {
-    public static let iid = COMInterfaceID(0x629BDBC8, 0xD932, 0x4FF4, 0x96B9, 0x8D96C5C1E858)
+#if swift(>=5.10)
+extension CWinRTCore.SWRT_IPropertyValueStatics: @retroactive COMIUnknownStruct {}
+#endif
 
+extension CWinRTCore.SWRT_IPropertyValueStatics: /* @retroactive */ COMIInspectableStruct {
+    public static let iid = COMInterfaceID(0x629BDBC8, 0xD932, 0x4FF4, 0x96B9, 0x8D96C5C1E858)
+}
+
+extension COMInterop where Interface == CWinRTCore.SWRT_IPropertyValueStatics {
     // Special case to return the raw pointer since these act as factory methods
     public func createUInt8(_ value: UInt8) throws -> IInspectablePointer? {
         var propertyValue: IInspectablePointer? = nil

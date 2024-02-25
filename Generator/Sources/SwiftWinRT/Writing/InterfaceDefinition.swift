@@ -131,7 +131,7 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
 }
 
 fileprivate func writeIAsyncExtensions(protocolName: String, resultType: SwiftType?, to writer: SwiftSourceFileWriter) throws {
-    writer.writeExtension(name: protocolName) { writer in
+    writer.writeExtension(type: .identifier(protocolName)) { writer in
         // public get() async throws
         writer.writeFunc(visibility: .public, name: "get", async: true, throws: true, returnType: resultType) { writer in
             writer.output.writeIndentedBlock(header: "if try status == .started {", footer: "}") {
