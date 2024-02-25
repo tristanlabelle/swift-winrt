@@ -23,7 +23,7 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     // COMProjection implementation helpers
     public class func toSwift(transferringRef comPointer: Projection.COMPointer) -> Projection.SwiftObject {
         // If this was originally a Swift object, return it
-        if let implementation = COMExportBase.getImplementation(comPointer, projection: Projection.self) {
+        if let implementation: Projection.SwiftObject = COMExportBase.getImplementation(comPointer) {
             IUnknownPointer.release(comPointer)
             return implementation
         }

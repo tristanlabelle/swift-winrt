@@ -13,7 +13,7 @@ extension COMTwoWayProjection {
             return HResult.pointer.value
         }
 
-        let implementation = COMExportBase.getImplementationUnsafe(this, projection: Self.self)
+        let implementation: SwiftObject = COMExportBase.getImplementationUnsafe(this)
         return HResult.catchValue { try body(implementation) }
     }
 

@@ -7,17 +7,18 @@ import struct Foundation.UUID
 
 internal enum SecondaryInterfaces {
     internal static func writeDeclaration(
-            _ interface: BoundInterface, staticOf: ClassDefinition? = nil,
+            _ interface: BoundInterface, staticOf: ClassDefinition? = nil, composable: Bool = false,
             projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
         try writeDeclaration(
             interfaceName: projection.toTypeName(interface.definition, namespaced: false),
-            abiStructType: .chain(projection.abiModuleName, CAbi.mangleName(type: interface.asBoundType)),
+            abiStructType: projection.toABIType(interface.asBoundType),
             iid: WindowsMetadata.getInterfaceID(interface.asBoundType),
-            staticOf: staticOf, projection: projection, to: writer)
+            staticOf: staticOf, composable: composable,
+            projection: projection, to: writer)
     }
 
     internal static func writeDeclaration(
-            interfaceName: String, abiStructType: SwiftType, iid: UUID, staticOf: ClassDefinition? = nil,
+            interfaceName: String, abiStructType: SwiftType, iid: UUID, staticOf: ClassDefinition? = nil, composable: Bool = false,
             projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
 
         // private [static] var _istringable_storage: COM.COMInterop<SWRT_WindowsFoundation_IStringable>? = nil
@@ -41,18 +42,25 @@ internal enum SecondaryInterfaces {
                         + "activatableId: \"\(activatableId)\", id: \(abiInteropType).iid)")
                 }
                 else {
-                    writer.writeStatement("try _queryInterfacePointer(\(abiInteropType).iid).cast(to: \(abiStructType).self)")
+                    let qiMethodName = composable ? "_queryInnerInterfacePointer" : "_queryInterfacePointer"
+                    writer.writeStatement("try \(qiMethodName)(\(abiInteropType).iid).cast(to: \(abiStructType).self)")
                 }
             }
         })
     }
 
-    internal static func getPropertyName(_ interface: BoundInterface) -> String {
-        getPropertyName(interfaceName: interface.definition.nameWithoutGenericSuffix)
+    internal static func getPropertyName(_ interface: BoundInterface, suffix: String? = nil) -> String {
+        getPropertyName(interfaceName: interface.definition.nameWithoutGenericSuffix, suffix: suffix)
     }
 
-    internal static func getPropertyName(interfaceName: String) -> String {
-        "_" + Casing.pascalToCamel(interfaceName)
+    internal static func getPropertyName(interfaceName: String, suffix: String? = nil) -> String {
+        var name = "_" + Casing.pascalToCamel(interfaceName)
+        if let suffix { name += "_" + suffix }
+        return name
+    }
+
+    internal static func getOverridableOuterName(_ interface: BoundInterface) -> String {
+        getPropertyName(interface) + "_outer"
     }
 
     internal static func writeCleanup(_ interface: BoundInterface, to writer: SwiftStatementWriter) {
@@ -65,6 +73,6 @@ internal enum SecondaryInterfaces {
     }
 
     fileprivate static func getStoredPropertyName(_ interfaceName: String) -> String {
-        "_\(Casing.pascalToCamel(interfaceName))_storage"
+        getPropertyName(interfaceName: interfaceName) + "_storage"
     }
 }

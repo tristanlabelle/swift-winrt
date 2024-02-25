@@ -11,9 +11,7 @@ class CompositionTests : XCTestCase {
         XCTAssertFalse(try MinimalUnsealedClass().isDerived)
         XCTAssertFalse(try MinimalUnsealedClass.getIsDerived(MinimalUnsealedClass()))
         XCTAssert(try Derived().isDerived)
-
-        // TODO: Generate vtables such that this calls the overridden method
-        // XCTAssert(try MinimalUnsealedClass.getIsDerived(Derived()))
+        XCTAssert(try MinimalUnsealedClass.getIsDerived(Derived()))
 
         XCTAssertFalse(try MinimalUnsealedClass.create().isDerived)
         XCTAssertFalse(try MinimalUnsealedClass.getIsDerived(MinimalUnsealedClass.create()))

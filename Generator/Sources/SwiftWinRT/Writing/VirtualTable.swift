@@ -3,15 +3,26 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-func writeVirtualTable(interfaceOrDelegate: BoundType, projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
-    try output.writeIndentedBlock(header: "COMVirtualTable(", footer: ")") {
+internal func writeVirtualTableProperty(
+        visibility: SwiftVisibility = .private, name: String, abiType: BoundType, swiftType: BoundType,
+        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+    try writer.writeStoredProperty(
+        visibility: visibility, static: true, declarator: .var, name: name,
+        initializer: { output in try writeVirtualTable(abiType: abiType, swiftType: swiftType, projection: projection, to: output) })
+}
+
+fileprivate func writeVirtualTable(
+        abiType: BoundType, swiftType: BoundType,
+        projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
+    let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
+    try output.writeIndentedBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
         output.writeFullLine("QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },")
         output.writeFullLine("AddRef: { COMExportedInterface.AddRef($0) },")
         output.write("Release: { COMExportedInterface.Release($0) }")
 
         // IInspectable methods (except for delegates)
-        if interfaceOrDelegate.definition is InterfaceDefinition {
+        if abiType.definition is InterfaceDefinition {
             output.write(",", endLine: true)
             output.writeFullLine("GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },")
             output.writeFullLine("GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },")
@@ -19,113 +30,137 @@ func writeVirtualTable(interfaceOrDelegate: BoundType, projection: SwiftProjecti
         }
 
         // Custom interface/delegate methods
-        for method in interfaceOrDelegate.definition.methods {
+        for method in abiType.definition.methods {
             // Delegates have a constructor in the metadata, ignore it
             if method is Constructor { continue }
+
             output.write(",", endLine: true)
-            try writeVirtualTableFunc(method, genericTypeArgs: interfaceOrDelegate.genericArgs, projection: projection, to: output)
+
+            output.write(try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name)
+            output.write(": ")
+            output.write("{ this")
+
+            let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
+            for abiParamName in getABIParamNames(params, returnParam: returnParam) {
+                output.write(", ")
+                output.write(abiParamName)
+            }
+
+            output.write(" in ")
+            if swiftType == abiType {
+                output.write("_implement(this)")
+            }
+            else {
+                let implementationType = try projection.toTypeName(swiftType.definition)
+                output.write("\(SupportModule.implementABIMethodFunc)(this, type: \(implementationType).self)")
+            }
+
+            try output.writeIndentedBlock(header: "{ this in", footer: "} }") {
+                try writeVirtualTableFunc(
+                    params: params, returnParam: returnParam,
+                    swiftMemberName: SwiftProjection.toMemberName(method),
+                    methodKind: WinRTMethodKind(from: method),
+                    to: output)
+            }
         }
     }
 }
 
-fileprivate func writeVirtualTableFunc(_ method: Method, genericTypeArgs: [TypeNode], projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
-    let (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: genericTypeArgs)
-
+fileprivate func getABIParamNames(_ params: [ParamProjection], returnParam: ParamProjection?) -> [String] {
     var abiParamNames = [String]()
-    for paramProjection in paramProjections {
-        if paramProjection.isArray { abiParamNames.append(paramProjection.arrayLengthName) }
-        abiParamNames.append(paramProjection.name)
+    for param in params {
+        if param.isArray { abiParamNames.append(param.arrayLengthName) }
+        abiParamNames.append(param.name)
     }
-    if let returnProjection {
-        if returnProjection.isArray { abiParamNames.append(returnProjection.arrayLengthName) }
-        abiParamNames.append(returnProjection.name)
+    if let returnParam {
+        if returnParam.isArray { abiParamNames.append(returnParam.arrayLengthName) }
+        abiParamNames.append(returnParam.name)
+    }
+    return abiParamNames
+}
+
+fileprivate func writeVirtualTableFunc(
+        params: [ParamProjection], returnParam: ParamProjection?,
+        swiftMemberName: String, methodKind: WinRTMethodKind, to output: IndentedTextOutputStream) throws {
+    // Ensure non-optional by reference params are non-null pointers
+    for param in params {
+        guard case .reference(in: _, out: _, optional: false) = param.passBy else { continue }
+        output.writeFullLine("guard let \(param.name) else { throw COM.HResult.Error.pointer }")
+    }
+    if let returnParam {
+        output.writeFullLine("guard let \(returnParam.name) else { throw COM.HResult.Error.pointer }")
     }
 
-    try writeVirtualTableFuncImplementation(
-            name: method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name,
-            paramNames: abiParamNames,
-            to: output) {
-        // Ensure non-optional by reference params are non-null pointers
-        for paramProjection in paramProjections {
-            guard case .reference(in: _, out: _, optional: false) = paramProjection.passBy else { continue }
-            output.writeFullLine("guard let \(paramProjection.name) else { throw COM.HResult.Error.pointer }")
+    // Declare the Swift representation of params
+    var epilogueOutParamWithCleanupCount = 0
+    for param in params {
+        guard param.typeProjection.kind != .identity else { continue }
+        if param.passBy.isOutput, param.typeProjection.kind != .inert {
+            epilogueOutParamWithCleanupCount += 1
         }
-        if let returnProjection {
-            output.writeFullLine("guard let \(returnProjection.name) else { throw COM.HResult.Error.pointer }")
-        }
+        try writePrologueForParam(param, to: output)
+    }
 
-        // Declare the Swift representation of params
-        var epilogueOutParamWithCleanupCount = 0
-        for paramProjection in paramProjections {
-            guard paramProjection.typeProjection.kind != .identity else { continue }
-            if paramProjection.passBy.isOutput, paramProjection.typeProjection.kind != .inert {
+    // Set up the return value
+    if let returnParam {
+        if returnParam.typeProjection.kind == .identity {
+            output.write("\(returnParam.name).pointee = ")
+        }
+        else {
+            if returnParam.typeProjection.kind != .inert {
                 epilogueOutParamWithCleanupCount += 1
             }
-            try writePrologueForParam(paramProjection, projection: projection, to: output)
+            output.write("let \(returnParam.swiftProjectionName) = ")
         }
 
-        // Set up the return value
-        if let returnProjection {
-            if returnProjection.typeProjection.kind == .identity {
-                output.write("\(returnProjection.name).pointee = ")
-            }
-            else {
-                if returnProjection.typeProjection.kind != .inert {
-                    epilogueOutParamWithCleanupCount += 1
-                }
-                output.write("let \(returnProjection.swiftProjectionName) = ")
-            }
-
-            if case .return(nullAsError: true) = returnProjection.passBy {
-                output.write("try \(SupportModule.nullResult).`catch`(")
-            }
+        if case .return(nullAsError: true) = returnParam.passBy {
+            output.write("try \(SupportModule.nullResult).`catch`(")
         }
-
-        // Call the Swift implementation
-        let methodKind = WinRTMethodKind(from: method)
-        output.write("try ")
-        output.write(methodKind == .delegateInvoke
-            ? "this" : "this.\(SwiftProjection.toMemberName(method))")
-        if methodKind != .propertyGetter {
-            output.write("(")
-            if methodKind == .eventAdder || methodKind == .eventRemover {
-                assert(paramProjections.count == 1)
-                output.write(methodKind == .eventAdder ? "adding: " : "removing: ")
-            }
-            for (index, paramProjection) in paramProjections.enumerated() {
-                if index > 0 { output.write(", ") }
-                if paramProjection.passBy != .value { output.write("&") }
-                if paramProjection.typeProjection.kind == .identity {
-                    output.write(paramProjection.name)
-                    if paramProjection.passBy != .value { output.write(".pointee") }
-                } else {
-                    output.write(paramProjection.swiftProjectionName)
-                }
-            }
-            output.write(")")
-            if methodKind == .eventAdder { output.write(".token") }
-        }
-
-        if let returnProjection, case .return(nullAsError: true) = returnProjection.passBy {
-            output.write(")") // NullResult.`catch`
-        }
-        output.endLine()
-
-        // Convert out params to the ABI representation
-        let epilogueRequiresCleanup = epilogueOutParamWithCleanupCount > 1
-        if epilogueRequiresCleanup { output.writeFullLine("var _success = false") }
-
-        for paramProjection in paramProjections {
-            guard paramProjection.passBy.isOutput, paramProjection.typeProjection.kind != .identity else { continue }
-            try writeEpilogueForOutParam(paramProjection, skipCleanup: !epilogueRequiresCleanup, projection: projection, to: output)
-        }
-
-        if let returnProjection, returnProjection.typeProjection.kind != .identity {
-            try writeEpilogueForOutParam(returnProjection, skipCleanup: !epilogueRequiresCleanup, projection: projection, to: output)
-        }
-
-        if epilogueRequiresCleanup { output.writeFullLine("_success = true") }
     }
+
+    // Call the Swift implementation
+    output.write("try ")
+    output.write(methodKind == .delegateInvoke
+        ? "this" : "this.\(swiftMemberName)")
+    if methodKind != .propertyGetter {
+        output.write("(")
+        if methodKind == .eventAdder || methodKind == .eventRemover {
+            assert(params.count == 1)
+            output.write(methodKind == .eventAdder ? "adding: " : "removing: ")
+        }
+        for (index, param) in params.enumerated() {
+            if index > 0 { output.write(", ") }
+            if param.passBy != .value { output.write("&") }
+            if param.typeProjection.kind == .identity {
+                output.write(param.name)
+                if param.passBy != .value { output.write(".pointee") }
+            } else {
+                output.write(param.swiftProjectionName)
+            }
+        }
+        output.write(")")
+        if methodKind == .eventAdder { output.write(".token") }
+    }
+
+    if let returnParam, case .return(nullAsError: true) = returnParam.passBy {
+        output.write(")") // NullResult.`catch`
+    }
+    output.endLine()
+
+    // Convert out params to the ABI representation
+    let epilogueRequiresCleanup = epilogueOutParamWithCleanupCount > 1
+    if epilogueRequiresCleanup { output.writeFullLine("var _success = false") }
+
+    for param in params {
+        guard param.passBy.isOutput, param.typeProjection.kind != .identity else { continue }
+        try writeEpilogueForOutParam(param, skipCleanup: !epilogueRequiresCleanup, to: output)
+    }
+
+    if let returnParam, returnParam.typeProjection.kind != .identity {
+        try writeEpilogueForOutParam(returnParam, skipCleanup: !epilogueRequiresCleanup, to: output)
+    }
+
+    if epilogueRequiresCleanup { output.writeFullLine("_success = true") }
 }
 
 fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [String], to output: IndentedTextOutputStream, body: () throws -> Void) rethrows {
@@ -139,56 +174,56 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
     output.write("} }")
 }
 
-fileprivate func writePrologueForParam(_ paramProjection: ParamProjection, projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
-    if paramProjection.passBy.isInput {
-        let declarator: SwiftVariableDeclarator = paramProjection.passBy.isOutput ? .var : .let
-        output.write("\(declarator) \(paramProjection.swiftProjectionName) = \(paramProjection.projectionType).toSwift")
-        switch paramProjection.typeProjection.kind {
+fileprivate func writePrologueForParam(_ param: ParamProjection, to output: IndentedTextOutputStream) throws {
+    if param.passBy.isInput {
+        let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
+        output.write("\(declarator) \(param.swiftProjectionName) = \(param.projectionType).toSwift")
+        switch param.typeProjection.kind {
             case .identity: fatalError("Case should have been ignored earlier.")
             case .inert, .allocating:
-                output.write("(\(paramProjection.name))")
+                output.write("(\(param.name))")
             case .array:
-                output.write("(pointer: \(paramProjection.name), count: \(paramProjection.arrayLengthName))")
+                output.write("(pointer: \(param.name), count: \(param.arrayLengthName))")
         }
     } else {
-        output.write("var \(paramProjection.swiftProjectionName): \(paramProjection.typeProjection.swiftType)"
-            + " = \(paramProjection.typeProjection.swiftDefaultValue)")
+        output.write("var \(param.swiftProjectionName): \(param.typeProjection.swiftType)"
+            + " = \(param.typeProjection.swiftDefaultValue)")
     }
     output.endLine()
 }
 
-fileprivate func writeEpilogueForOutParam(_ paramProjection: ParamProjection, skipCleanup: Bool, projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
-    precondition(paramProjection.passBy.isOutput)
+fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: IndentedTextOutputStream) throws {
+    precondition(param.passBy.isOutput)
 
-    if paramProjection.typeProjection.kind == .array {
+    if param.typeProjection.kind == .array {
         output.writeFullLine(#"fatalError("Not implemented: out arrays")"#)
     }
     else {
         let isOptional: Bool
-        if case .reference(in: _, out: _, optional: true) = paramProjection.passBy {
+        if case .reference(in: _, out: _, optional: true) = param.passBy {
             isOptional = true
         } else {
             isOptional = false
         }
 
-        if isOptional { output.write("if let \(paramProjection.name) { ") }
+        if isOptional { output.write("if let \(param.name) { ") }
 
-        output.write("\(paramProjection.name).pointee = ")
-        if paramProjection.typeProjection.kind == .identity {
-            output.write(paramProjection.swiftProjectionName)
+        output.write("\(param.name).pointee = ")
+        if param.typeProjection.kind == .identity {
+            output.write(param.swiftProjectionName)
         } else {
-            if paramProjection.typeProjection.kind == .allocating { output.write ("try ") }
-            output.write("\(paramProjection.projectionType).toABI(\(paramProjection.swiftProjectionName))")
+            if param.typeProjection.kind == .allocating { output.write ("try ") }
+            output.write("\(param.projectionType).toABI(\(param.swiftProjectionName))")
         }
 
         if isOptional { output.write(" }") }
         
         output.endLine()
 
-        if paramProjection.typeProjection.kind == .allocating, !skipCleanup {
+        if param.typeProjection.kind == .allocating, !skipCleanup {
             output.write("defer { ")
-            output.write("if !_success, let \(paramProjection.name) { ")
-            output.write("\(paramProjection.projectionType).release(&\(paramProjection.name).pointee)")
+            output.write("if !_success, let \(param.name) { ")
+            output.write("\(param.projectionType).release(&\(param.name).pointee)")
             output.write(" }")
             output.write(" }", endLine: true)
         }

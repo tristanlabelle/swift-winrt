@@ -44,20 +44,20 @@ open class COMExportBase: IUnknownProtocol {
         COMWrappingExport<Projection>(implementation: implementation, foreignIdentity: self)
     }
 
-    private static func getImplementation<Projection: COMProjection>(unwrapped: AnyObject, projection: Projection.Type) -> Projection.SwiftObject? {
-        if let implementation = (unwrapped as? Projection.SwiftObject) { return implementation }
+    private static func getImplementation<Implementation>(unwrapped: AnyObject) -> Implementation? {
+        if let implementation = (unwrapped as? Implementation) { return implementation }
         if let comExport = unwrapped as? COMExportBase,
-            let implementation = comExport.anyImplementation as? Projection.SwiftObject { return implementation }
+            let implementation = comExport.anyImplementation as? Implementation { return implementation }
         return nil
     }
 
-    public static func getImplementationUnsafe<Projection: COMProjection>(_ this: Projection.COMPointer, projection: Projection.Type) -> Projection.SwiftObject {
-        getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this), projection: Projection.self)!
+    public static func getImplementationUnsafe<Interface, Implementation>(_ this: UnsafeMutablePointer<Interface>) -> Implementation {
+        getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this))!
     }
 
-    public static func getImplementation<Projection: COMProjection>(_ this: Projection.COMPointer, projection: Projection.Type) -> Projection.SwiftObject? {
+    public static func getImplementation<Interface, Implementation>(_ this: UnsafeMutablePointer<Interface>) -> Implementation? {
         guard COMExportedInterface.test(this) else { return nil }
-        return getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this), projection: Projection.self)
+        return getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this))
     }
 }
 

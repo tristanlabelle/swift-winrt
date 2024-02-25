@@ -101,17 +101,4 @@ open class WinRTComposableClass: IInspectableProtocol {
         try WinRTError.throwIfFailed(inner.pointee.lpVtbl.pointee.GetTrustLevel(inner, &value))
         return TrustLevel.toSwift(value)
     }
-
-    /// Helper to implement virtual table methods for the outer object.
-    public static func _implement<Interface, SwiftObject: AnyObject>(
-            _ this: UnsafeMutablePointer<Interface>?, type: SwiftObject.Type,
-            _ body: (SwiftObject) throws -> Void) -> HResultProjection.ABIValue {
-        guard let this else {
-            assertionFailure("COM this pointer was null")
-            return HResult.pointer.value
-        }
-
-        let implementation = COMExportedInterface.unwrapUnsafe(this) as! SwiftObject
-        return HResult.catchValue { try body(implementation) }
-    }
 }

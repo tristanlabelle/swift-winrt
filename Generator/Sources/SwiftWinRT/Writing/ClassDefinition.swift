@@ -52,9 +52,9 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 fileprivate struct ClassInterfaces {
     var hasDefaultFactory = false
     var factories: [InterfaceDefinition] = []
-    var `static`: [InterfaceDefinition] = []
     var `default`: BoundInterface? = nil
     var secondary: [Secondary] = []
+    var `static`: [InterfaceDefinition] = []
 
     struct Secondary {
         var interface: BoundInterface
@@ -73,8 +73,6 @@ fileprivate struct ClassInterfaces {
             hasDefaultFactory = activatableAttributes.count > factories.count
         }
 
-        `static` = try classDefinition.getAttributes(StaticAttribute.self).map { $0.interface }
-
         for baseInterface in classDefinition.baseInterfaces {
             if try baseInterface.hasAttribute(DefaultAttribute.self) {
                 `default` = try baseInterface.interface
@@ -85,6 +83,8 @@ fileprivate struct ClassInterfaces {
                 secondary.append(Secondary(interface: try baseInterface.interface, overridable: overridable, protected: protected))
             }
         }
+
+        `static` = try classDefinition.getAttributes(StaticAttribute.self).map { $0.interface }
     }
 }
 
@@ -101,6 +101,14 @@ fileprivate func writeClassMembers(
     try writeClassInterfaceProperties(
         classDefinition, interfaces: interfaces, composable: composable,
         projection: projection, to: writer)
+
+    if composable {
+        let overridableInterfaces = interfaces.secondary.compactMap { $0.overridable ? $0.interface : nil }
+        if !overridableInterfaces.isEmpty {
+            writer.writeMarkComment("Override support")
+            try writeClassOverrideSupport(classDefinition, interfaces: overridableInterfaces, projection: projection, to: writer)
+        }
+    }
 }
 
 fileprivate func writeClassInterfaceImplementations(
@@ -124,8 +132,9 @@ fileprivate func writeClassInterfaceImplementations(
 
     if let defaultInterface = interfaces.default, !defaultInterface.definition.methods.isEmpty {
         try writeMarkComment(forInterface: defaultInterface, to: writer)
-        let thisPointer: ThisPointer = composable ? .init(name: "_interop")
-            : .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
+        let thisPointer: ThisPointer = composable
+            ? .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
+            : .init(name: "_interop")
         try writeInterfaceImplementation(
             interfaceOrDelegate: defaultInterface.asBoundType,
             thisPointer: thisPointer,
@@ -156,21 +165,21 @@ fileprivate func writeClassInterfaceProperties(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, composable: Bool,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     // Instance properties, initializers and deinit
-    if let defaultInterface = interfaces.default {
-        try SecondaryInterfaces.writeDeclaration(defaultInterface, projection: projection, to: writer)
+    if composable, let defaultInterface = interfaces.default {
+        try SecondaryInterfaces.writeDeclaration(defaultInterface, composable: composable, projection: projection, to: writer)
     }
 
     for secondaryInterface in interfaces.secondary {
-        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, composable: composable, projection: projection, to: writer)
     }
 
     if composable, let defaultInterface = interfaces.default {
         try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
     }
 
-    if interfaces.default != nil || !interfaces.secondary.isEmpty {
+    if (composable && interfaces.default != nil) || !interfaces.secondary.isEmpty {
         writer.writeDeinit { writer in
-            if let defaultInterface = interfaces.default {
+            if composable, let defaultInterface = interfaces.default {
                 SecondaryInterfaces.writeCleanup(defaultInterface, to: writer)
             }
 
@@ -203,6 +212,48 @@ fileprivate func writeClassInterfaceProperties(
     for staticInterface in interfaces.static {
         try SecondaryInterfaces.writeDeclaration(
             staticInterface.bind(), staticOf: classDefinition, projection: projection, to: writer)
+    }
+}
+
+fileprivate func writeClassOverrideSupport(
+        _ classDefinition: ClassDefinition, interfaces: [BoundInterface],
+        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+    let outerPropertySuffix = "outer"
+
+    for interface in interfaces {
+        // private var _istringable_outer: COM.COMExportedInterface = .uninitialized
+        writer.writeStoredProperty(
+            visibility: .private, declarator: .var,
+            name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
+            type: SupportModule.comExportedInterface, initialValue: ".uninitialized")
+    }
+
+    // public override func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? {
+    try writer.writeFunc(
+            visibility: .public, override: true, name: "_queryOverridesInterfacePointer",
+            params: [ .init(label: "_", name: "id", type: SupportModule.comInterfaceID) ], throws: true,
+            returnType: .optional(wrapped: SupportModule.iunknownPointer)) { writer in
+        for interface in interfaces {
+            // if id == COMInterop<SWRT_IFoo>.iid {
+            let comImport = try SupportModule.comInterop(of: projection.toABIType(interface.asBoundType))
+            try writer.writeBracedBlock("if id == \(comImport).iid") { writer in
+                // if !_ifooOverrides_outer.isInitialized {
+                //     _ifooOverrides_outer = COMExportedInterface(
+                //         swiftObject: self, virtualTable: &FooProjection.VirtualTables.ifooOverrides)
+                // }
+                let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
+                try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
+                    let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
+                    let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix)
+                    writer.writeStatement("\(outerPropertyName) = \(SupportModule.comExportedInterface)(\n"
+                        + "swiftObject: self, virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
+                }
+
+                // return _iminimalUnsealedClassOverridesOuter.unknownPointer.addingRef()
+                writer.writeReturnStatement(value: "\(outerPropertyName).unknownPointer.addingRef()")
+            }
+        }
+        writer.writeReturnStatement(value: "nil")
     }
 }
 
@@ -289,9 +340,8 @@ fileprivate func writeSupportComposableInitializers(
     // public init(_transferringRef comPointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
     //     super.init(_transferringRef: IInspectablePointer.cast(comPointer))
     // }
-    let defaultInterfaceABIName = try CAbi.mangleName(type: defaultInterface.asBoundType)
     let param = SwiftParam(label: "_transferringRef", name: "comPointer",
-        type: .unsafeMutablePointer(to: .chain(projection.abiModuleName, defaultInterfaceABIName)))
+        type: .unsafeMutablePointer(to: try projection.toABIType(defaultInterface.asBoundType)))
     writer.writeInit(visibility: .public, params: [param]) { writer in
         writer.writeStatement("super.init(_transferringRef: IInspectablePointer.cast(comPointer))")
     }

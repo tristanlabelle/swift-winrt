@@ -94,7 +94,7 @@ fileprivate func writeStructProjectionExtension(
         _ structDefinition: StructDefinition,
         projection: SwiftProjection,
         to writer: SwiftSourceFileWriter) throws {
-    let abiType = SwiftType.chain(projection.abiModuleName, try CAbi.mangleName(type: structDefinition.bindType()))
+    let abiType = try projection.toABIType(structDefinition.bindType())
 
     // TODO: Support strings and IReference<T> field types (non-inert)
     // extension <struct>: ABIInertProjection
@@ -211,6 +211,21 @@ fileprivate func writeClassProjectionType(
             },
             projection: projection,
             to: writer)
+
+        let overridableInterfaces = try classDefinition.baseInterfaces.compactMap {
+            try $0.hasAttribute(OverridableAttribute.self) ? $0.interface : nil
+        }
+        if !overridableInterfaces.isEmpty {
+            try writer.writeEnum(visibility: .internal, name: "VirtualTables") { writer in
+                for interface in overridableInterfaces {
+                    try writeVirtualTableProperty(
+                        visibility: .internal,
+                        name: Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix),
+                        abiType: interface.asBoundType, swiftType: classDefinition.bindType(),
+                        projection: projection, to: writer)
+                }
+            }
+        }
     }
 }
 
@@ -266,9 +281,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
             writer.writeStatement("withUnsafePointer(to: &virtualTable) { $0 }")
         }
 
-        try writer.writeStoredProperty(
-            visibility: .private, static: true, declarator: .var, name: "virtualTable",
-            initializer: { try writeVirtualTable(interfaceOrDelegate: type, projection: projection, to: $0) })
+        try writeVirtualTableProperty(name: "virtualTable", abiType: type, swiftType: type, projection: projection, to: writer)
     }
 }
 
@@ -279,14 +292,12 @@ internal func writeCOMProjectionConformance(
         toCOMBody: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
         projection: SwiftProjection,
         to writer: SwiftTypeDefinitionWriter) throws {
-    let abiName = try CAbi.mangleName(type: abiType)
-
     writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
         target: try projection.toType(apiType.asNode).unwrapOptional())
     writer.writeTypeAlias(visibility: .public, name: "COMInterface",
-        target: .chain(projection.abiModuleName, abiName))
+        target: try projection.toABIType(abiType))
     writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
-        target: .chain(projection.abiModuleName, abiName + CAbi.virtualTableSuffix))
+        target: try projection.toABIVirtualTableType(abiType))
 
     // public static var id: COM.COMInterfaceID { COM.COMInterop<COMInterface>.iid }
     writer.writeComputedProperty(visibility: .public, static: true, name: "id", type: SupportModule.comInterfaceID) { writer in
