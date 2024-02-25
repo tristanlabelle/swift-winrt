@@ -12,10 +12,12 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
 
     for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
         for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
+            if let classDefinition = typeDefinition as? ClassDefinition, classDefinition.isStatic { continue }
             guard typeDefinition.isPublic,
                 !SupportModule.hasBuiltInProjection(typeDefinition),
                 try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
+            writer.writeMarkComment(typeDefinition.fullName)
             try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
         }
     }
@@ -26,6 +28,7 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
         guard !SupportModule.hasBuiltInProjection(typeDefinition) else { continue }
 
         for genericArgs in instantiations {
+            writer.writeMarkComment(try WinRTTypeName.from(type: typeDefinition.bindType(genericArgs: genericArgs)).description)
             try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
         }
     }

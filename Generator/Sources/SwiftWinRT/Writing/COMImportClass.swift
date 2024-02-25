@@ -36,9 +36,8 @@ internal func writeCOMImportClass(
         try writeGenericTypeAliases(interfaces: interfaces, projection: projection, to: writer)
 
         // Primary interface implementation
-        try writer.writeCommentLine(WinRTTypeName.from(type: type).description)
         try writeInterfaceImplementation(
-            interfaceOrDelegate: type, thisPointer: .init(name: "_interop"),
+            abiType: type, documentation: false, thisPointer: .init(name: "_interop"),
             projection: projection, to: writer)
 
         // Secondary interface implementations
@@ -49,9 +48,10 @@ internal func writeCOMImportClass(
 
             if !secondaryInterfaces.isEmpty {
                 for secondaryInterface in secondaryInterfaces {
-                    try writer.writeCommentLine(WinRTTypeName.from(type: secondaryInterface.asBoundType).description)
+                    let secondaryInterfaceName = try WinRTTypeName.from(type: secondaryInterface.asBoundType).description
+                    writer.writeMarkComment("\(secondaryInterfaceName) members")
                     try writeInterfaceImplementation(
-                        interfaceOrDelegate: secondaryInterface.asBoundType,
+                        abiType: secondaryInterface.asBoundType, documentation: false,
                         thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface), lazy: true),
                         projection: projection, to: writer)
                 }

@@ -136,8 +136,7 @@ fileprivate func writeClassInterfaceImplementations(
             ? .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
             : .init(name: "_interop")
         try writeInterfaceImplementation(
-            interfaceOrDelegate: defaultInterface.asBoundType,
-            thisPointer: thisPointer,
+            abiType: defaultInterface.asBoundType, thisPointer: thisPointer,
             projection: projection, to: writer)
     }
 
@@ -145,7 +144,7 @@ fileprivate func writeClassInterfaceImplementations(
         if secondaryInterface.interface.definition.methods.isEmpty { continue }
         try writeMarkComment(forInterface: secondaryInterface.interface, to: writer)
         try writeInterfaceImplementation(
-            interfaceOrDelegate: secondaryInterface.interface.asBoundType,
+            abiType: secondaryInterface.interface.asBoundType,
             overridable: secondaryInterface.overridable,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface.interface), lazy: true),
             projection: projection, to: writer)
@@ -155,7 +154,7 @@ fileprivate func writeClassInterfaceImplementations(
         if staticInterface.methods.isEmpty { continue }
         try writeMarkComment(forInterface: staticInterface.bind(), to: writer)
         try writeInterfaceImplementation(
-            interfaceOrDelegate: staticInterface.bindType(), static: true,
+            abiType: staticInterface.bindType(), static: true,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(staticInterface.bind()), lazy: true),
             projection: projection, to: writer)
     }
@@ -261,7 +260,6 @@ fileprivate func writeMarkComment(forInterface interfaceName: String, to writer:
 fileprivate func writeComposableInitializers(
         _ classDefinition: ClassDefinition, factoryInterface: InterfaceDefinition,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    writer.writeCommentLine(try WinRTTypeName.from(type: factoryInterface.bindType()).description)
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     for method in factoryInterface.methods {

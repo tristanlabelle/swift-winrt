@@ -36,6 +36,8 @@ internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPa
     for (boundType, _) in boundAbiTypes {
         // IReference is special cased, with a single definition for all generic instantiations
         guard boundType.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
+
+        writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
         try writeCOMInteropExtension(abiType: boundType, projection: module.projection, to: writer)
     }
 }

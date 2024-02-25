@@ -55,13 +55,14 @@ fileprivate func writeVirtualTable(
                 output.write("\(SupportModule.implementABIMethodFunc)(this, type: \(implementationType).self)")
             }
 
-            try output.writeIndentedBlock(header: "{ this in", footer: "} }") {
+            try output.writeIndentedBlock(header: " { this in") {
                 try writeVirtualTableFunc(
                     params: params, returnParam: returnParam,
                     swiftMemberName: SwiftProjection.toMemberName(method),
                     methodKind: WinRTMethodKind(from: method),
                     to: output)
             }
+            output.write("} }") // We might append a comma, so don't end the line
         }
     }
 }

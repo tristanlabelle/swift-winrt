@@ -14,41 +14,43 @@ internal struct ThisPointer {
 }
 
 internal func writeInterfaceImplementation(
-        interfaceOrDelegate: BoundType, overridable: Bool = false, static: Bool = false, thisPointer: ThisPointer,
+        abiType: BoundType, documentation: Bool = true,
+        overridable: Bool = false, static: Bool = false, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    for property in interfaceOrDelegate.definition.properties {
+    for property in abiType.definition.properties {
         try writeInterfacePropertyImplementation(
-            property, typeGenericArgs: interfaceOrDelegate.genericArgs,
+            property, typeGenericArgs: abiType.genericArgs, documentation: documentation,
             overridable: overridable, static: `static`, thisPointer: thisPointer,
             projection: projection, to: writer)
     }
 
-    for event in interfaceOrDelegate.definition.events {
+    for event in abiType.definition.events {
         try writeInterfaceEventImplementation(
-            event, typeGenericArgs: interfaceOrDelegate.genericArgs,
+            event, typeGenericArgs: abiType.genericArgs, documentation: documentation,
             overridable: overridable, static: `static`, thisPointer: thisPointer,
             projection: projection, to: writer)
     }
 
-    for method in interfaceOrDelegate.definition.methods {
+    for method in abiType.definition.methods {
         guard method.isPublic && !(method is Constructor) else { continue }
         // Generate Delegate.Invoke as a regular method
-        guard method.nameKind == .regular || interfaceOrDelegate.definition is DelegateDefinition else { continue }
+        guard method.nameKind == .regular || abiType.definition is DelegateDefinition else { continue }
         try writeInterfaceMethodImplementation(
-            method, typeGenericArgs: interfaceOrDelegate.genericArgs,
+            method, typeGenericArgs: abiType.genericArgs, documentation: documentation,
             overridable: overridable, static: `static`, thisPointer: thisPointer,
             projection: projection, to: writer)
     }
 }
 
 fileprivate func writeInterfacePropertyImplementation(
-        _ property: Property, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
+        _ property: Property, typeGenericArgs: [TypeNode], documentation: Bool,
+        overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     // public [static] var myProperty: MyPropertyType { get throws { .. } }
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeComputedProperty(
-                documentation: try projection.getDocumentationComment(property),
+                documentation: documentation ? projection.getDocumentationComment(property) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
@@ -65,7 +67,7 @@ fileprivate func writeInterfacePropertyImplementation(
         guard let newValueParam = try setter.params.first else { fatalError() }
         let newValueParamProjection = try projection.getParamProjection(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: try projection.getDocumentationComment(property),
+                documentation: documentation ? projection.getDocumentationComment(property) : nil,
                 visibility: .public,
                 static: `static`,
                 name: SwiftProjection.toMemberName(property),
@@ -80,7 +82,8 @@ fileprivate func writeInterfacePropertyImplementation(
 }
 
 fileprivate func writeInterfaceEventImplementation(
-        _ event: Event, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
+        _ event: Event, typeGenericArgs: [TypeNode], documentation: Bool,
+        overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let name = SwiftProjection.toMemberName(event)
 
@@ -89,7 +92,7 @@ fileprivate func writeInterfaceEventImplementation(
         let handlerParamProjection = try projection.getParamProjection(handlerParameter, genericTypeArgs: typeGenericArgs)
         let eventRegistrationType = SupportModule.eventRegistration
         try writer.writeFunc(
-                documentation: try projection.getDocumentationComment(event),
+                documentation: documentation ? projection.getDocumentationComment(event) : nil,
                 visibility: overridable ? .open : .public, static: `static`, name: name,
                 params: [ handlerParamProjection.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
@@ -110,7 +113,7 @@ fileprivate func writeInterfaceEventImplementation(
     if let removeAccessor = try event.removeAccessor, let tokenParameter = try removeAccessor.params.first {
         let tokenParamProjection = try projection.getParamProjection(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: try projection.getDocumentationComment(event),
+                documentation: documentation ? projection.getDocumentationComment(event) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: name,
@@ -125,11 +128,12 @@ fileprivate func writeInterfaceEventImplementation(
 }
 
 fileprivate func writeInterfaceMethodImplementation(
-        _ method: Method, typeGenericArgs: [TypeNode], overridable: Bool, static: Bool, thisPointer: ThisPointer,
+        _ method: Method, typeGenericArgs: [TypeNode], documentation: Bool,
+        overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
-            documentation: try projection.getDocumentationComment(method),
+            documentation: documentation ? projection.getDocumentationComment(method) : nil,
             visibility: overridable ? .open : .public,
             static: `static`,
             name: SwiftProjection.toMemberName(method),
