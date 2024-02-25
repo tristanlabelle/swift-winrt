@@ -12,13 +12,12 @@ internal enum SecondaryInterfaces {
         try writeDeclaration(
             interfaceName: projection.toTypeName(interface.definition, namespaced: false),
             abiStructType: projection.toABIType(interface.asBoundType),
-            iid: WindowsMetadata.getInterfaceID(interface.asBoundType),
             staticOf: staticOf, composable: composable,
             projection: projection, to: writer)
     }
 
     internal static func writeDeclaration(
-            interfaceName: String, abiStructType: SwiftType, iid: UUID, staticOf: ClassDefinition? = nil, composable: Bool = false,
+            interfaceName: String, abiStructType: SwiftType, staticOf: ClassDefinition? = nil, composable: Bool = false,
             projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
 
         // private [static] var _istringable_storage: COM.COMInterop<SWRT_WindowsFoundation_IStringable>? = nil

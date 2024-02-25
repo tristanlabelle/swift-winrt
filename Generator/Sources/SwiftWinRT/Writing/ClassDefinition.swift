@@ -191,17 +191,9 @@ fileprivate func writeClassInterfaceProperties(
 
     // Static properties
     if interfaces.hasDefaultFactory {
-        // TODO: Move GUID to COMInterop<SWRT_IActivationFactory>
-        // 00000035-0000-0000-C000-000000000046
-        let iactivationFactoryID = UUID(uuid: (
-            0x00, 0x00, 0x00, 0x35,
-            0x00, 0x00,
-            0x00, 0x00,
-            0xC0, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
         try SecondaryInterfaces.writeDeclaration(
             interfaceName: "IActivationFactory", abiStructType: .chain(projection.abiModuleName, CAbi.iactivationFactoryName),
-            iid: iactivationFactoryID, staticOf: classDefinition, projection: projection, to: writer)
+            staticOf: classDefinition, projection: projection, to: writer)
     }
 
     for factoryInterface in interfaces.factories {

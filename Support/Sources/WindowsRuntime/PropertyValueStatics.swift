@@ -2,14 +2,15 @@ import COM
 import CWinRTCore
 import struct Foundation.UUID
 
-fileprivate var _propertyValueStatics: UnsafeMutablePointer<CWinRTCore.SWRT_IPropertyValueStatics>? = nil
+fileprivate var _propertyValueStatics: COMInterop<CWinRTCore.SWRT_IPropertyValueStatics>? = nil
 
 internal var propertyValueStatics: COMInterop<CWinRTCore.SWRT_IPropertyValueStatics> {
     get throws {
-        try COMInterop(lazyInitActivationFactoryPointer(
-            &_propertyValueStatics,
-            activatableId: "Windows.Foundation.PropertyValue",
-            id: CWinRTCore.SWRT_IPropertyValueStatics.iid))
+        try _propertyValueStatics.lazyInit {
+            try getActivationFactoryPointer(
+                activatableId: "Windows.Foundation.PropertyValue",
+                id: CWinRTCore.SWRT_IPropertyValueStatics.iid)
+        }
     }
 }
 
