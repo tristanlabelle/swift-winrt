@@ -4,9 +4,9 @@
 
 namespace winrt::WinRTComponent::implementation
 {
-    winrt::WinRTComponent::Struct Structs::Make(int32_t a, hstring const& b, winrt::WinRTComponent::LeafStruct const& c)
+    winrt::WinRTComponent::Struct Structs::Make(int32_t int32, hstring const& string, winrt::Windows::Foundation::IReference<int32_t> const& reference, winrt::WinRTComponent::LeafStruct const& nested)
     {
-        return { a, b, c };
+        return { int32, string, reference, nested };
     }
     int32_t Structs::GetInt32(winrt::WinRTComponent::Struct const& value)
     {
@@ -16,13 +16,17 @@ namespace winrt::WinRTComponent::implementation
     {
         return value.String;
     }
+    winrt::Windows::Foundation::IReference<int32_t> Structs::GetReference(winrt::WinRTComponent::Struct const& value)
+    {
+        return value.Reference;
+    }
     winrt::WinRTComponent::LeafStruct Structs::GetNested(winrt::WinRTComponent::Struct const& value)
     {
         return value.Nested;
     }
-    void Structs::Output(int32_t a, hstring const& b, winrt::WinRTComponent::LeafStruct const& c, winrt::WinRTComponent::Struct& value)
+    void Structs::Output(int32_t int32, hstring const& string, winrt::Windows::Foundation::IReference<int32_t> const& reference, winrt::WinRTComponent::LeafStruct const& nested, winrt::WinRTComponent::Struct& value)
     {
-        value = { a, b, c };
+        value = { int32, string, reference, nested };
     }
     winrt::WinRTComponent::Struct Structs::ReturnRefConstArgument(const winrt::WinRTComponent::Struct& value)
     {

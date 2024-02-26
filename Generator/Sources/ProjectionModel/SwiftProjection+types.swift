@@ -23,6 +23,24 @@ extension SwiftProjection {
         }
     }
 
+    public func isProjectionInert(_ typeDefinition: TypeDefinition) throws -> Bool {
+        switch typeDefinition {
+            case is InterfaceDefinition, is DelegateDefinition, is ClassDefinition: return false
+            case let structDefinition as StructDefinition:
+                return try structDefinition.fields.allSatisfy { field in
+                    guard field.isInstance else { return true }
+                    switch try field.type {
+                        case let .bound(type):
+                            // Careful, primitive types have recursive fields (System.Int32 has a field of type System.Int32)
+                            return try type.definition == typeDefinition || isProjectionInert(type.definition)
+                        default: return false
+                    }
+                }
+            case is EnumDefinition: return true
+            default: fatalError()
+        }
+    }
+
     public func isNullAsErrorEligible(_ type: TypeNode) -> Bool {
         switch type {
             case let .bound(type):
@@ -101,7 +119,7 @@ extension SwiftProjection {
             swiftType: try toType(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             projectionType: projectionType,
-            kind: type.definition.isValueType ? .inert : .allocating)
+            kind: try isProjectionInert(type.definition) ? .inert : .allocating)
     }
 
     private func getSpecialTypeProjection(_ type: BoundType) throws -> TypeProjection? {

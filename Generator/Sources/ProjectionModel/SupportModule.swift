@@ -13,6 +13,7 @@ public enum SupportModule {
 
     public static var hresult: SwiftType { .chain(comModuleName, "HResult") }
 
+    public static var abiProjection: SwiftType { .chain(comModuleName, "ABIProjection") }
     public static var abiInertProjection: SwiftType { .chain(comModuleName, "ABIInertProjection") }
     public static var boolProjection: SwiftType { .chain(comModuleName, "BoolProjection") }
     public static var wideCharProjection: SwiftType { .chain(comModuleName, "WideCharProjection") }
