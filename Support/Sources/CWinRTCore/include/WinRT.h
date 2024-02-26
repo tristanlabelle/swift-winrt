@@ -224,6 +224,21 @@ struct SWRT_IActivationFactoryVTable {
     SWRT_HResult (__stdcall *ActivateInstance)(SWRT_IActivationFactory* _this, SWRT_IInspectable** instance);
 };
 
+// IStringable
+typedef struct SWRT_IStringable {
+    struct SWRT_IStringableVTable* lpVtbl;
+} SWRT_IStringable;
+
+struct SWRT_IStringableVTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_IStringable* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_IStringable* _this);
+    uint32_t (__stdcall *Release)(SWRT_IStringable* _this);
+    SWRT_HResult (__stdcall *GetIids)(SWRT_IStringable* _this, uint32_t* iidCount, SWRT_Guid** iids);
+    SWRT_HResult (__stdcall *GetRuntimeClassName)(SWRT_IStringable* _this, SWRT_HString* className);
+    SWRT_HResult (__stdcall *GetTrustLevel)(SWRT_IStringable* _this, SWRT_TrustLevel* trustLevel);
+    SWRT_HResult (__stdcall *ToString)(SWRT_IStringable* _this, SWRT_HString* value);
+};
+
 // IWeakReference
 typedef struct SWRT_IWeakReference {
     struct SWRT_IWeakReferenceVTable* lpVtbl;

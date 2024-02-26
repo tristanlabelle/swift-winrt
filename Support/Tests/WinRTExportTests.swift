@@ -56,6 +56,14 @@ internal final class WinRTExportTests: XCTestCase {
         XCTAssertThrowsError(try NonAgileObject().queryInterface(IAgileObjectProjection.self))
     }
 
+    func testIStringable() throws {
+        final class Stringable: WinRTExport<IInspectableProjection>, CustomStringConvertible {
+            var description: String { "hello" }
+        }
+
+        XCTAssertEqual(try Stringable().queryInterface(IStringableProjection.self).toString(), "hello")
+    }
+
     func testIWeakReferenceSource() throws {
         final class WeakReferenceSource: WinRTExport<IInspectableProjection> {
             override class var weakReferenceSource: Bool { true }

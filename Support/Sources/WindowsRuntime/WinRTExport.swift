@@ -5,6 +5,7 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         : COMExport<Projection>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
+    open class var autoStringable: Bool { true }
     open class var agile: Bool { true }
     open class var weakReferenceSource: Bool { true }
 
@@ -13,18 +14,25 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
     }
 
     open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        // QI for IInspectable should return the identity interface just like IUnknown.
-        if id == IInspectableProjection.interfaceID { return unknownPointer.addingRef() }
-
-        // Implement WinRT core interfaces
-        if Self.agile && id == IAgileObjectProjection.interfaceID { return unknownPointer.addingRef() }
-        if Self.weakReferenceSource && id == IWeakReferenceSourceProjection.interfaceID {
-            let export = createSecondaryExport(
-                projection: IWeakReferenceSourceProjection.self,
-                implementation: WeakReferenceSource(target: self))
-            return export.unknownPointer.addingRef()
+        switch id {
+            // QI for IInspectable should return the identity interface just like IUnknown.
+            case IInspectableProjection.interfaceID: return unknownPointer.addingRef()
+            case IAgileObjectProjection.interfaceID where Self.agile: return unknownPointer.addingRef()
+            case IWeakReferenceSourceProjection.interfaceID where Self.weakReferenceSource:
+                let export = createSecondaryExport(
+                    projection: IWeakReferenceSourceProjection.self,
+                    implementation: WeakReferenceSource(target: self))
+                return export.unknownPointer.addingRef()
+            case IStringableProjection.interfaceID where Self.autoStringable:
+                if let customStringConvertible = self as? any CustomStringConvertible {
+                    let export = createSecondaryExport(
+                        projection: IStringableProjection.self,
+                        implementation: Stringable(target: customStringConvertible))
+                    return export.unknownPointer.addingRef()
+                }
+                break
+            default: break
         }
-
         return try super._queryInterfacePointer(id)
     }
 
@@ -38,6 +46,7 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         var iids = Self.implements.map { $0.id }
         if Self.agile { iids.append(IAgileObjectProjection.interfaceID) }
         if Self.weakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
+        if Self.autoStringable, self is CustomStringConvertible { iids.append(IStringableProjection.interfaceID) }
         return iids
     }
 
@@ -57,6 +66,12 @@ fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: CO
             implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
         WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
     }
+}
+
+fileprivate class Stringable: COMExport<IStringableProjection>, IStringableProtocol {
+    private let target: any CustomStringConvertible
+    init(target: any CustomStringConvertible) { self.target = target }
+    func toString() throws -> String { target.description }
 }
 
 fileprivate class WeakReference: COMExport<IWeakReferenceProjection>, IWeakReferenceProtocol {
