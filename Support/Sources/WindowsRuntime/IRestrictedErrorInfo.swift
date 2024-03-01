@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 import struct Foundation.UUID
 
 public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
@@ -14,8 +14,8 @@ public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 
 public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IRestrictedErrorInfo
-    public typealias COMInterface = CWinRTCore.SWRT_IRestrictedErrorInfo
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IRestrictedErrorInfoVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IRestrictedErrorInfoVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -64,27 +64,27 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
 }
 
 #if swift(>=5.10)
-extension CWinRTCore.SWRT_IRestrictedErrorInfo: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: @retroactive COMIUnknownStruct {}
 #else
-extension CWinRTCore.SWRT_IRestrictedErrorInfo: COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IRestrictedErrorInfo {
+extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {
     public static let iid = COMInterfaceID(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IRestrictedErrorInfo {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {
     public func getErrorDetails(
             _ description: inout String?,
             _ error: inout HResult,
             _ restrictedDescription: inout String?,
             _ capabilitySid: inout String?) throws {
-        var description_: CWinRTCore.SWRT_BStr? = nil
+        var description_: WindowsRuntime_ABI.SWRT_BStr? = nil
         defer { BStrProjection.release(&description_) }
-        var error_: CWinRTCore.SWRT_HResult = 0
-        var restrictedDescription_: CWinRTCore.SWRT_BStr? = nil
+        var error_: WindowsRuntime_ABI.SWRT_HResult = 0
+        var restrictedDescription_: WindowsRuntime_ABI.SWRT_BStr? = nil
         defer { BStrProjection.release(&restrictedDescription_) }
-        var capabilitySid_: CWinRTCore.SWRT_BStr? = nil
+        var capabilitySid_: WindowsRuntime_ABI.SWRT_BStr? = nil
         defer { BStrProjection.release(&capabilitySid_) }
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
         description = BStrProjection.toSwift(consuming: &description_)

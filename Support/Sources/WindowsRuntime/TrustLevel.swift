@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 import COM
 
 public struct TrustLevel: Hashable, RawRepresentable {

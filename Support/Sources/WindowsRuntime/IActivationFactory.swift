@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public func getActivationFactoryPointer<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> UnsafeMutablePointer<COMInterface> {
     var activatableId = try HStringProjection.toABI(activatableId)
@@ -6,14 +6,14 @@ public func getActivationFactoryPointer<COMInterface>(activatableId: String, id:
 
     var iid = GUIDProjection.toABI(id)
     var factory: UnsafeMutableRawPointer?
-    try WinRTError.throwIfFailed(CWinRTCore.SWRT_RoGetActivationFactory(activatableId, &iid, &factory))
+    try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &factory))
     guard let factory else { throw HResult.Error.noInterface }
 
     return factory.bindMemory(to: COMInterface.self, capacity: 1)
 }
 
-public func getActivationFactoryPointer(activatableId: String) throws -> UnsafeMutablePointer<CWinRTCore.SWRT_IActivationFactory> {
-    try getActivationFactoryPointer(activatableId: activatableId, id: CWinRTCore.SWRT_IActivationFactory.iid)
+public func getActivationFactoryPointer(activatableId: String) throws -> UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IActivationFactory> {
+    try getActivationFactoryPointer(activatableId: activatableId, id: WindowsRuntime_ABI.SWRT_IActivationFactory.iid)
 }
 
 public protocol IActivationFactoryProtocol: IInspectableProtocol {
@@ -24,8 +24,8 @@ public typealias IActivationFactory = any IActivationFactoryProtocol
 
 public enum IActivationFactoryProjection: WinRTProjection {
     public typealias SwiftObject = IActivationFactory
-    public typealias COMInterface = CWinRTCore.SWRT_IActivationFactory
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IActivationFactoryVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IActivationFactoryVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var runtimeClassName: String { "IActivationFactory" }
@@ -50,11 +50,11 @@ public enum IActivationFactoryProjection: WinRTProjection {
 extension SWRT_IActivationFactory: @retroactive COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {
+extension WindowsRuntime_ABI.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IActivationFactory {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFactory {
     // Activation factory methods are special-cased to return the pointer.
     public func activateInstance() throws -> IInspectablePointer? {
         var instance = IInspectableProjection.abiDefaultValue

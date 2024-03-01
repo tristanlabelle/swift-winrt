@@ -1,5 +1,5 @@
 import COM
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public struct EventRegistrationToken: Hashable {
     public var value: Int64
@@ -10,9 +10,9 @@ public struct EventRegistrationToken: Hashable {
 
 extension EventRegistrationToken: ABIInertProjection {
     public typealias SwiftValue = Self
-    public typealias ABIValue = CWinRTCore.SWRT_EventRegistrationToken
+    public typealias ABIValue = WindowsRuntime_ABI.SWRT_EventRegistrationToken
 
-    public static var abiDefaultValue: ABIValue { CWinRTCore.SWRT_EventRegistrationToken(value: 0) }
+    public static var abiDefaultValue: ABIValue { WindowsRuntime_ABI.SWRT_EventRegistrationToken(value: 0) }
     public static func toSwift(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
     public static func toABI(_ value: SwiftValue) -> ABIValue { ABIValue(value: value.value) }
 }

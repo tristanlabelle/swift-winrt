@@ -1,11 +1,11 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 /// Lays out a COM interface for exporting to COM consumers.
 public struct COMExportedInterface {
     private static let markerInterfaceId: COMInterfaceID = .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64)
     public static var uninitialized: COMExportedInterface { .init() }
 
-    private var comObject: CWinRTCore.SWRT_SwiftCOMObject
+    private var comObject: WindowsRuntime_ABI.SWRT_SwiftCOMObject
 
     private init() {
         comObject = .init()
@@ -15,7 +15,7 @@ public struct COMExportedInterface {
             swiftObject: SwiftObject,
             virtualTable: UnsafePointer<VirtualTable>) {
         comObject = .init(
-            comVirtualTable: virtualTable.withMemoryRebound(to: CWinRTCore.SWRT_IUnknownVTable.self, capacity: 1) { $0 },
+            comVirtualTable: virtualTable.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknownVTable.self, capacity: 1) { $0 },
             swiftObject: Unmanaged<AnyObject>.passUnretained(swiftObject).toOpaque())
     }
 
@@ -30,7 +30,7 @@ public struct COMExportedInterface {
     }
 
     fileprivate static func toUnmanagedUnsafe<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Unmanaged<AnyObject> {
-        this.withMemoryRebound(to: CWinRTCore.SWRT_SwiftCOMObject.self, capacity: 1) {
+        this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
         }
     }
@@ -78,8 +78,8 @@ extension COMExportedInterface {
 
     public static func QueryInterface<Interface>(
         _ this: UnsafeMutablePointer<Interface>?,
-            _ iid: UnsafePointer<CWinRTCore.SWRT_Guid>?,
-            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> CWinRTCore.SWRT_HResult {
+            _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
+            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.pointer.value

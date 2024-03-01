@@ -1,5 +1,5 @@
 import COM
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public struct WinRTError: COMError, CustomStringConvertible {
     public let hresult: HResult
@@ -17,7 +17,7 @@ public struct WinRTError: COMError, CustomStringConvertible {
         return details.restrictedDescription ?? details.description ?? hresult.description
     }
 
-    public static func throwIfFailed(_ hresult: CWinRTCore.SWRT_HResult) throws {
+    public static func throwIfFailed(_ hresult: WindowsRuntime_ABI.SWRT_HResult) throws {
         let hresult = HResultProjection.toSwift(hresult)
         guard let error = WinRTError(hresult: hresult, captureErrorInfo: true) else { return }
         throw error
@@ -28,7 +28,7 @@ public struct WinRTError: COMError, CustomStringConvertible {
         defer { IRestrictedErrorInfoProjection.release(&restrictedErrorInfo) }
 
         // Don't throw a WinRTError, that would be recursive
-        let hresult = CWinRTCore.SWRT_GetRestrictedErrorInfo(&restrictedErrorInfo)
+        let hresult = WindowsRuntime_ABI.SWRT_GetRestrictedErrorInfo(&restrictedErrorInfo)
         if let error = WinRTError(hresult: HResult(hresult), captureErrorInfo: false) { throw error }
 
         return IRestrictedErrorInfoProjection.toSwift(consuming: &restrictedErrorInfo)
@@ -38,7 +38,7 @@ public struct WinRTError: COMError, CustomStringConvertible {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
         defer { IRestrictedErrorInfoProjection.release(&restrictedErrorInfo) }
 
-        let hresult = CWinRTCore.SWRT_RoGetMatchingRestrictedErrorInfo(expectedHResult.value, &restrictedErrorInfo)
+        let hresult = WindowsRuntime_ABI.SWRT_RoGetMatchingRestrictedErrorInfo(expectedHResult.value, &restrictedErrorInfo)
         if let error = WinRTError(hresult: HResult(hresult), captureErrorInfo: false) { throw error }
 
         return IRestrictedErrorInfoProjection.toSwift(consuming: &restrictedErrorInfo)

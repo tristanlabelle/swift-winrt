@@ -10,15 +10,15 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "CWinRTCore",
-            path: "Support/Sources/CWinRTCore"),
+            name: "WindowsRuntime_ABI",
+            path: "Support/Sources/WindowsRuntime_ABI"),
         .target(
             name: "COM",
-            dependencies: ["CWinRTCore"],
+            dependencies: ["WindowsRuntime_ABI"],
             path: "Support/Sources/COM"),
         .target(
             name: "WindowsRuntime",
-            dependencies: ["CWinRTCore", "COM"],
+            dependencies: ["WindowsRuntime_ABI", "COM"],
             path: "Support/Sources/WindowsRuntime"),
         .testTarget(
             name: "Tests",

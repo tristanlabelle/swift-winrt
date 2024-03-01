@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public protocol IWeakReferenceProtocol: IUnknownProtocol {
     func resolve() throws -> IInspectable?
@@ -8,8 +8,8 @@ public typealias IWeakReference = any IWeakReferenceProtocol
 
 public enum IWeakReferenceProjection: COMTwoWayProjection {
     public typealias SwiftObject = IWeakReference
-    public typealias COMInterface = CWinRTCore.SWRT_IWeakReference
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IWeakReferenceVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IWeakReference
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IWeakReferenceVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -39,19 +39,19 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
             defer { IUnknownPointer.release(inspectable) }
             guard let inspectable else { return }
             let result = try IUnknownPointer.cast(inspectable).queryInterface(GUIDProjection.toSwift(iid.pointee))
-            objectReference.pointee = result.cast(to: CWinRTCore.SWRT_IInspectable.self)
+            objectReference.pointee = result.cast(to: WindowsRuntime_ABI.SWRT_IInspectable.self)
         } })
 }
 
 #if swift(>=5.10)
-extension CWinRTCore.SWRT_IWeakReference: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IWeakReference: @retroactive COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IWeakReference: /* @retroactive */ COMIInspectableStruct {
+extension WindowsRuntime_ABI.SWRT_IWeakReference: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReference {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IWeakReference {
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
         var iid = GUIDProjection.toABI(iid)
         var objectReference = IInspectableProjection.abiDefaultValue

@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 import COM
 
 // Protocol for strongly-typed WinRT interface/delegate/runtimeclass projections into Swift.

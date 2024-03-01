@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 /// A type which projects a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.

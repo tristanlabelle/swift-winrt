@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 import COM
 
 public protocol IBufferByteAccessProtocol: IUnknownProtocol {
@@ -8,8 +8,8 @@ public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 
 public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public typealias SwiftObject = IBufferByteAccess
-    public typealias COMInterface = CWinRTCore.SWRT_IBufferByteAccess
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IBufferByteAccessVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IBufferByteAccess
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IBufferByteAccessVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -34,16 +34,16 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
 }
 
 #if swift(>=5.10)
-extension CWinRTCore.SWRT_IBufferByteAccess: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: @retroactive COMIUnknownStruct {}
 #else
-extension CWinRTCore.SWRT_IBufferByteAccess: COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IBufferByteAccess {
+extension WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public static let iid = COMInterfaceID(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IBufferByteAccess {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.Buffer(this, &value))

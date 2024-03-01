@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public protocol IWeakReferenceSourceProtocol: IUnknownProtocol {
     func getWeakReference() throws -> IWeakReference
@@ -8,8 +8,8 @@ public typealias IWeakReferenceSource = any IWeakReferenceSourceProtocol
 
 public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
     public typealias SwiftObject = IWeakReferenceSource
-    public typealias COMInterface = CWinRTCore.SWRT_IWeakReferenceSource
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IWeakReferenceSourceVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IWeakReferenceSource
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IWeakReferenceSourceVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -36,14 +36,14 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
 }
 
 #if swift(>=5.10)
-extension CWinRTCore.SWRT_IWeakReferenceSource: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IWeakReferenceSource: @retroactive COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IWeakReferenceSource: /* @retroactive */ COMIInspectableStruct {
+extension WindowsRuntime_ABI.SWRT_IWeakReferenceSource: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0x00000038, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == CWinRTCore.SWRT_IWeakReferenceSource {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetWeakReference(this, &value))

@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public protocol IUnknownProtocol: AnyObject {
     func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer
@@ -18,8 +18,8 @@ extension IUnknownProtocol {
 
 public enum IUnknownProjection: COMTwoWayProjection {
     public typealias SwiftObject = IUnknown
-    public typealias COMInterface = CWinRTCore.SWRT_IUnknown
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IUnknownVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IUnknown
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IUnknownVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -40,6 +40,6 @@ public enum IUnknownProjection: COMTwoWayProjection {
         Release: { COMExportedInterface.Release($0) })
 }
 
-extension CWinRTCore.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {
+extension WindowsRuntime_ABI.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {
     public static let iid = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }

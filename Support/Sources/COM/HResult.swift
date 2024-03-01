@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public struct HResult: Hashable, CustomStringConvertible {
     public typealias Value = Int32

@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 // Base class for COM objects projected into Swift.
 open class COMImport<Projection: COMProjection>: IUnknownProtocol {

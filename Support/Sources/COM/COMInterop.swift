@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 /// Extends COM IUnknown-derived struct definitions with an interface ID.
 /// All conformances will be @retroactive, so this shouldn't be used for dynamic casts.
@@ -28,8 +28,8 @@ public struct COMInterop<Interface> where Interface: COMIUnknownStruct {
         self.init(casting: other.this)
     }
 
-    private var unknown: UnsafeMutablePointer<CWinRTCore.SWRT_IUnknown>{
-        this.withMemoryRebound(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1) { $0 }
+    private var unknown: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IUnknown>{
+        this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1) { $0 }
     }
 
     @discardableResult
@@ -51,7 +51,7 @@ public struct COMInterop<Interface> where Interface: COMIUnknownStruct {
             throw HResult.Error.noInterface
         }
 
-        return pointer.bindMemory(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1)
+        return pointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
     }
 }
 

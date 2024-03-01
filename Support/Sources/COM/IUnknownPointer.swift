@@ -1,6 +1,6 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
-public typealias IUnknownPointer = UnsafeMutablePointer<CWinRTCore.SWRT_IUnknown>
+public typealias IUnknownPointer = UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IUnknown>
 
 extension IUnknownPointer {
     @discardableResult
@@ -35,7 +35,7 @@ extension IUnknownPointer {
             throw HResult.Error.noInterface
         }
 
-        return pointer.bindMemory(to: CWinRTCore.SWRT_IUnknown.self, capacity: 1)
+        return pointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
     }
 
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {

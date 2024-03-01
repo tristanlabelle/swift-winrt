@@ -1,5 +1,5 @@
 import COM
-import CWinRTCore
+import WindowsRuntime_ABI
 import struct Foundation.UUID
 
 extension IReferenceProjection {
@@ -19,7 +19,7 @@ extension IReferenceProjection {
 
     public enum Primitive<Projection: ABIProjection>: ABIProjection {
         public typealias SwiftValue = Projection.SwiftValue?
-        public typealias ABIValue = UnsafeMutablePointer<CWinRTCore.SWRT_IReference>?
+        public typealias ABIValue = UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IReference>?
 
         public static var abiDefaultValue: ABIValue { nil }
 
@@ -55,7 +55,7 @@ extension IReferenceProjection {
         public static func toABI(_ value: SwiftValue) throws -> ABIValue {
             guard let value else { return nil }
 
-            var propertyValue: UnsafeMutablePointer<CWinRTCore.SWRT_IInspectable>? = nil
+            var propertyValue: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IInspectable>? = nil
             defer { IInspectableProjection.release(&propertyValue) }
             switch value {
                 case let value as Swift.Bool: propertyValue = try propertyValueStatics.createBoolean(value)
@@ -81,7 +81,7 @@ extension IReferenceProjection {
 
             guard let propertyValue else { throw HResult.Error.noInterface }
 
-            return try IUnknownPointer.queryInterface(propertyValue, Self.interfaceID).cast(to: CWinRTCore.SWRT_IReference.self)
+            return try IUnknownPointer.queryInterface(propertyValue, Self.interfaceID).cast(to: WindowsRuntime_ABI.SWRT_IReference.self)
         }
 
         public static func release(_ value: inout ABIValue) {

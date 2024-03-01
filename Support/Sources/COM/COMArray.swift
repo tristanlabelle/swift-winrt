@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 import WinSDK
 
 /// A pointer-length pair representing a COM array,

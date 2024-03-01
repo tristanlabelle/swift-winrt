@@ -1,5 +1,5 @@
 import COM
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public protocol IInspectableProtocol: IUnknownProtocol {
     func getIids() throws -> [COMInterfaceID]
@@ -10,8 +10,8 @@ public typealias IInspectable = any IInspectableProtocol
 
 public enum IInspectableProjection: WinRTTwoWayProjection {
     public typealias SwiftObject = IInspectable
-    public typealias COMInterface = CWinRTCore.SWRT_IInspectable
-    public typealias COMVirtualTable = CWinRTCore.SWRT_IInspectableVTable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IInspectableVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -37,9 +37,9 @@ public enum IInspectableProjection: WinRTTwoWayProjection {
 }
 
 #if swift(>=5.10)
-extension CWinRTCore.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
 #endif
 
-extension CWinRTCore.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {
+extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }

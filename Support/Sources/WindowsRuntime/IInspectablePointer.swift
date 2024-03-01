@@ -1,4 +1,4 @@
-import CWinRTCore
+import WindowsRuntime_ABI
 
 public typealias IInspectablePointer = UnsafeMutablePointer<SWRT_IInspectable>
 
