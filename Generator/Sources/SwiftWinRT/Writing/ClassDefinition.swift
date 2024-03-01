@@ -28,6 +28,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
         }
 
         try writer.writeClass(
+                documentation: projection.getDocumentationComment(classDefinition),
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
                 final: classDefinition.isSealed, name: typeName, base: base, protocolConformances: protocolConformances) { writer in
             try writeClassMembers(
@@ -40,6 +41,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
         assert(classDefinition.baseInterfaces.isEmpty)
 
         try writer.writeEnum(
+                documentation: projection.getDocumentationComment(classDefinition),
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility),
                 name: try projection.toTypeName(classDefinition)) { writer in
             try writeClassMembers(
@@ -136,8 +138,8 @@ fileprivate func writeClassInterfaceImplementations(
             ? .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
             : .init(name: "_interop")
         try writeInterfaceImplementation(
-            abiType: defaultInterface.asBoundType, thisPointer: thisPointer,
-            projection: projection, to: writer)
+            abiType: defaultInterface.asBoundType, classDefinition: classDefinition,
+            thisPointer: thisPointer, projection: projection, to: writer)
     }
 
     for secondaryInterface in interfaces.secondary {
@@ -145,6 +147,7 @@ fileprivate func writeClassInterfaceImplementations(
         try writeMarkComment(forInterface: secondaryInterface.interface, to: writer)
         try writeInterfaceImplementation(
             abiType: secondaryInterface.interface.asBoundType,
+            classDefinition: classDefinition,
             overridable: secondaryInterface.overridable,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface.interface), lazy: true),
             projection: projection, to: writer)
@@ -154,7 +157,7 @@ fileprivate func writeClassInterfaceImplementations(
         if staticInterface.methods.isEmpty { continue }
         try writeMarkComment(forInterface: staticInterface.bind(), to: writer)
         try writeInterfaceImplementation(
-            abiType: staticInterface.bindType(), static: true,
+            abiType: staticInterface.bindType(), classDefinition: classDefinition, static: true,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(staticInterface.bind()), lazy: true),
             projection: projection, to: writer)
     }
@@ -266,7 +269,7 @@ fileprivate func writeComposableInitializers(
         // The last 2 params should be the IInspectable outer and inner pointers
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
         try writer.writeInit(
-                documentation: try projection.getDocumentationComment(method),
+                documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
                 convenience: true,
                 params: params.dropLast(2).map { $0.toSwiftParam() },
@@ -305,7 +308,7 @@ fileprivate func writeActivatableInitializers(
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
         try writer.writeInit(
-                documentation: try projection.getDocumentationComment(method),
+                documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
                 convenience: true,
                 params: params.map { $0.toSwiftParam() },

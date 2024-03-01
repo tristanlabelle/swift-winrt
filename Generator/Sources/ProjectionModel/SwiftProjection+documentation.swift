@@ -35,6 +35,32 @@ extension SwiftProjection {
         return documentation.members[memberKey].map { toDocumentationComment($0) }
     }
 
+    public func getDocumentationComment(abiMember: Member, classDefinition: ClassDefinition?) throws -> SwiftDocumentationComment? {
+        // Prefer the documentation comment from the class member over the abi member.
+        if let classDefinition {
+            let classMember: Member? = try {
+                switch abiMember {
+                    case let method as Method:
+                        return try classDefinition.findMethod(name: method.name, arity: method.arity)
+                    case let field as Field:
+                        return classDefinition.findField(name: field.name)
+                    case let property as Property:
+                        return classDefinition.findProperty(name: property.name)
+                    case let event as Event:
+                        return classDefinition.findEvent(name: event.name)
+                    default:
+                        return nil
+                }
+            }()
+
+            if let classMember, let classMemberDocumentation = try getDocumentationComment(classMember) {
+                return classMemberDocumentation
+            }
+        }
+
+        return try getDocumentationComment(abiMember)
+    }
+
     public func toDocumentationComment(_ documentation: MemberDocumentation) -> SwiftDocumentationComment {
         var swift = SwiftDocumentationComment()
         if let summary = documentation.summary {
