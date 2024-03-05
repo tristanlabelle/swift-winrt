@@ -4,8 +4,10 @@
 
 // HSTRING
 struct SWRT_HString_ {};
-
 typedef struct SWRT_HString_* SWRT_HString;
+
+struct SWRT_HStringBuffer_ {};
+typedef struct SWRT_HStringBuffer_* SWRT_HStringBuffer;
 
 // TrustLevel
 typedef int32_t SWRT_TrustLevel;

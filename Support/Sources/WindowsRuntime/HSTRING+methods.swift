@@ -3,12 +3,25 @@ import COM
 
 extension WindowsRuntime_ABI.SWRT_HString {
     public static func create(_ value: String) throws -> WindowsRuntime_ABI.SWRT_HString? {
-        let chars = Array(value.utf16)
-        return try chars.withUnsafeBufferPointer {
-            var result: WindowsRuntime_ABI.SWRT_HString?
-            try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsCreateString($0.baseAddress!, UInt32(chars.count), &result))
-            return result
+        if value.isEmpty { return nil }
+
+        let codeUnitCount = value.utf16.count
+
+        // Preallocate and fill a UTF-16 HSTRING_BUFFER
+        var buffer: WindowsRuntime_ABI.SWRT_HStringBuffer? = nil
+        var pointer: UnsafeMutablePointer<UInt16>? = nil
+        try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsPreallocateStringBuffer(UInt32(codeUnitCount), &pointer, &buffer))
+        guard let pointer else { throw HResult.Error.pointer }
+        _ = UnsafeMutableBufferPointer(start: pointer, count: codeUnitCount).initialize(from: value.utf16)
+
+        var result: WindowsRuntime_ABI.SWRT_HString?
+        do { try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsPromoteStringBuffer(buffer, &result)) }
+        catch {
+            WindowsRuntime_ABI.SWRT_WindowsDeleteStringBuffer(buffer)
+            throw error
         }
+
+        return result
     }
 
     public static func delete(_ value: WindowsRuntime_ABI.SWRT_HString?) {
