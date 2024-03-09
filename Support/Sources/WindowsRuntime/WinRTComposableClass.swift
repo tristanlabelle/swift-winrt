@@ -1,4 +1,5 @@
 import COM
+import WindowsRuntime_ABI
 
 /// Base class for composable (unsealed) WinRT classes, implemented using COM aggregration.
 ///
@@ -60,8 +61,12 @@ open class WinRTComposableClass: IInspectableProtocol {
         }
     }
 
+    // Workaround for 5.9 compiler bug when using inner.interop directly:
+    // "error: copy of noncopyable typed value. This is a compiler bug"
+    private var innerInterop: COMInterop<WindowsRuntime_ABI.SWRT_IInspectable> { inner.interop }
+
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        try inner.interop.queryInterface(id)
+        try innerInterop.queryInterface(id)
     }
 
     open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
@@ -71,20 +76,20 @@ open class WinRTComposableClass: IInspectableProtocol {
         }
 
         // Delegate to the inner object.
-        return try inner.interop.queryInterface(id)
+        return try _queryInnerInterface(id)
     }
 
     open func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? { nil }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
-        try inner.interop.getIids()
+        try innerInterop.getIids()
     }
 
     open func getRuntimeClassName() throws -> String {
-        try inner.interop.getRuntimeClassName()
+        try innerInterop.getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
-        try inner.interop.getTrustLevel()
+        try innerInterop.getTrustLevel()
     }
 }
