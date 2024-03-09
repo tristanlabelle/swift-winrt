@@ -9,7 +9,7 @@ import WindowsRuntime_ABI
 /// - Creating a derived Swift class that can override methods
 open class WinRTComposableClass: IInspectableProtocol {
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
-    private var inner: IInspectableReference
+    private let inner: IInspectableReference
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
@@ -61,14 +61,10 @@ open class WinRTComposableClass: IInspectableProtocol {
         }
     }
 
-    // Workaround for 5.9 compiler bug when using inner.interop directly:
-    // "error: copy of noncopyable typed value. This is a compiler bug"
-    private var innerInterop: COMInterop<WindowsRuntime_ABI.SWRT_IInspectable> {
-        COMInterop(inner.pointer)
-    }
-
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        try innerInterop.queryInterface(id)
+        // Workaround for 5.9 compiler bug when using inner.interop directly:
+        // "error: copy of noncopyable typed value. This is a compiler bug"
+        try COMInterop(inner.pointer).queryInterface(id)
     }
 
     open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
@@ -84,14 +80,20 @@ open class WinRTComposableClass: IInspectableProtocol {
     open func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? { nil }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
-        try innerInterop.getIids()
+        // Workaround for 5.9 compiler bug when using inner.interop directly:
+        // "error: copy of noncopyable typed value. This is a compiler bug"
+        try COMInterop(inner.pointer).getIids()
     }
 
     open func getRuntimeClassName() throws -> String {
-        try innerInterop.getRuntimeClassName()
+        // Workaround for 5.9 compiler bug when using inner.interop directly:
+        // "error: copy of noncopyable typed value. This is a compiler bug"
+        try COMInterop(inner.pointer).getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
-        try innerInterop.getTrustLevel()
+        // Workaround for 5.9 compiler bug when using inner.interop directly:
+        // "error: copy of noncopyable typed value. This is a compiler bug"
+        try COMInterop(inner.pointer).getTrustLevel()
     }
 }
