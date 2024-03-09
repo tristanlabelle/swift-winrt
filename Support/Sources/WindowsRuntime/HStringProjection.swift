@@ -8,15 +8,15 @@ public enum HStringProjection: ABIProjection {
     public static var abiDefaultValue: ABIValue { nil }
 
     public static func toSwift(_ value: WindowsRuntime_ABI.SWRT_HString?) -> SwiftValue {
-        value.toString()
+        HString.toString(value)
     }
 
     public static func toABI(_ value: String) throws -> WindowsRuntime_ABI.SWRT_HString? {
-        try WindowsRuntime_ABI.SWRT_HString.create(value)
+        try HString.create(value).detach()
     }
 
     public static func release(_ value: inout WindowsRuntime_ABI.SWRT_HString?) {
-        WindowsRuntime_ABI.SWRT_HString.delete(value)
+        HString.delete(value)
         value = nil
     }
 }
