@@ -1,6 +1,6 @@
 #pragma once
 
-#include "COM.h"
+#include "SWRT/unknwn.h"
 
 // A COM-compliant structure for bridging Swift objects into COM.
 typedef struct SWRT_SwiftCOMObject {
