@@ -63,7 +63,9 @@ open class WinRTComposableClass: IInspectableProtocol {
 
     // Workaround for 5.9 compiler bug when using inner.interop directly:
     // "error: copy of noncopyable typed value. This is a compiler bug"
-    private var innerInterop: COMInterop<WindowsRuntime_ABI.SWRT_IInspectable> { inner.interop }
+    private var innerInterop: COMInterop<WindowsRuntime_ABI.SWRT_IInspectable> {
+        COMInterop(inner.pointer)
+    }
 
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         try innerInterop.queryInterface(id)
