@@ -8,15 +8,15 @@ import COM
 /// - Creating a derived Swift class that can override methods
 open class WinRTComposableClass: IInspectableProtocol {
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
-    private var inner: IInspectablePointer // Strong ref'd
+    private var inner: IInspectableReference
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
     private var outer: COMExportedInterface
 
     /// Initializer for instances created in WinRT
-    public init(_transferringRef comPointer: IInspectablePointer) {
-        inner = comPointer
+    public init(_wrapping reference: consuming IInspectableReference) {
+        inner = reference
         // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
         // All methods will delegate to the inner object (in this case the full object).
         outer = .uninitialized
@@ -31,18 +31,9 @@ open class WinRTComposableClass: IInspectableProtocol {
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
     public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
         if _compose {
-            // We're overriding methods, so create the outer object to be composed.
-            // Dummy-initialize all fields so we can reference "self"
-            outer = .uninitialized
-            inner = IInspectablePointer.cast(outer.unknownPointer)
-
-            // Reinitialize the outer object correctly
-            outer = .init(
-                swiftObject: self,
-                virtualTable: IInspectableProjection.virtualTablePointer)
-
-            // Create the inner object
+            // Create the inner object using a valid pointer to an uninitialized outer object.
             var inner: IInspectablePointer? = nil
+            self.outer = .uninitialized
             let composed: UnsafeMutablePointer<Interface>? = try _factory(IInspectablePointer.cast(outer.unknownPointer), &inner)
 
             // Like C++/WinRT, discard the composed object and only use the inner object
@@ -51,7 +42,12 @@ open class WinRTComposableClass: IInspectableProtocol {
             IUnknownPointer.release(composed)
 
             guard let inner else { throw HResult.Error.fail }
-            self.inner = inner
+            self.inner = .init(transferringRef: inner)
+
+            // We can now reference self, so initialize the outer object.
+            self.outer = .init(
+                swiftObject: self,
+                virtualTable: IInspectableProjection.virtualTablePointer)
         }
         else {
             // We're not overriding any methods, so create a vanilla composed object to avoid indirections.
@@ -60,45 +56,35 @@ open class WinRTComposableClass: IInspectableProtocol {
             var inner: IInspectablePointer? = nil
             defer { IInspectableProjection.release(&inner) }
             guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
-            self.inner = IInspectablePointer.cast(composed)
+            self.inner = .init(transferringRef: IInspectablePointer.cast(composed))
         }
     }
 
-    deinit {
-        IUnknownPointer.release(inner)
+    public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
+        try inner.interop.queryInterface(id)
     }
 
-    public func _queryInnerInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer {
-        try IUnknownPointer.cast(inner).queryInterface(id)
-    }
-
-    open func _queryInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer {
+    open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         // If we are a composed object create from Swift, we may have overrides.
         if outer.isInitialized, let overrides = try _queryOverridesInterfacePointer(id) {
-            return overrides
+            return .init(addingRef: overrides)
         }
 
         // Delegate to the inner object.
-        return try IUnknownPointer.cast(inner).queryInterface(id)
+        return try inner.interop.queryInterface(id)
     }
 
     open func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? { nil }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
-        var value: COMArray<COM.GUIDProjection.ABIValue> = .init()
-        try WinRTError.throwIfFailed(inner.pointee.lpVtbl.pointee.GetIids(inner, &value.count, &value.pointer))
-        return WinRTArrayProjection<COM.GUIDProjection>.toSwift(consuming: &value)
+        try inner.interop.getIids()
     }
 
     open func getRuntimeClassName() throws -> String {
-        var value: HStringProjection.ABIValue = nil
-        try WinRTError.throwIfFailed(inner.pointee.lpVtbl.pointee.GetRuntimeClassName(inner, &value))
-        return HStringProjection.toSwift(consuming: &value)
+        try inner.interop.getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
-        var value: TrustLevel.ABIValue = .init()
-        try WinRTError.throwIfFailed(inner.pointee.lpVtbl.pointee.GetTrustLevel(inner, &value))
-        return TrustLevel.toSwift(value)
+        try inner.interop.getTrustLevel()
     }
 }

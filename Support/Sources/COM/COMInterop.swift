@@ -42,28 +42,16 @@ public struct COMInterop<Interface> where Interface: COMIUnknownStruct {
         unknown.pointee.lpVtbl.pointee.Release(unknown)
     }
 
-    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownPointer {
+    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         var iid = GUIDProjection.toABI(id)
-        var pointer: UnsafeMutableRawPointer? = nil
-        try HResult.throwIfFailed(unknown.pointee.lpVtbl.pointee.QueryInterface(unknown, &iid, &pointer))
-        guard let pointer else {
+        var rawPointer: UnsafeMutableRawPointer? = nil
+        try HResult.throwIfFailed(unknown.pointee.lpVtbl.pointee.QueryInterface(unknown, &iid, &rawPointer))
+        guard let rawPointer else {
             assertionFailure("QueryInterface succeeded but returned a null pointer")
             throw HResult.Error.noInterface
         }
 
-        return pointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
-    }
-}
-
-extension Optional {
-    /// Helper to initialize a COMInterop? property from a pointer, used in generated code.
-    public mutating func lazyInit<Interface>(
-            _ initializer: () throws -> UnsafeMutablePointer<Interface>)
-            rethrows -> COMInterop<Interface>
-            where Wrapped == COMInterop<Interface> {
-        if let value = self { return value }
-        let value = try COMInterop(initializer())
-        self = value
-        return value
+        let pointer = rawPointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
+        return COMReference(transferringRef: pointer)
     }
 }

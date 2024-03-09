@@ -13,27 +13,27 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         unknownPointer.withMemoryRebound(to: IInspectableProjection.COMInterface.self, capacity: 1) { $0 }
     }
 
-    open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+    open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
             // QI for IInspectable should return the identity interface just like IUnknown.
-            case IInspectableProjection.interfaceID: return unknownPointer.addingRef()
-            case IAgileObjectProjection.interfaceID where Self.agile: return unknownPointer.addingRef()
+            case IInspectableProjection.interfaceID: return .init(addingRef: unknownPointer)
+            case IAgileObjectProjection.interfaceID where Self.agile: return .init(addingRef: unknownPointer)
             case IWeakReferenceSourceProjection.interfaceID where Self.weakReferenceSource:
                 let export = createSecondaryExport(
                     projection: IWeakReferenceSourceProjection.self,
                     implementation: WeakReferenceSource(target: self))
-                return export.unknownPointer.addingRef()
+                return .init(addingRef: export.unknownPointer)
             case IStringableProjection.interfaceID where Self.autoStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
                     let export = createSecondaryExport(
                         projection: IStringableProjection.self,
                         implementation: Stringable(target: customStringConvertible))
-                    return export.unknownPointer.addingRef()
+                    return .init(addingRef: export.unknownPointer)
                 }
                 break
             default: break
         }
-        return try super._queryInterfacePointer(id)
+        return try super._queryInterface(id)
     }
 
     public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
@@ -55,10 +55,12 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
 }
 
 fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: COMWrappingExport<Projection> {
-    override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+    override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         // Delegate our identity
-        if let foreignIdentity, id == IInspectableProjection.interfaceID { return foreignIdentity.unknownPointer.addingRef() }
-        return try super._queryInterfacePointer(id)
+        if let foreignIdentity, id == IInspectableProjection.interfaceID {
+            return .init(addingRef: foreignIdentity.unknownPointer)
+        }
+        return try super._queryInterface(id)
     }
 
     public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
@@ -86,7 +88,7 @@ fileprivate class WeakReferenceSource: IWeakReferenceSourceProtocol {
 
     func getWeakReference() throws -> IWeakReference { WeakReference(target: target) }
 
-    func _queryInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer {
-        try target._queryInterfacePointer(id)
+    func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
+        try target._queryInterface(id)
     }
 }

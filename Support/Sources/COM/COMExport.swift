@@ -3,20 +3,20 @@ open class COMExportBase: IUnknownProtocol {
     /// Declares an implemented COM interface for COMExport-derived classes.
     public struct Implements {
         public let id: COMInterfaceID
-        public let queryPointer: (_ identity: COMExportBase) throws -> IUnknownPointer
+        public let query: (_ identity: COMExportBase) throws -> IUnknownReference
 
-        public init(id: COMInterfaceID, queryPointer: @escaping (_ identity: COMExportBase) throws -> IUnknownPointer) {
+        public init(id: COMInterfaceID, query: @escaping (_ identity: COMExportBase) throws -> IUnknownReference) {
             self.id = id
-            self.queryPointer = queryPointer
+            self.query = query
         }
 
         public init<Projection: COMTwoWayProjection>(_: Projection.Type) {
             self.id = Projection.interfaceID
-            self.queryPointer = { identity in
+            self.query = { identity in
                 let export = identity.createSecondaryExport(
                     projection: Projection.self,
                     implementation: identity.anyImplementation as! Projection.SwiftObject)
-                return export.unknownPointer.addingRef()
+                return .init(addingRef: export.unknownPointer)
             }
         }
     }
@@ -29,12 +29,12 @@ open class COMExportBase: IUnknownProtocol {
 
     fileprivate init(later: Void) { comInterface = .uninitialized }
 
-    open func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        if id == IUnknownProjection.interfaceID { return unknownPointer.addingRef() }
+    open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
+        if id == IUnknownProjection.interfaceID { return .init(addingRef: unknownPointer) }
         guard let interface = Self.implements.first(where: { $0.id == id }) else {
             throw HResult.Error.noInterface
         }
-        return try interface.queryPointer(self)
+        return try interface.query(self)
     }
 
     /// Creates a COMExport object implementing a secondary COM interface and whose identity is delegated to this object.
@@ -73,15 +73,12 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
         comInterface = .init(swiftObject: self, virtualTable: Projection.virtualTablePointer)
     }
 
-    open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
-        if id == Projection.interfaceID { return unknownPointer.addingRef() }
-        return try super._queryInterfacePointer(id)
+    open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
+        if id == Projection.interfaceID { return .init(addingRef: unknownPointer) }
+        return try super._queryInterface(id)
     }
 
-    public func toCOM() -> Projection.COMPointer {
-        unknownPointer.addRef()
-        return comPointer
-    }
+    public func toCOM() -> COMReference<Projection.COMInterface> { .init(addingRef: comPointer) }
 }
 
 /// Exposes an COM interface implemented by a Swift object.
@@ -98,9 +95,11 @@ open class COMWrappingExport<Projection: COMTwoWayProjection>: COMExport<Project
     public override var anyImplementation: Any { _implementation }
     public override var implementation: Projection.SwiftObject { _implementation }
 
-    open override func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer {
+    open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         // Delegate our identity
-        if let foreignIdentity, id == IUnknownProjection.interfaceID { return foreignIdentity.unknownPointer.addingRef() }
-        return try super._queryInterfacePointer(id)
+        if let foreignIdentity, id == IUnknownProjection.interfaceID {
+            return .init(addingRef: foreignIdentity.unknownPointer)
+        }
+        return try super._queryInterface(id)
     }
 }

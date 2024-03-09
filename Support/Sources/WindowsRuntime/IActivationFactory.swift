@@ -1,19 +1,21 @@
+import COM
 import WindowsRuntime_ABI
 
-public func getActivationFactoryPointer<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> UnsafeMutablePointer<COMInterface> {
+public func getActivationFactory<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> COM.COMReference<COMInterface> {
     var activatableId = try HStringProjection.toABI(activatableId)
     defer { HStringProjection.release(&activatableId) }
 
     var iid = GUIDProjection.toABI(id)
-    var factory: UnsafeMutableRawPointer?
-    try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &factory))
-    guard let factory else { throw HResult.Error.noInterface }
+    var rawPointer: UnsafeMutableRawPointer?
+    try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
+    guard let rawPointer else { throw HResult.Error.noInterface }
 
-    return factory.bindMemory(to: COMInterface.self, capacity: 1)
+    let pointer = rawPointer.bindMemory(to: COMInterface.self, capacity: 1)
+    return COM.COMReference(transferringRef: pointer)
 }
 
-public func getActivationFactoryPointer(activatableId: String) throws -> UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IActivationFactory> {
-    try getActivationFactoryPointer(activatableId: activatableId, id: WindowsRuntime_ABI.SWRT_IActivationFactory.iid)
+public func getActivationFactory(activatableId: String) throws -> COM.COMReference<WindowsRuntime_ABI.SWRT_IActivationFactory> {
+    try getActivationFactory(activatableId: activatableId, id: WindowsRuntime_ABI.SWRT_IActivationFactory.iid)
 }
 
 public protocol IActivationFactoryProtocol: IInspectableProtocol {
@@ -30,11 +32,11 @@ public enum IActivationFactoryProjection: WinRTProjection {
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var runtimeClassName: String { "IActivationFactory" }
 
-    public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        Import.toSwift(transferringRef: comPointer)
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import.toSwift(reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
+    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
         try Import.toCOM(object)
     }
 
@@ -69,6 +71,8 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFacto
         defer { IInspectableProjection.release(&inspectable) }
         guard let inspectable else { throw COM.HResult.Error.noInterface }
         return try COMInterop<IInspectableProjection.COMInterface>(inspectable)
-            .queryInterface(projection.interfaceID).cast(to: Projection.COMInterface.self)
+            .queryInterface(projection.interfaceID)
+            .reinterpret(to: Projection.COMInterface.self)
+            .detach()
     }
 }

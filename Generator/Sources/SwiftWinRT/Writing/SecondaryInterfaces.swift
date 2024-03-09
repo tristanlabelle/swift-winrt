@@ -20,29 +20,28 @@ internal enum SecondaryInterfaces {
             interfaceName: String, abiStructType: SwiftType, staticOf: ClassDefinition? = nil, composable: Bool = false,
             projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
 
-        // private [static] var _istringable_storage: COM.COMInterop<SWRT_WindowsFoundation_IStringable>? = nil
+        // private [static] var _lazyIStringable: COM.COMLazyReference<SWRT_WindowsFoundation_IStringable> = .init()
         let storedPropertyName = getStoredPropertyName(interfaceName)
-        let abiInteropType: SwiftType = SupportModule.comInterop(of: abiStructType)
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
-            type: .optional(wrapped: abiInteropType),
-            initialValue: "nil")
+            type: SupportModule.comLazyReference(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
-        //     try _istringable_storage.lazyInit { try _queryInterfacePointer(SWRT_IStringable.iid) }
+        //     try _lazyIStringable.getInterop { try _queryInterface(SWRT_IStringable.iid).reinterpret() }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
+        let abiInteropType: SwiftType = SupportModule.comInterop(of: abiStructType)
         try writer.writeComputedProperty(
                 visibility: .internal, static: staticOf != nil, name: computedPropertyName,
                 type: abiInteropType, throws: true, get: { writer in
-            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModule.comInteropLazyInitFunc)") { writer in
+            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModule.comLazyReference_getInterop)") { writer in
                 if let staticOf {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
-                    writer.writeStatement("try WindowsRuntime.getActivationFactoryPointer("
+                    writer.writeStatement("try WindowsRuntime.getActivationFactory("
                         + "activatableId: \"\(activatableId)\", id: \(abiStructType).iid)")
                 }
                 else {
-                    let qiMethodName = composable ? "_queryInnerInterfacePointer" : "_queryInterfacePointer"
-                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).cast(to: \(abiStructType).self)")
+                    let qiMethodName = composable ? "_queryInnerInterface" : "_queryInterface"
+                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).reinterpret()")
                 }
             }
         })
@@ -59,19 +58,10 @@ internal enum SecondaryInterfaces {
     }
 
     internal static func getOverridableOuterName(_ interface: BoundInterface) -> String {
-        getPropertyName(interface) + "_outer"
-    }
-
-    internal static func writeCleanup(_ interface: BoundInterface, to writer: SwiftStatementWriter) {
-        writeCleanup(interface.definition.nameWithoutGenericSuffix, to: writer)
-    }
-
-    internal static func writeCleanup(_ interfaceName: String, to writer: SwiftStatementWriter) {
-        let storedPropertyName = getStoredPropertyName(interfaceName)
-        writer.writeStatement("\(storedPropertyName)?.release()")
+        "_outer" + interface.definition.nameWithoutGenericSuffix
     }
 
     fileprivate static func getStoredPropertyName(_ interfaceName: String) -> String {
-        getPropertyName(interfaceName: interfaceName) + "_storage"
+        "_lazy" + interfaceName
     }
 }

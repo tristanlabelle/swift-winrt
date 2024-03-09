@@ -12,11 +12,11 @@ internal enum IUnknown2Projection: COMTwoWayProjection {
     public static let interfaceID = COMInterfaceID(0x5CF9DEB3, 0xD7C6, 0x42A9, 0x85B3, 0x61D8B68A7B2A)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
-    public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        Import.toSwift(transferringRef: comPointer)
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import.toSwift(reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
+    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
         try Import.toCOM(object)
     }
 

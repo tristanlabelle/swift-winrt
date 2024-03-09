@@ -10,12 +10,13 @@ public enum IAgileObjectProjection: COMProjection {
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
 
-    public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        IUnknownProjection.toSwift(transferringRef: IUnknownPointer.cast(comPointer))
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        let reference = reference.reinterpret(to: WindowsRuntime_ABI.SWRT_IUnknown.self)
+        return IUnknownProjection.toSwift(consume reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
-        try object._queryInterfacePointer(Self.self)
+    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+        try object._queryInterface(Self.self)
     }
 }
 

@@ -20,15 +20,28 @@ public enum SupportModule {
     public static var guidProjection: SwiftType { .chain(comModuleName, "GUIDProjection") }
     public static var hresultProjection: SwiftType { .chain(comModuleName, "HResultProjection") }
 
+    public static var comProjection: SwiftType { .chain(comModuleName, "COMProjection") }
+    public static var comTwoWayProjection: SwiftType { .chain(comModuleName, "COMTwoWayProjection") }
+
     public static var comExportedInterface: SwiftType { .chain(comModuleName, "COMExportedInterface") }
 
-    public static var comInterop: SwiftType { .chain(comModuleName, "COMInterop") }
+    public static var comReference: SwiftType { .chain(comModuleName, "COMReference") }
+    public static func comReference(to type: SwiftType) -> SwiftType {
+        .chain([ .init(comModuleName), .init("COMReference", genericArgs: [type]) ])
+    }
 
+    public static var comLazyReference: SwiftType { .chain(comModuleName, "COMLazyReference") }
+    public static func comLazyReference(to type: SwiftType) -> SwiftType {
+        .chain([ .init(comModuleName), .init("COMLazyReference", genericArgs: [type]) ])
+    }
+
+    public static var comLazyReference_getInterop: String { "getInterop" }
+    public static var comLazyReference_getPointer: String { "getPointer" }
+
+    public static var comInterop: SwiftType { .chain(comModuleName, "COMInterop") }
     public static func comInterop(of type: SwiftType) -> SwiftType {
         .chain([ .init(comModuleName), .init("COMInterop", genericArgs: [type]) ])
     }
-    
-    public static var comInteropLazyInitFunc: String { "lazyInit" }
 
     public static func comArray(of type: SwiftType) -> SwiftType {
         .chain([ .init(comModuleName), .init("COMArray", genericArgs: [type]) ])
@@ -44,6 +57,9 @@ extension SupportModule {
     public static var hstringProjection: SwiftType { .chain(winrtModuleName, "HStringProjection") }
     public static var iinspectable: SwiftType { .chain(winrtModuleName, "IInspectable") }
     public static var iinspectableProjection: SwiftType { .chain(winrtModuleName, "IInspectableProjection") }
+
+    public static var winRTProjection: SwiftType { .chain(winrtModuleName, "WinRTProjection") }
+    public static var winRTTwoWayProjection: SwiftType { .chain(winrtModuleName, "WinRTTwoWayProjection") }
 
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(winrtModuleName), .init("WinRTArrayProjection", genericArgs: [type]) ])

@@ -1,18 +1,18 @@
 import WindowsRuntime_ABI
 
 public protocol IUnknownProtocol: AnyObject {
-    func _queryInterfacePointer(_ id: COMInterfaceID) throws -> IUnknownPointer
+    func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference
 }
 public typealias IUnknown = any IUnknownProtocol
 
 extension IUnknownProtocol {
-    public func _queryInterfacePointer<Projection: COMProjection>(_: Projection.Type) throws -> Projection.COMPointer {
-        try _queryInterfacePointer(Projection.interfaceID).withMemoryRebound(to: Projection.COMInterface.self, capacity: 1) { $0 }
+    public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> COMReference<Projection.COMInterface> {
+        try _queryInterface(Projection.interfaceID).reinterpret()
     }
 
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.SwiftObject {
-        let comPointer = try self._queryInterfacePointer(Projection.self)
-        return Projection.toSwift(transferringRef: comPointer)
+        let reference = try self._queryInterface(Projection.self)
+        return Projection.toSwift(consume reference)
     }
 }
 
@@ -24,11 +24,11 @@ public enum IUnknownProjection: COMTwoWayProjection {
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
-    public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        Import.toSwift(transferringRef: comPointer)
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import.toSwift(reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
+    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
         try Import.toCOM(object)
     }
 

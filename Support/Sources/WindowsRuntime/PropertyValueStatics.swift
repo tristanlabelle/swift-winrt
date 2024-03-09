@@ -2,18 +2,6 @@ import COM
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
-fileprivate var _propertyValueStatics: COMInterop<WindowsRuntime_ABI.SWRT_IPropertyValueStatics>? = nil
-
-internal var propertyValueStatics: COMInterop<WindowsRuntime_ABI.SWRT_IPropertyValueStatics> {
-    get throws {
-        try _propertyValueStatics.lazyInit {
-            try getActivationFactoryPointer(
-                activatableId: "Windows.Foundation.PropertyValue",
-                id: WindowsRuntime_ABI.SWRT_IPropertyValueStatics.iid)
-        }
-    }
-}
-
 #if swift(>=5.10)
 extension WindowsRuntime_ABI.SWRT_IPropertyValueStatics: @retroactive COMIUnknownStruct {}
 #endif

@@ -91,3 +91,15 @@ extension IReferenceProjection {
         }
     }
 }
+
+fileprivate var lazyPropertyValueStatics: COM.COMLazyReference<WindowsRuntime_ABI.SWRT_IPropertyValueStatics> = .init()
+
+internal var propertyValueStatics: COMInterop<WindowsRuntime_ABI.SWRT_IPropertyValueStatics> {
+    get throws {
+        try lazyPropertyValueStatics.getInterop {
+            try getActivationFactory(
+                activatableId: "Windows.Foundation.PropertyValue",
+                id: WindowsRuntime_ABI.SWRT_IPropertyValueStatics.iid)
+        }
+    }
+}

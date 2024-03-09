@@ -1,3 +1,4 @@
+import COM
 import WindowsRuntime_ABI
 
 public typealias IInspectablePointer = UnsafeMutablePointer<SWRT_IInspectable>
@@ -7,3 +8,5 @@ extension IInspectablePointer {
         pointer.withMemoryRebound(to: Pointee.self, capacity: 1) { $0 }
     }
 }
+
+public typealias IInspectableReference = COMReference<SWRT_IInspectable>

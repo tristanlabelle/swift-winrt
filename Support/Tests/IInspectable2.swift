@@ -13,11 +13,11 @@ internal enum IInspectable2Projection: WinRTTwoWayProjection {
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
     public static var runtimeClassName: String { "IInspectable2" }
 
-    public static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject {
-        Import.toSwift(transferringRef: comPointer)
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import.toSwift(reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMPointer {
+    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
         try Import.toCOM(object)
     }
 

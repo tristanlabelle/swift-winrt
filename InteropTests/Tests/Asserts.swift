@@ -2,11 +2,12 @@ import COM
 import XCTest
 
 internal func assertCOMIdentical(_ lhs: IUnknown, _ rhs: IUnknown, file: StaticString = #file, line: UInt = #line) {
-    let lhsPointer = try! lhs._queryInterfacePointer(IUnknownProjection.self)
-    defer { lhsPointer.release() }
-
-    let rhsPointer = try! rhs._queryInterfacePointer(IUnknownProjection.self)
-    defer { rhsPointer.release() }
-
-    XCTAssertEqual(lhsPointer, rhsPointer, file: file, line: line)
+    do {
+        let lhsReference = try lhs._queryInterface(IUnknownProjection.self)
+        let rhsReference = try rhs._queryInterface(IUnknownProjection.self)
+        XCTAssertEqual(lhsReference.pointer, rhsReference.pointer, file: file, line: line)
+    }
+    catch {
+        XCTFail("Failed to query IUnknown from objects: \(error)", file: file, line: line)
+    }
 }

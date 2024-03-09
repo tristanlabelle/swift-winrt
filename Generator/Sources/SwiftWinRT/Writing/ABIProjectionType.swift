@@ -237,7 +237,7 @@ fileprivate func writeClassProjectionType(
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-            name: projectionTypeName, protocolConformances: [ .identifier("WinRTProjection") ]) { writer throws in
+            name: projectionTypeName, protocolConformances: [ SupportModule.winRTProjection ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
         let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
 
@@ -246,16 +246,16 @@ fileprivate func writeClassProjectionType(
             abiType: defaultInterface.asBoundType,
             toSwiftBody: { writer, paramName in
                 // Sealed classes are always created by WinRT, so don't need unwrapping
-                writer.writeStatement("\(typeName)(_transferringRef: \(paramName))")
+                writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
             },
             toCOMBody: { writer, paramName in
                 if composable {
                     let propertyName = SecondaryInterfaces.getPropertyName(defaultInterface)
-                    writer.writeStatement("IUnknownPointer.addingRef(try object.\(propertyName).this)")
+                    writer.writeStatement("try \(SupportModule.comReference)(addingRef: object.\(propertyName).this)")
                 }
                 else {
                     // WinRTImport exposes comPointer
-                    writer.writeStatement("IUnknownPointer.addingRef(object._pointer)")
+                    writer.writeStatement("object._reference.clone()")
                 }
             },
             projection: projection,
@@ -284,12 +284,13 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         projection: SwiftProjection,
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
-    let projectionProtocolName = type.definition is InterfaceDefinition ? "WinRTTwoWayProjection" : "COMTwoWayProjection"
+    let projectionProtocol = type.definition is InterfaceDefinition
+        ? SupportModule.winRTTwoWayProjection : SupportModule.comTwoWayProjection
 
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(type.definition.visibility),
             name: projectionName,
-            protocolConformances: [ .identifier(projectionProtocolName) ]) { writer throws in
+            protocolConformances: [ projectionProtocol ]) { writer throws in
 
         let importClassName = "Import"
 
@@ -297,12 +298,12 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
             apiType: type, abiType: type,
             toSwiftBody: { writer, paramName in
                 if type.definition is InterfaceDefinition {
-                    // Let COMImport attempt unwrapping first
-                    writer.writeStatement("\(importClassName).toSwift(transferringRef: \(paramName))")
+                    // Delegate to COMImport, which supports unwrapping
+                    writer.writeStatement("\(importClassName).toSwift(consume \(paramName))")
                 }
                 else {
                     // Delegates have no identity so cannot be unwrapped
-                    writer.writeStatement("\(importClassName)(_transferringRef: \(paramName)).invoke")
+                    writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName)).invoke")
                 }
             },
             toCOMBody: { writer, paramName in
@@ -360,17 +361,19 @@ internal func writeCOMProjectionConformance(
             initialValue: "\"\(runtimeClassName)\"")
     }
 
+    let comReferenceType = SupportModule.comReference(to: .identifier("COMInterface"))
+
     try writer.writeFunc(
             visibility: .public, static: true, name: "toSwift",
-            params: [ .init(label: "transferringRef", name: "comPointer", type: .identifier("COMPointer")) ],
+            params: [ .init(label: "_", name: "reference", consuming: true, type: comReferenceType) ],
             returnType: .identifier("SwiftObject")) { writer in
-        try toSwiftBody(&writer, "comPointer")
+        try toSwiftBody(&writer, "reference")
     }
 
     try writer.writeFunc(
             visibility: .public, static: true, name: "toCOM",
             params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
-            throws: true, returnType: .identifier("COMPointer")) { writer in
+            throws: true, returnType: comReferenceType) { writer in
         try toCOMBody(&writer, "object")
     }
 }

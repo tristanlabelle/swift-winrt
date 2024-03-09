@@ -179,18 +179,6 @@ fileprivate func writeClassInterfaceProperties(
         try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
     }
 
-    if (composable && interfaces.default != nil) || !interfaces.secondary.isEmpty {
-        writer.writeDeinit { writer in
-            if composable, let defaultInterface = interfaces.default {
-                SecondaryInterfaces.writeCleanup(defaultInterface, to: writer)
-            }
-
-            for secondaryInterface in interfaces.secondary {
-                SecondaryInterfaces.writeCleanup(secondaryInterface.interface, to: writer)
-            }
-        }
-    }
-
     // Static properties
     if interfaces.hasDefaultFactory {
         try SecondaryInterfaces.writeDeclaration(
@@ -295,8 +283,8 @@ fileprivate func writeDefaultActivatableInitializer(
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("self.init(_transferringRef: try Self.\(propertyName)"
-            + ".activateInstance(projection: \(projectionClassName).self))")
+        writer.writeStatement("self.init(_wrapping: \(SupportModule.comReference)(transferringRef: try Self.\(propertyName)"
+            + ".activateInstance(projection: \(projectionClassName).self)))")
     }
 }
 
@@ -317,12 +305,12 @@ fileprivate func writeActivatableInitializers(
             // Activation factory interop methods are special-cased to return the raw factory pointer,
             // so we can initialize our instance with it.
             let output = writer.output
-            output.write("self.init(_transferringRef: ")
+            output.write("self.init(_wrapping: \(SupportModule.comReference)(transferringRef: ")
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
                 thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                 projection: projection, to: writer.output)
-            output.write(")")
+            output.write("))")
             output.endLine()
         }
     }
@@ -330,13 +318,13 @@ fileprivate func writeActivatableInitializers(
 
 fileprivate func writeSupportComposableInitializers(
         defaultInterface: BoundInterface, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public init(_transferringRef comPointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
-    //     super.init(_transferringRef: IInspectablePointer.cast(comPointer))
+    // public init(_ reference: consuming COM.COMReference<CWinRTComponent.SWRT_IFoo>) {
+    //     super.init(reference.reinterpret())
     // }
-    let param = SwiftParam(label: "_transferringRef", name: "comPointer",
-        type: .unsafeMutablePointer(to: try projection.toABIType(defaultInterface.asBoundType)))
+    let param = SwiftParam(label: "_wrapping", name: "reference", consuming: true,
+        type: SupportModule.comReference(to: try projection.toABIType(defaultInterface.asBoundType)))
     writer.writeInit(visibility: .public, params: [param]) { writer in
-        writer.writeStatement("super.init(_transferringRef: IInspectablePointer.cast(comPointer))")
+        writer.writeStatement("super.init(_wrapping: reference.reinterpret())")
     }
 
     // public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {

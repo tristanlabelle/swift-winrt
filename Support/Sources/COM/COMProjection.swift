@@ -15,8 +15,8 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     typealias COMVirtualTablePointer = UnsafePointer<COMVirtualTable>
 
     // Non-nullable overloads
-    static func toSwift(transferringRef comPointer: COMPointer) -> SwiftObject
-    static func toCOM(_ object: SwiftObject) throws -> COMPointer
+    static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject
+    static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface>
 
     /// Gets the COM interface identifier.
     static var interfaceID: COMInterfaceID { get }
@@ -28,19 +28,18 @@ extension COMProjection {
 
     public static func toSwift(_ value: ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
-        IUnknownPointer.addRef(comPointer)
-        return toSwift(transferringRef: comPointer)
+        return toSwift(COMReference<COMInterface>(addingRef: comPointer))
     }
 
     public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
         value = nil
-        return toSwift(transferringRef: comPointer)
+        return toSwift(COMReference<COMInterface>(transferringRef: comPointer))
     }
 
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
         guard let object = value else { return nil }
-        return try toCOM(object)
+        return try toCOM(object).detach()
     }
 
     public static func release(_ value: inout ABIValue) {

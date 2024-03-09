@@ -19,6 +19,20 @@ public struct COMExportedInterface {
             swiftObject: Unmanaged<AnyObject>.passUnretained(swiftObject).toOpaque())
     }
 
+    private init<VirtualTable>(virtualTable: UnsafePointer<VirtualTable>) {
+        comObject = .init(
+            comVirtualTable: virtualTable.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknownVTable.self, capacity: 1) { $0 },
+            swiftObject: nil)
+    }
+
+    public static func withLateSwiftObjectInit<VirtualTable>(virtualTable: UnsafePointer<VirtualTable>) -> COMExportedInterface {
+        .init(virtualTable: virtualTable)
+    }
+
+    public mutating func _lateInitSwiftObject<SwiftObject: IUnknownProtocol>(_ swiftObject: SwiftObject) {
+        comObject.swiftObject = Unmanaged<AnyObject>.passUnretained(swiftObject).toOpaque()
+    }
+
     public var isInitialized: Bool { comObject.swiftObject != nil }
 
     public var unknownPointer: IUnknownPointer {
@@ -28,6 +42,8 @@ public struct COMExportedInterface {
             }
         }
     }
+
+    public mutating func toCOM() -> IUnknownReference { .init(addingRef: unknownPointer) }
 
     fileprivate static func toUnmanagedUnsafe<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
@@ -77,7 +93,7 @@ extension COMExportedInterface {
     }
 
     public static func QueryInterface<Interface>(
-        _ this: UnsafeMutablePointer<Interface>?,
+            _ this: UnsafeMutablePointer<Interface>?,
             _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this else {
@@ -93,10 +109,10 @@ extension COMExportedInterface {
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
             let this = IUnknownPointer.cast(this)
-            let unknownWithRef = id == markerInterfaceId
-                ? this.addingRef()
-                : try (unwrapUnsafe(this) as! IUnknown)._queryInterfacePointer(id)
-            ppvObject.pointee = UnsafeMutableRawPointer(unknownWithRef)
+            let reference = id == markerInterfaceId
+                ? IUnknownReference(addingRef: this)
+                : try (unwrapUnsafe(this) as! IUnknown)._queryInterface(id)
+            ppvObject.pointee = UnsafeMutableRawPointer(reference.detach())
         }
     }
 }
