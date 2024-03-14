@@ -259,12 +259,11 @@ fileprivate func writeComposableInitializers(
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
-                convenience: true,
                 params: params.dropLast(2).map { $0.toSwiftParam() },
                 throws: true) { writer in
             let output = writer.output
             let composeCondition = "Self.self != \(try projection.toTypeName(classDefinition)).self"
-            try output.writeIndentedBlock(header: "try self.init(_compose: \(composeCondition)) {", footer: "}") {
+            try output.writeIndentedBlock(header: "try super.init(_compose: \(composeCondition)) {", footer: "}") {
                 let outerObjectParamName = params[params.count - 2].name
                 let innerObjectParamName = params[params.count - 1].name
                 output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
@@ -318,13 +317,14 @@ fileprivate func writeActivatableInitializers(
 
 fileprivate func writeSupportComposableInitializers(
         defaultInterface: BoundInterface, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public init(_ reference: consuming COM.COMReference<CWinRTComponent.SWRT_IFoo>) {
-    //     super.init(reference.reinterpret())
+    // public init(_transferringRef pointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
+    //     super.init(pointer.cast())
     // }
-    let param = SwiftParam(label: "_wrapping", name: "reference", consuming: true,
-        type: SupportModule.comReference(to: try projection.toABIType(defaultInterface.asBoundType)))
+    // Should use a COMReference<> but this runs into compiler bugs.
+    let param = SwiftParam(label: "_transferringRef", name: "pointer",
+        type: .unsafeMutablePointer(to: try projection.toABIType(defaultInterface.asBoundType)))
     writer.writeInit(visibility: .public, params: [param]) { writer in
-        writer.writeStatement("super.init(_wrapping: reference.reinterpret())")
+        writer.writeStatement("super.init(_transferringRef: IUnknownPointer.cast(pointer).cast())")
     }
 
     // public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {

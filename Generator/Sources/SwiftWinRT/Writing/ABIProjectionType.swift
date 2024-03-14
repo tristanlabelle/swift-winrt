@@ -245,8 +245,13 @@ fileprivate func writeClassProjectionType(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
             toSwiftBody: { writer, paramName in
-                // Sealed classes are always created by WinRT, so don't need unwrapping
-                writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
+                if composable {
+                    // TODO: Unwrap if composed.
+                    writer.writeStatement("\(typeName)(_transferringRef: \(paramName).detach())")
+                } else {
+                    // Sealed classes are always created by WinRT, so don't need unwrapping
+                    writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
+                }
             },
             toCOMBody: { writer, paramName in
                 if composable {

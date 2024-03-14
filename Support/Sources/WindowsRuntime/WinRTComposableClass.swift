@@ -16,8 +16,9 @@ open class WinRTComposableClass: IInspectableProtocol {
     private var outer: COMExportedInterface
 
     /// Initializer for instances created in WinRT
-    public init(_wrapping reference: consuming IInspectableReference) {
-        inner = reference
+    // Should take a COMReference<>, but this runs into cmopiler bugs.
+    public init(_transferringRef pointer: consuming IInspectablePointer) {
+        inner = .init(transferringRef: pointer)
         // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
         // All methods will delegate to the inner object (in this case the full object).
         outer = .uninitialized
