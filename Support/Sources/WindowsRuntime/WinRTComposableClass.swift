@@ -9,7 +9,7 @@ import WindowsRuntime_ABI
 /// - Creating a derived Swift class that can override methods
 open class WinRTComposableClass: IInspectableProtocol {
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
-    private let inner: IInspectableReference
+    private var innerWithRef: IInspectablePointer // Strong ref'd (not a COMReference<> because of initialization order issues)
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
@@ -17,8 +17,8 @@ open class WinRTComposableClass: IInspectableProtocol {
 
     /// Initializer for instances created in WinRT
     // Should take a COMReference<>, but this runs into cmopiler bugs.
-    public init(_transferringRef pointer: consuming IInspectablePointer) {
-        inner = .init(transferringRef: pointer)
+    public init(_transferringRef pointer: IInspectablePointer) {
+        innerWithRef = pointer
         // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
         // All methods will delegate to the inner object (in this case the full object).
         outer = .uninitialized
@@ -33,39 +33,40 @@ open class WinRTComposableClass: IInspectableProtocol {
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
     public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
         if _compose {
-            // Create the inner object using a valid pointer to an uninitialized outer object.
-            var inner: IInspectablePointer? = nil
+            // Workaround Swift initialization rules:
+            // - Factory needs an initialized outer pointer pointing to self
+            // - self.inner needs to be initialized before being able to reference self
             self.outer = .uninitialized
-            let composed: UnsafeMutablePointer<Interface>? = try _factory(IInspectablePointer.cast(outer.unknownPointer), &inner)
+            self.innerWithRef = IInspectablePointer.cast(outer.unknownPointer) // We need to assign inner to something, it doesn't matter what.
+            self.outer = .init(swiftObject: self, virtualTable: IInspectableProjection.virtualTablePointer)
 
-            // Like C++/WinRT, discard the composed object and only use the inner object
-            // See "[[maybe_unused]] auto winrt_impl_discarded = f.CreateInstance(*this, this->minner);"
-            // The composed object is useful when not providing an outer object.
-            IUnknownPointer.release(composed)
-
+            // Like C++/WinRT, discard the returned composed object and only use the inner object
+            // The composed object is useful only when not providing an outer object.
+            var inner: IInspectablePointer? = nil
+            try IUnknownPointer.release(_factory(IInspectablePointer.cast(outer.unknownPointer), &inner))
             guard let inner else { throw HResult.Error.fail }
-            self.inner = .init(transferringRef: inner)
-
-            // We can now reference self, so initialize the outer object.
-            self.outer = .init(
-                swiftObject: self,
-                virtualTable: IInspectableProjection.virtualTablePointer)
+            self.innerWithRef = inner
         }
         else {
-            // We're not overriding any methods, so create a vanilla composed object to avoid indirections.
+            // We're not overriding any methods so we don't need to provide an outer object.
             outer = .uninitialized
 
+            // We don't care about the inner object since WinRT provides us with the composed object.
             var inner: IInspectablePointer? = nil
             defer { IInspectableProjection.release(&inner) }
             guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
-            self.inner = .init(transferringRef: IInspectablePointer.cast(composed))
+            self.innerWithRef = IInspectablePointer.cast(composed)
         }
+    }
+
+    deinit {
+        COMInterop(innerWithRef).release()
     }
 
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(inner.pointer).queryInterface(id)
+        try COMInterop(innerWithRef).queryInterface(id)
     }
 
     open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
@@ -83,18 +84,18 @@ open class WinRTComposableClass: IInspectableProtocol {
     open func getIids() throws -> [COM.COMInterfaceID] {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(inner.pointer).getIids()
+        try COMInterop(innerWithRef).getIids()
     }
 
     open func getRuntimeClassName() throws -> String {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(inner.pointer).getRuntimeClassName()
+        try COMInterop(innerWithRef).getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(inner.pointer).getTrustLevel()
+        try COMInterop(innerWithRef).getTrustLevel()
     }
 }
