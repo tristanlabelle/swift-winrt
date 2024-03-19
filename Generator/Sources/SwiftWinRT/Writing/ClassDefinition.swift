@@ -8,9 +8,9 @@ import struct Foundation.UUID
 internal func writeClassDefinition(_ classDefinition: ClassDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
     let interfaces = try ClassInterfaces(of: classDefinition, composable: composable)
+    let typeName = try projection.toTypeName(classDefinition)
 
     if interfaces.default != nil {
-        let typeName = try projection.toTypeName(classDefinition)
         let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
         assert(classDefinition.isSealed || composable)
         assert(!classDefinition.isAbstract || composable)
@@ -43,7 +43,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
         try writer.writeEnum(
                 documentation: projection.getDocumentationComment(classDefinition),
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-                name: try projection.toTypeName(classDefinition)) { writer in
+                name: typeName) { writer in
             try writeClassMembers(
                 classDefinition, interfaces: interfaces, composable: false,
                 projection: projection, to: writer)

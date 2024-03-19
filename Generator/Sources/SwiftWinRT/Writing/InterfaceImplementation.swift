@@ -46,7 +46,16 @@ fileprivate func writeInterfacePropertyImplementation(
         _ property: Property, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public [static] var myProperty: MyPropertyType { get throws { .. } }
+    if `static` {
+        // Instance properties come from interfaces for which we generate extensions
+        // with non-throwing properties. Static properties are implemented directly.
+        assert(typeGenericArgs.isEmpty) // True for classes
+        // public static var myProperty: MyPropertyType { ... }
+        try writeNonthrowingPropertyImplementation(
+            property: property, static: `static`, projection: projection, to: writer)
+    }
+
+    // public [static] func _myProperty() throws -> MyPropertyType { ... }
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(

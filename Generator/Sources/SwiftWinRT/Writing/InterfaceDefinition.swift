@@ -120,32 +120,9 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     }
 
     // Write fatalError'ing properties as an extension
-    if !interfaceDefinition.properties.isEmpty {
-        try writer.writeExtension(type: .identifier(protocolName)) { writer in
-            for property in interfaceDefinition.properties {
-                guard let getter = try property.getter else { continue }
-
-                let writeSetter: ((inout SwiftStatementWriter) throws -> Void)?
-                if let setter = try property.setter {
-                    writeSetter = { writer in
-                        writer.writeStatement("try! self.\(SwiftProjection.toMemberName(setter))(newValue)")
-                    }
-                } else {
-                    writeSetter = nil
-                }
-
-                try writer.writeComputedProperty(
-                    documentation: projection.getDocumentationComment(property),
-                    visibility: .public,
-                    name: SwiftProjection.toMemberName(property),
-                    type: projection.toReturnType(property.type),
-                    get: { writer in
-                        writer.writeStatement("try! self.\(SwiftProjection.toMemberName(getter))()")
-                    },
-                    set: writeSetter)
-            }
-        }
-    }
+    try writeExtensionProperties(
+        typeDefinition: interfaceDefinition, interfaces: [interfaceDefinition], static: false,
+        projection: projection, to: writer)
 }
 
 fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
