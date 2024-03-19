@@ -5,11 +5,11 @@ import WinRTComponent
 
 class ActivationFactoryTests: WinRTTestCase {
     func testDefault() throws {
-        XCTAssertEqual(try OverloadedSum().result, 0)
+        XCTAssertEqual(try OverloadedSum()._result(), 0)
     }
 
     func testParameterized() throws {
-        XCTAssertEqual(try OverloadedSum(1).result, 1)
-        XCTAssertEqual(try OverloadedSum(1, 2).result, 3)
+        XCTAssertEqual(try OverloadedSum(1)._result(), 1)
+        XCTAssertEqual(try OverloadedSum(1, 2)._result(), 3)
     }
 }

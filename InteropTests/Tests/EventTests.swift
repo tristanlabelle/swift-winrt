@@ -21,12 +21,12 @@ class EventTests: WinRTTestCase {
     func testExportedEvent() throws {
         let eventSource = EventSource()
         let counter = try XCTUnwrap(Events.createCounter(eventSource))
-        XCTAssertEqual(try counter.count, 0)
+        XCTAssertEqual(try counter._count(), 0)
         try eventSource.fire()
-        XCTAssertEqual(try counter.count, 1)
+        XCTAssertEqual(try counter._count(), 1)
         try counter.detach()
         try eventSource.fire()
-        XCTAssertEqual(try counter.count, 1)
+        XCTAssertEqual(try counter._count(), 1)
 
         class EventSource: WinRTExport<IEventSourceProjection>, IEventSourceProtocol {
             private var invocationList: EventInvocationList<MinimalDelegate> = .init()

@@ -123,25 +123,23 @@ fileprivate func writeVirtualTableFunc(
     output.write("try ")
     output.write(methodKind == .delegateInvoke
         ? "this" : "this.\(swiftMemberName)")
-    if methodKind != .propertyGetter {
-        output.write("(")
-        if methodKind == .eventAdder || methodKind == .eventRemover {
-            assert(params.count == 1)
-            output.write(methodKind == .eventAdder ? "adding: " : "removing: ")
-        }
-        for (index, param) in params.enumerated() {
-            if index > 0 { output.write(", ") }
-            if param.passBy != .value { output.write("&") }
-            if param.typeProjection.kind == .identity {
-                output.write(param.name)
-                if param.passBy != .value { output.write(".pointee") }
-            } else {
-                output.write(param.swiftProjectionName)
-            }
-        }
-        output.write(")")
-        if methodKind == .eventAdder { output.write(".token") }
+    output.write("(")
+    if methodKind == .eventAdder || methodKind == .eventRemover {
+        assert(params.count == 1)
+        output.write(methodKind == .eventAdder ? "adding: " : "removing: ")
     }
+    for (index, param) in params.enumerated() {
+        if index > 0 { output.write(", ") }
+        if param.passBy != .value { output.write("&") }
+        if param.typeProjection.kind == .identity {
+            output.write(param.name)
+            if param.passBy != .value { output.write(".pointee") }
+        } else {
+            output.write(param.swiftProjectionName)
+        }
+    }
+    output.write(")")
+    if methodKind == .eventAdder { output.write(".token") }
 
     if let returnParam, case .return(nullAsError: true) = returnParam.passBy {
         output.write(")") // NullResult.`catch`

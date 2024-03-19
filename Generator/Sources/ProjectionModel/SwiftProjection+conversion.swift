@@ -73,14 +73,19 @@ extension SwiftProjection {
     }
 
     public static func toMemberName(_ member: Member) -> String {
-        var name = member.name
+        let name = member.name
+        
         if member is Method, member.nameKind == .special {
             if let prefixEndIndex = name.findPrefixEndIndex("get_")
                     ?? name.findPrefixEndIndex("set_")
-                    ?? name.findPrefixEndIndex("put_")
-                    ?? name.findPrefixEndIndex("add_")
+                    ?? name.findPrefixEndIndex("put_") {
+                // get_Foo() -> _foo()
+                return "_" + Casing.pascalToCamel(String(name[prefixEndIndex...]))
+            }
+            else if let prefixEndIndex = name.findPrefixEndIndex("add_")
                     ?? name.findPrefixEndIndex("remove_") {
-                name = String(name[prefixEndIndex...])
+                // add_Foo(_:) -> foo(_:)
+                return Casing.pascalToCamel(String(name[prefixEndIndex...]))
             }
         }
         return Casing.pascalToCamel(name)

@@ -51,14 +51,14 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
 
     let documentation = projection.getDocumentation(interfaceDefinition)
+    let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
-        documentation: documentation.map { projection.toDocumentationComment($0) },
-        visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
-        name: projection.toProtocolName(interfaceDefinition),
-        typeParams: interfaceDefinition.genericParams.map { $0.name },
-        bases: baseProtocols,
-        whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
-
+            documentation: documentation.map { projection.toDocumentationComment($0) },
+            visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
+            name: protocolName,
+            typeParams: interfaceDefinition.genericParams.map { $0.name },
+            bases: baseProtocols,
+            whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
         for genericParam in interfaceDefinition.genericParams {
             writer.writeAssociatedType(
                 documentation: documentation?.typeParams
@@ -68,23 +68,15 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
                 name: genericParam.name)
         }
 
-        for property in interfaceDefinition.properties {
-            if try property.getter != nil {
-                try writer.writeProperty(
-                    documentation: projection.getDocumentationComment(property),
-                    name: SwiftProjection.toMemberName(property),
-                    type: projection.toReturnType(property.type),
-                    throws: true,
-                    set: false)
-            }
-
-            if let setter = try property.setter {
-                try writer.writeFunc(
-                    isPropertySetter: true,
-                    name: SwiftProjection.toMemberName(property),
-                    params: setter.params.map { try projection.toParameter($0) },
-                    throws: true)
-            }
+        for method in interfaceDefinition.methods.filter({ $0.visibility == .public }) {
+            guard method.nameKind == .regular else { continue }
+            try writer.writeFunc(
+                documentation: projection.getDocumentationComment(method),
+                name: SwiftProjection.toMemberName(method),
+                typeParams: method.genericParams.map { $0.name },
+                params: method.params.map { try projection.toParameter($0) },
+                throws: true,
+                returnType: method.hasReturnValue ? projection.toReturnType(method.returnType) : nil)
         }
 
         for event in interfaceDefinition.events {
@@ -105,15 +97,53 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             }
         }
 
-        for method in interfaceDefinition.methods.filter({ $0.visibility == .public }) {
-            guard method.nameKind == .regular else { continue }
-            try writer.writeFunc(
-                documentation: projection.getDocumentationComment(method),
-                name: SwiftProjection.toMemberName(method),
-                typeParams: method.genericParams.map { $0.name },
-                params: method.params.map { try projection.toParameter($0) },
-                throws: true,
-                returnType: method.hasReturnValue ? projection.toReturnType(method.returnType) : nil)
+        // Write properties as "_getFoo() throws -> T" and "_setFoo(newValue: T) throws",
+        // to provide a way to handle errors.
+        // We'll generate non-throwing "var foo: T { get set }" as an extension.
+        for property in interfaceDefinition.properties {
+            if let getter = try property.getter {
+                try writer.writeFunc(
+                    documentation: projection.getDocumentationComment(property),
+                    name: SwiftProjection.toMemberName(getter),
+                    throws: true,
+                    returnType: projection.toReturnType(property.type))
+            }
+
+            if let setter = try property.setter {
+                try writer.writeFunc(
+                    isPropertySetter: true,
+                    name: SwiftProjection.toMemberName(setter),
+                    params: setter.params.map { try projection.toParameter($0) },
+                    throws: true)
+            }
+        }
+    }
+
+    // Write fatalError'ing properties as an extension
+    if !interfaceDefinition.properties.isEmpty {
+        try writer.writeExtension(type: .identifier(protocolName)) { writer in
+            for property in interfaceDefinition.properties {
+                guard let getter = try property.getter else { continue }
+
+                let writeSetter: ((inout SwiftStatementWriter) throws -> Void)?
+                if let setter = try property.setter {
+                    writeSetter = { writer in
+                        writer.writeStatement("try! self.\(SwiftProjection.toMemberName(setter))(newValue)")
+                    }
+                } else {
+                    writeSetter = nil
+                }
+
+                try writer.writeComputedProperty(
+                    documentation: projection.getDocumentationComment(property),
+                    visibility: .public,
+                    name: SwiftProjection.toMemberName(property),
+                    type: projection.toReturnType(property.type),
+                    get: { writer in
+                        writer.writeStatement("try! self.\(SwiftProjection.toMemberName(getter))()")
+                    },
+                    set: writeSetter)
+            }
         }
     }
 }
@@ -134,11 +164,11 @@ fileprivate func writeIAsyncExtensions(protocolName: String, resultType: SwiftTy
     writer.writeExtension(type: .identifier(protocolName)) { writer in
         // public get() async throws
         writer.writeFunc(visibility: .public, name: "get", async: true, throws: true, returnType: resultType) { writer in
-            writer.output.writeIndentedBlock(header: "if try status == .started {", footer: "}") {
+            writer.output.writeIndentedBlock(header: "if try _status() == .started {", footer: "}") {
                 // We can't await if the completed handler is already set
-                writer.writeStatement("guard try \(SupportModule.nullResult).catch(completed) == nil else { throw \(SupportModule.hresult).Error.illegalMethodCall }")
+                writer.writeStatement("guard try \(SupportModule.nullResult).catch(_completed()) == nil else { throw \(SupportModule.hresult).Error.illegalMethodCall }")
                 writer.writeStatement("let awaiter = WindowsRuntime.AsyncAwaiter()")
-                writer.writeStatement("try completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })")
+                writer.writeStatement("try _completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })")
                 writer.writeStatement("await awaiter.wait()")
             }
 
