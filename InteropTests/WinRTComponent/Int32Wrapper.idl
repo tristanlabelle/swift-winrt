@@ -1,0 +1,14 @@
+namespace WinRTComponent
+{
+    runtimeclass Int32Wrapper
+    {
+        Int32 GetSet;
+        Int32 GetOnly { get; };
+    };
+
+    static runtimeclass Int32Global
+    {
+        static Int32 GetSet;
+        static Int32 GetOnly { get; };
+    };
+}
