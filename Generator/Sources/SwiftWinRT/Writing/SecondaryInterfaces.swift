@@ -36,8 +36,16 @@ internal enum SecondaryInterfaces {
             try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModule.comLazyReference_getInterop)") { writer in
                 if let staticOf {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
-                    writer.writeStatement("try WindowsRuntime.getActivationFactory("
-                        + "activatableId: \"\(activatableId)\", id: \(abiStructType).iid)")
+                    if interfaceName == "IActivationFactory" {
+                        // Workaround a compiler bug where the compiler doesn't see the SWRT_IActivationFactory extension.
+                        writer.writeStatement("try WindowsRuntime.getActivationFactory(\n"
+                            + "activatableId: \"\(activatableId)\",\n"
+                            + "id: WindowsRuntime.IActivationFactoryProjection.interfaceID)")
+                    } else {
+                        writer.writeStatement("try WindowsRuntime.getActivationFactory(\n"
+                            + "activatableId: \"\(activatableId)\",\n"
+                            + "id: \(abiStructType).iid)")
+                    }
                 }
                 else {
                     let qiMethodName = composable ? "_queryInnerInterface" : "_queryInterface"

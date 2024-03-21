@@ -28,8 +28,13 @@ namespace winrt::WinRTComponent::implementation
         static int32_t _value;
     };
 }
+
 namespace winrt::WinRTComponent::factory_implementation
 {
+    struct Int32Wrapper : Int32WrapperT<Int32Wrapper, implementation::Int32Wrapper>
+    {
+    };
+
     struct Int32Global : Int32GlobalT<Int32Global, implementation::Int32Global>
     {
     };

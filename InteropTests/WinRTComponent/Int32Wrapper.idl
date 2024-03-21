@@ -2,6 +2,7 @@ namespace WinRTComponent
 {
     runtimeclass Int32Wrapper
     {
+        Int32Wrapper();
         Int32 GetSet;
         Int32 GetOnly { get; };
     };

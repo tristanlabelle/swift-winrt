@@ -1,7 +1,8 @@
 import WindowsRuntime_ABI
 
 /// Holds a strong reference to a COM object, like a C++ smart pointer.
-public struct COMReference<Interface: COMIUnknownStruct>: ~Copyable {
+// Should require COMIUnknownStruct but we run into compiler bugs.
+public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknownStruct */ {
     public var pointer: UnsafeMutablePointer<Interface>
 
     public init(transferringRef pointer: UnsafeMutablePointer<Interface>) {

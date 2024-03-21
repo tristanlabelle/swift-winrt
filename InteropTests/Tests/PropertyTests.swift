@@ -32,12 +32,12 @@ class PropertyTests: WinRTTestCase {
         }
 
         Int32Global.getSet = 0
-        assertGet(expected: 0)
+        try assertGet(expected: 0)
 
         Int32Global.getSet = 1
-        assertGet(expected: 1)
+        try assertGet(expected: 1)
 
         try Int32Global._getSet(2)
-        assertGet(expected: 2)
+        try assertGet(expected: 2)
     }
 }

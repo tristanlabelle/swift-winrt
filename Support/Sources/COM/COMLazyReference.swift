@@ -1,6 +1,7 @@
 /// Lazily initialized reference to a COM object.
 /// Essentially an Optional<COMReference<Interface>> without language support.
-public struct COMLazyReference<Interface: COMIUnknownStruct>: ~Copyable {
+// Should require COMIUnknownStruct but we run into compiler bugs.
+public struct COMLazyReference<Interface>: ~Copyable /* where Interface: COMIUnknownStruct */ {
     private var pointer: UnsafeMutablePointer<Interface>?
 
     public init() {

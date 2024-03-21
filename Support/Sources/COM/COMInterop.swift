@@ -13,7 +13,8 @@ public protocol COMIUnknownStruct {
 
 /// Wraps a COM interface pointer and exposes projected versions of its methods.
 /// This struct is extended with methods for each COM interface it wraps.
-public struct COMInterop<Interface> where Interface: COMIUnknownStruct {
+// Should require COMIUnknownStruct but we run into compiler bugs.
+public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
     public let this: UnsafeMutablePointer<Interface>
 
     public init(_ pointer: UnsafeMutablePointer<Interface>) {

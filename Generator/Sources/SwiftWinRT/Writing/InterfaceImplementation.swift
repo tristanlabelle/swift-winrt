@@ -46,10 +46,9 @@ fileprivate func writeInterfacePropertyImplementation(
         _ property: Property, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    if `static` {
-        // Instance properties come from interfaces for which we generate extensions
-        // with non-throwing properties. Static properties are implemented directly.
-        assert(typeGenericArgs.isEmpty) // True for classes
+    if try property.definingType.hasAttribute(ExclusiveToAttribute.self) {
+        // The property is exclusive to this class so it doesn't come
+        // from an interface that would an extension property.
         // public static var myProperty: MyPropertyType { ... }
         try writeNonthrowingPropertyImplementation(
             property: property, static: `static`, projection: projection, to: writer)
