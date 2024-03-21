@@ -6,7 +6,6 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
     open class var autoStringable: Bool { true }
-    open class var agile: Bool { true }
     open class var weakReferenceSource: Bool { true }
 
     public var inspectablePointer: IInspectableProjection.COMPointer {
@@ -17,7 +16,6 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         switch id {
             // QI for IInspectable should return the identity interface just like IUnknown.
             case IInspectableProjection.interfaceID: return .init(addingRef: unknownPointer)
-            case IAgileObjectProjection.interfaceID where Self.agile: return .init(addingRef: unknownPointer)
             case IWeakReferenceSourceProjection.interfaceID where Self.weakReferenceSource:
                 let export = createSecondaryExport(
                     projection: IWeakReferenceSourceProjection.self,
