@@ -63,7 +63,7 @@ open class COMExportBase: IUnknownProtocol {
 
 /// Base for classes exported to COM.
 open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
-    open class var agile: Bool { true }
+    open class var implementIAgileObject: Bool { true }
 
     open var implementation: Projection.SwiftObject { self as! Projection.SwiftObject }
     public var comPointer: Projection.COMPointer {
@@ -78,7 +78,7 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
             case Projection.interfaceID: return .init(addingRef: unknownPointer)
-            case IAgileObjectProjection.interfaceID where Self.agile: return .init(addingRef: unknownPointer)
+            case IAgileObjectProjection.interfaceID where Self.implementIAgileObject: return .init(addingRef: unknownPointer)
             default: return try super._queryInterface(id)
         }
     }

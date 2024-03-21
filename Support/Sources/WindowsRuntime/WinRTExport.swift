@@ -5,8 +5,8 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         : COMExport<Projection>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
-    open class var autoStringable: Bool { true }
-    open class var weakReferenceSource: Bool { true }
+    open class var implementIStringable: Bool { true }
+    open class var implementIWeakReferenceSource: Bool { true }
 
     public var inspectablePointer: IInspectableProjection.COMPointer {
         unknownPointer.withMemoryRebound(to: IInspectableProjection.COMInterface.self, capacity: 1) { $0 }
@@ -16,12 +16,12 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         switch id {
             // QI for IInspectable should return the identity interface just like IUnknown.
             case IInspectableProjection.interfaceID: return .init(addingRef: unknownPointer)
-            case IWeakReferenceSourceProjection.interfaceID where Self.weakReferenceSource:
+            case IWeakReferenceSourceProjection.interfaceID where Self.implementIWeakReferenceSource:
                 let export = createSecondaryExport(
                     projection: IWeakReferenceSourceProjection.self,
                     implementation: WeakReferenceSource(target: self))
                 return .init(addingRef: export.unknownPointer)
-            case IStringableProjection.interfaceID where Self.autoStringable:
+            case IStringableProjection.interfaceID where Self.implementIStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
                     let export = createSecondaryExport(
                         projection: IStringableProjection.self,
@@ -42,9 +42,9 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
 
     open func getIids() throws -> [COMInterfaceID] {
         var iids = Self.implements.map { $0.id }
-        if Self.agile { iids.append(IAgileObjectProjection.interfaceID) }
-        if Self.weakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
-        if Self.autoStringable, self is CustomStringConvertible { iids.append(IStringableProjection.interfaceID) }
+        if Self.implementIAgileObject { iids.append(IAgileObjectProjection.interfaceID) }
+        if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
+        if Self.implementIStringable, self is CustomStringConvertible { iids.append(IStringableProjection.interfaceID) }
         return iids
     }
 

@@ -41,11 +41,11 @@ internal final class WinRTExportTests: XCTestCase {
 
     func testIAgileObject() throws {
         final class AgileObject: WinRTExport<IInspectableProjection> {
-            override class var agile: Bool { true }
+            override class var implementIAgileObject: Bool { true }
         }
 
         final class NonAgileObject: WinRTExport<IInspectableProjection> {
-            override class var agile: Bool { false }
+            override class var implementIAgileObject: Bool { false }
         }
 
         let _ = try AgileObject().queryInterface(IAgileObjectProjection.self)
@@ -62,17 +62,17 @@ internal final class WinRTExportTests: XCTestCase {
 
     func testIWeakReferenceSource() throws {
         final class WeakReferenceSource: WinRTExport<IInspectableProjection> {
-            override class var weakReferenceSource: Bool { true }
+            override class var implementIWeakReferenceSource: Bool { true }
         }
 
         final class NonWeakReferenceSource: WinRTExport<IInspectableProjection> {
-            override class var weakReferenceSource: Bool { false }
+            override class var implementIWeakReferenceSource: Bool { false }
         }
 
-        var weakReferenceSource: WeakReferenceSource? = WeakReferenceSource()
-        let weakReference: IWeakReference = try weakReferenceSource!.queryInterface(IWeakReferenceSourceProjection.self).getWeakReference()
+        var implementIWeakReferenceSource: WeakReferenceSource? = WeakReferenceSource()
+        let weakReference: IWeakReference = try implementIWeakReferenceSource!.queryInterface(IWeakReferenceSourceProjection.self).getWeakReference()
         XCTAssertNotNil(try weakReference.resolve())
-        weakReferenceSource = nil
+        implementIWeakReferenceSource = nil
         XCTAssertNil(try weakReference.resolve())
 
         XCTAssertThrowsError(try NonWeakReferenceSource().queryInterface(IWeakReferenceSourceProjection.self))
