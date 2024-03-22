@@ -24,7 +24,8 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
         return pointer
     }
 
-    public consuming func reinterpret<NewInterface: COMIUnknownStruct>(to type: NewInterface.Type = NewInterface.self) -> COMReference<NewInterface> {
+    // Should require COMIUnknownStruct but we run into compiler bugs.
+    public consuming func reinterpret<NewInterface>(to type: NewInterface.Type = NewInterface.self) -> COMReference<NewInterface> /* where Interface: COMIUnknownStruct */ {
         let pointer = self.pointer
         discard self
         return COMReference<NewInterface>(transferringRef: pointer.withMemoryRebound(to: NewInterface.self, capacity: 1) { $0 })

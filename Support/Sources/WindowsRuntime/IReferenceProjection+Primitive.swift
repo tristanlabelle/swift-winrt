@@ -97,9 +97,9 @@ fileprivate var lazyPropertyValueStatics: COM.COMLazyReference<WindowsRuntime_AB
 internal var propertyValueStatics: COMInterop<WindowsRuntime_ABI.SWRT_IPropertyValueStatics> {
     get throws {
         try lazyPropertyValueStatics.getInterop {
-            try getActivationFactory(
-                activatableId: "Windows.Foundation.PropertyValue",
-                id: WindowsRuntime_ABI.SWRT_IPropertyValueStatics.iid)
+            try WinRTClassLoader.default.getActivationFactory(
+                runtimeClass: "Windows.Foundation.PropertyValue",
+                interfaceID: WindowsRuntime_ABI.SWRT_IPropertyValueStatics.iid)
         }
     }
 }
