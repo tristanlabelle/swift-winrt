@@ -87,7 +87,7 @@ extension IReferenceProjection {
 
         public static func release(_ value: inout ABIValue) {
             guard let comPointer = value else { return }
-            IUnknownPointer.release(comPointer)
+            COMInterop(comPointer).release()
             value = nil
         }
     }

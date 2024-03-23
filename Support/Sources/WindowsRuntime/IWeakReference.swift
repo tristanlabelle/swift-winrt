@@ -35,11 +35,12 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         Resolve: { this, iid, objectReference in _implement(this) {
             guard let iid, let objectReference else { throw HResult.Error.pointer }
             objectReference.pointee = nil
-            let inspectable = try IInspectableProjection.toABI($0.resolve())
-            defer { IUnknownPointer.release(inspectable) }
+            var inspectable = try IInspectableProjection.toABI($0.resolve())
+            defer { IInspectableProjection.release(&inspectable) }
             guard let inspectable else { return }
-            let result = try IUnknownPointer.cast(inspectable).queryInterface(GUIDProjection.toSwift(iid.pointee))
-            objectReference.pointee = result.cast(to: WindowsRuntime_ABI.SWRT_IInspectable.self)
+            let targetUnknown = try COMInterop(inspectable).queryInterface(GUIDProjection.toSwift(iid.pointee))
+            let target = targetUnknown.reinterpret(to: WindowsRuntime_ABI.SWRT_IInspectable.self)
+            objectReference.pointee = target.detach()
         } })
 }
 

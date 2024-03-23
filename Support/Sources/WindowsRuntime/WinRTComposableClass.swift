@@ -43,7 +43,8 @@ open class WinRTComposableClass: IInspectableProtocol {
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
             var inner: IInspectablePointer? = nil
-            try IUnknownPointer.release(_factory(IInspectablePointer.cast(outer.unknownPointer), &inner))
+            let composed = try _factory(IInspectablePointer.cast(outer.unknownPointer), &inner)
+            if let composed { COMInterop(composed).release() }
             guard let inner else { throw HResult.Error.fail }
             self.innerWithRef = inner
         }

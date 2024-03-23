@@ -232,7 +232,7 @@ fileprivate func writeClassOverrideSupport(
                 }
 
                 // return _iminimalUnsealedClassOverridesOuter.unknownPointer.addingRef()
-                writer.writeReturnStatement(value: "\(outerPropertyName).unknownPointer.addingRef()")
+                writer.writeReturnStatement(value: "\(outerPropertyName).toCOM().detach()")
             }
         }
         writer.writeReturnStatement(value: "nil")

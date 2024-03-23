@@ -52,7 +52,7 @@ public struct COMExportedInterface {
     }
 
     public static func test<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Bool {
-        do { try IUnknownPointer.cast(this).queryInterface(markerInterfaceId).release() } catch { return false }
+        do { _ = try COMInterop(this).queryInterface(markerInterfaceId) } catch { return false }
         return true
     }
 

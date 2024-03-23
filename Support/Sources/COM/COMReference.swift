@@ -10,8 +10,8 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
     }
 
     public init(addingRef pointer: UnsafeMutablePointer<Interface>) {
-        IUnknownPointer.addRef(pointer)
         self.init(transferringRef: pointer)
+        interop.addRef()
     }
 
     public var interop: COMInterop<Interface> { .init(pointer) }
@@ -32,7 +32,7 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
     }
 
     deinit {
-        IUnknownPointer.release(pointer)
+        interop.release()
     }
 }
 

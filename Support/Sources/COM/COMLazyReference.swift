@@ -24,8 +24,8 @@ public struct COMLazyReference<Interface>: ~Copyable /* where Interface: COMIUnk
     }
 
     deinit {
-        if let pointer = pointer {
-            IUnknownPointer.release(pointer)
+        if let pointer {
+            COMInterop(pointer).release()
         }
     }
 }
