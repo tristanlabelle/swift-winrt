@@ -8,15 +8,15 @@ import WindowsMetadata
 // Interfaces are generated as two types: a protocol and an existential typealias.
 // Given an interface IFoo, we generate:
 //
-//     protocol IFooProtocol { ... }
 //     typealias IFoo = any IFooProtocol
+//     protocol IFooProtocol { ... }
 //
 // This provides a more natural (C#-like) syntax when using those types:
 //
 //     var foo: IFoo? = getFoo()
 internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
-    try writeProtocol(interface, projection: projection, to: writer)
     try writeProtocolTypeAlias(interface, projection: projection, to: writer)
+    try writeProtocol(interface, projection: projection, to: writer)
 
     let typeName = try projection.toProtocolName(interface)
     switch interface.name {
