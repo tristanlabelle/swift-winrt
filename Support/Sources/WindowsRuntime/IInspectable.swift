@@ -2,12 +2,12 @@ import COM
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
+public typealias IInspectable = any IInspectableProtocol
 public protocol IInspectableProtocol: IUnknownProtocol {
     func getIids() throws -> [COMInterfaceID]
     func getRuntimeClassName() throws -> String
     func getTrustLevel() throws -> TrustLevel
 }
-public typealias IInspectable = any IInspectableProtocol
 
 public enum IInspectableProjection: WinRTTwoWayProjection {
     public typealias SwiftObject = IInspectable
@@ -48,6 +48,9 @@ extension WindowsRuntime_ABI.SWRT_IInspectable: @retroactive COMIUnknownStruct {
 extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }
+
+public typealias IInspectablePointer = IInspectableProjection.COMPointer
+public typealias IInspectableReference = COMReference<IInspectableProjection.COMInterface>
 
 extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
     private var inspectable: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IInspectable>{

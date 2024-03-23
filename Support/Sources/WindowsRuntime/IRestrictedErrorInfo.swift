@@ -1,6 +1,7 @@
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
+public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
     func getErrorDetails(
         description: inout String?,
@@ -9,8 +10,6 @@ public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
         capabilitySid: inout String?) throws
     var reference: String? { get throws }
 }
-
-public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 
 public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IRestrictedErrorInfo

@@ -35,5 +35,3 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
         interop.release()
     }
 }
-
-public typealias IUnknownReference = COMReference<WindowsRuntime_ABI.SWRT_IUnknown>

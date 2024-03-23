@@ -1,10 +1,10 @@
 import WindowsRuntime_ABI
 import COM
 
+public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 public protocol IBufferByteAccessProtocol: IUnknownProtocol {
     var buffer: UnsafeMutablePointer<UInt8> { get throws }
 }
-public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 
 public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public typealias SwiftObject = IBufferByteAccess

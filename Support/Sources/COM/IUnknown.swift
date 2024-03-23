@@ -1,9 +1,9 @@
 import WindowsRuntime_ABI
 
+public typealias IUnknown = any IUnknownProtocol
 public protocol IUnknownProtocol: AnyObject {
     func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference
 }
-public typealias IUnknown = any IUnknownProtocol
 
 extension IUnknownProtocol {
     public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> COMReference<Projection.COMInterface> {
@@ -43,3 +43,6 @@ public enum IUnknownProjection: COMTwoWayProjection {
 extension WindowsRuntime_ABI.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {
     public static let iid = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
+
+public typealias IUnknownPointer = IUnknownProjection.COMPointer
+public typealias IUnknownReference = COMReference<IUnknownProjection.COMInterface>

@@ -38,7 +38,7 @@ public struct COMExportedInterface {
     public var unknownPointer: IUnknownPointer {
         mutating get {
             withUnsafeMutablePointer(to: &comObject) {
-                IUnknownPointer.cast($0)
+                IUnknownPointer(OpaquePointer($0))
             }
         }
     }
@@ -73,7 +73,7 @@ extension COMExportedInterface {
             return 1
         }
 
-        let unmanaged = toUnmanagedUnsafe(IUnknownPointer.cast(this))
+        let unmanaged = toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
@@ -85,7 +85,7 @@ extension COMExportedInterface {
             return 0
         }
 
-        let unmanaged = toUnmanagedUnsafe(IUnknownPointer.cast(this))
+        let unmanaged = toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
         // Best effort refcount
@@ -108,7 +108,7 @@ extension COMExportedInterface {
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
-            let this = IUnknownPointer.cast(this)
+            let this = IUnknownPointer(OpaquePointer(this))
             let reference = id == markerInterfaceId
                 ? IUnknownReference(addingRef: this)
                 : try (unwrapUnsafe(this) as! IUnknown)._queryInterface(id)

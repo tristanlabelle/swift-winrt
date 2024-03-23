@@ -1,6 +1,7 @@
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
+public typealias IErrorInfo = any IErrorInfoProtocol
 public protocol IErrorInfoProtocol: IUnknownProtocol {
     var guid: Foundation.UUID { get throws }
     var source: String? { get throws }
@@ -8,8 +9,6 @@ public protocol IErrorInfoProtocol: IUnknownProtocol {
     var helpFile: String? { get throws }
     var helpContext: UInt32 { get throws }
 }
-
-public typealias IErrorInfo = any IErrorInfoProtocol
 
 public enum IErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IErrorInfo

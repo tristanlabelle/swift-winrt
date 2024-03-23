@@ -67,7 +67,7 @@ open class COMExport<Projection: COMTwoWayProjection>: COMExportBase {
 
     open var implementation: Projection.SwiftObject { self as! Projection.SwiftObject }
     public var comPointer: Projection.COMPointer {
-        comInterface.unknownPointer.cast(to: Projection.COMInterface.self)
+        Projection.COMPointer(OpaquePointer(comInterface.unknownPointer))
     }
 
     public init() {

@@ -1,10 +1,9 @@
 import WindowsRuntime_ABI
 
+public typealias IStringable = any IStringableProtocol
 public protocol IStringableProtocol: IUnknownProtocol {
     func toString() throws -> String
 }
-
-public typealias IStringable = any IStringableProtocol
 
 public enum IStringableProjection: COMTwoWayProjection {
     public typealias SwiftObject = IStringable

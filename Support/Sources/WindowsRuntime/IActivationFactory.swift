@@ -18,11 +18,10 @@ public func getActivationFactory(activatableId: String) throws -> COM.COMReferen
     try getActivationFactory(activatableId: activatableId, id: WindowsRuntime_ABI.SWRT_IActivationFactory.iid)
 }
 
+public typealias IActivationFactory = any IActivationFactoryProtocol
 public protocol IActivationFactoryProtocol: IInspectableProtocol {
     func activateInstance() throws -> IInspectable
 }
-
-public typealias IActivationFactory = any IActivationFactoryProtocol
 
 public enum IActivationFactoryProjection: WinRTProjection {
     public typealias SwiftObject = IActivationFactory

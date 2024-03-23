@@ -37,13 +37,13 @@ open class WinRTComposableClass: IInspectableProtocol {
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
             self.outer = .uninitialized
-            self.innerWithRef = IInspectablePointer.cast(outer.unknownPointer) // We need to assign inner to something, it doesn't matter what.
+            self.innerWithRef = IInspectablePointer(OpaquePointer(outer.unknownPointer)) // We need to assign inner to something, it doesn't matter what.
             self.outer = .init(swiftObject: self, virtualTable: IInspectableProjection.virtualTablePointer)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
             var inner: IInspectablePointer? = nil
-            let composed = try _factory(IInspectablePointer.cast(outer.unknownPointer), &inner)
+            let composed = try _factory(IInspectablePointer(OpaquePointer(outer.unknownPointer)), &inner)
             if let composed { COMInterop(composed).release() }
             guard let inner else { throw HResult.Error.fail }
             self.innerWithRef = inner
@@ -56,7 +56,7 @@ open class WinRTComposableClass: IInspectableProtocol {
             var inner: IInspectablePointer? = nil
             defer { IInspectableProjection.release(&inner) }
             guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
-            self.innerWithRef = IInspectablePointer.cast(composed)
+            self.innerWithRef = IInspectablePointer(OpaquePointer(composed))
         }
     }
 
