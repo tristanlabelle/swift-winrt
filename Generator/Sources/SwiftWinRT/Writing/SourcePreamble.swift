@@ -8,7 +8,7 @@ internal func writeGeneratedCodePreamble(to writer: SwiftSourceFileWriter) {
 
 internal func writeModulePreamble(_ module: SwiftProjection.Module, to writer: SwiftSourceFileWriter) {
     writer.writeImport(module: module.projection.abiModuleName)
-    writer.writeImport(module: SupportModule.winrtModuleName)
+    writer.writeImport(module: SupportModules.WinRT.moduleName)
 
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }

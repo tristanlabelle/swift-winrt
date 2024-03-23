@@ -98,7 +98,7 @@ fileprivate func writeInterfaceEventImplementation(
     // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
     if let addAccessor = try event.addAccessor, let handlerParameter = try addAccessor.params.first {
         let handlerParamProjection = try projection.getParamProjection(handlerParameter, genericTypeArgs: typeGenericArgs)
-        let eventRegistrationType = SupportModule.eventRegistration
+        let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: event, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public, static: `static`, name: name,
@@ -164,7 +164,7 @@ internal func writeInteropMethodCall(
     }()
 
     output.write("try ")
-    if nullReturnAsError { output.write("\(SupportModule.nullResult).unwrap(") }
+    if nullReturnAsError { output.write("\(SupportModules.COM.nullResult).unwrap(") }
     output.write("\(thisPointer.name).\(name)(")
     for (i, param) in params.enumerated() {
         if i > 0 { output.write(", ") }

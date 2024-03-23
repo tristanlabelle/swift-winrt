@@ -14,7 +14,7 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
         for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
             if let classDefinition = typeDefinition as? ClassDefinition, classDefinition.isStatic { continue }
             guard typeDefinition.isPublic,
-                !SupportModule.hasBuiltInProjection(typeDefinition),
+                !SupportModules.WinRT.hasBuiltInProjection(typeDefinition),
                 try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
             writer.writeMarkComment(typeDefinition.fullName)
@@ -25,7 +25,7 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
     let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
         .sorted { $0.key.fullName < $1.key.fullName }
     for (typeDefinition, instantiations) in closedGenericTypesByDefinition {
-        guard !SupportModule.hasBuiltInProjection(typeDefinition) else { continue }
+        guard !SupportModules.WinRT.hasBuiltInProjection(typeDefinition) else { continue }
 
         for genericArgs in instantiations {
             writer.writeMarkComment(try WinRTTypeName.from(type: typeDefinition.bindType(genericArgs: genericArgs)).description)
@@ -98,7 +98,7 @@ fileprivate func writeStructProjectionExtension(
         projection: SwiftProjection,
         to writer: SwiftSourceFileWriter) throws {
     let isInert = try projection.isProjectionInert(structDefinition)
-    let abiProjectionProtocol = isInert ? SupportModule.abiInertProjection : SupportModule.abiProjection
+    let abiProjectionProtocol = isInert ? SupportModules.COM.abiInertProjection : SupportModules.COM.abiProjection
 
     // TODO: Support strings and IReference<T> field types (non-inert)
     // extension <struct>: ABIInertProjection
@@ -237,7 +237,7 @@ fileprivate func writeClassProjectionType(
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-            name: projectionTypeName, protocolConformances: [ SupportModule.winRTProjection ]) { writer throws in
+            name: projectionTypeName, protocolConformances: [ SupportModules.WinRT.winRTProjection ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
         let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
 
@@ -256,7 +256,7 @@ fileprivate func writeClassProjectionType(
             toCOMBody: { writer, paramName in
                 if composable {
                     let propertyName = SecondaryInterfaces.getPropertyName(defaultInterface)
-                    writer.writeStatement("try \(SupportModule.comReference)(addingRef: object.\(propertyName).this)")
+                    writer.writeStatement("try \(SupportModules.COM.comReference)(addingRef: object.\(propertyName).this)")
                 }
                 else {
                     // WinRTImport exposes comPointer
@@ -290,7 +290,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
     let projectionProtocol = type.definition is InterfaceDefinition
-        ? SupportModule.winRTTwoWayProjection : SupportModule.comTwoWayProjection
+        ? SupportModules.WinRT.winRTTwoWayProjection : SupportModules.COM.comTwoWayProjection
 
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(type.definition.visibility),
@@ -355,7 +355,7 @@ internal func writeCOMProjectionConformance(
         target: try projection.toABIVirtualTableType(abiType))
 
     // public static var interfaceID: COM.COMInterfaceID { COMInterface.iid }
-    writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModule.comInterfaceID) { writer in
+    writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModules.COM.comInterfaceID) { writer in
         writer.writeStatement("COMInterface.iid")
     }
 
@@ -366,7 +366,7 @@ internal func writeCOMProjectionConformance(
             initialValue: "\"\(runtimeClassName)\"")
     }
 
-    let comReferenceType = SupportModule.comReference(to: .identifier("COMInterface"))
+    let comReferenceType = SupportModules.COM.comReference(to: .identifier("COMInterface"))
 
     try writer.writeFunc(
             visibility: .public, static: true, name: "toSwift",

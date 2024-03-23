@@ -72,7 +72,7 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, projection: SwiftP
     // Mark the COM interface struct as conforming to IUnknown (delegates) or IInspectable (interfaces)
     // @retroactive is only supported in Swift 5.10 and above.
     let group = writer.output.allocateVerticalGrouping()
-    let comStructProtocol = abiType.definition is InterfaceDefinition ? SupportModule.comIInspectableStruct : SupportModule.comIUnknownStruct
+    let comStructProtocol = abiType.definition is InterfaceDefinition ? SupportModules.WinRT.comIInspectableStruct : SupportModules.COM.comIUnknownStruct
     writer.output.writeFullLine(grouping: group, "#if swift(>=5.10)")
     writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): @retroactive \(comStructProtocol) {}")
     writer.output.writeFullLine(grouping: group, "#else")
@@ -85,7 +85,7 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, projection: SwiftP
             initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
     }
 
-    try writer.writeExtension(type: SupportModule.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
+    try writer.writeExtension(type: SupportModules.COM.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
         let interfaceUsage = try ABIInterfaceUsage.from(typeDefinition: abiType.definition)
         for method in abiType.definition.methods {
             // For delegates, only expose the Invoke method

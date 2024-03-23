@@ -28,7 +28,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
             var typeDefinitions = Array(typeDefinitions)
             try typeDefinitions.removeAll {
-                try !$0.isPublic || SupportModule.hasBuiltInProjection($0) || $0.hasAttribute(ApiContractAttribute.self)
+                try !$0.isPublic || SupportModules.WinRT.hasBuiltInProjection($0) || $0.hasAttribute(ApiContractAttribute.self)
             }
             typeDefinitions.sort { $0.fullName < $1.fullName }
 
@@ -54,7 +54,7 @@ fileprivate func writeClassLoaderGlobalFile(module: SwiftProjection.Module, toPa
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    let classLoaderType = SupportModule.winRTClassLoader
+    let classLoaderType = SupportModules.WinRT.winRTClassLoader
     writer.writeStoredProperty(visibility: .public, declarator: .var, name: "classLoader",
         type: classLoaderType, initialValue: "\(classLoaderType).default")
 }
