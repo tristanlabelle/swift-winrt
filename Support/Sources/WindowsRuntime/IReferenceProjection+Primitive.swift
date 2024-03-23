@@ -25,19 +25,19 @@ extension IReferenceProjection {
 
         public static var interfaceID: COMInterfaceID {
             switch Projection.self {
-                case is BoolProjection.Type: PrimitiveBoxing.IReferenceIDs.bool
-                case is NumericProjection<Swift.UInt8>.Type: PrimitiveBoxing.IReferenceIDs.uint8
-                case is NumericProjection<Swift.Int16>.Type: PrimitiveBoxing.IReferenceIDs.int16
-                case is NumericProjection<Swift.UInt16>.Type: PrimitiveBoxing.IReferenceIDs.uint16
-                case is NumericProjection<Swift.Int32>.Type: PrimitiveBoxing.IReferenceIDs.int32
-                case is NumericProjection<Swift.UInt32>.Type: PrimitiveBoxing.IReferenceIDs.uint32
-                case is NumericProjection<Swift.Int64>.Type: PrimitiveBoxing.IReferenceIDs.int64
-                case is NumericProjection<Swift.UInt64>.Type: PrimitiveBoxing.IReferenceIDs.uint64
-                case is NumericProjection<Swift.Float>.Type: PrimitiveBoxing.IReferenceIDs.single
-                case is NumericProjection<Swift.Double>.Type: PrimitiveBoxing.IReferenceIDs.double
-                case is COM.WideCharProjection.Type: PrimitiveBoxing.IReferenceIDs.char16
-                case is HStringProjection.Type: PrimitiveBoxing.IReferenceIDs.string
-                case is COM.GUIDProjection.Type: PrimitiveBoxing.IReferenceIDs.guid
+                case is BoolProjection.Type: PropertyValueStatics.IReferenceIDs.bool
+                case is NumericProjection<Swift.UInt8>.Type: PropertyValueStatics.IReferenceIDs.uint8
+                case is NumericProjection<Swift.Int16>.Type: PropertyValueStatics.IReferenceIDs.int16
+                case is NumericProjection<Swift.UInt16>.Type: PropertyValueStatics.IReferenceIDs.uint16
+                case is NumericProjection<Swift.Int32>.Type: PropertyValueStatics.IReferenceIDs.int32
+                case is NumericProjection<Swift.UInt32>.Type: PropertyValueStatics.IReferenceIDs.uint32
+                case is NumericProjection<Swift.Int64>.Type: PropertyValueStatics.IReferenceIDs.int64
+                case is NumericProjection<Swift.UInt64>.Type: PropertyValueStatics.IReferenceIDs.uint64
+                case is NumericProjection<Swift.Float>.Type: PropertyValueStatics.IReferenceIDs.single
+                case is NumericProjection<Swift.Double>.Type: PropertyValueStatics.IReferenceIDs.double
+                case is COM.WideCharProjection.Type: PropertyValueStatics.IReferenceIDs.char16
+                case is HStringProjection.Type: PropertyValueStatics.IReferenceIDs.string
+                case is COM.GUIDProjection.Type: PropertyValueStatics.IReferenceIDs.guid
                 default: fatalError("Invalid generic parameter: IReferenceProjection.Primitive<\(Projection.self)>")
             }
         }
@@ -54,24 +54,24 @@ extension IReferenceProjection {
 
         private static func box(_ value: Projection.SwiftValue) throws -> COMReference<SWRT_IInspectable> {
             switch value {
-                case let value as Swift.Bool: return try PrimitiveBoxing.boolean(value)
-                case let value as Swift.UInt8: return try PrimitiveBoxing.uint8(value)
-                case let value as Swift.Int16: return try PrimitiveBoxing.int16(value)
+                case let value as Swift.Bool: return try PropertyValueStatics.createBoolean(value)
+                case let value as Swift.UInt8: return try PropertyValueStatics.createUInt8(value)
+                case let value as Swift.Int16: return try PropertyValueStatics.createInt16(value)
 
                 // UInt16 aka Unicode.UTF16.CodeUnit must be disambiguated from the projection type
                 case let value as Swift.UInt16:
                     return try Projection.self == COM.WideCharProjection.self
-                        ? PrimitiveBoxing.char16(value)
-                        : PrimitiveBoxing.uint16(value)
+                        ? PropertyValueStatics.createChar16(value)
+                        : PropertyValueStatics.createUInt16(value)
 
-                case let value as Swift.Int32: return try PrimitiveBoxing.int32(value)
-                case let value as Swift.UInt32: return try PrimitiveBoxing.uint32(value)
-                case let value as Swift.Int64: return try PrimitiveBoxing.int64(value)
-                case let value as Swift.UInt64: return try PrimitiveBoxing.uint64(value)
-                case let value as Swift.Float: return try PrimitiveBoxing.single(value)
-                case let value as Swift.Double: return try PrimitiveBoxing.double(value)
-                case let value as Swift.String: return try PrimitiveBoxing.string(value)
-                case let value as Foundation.UUID: return try PrimitiveBoxing.guid(value)
+                case let value as Swift.Int32: return try PropertyValueStatics.createInt32(value)
+                case let value as Swift.UInt32: return try PropertyValueStatics.createUInt32(value)
+                case let value as Swift.Int64: return try PropertyValueStatics.createInt64(value)
+                case let value as Swift.UInt64: return try PropertyValueStatics.createUInt64(value)
+                case let value as Swift.Float: return try PropertyValueStatics.createSingle(value)
+                case let value as Swift.Double: return try PropertyValueStatics.createDouble(value)
+                case let value as Swift.String: return try PropertyValueStatics.createString(value)
+                case let value as Foundation.UUID: return try PropertyValueStatics.createGuid(value)
                 default: throw HResult.Error.fail
             }
         }

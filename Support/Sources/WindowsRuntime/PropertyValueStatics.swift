@@ -2,7 +2,7 @@ import COM
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
-internal enum PrimitiveBoxing {
+internal enum PropertyValueStatics {
     private static let iid = COMInterfaceID(0x629BDBC8, 0xD932, 0x4FF4, 0x96B9, 0x8D96C5C1E858)
     private static var lazyReference: COM.COMLazyReference<WindowsRuntime_ABI.SWRT_IPropertyValueStatics> = .init()
 
@@ -16,7 +16,7 @@ internal enum PrimitiveBoxing {
         }
     }
 
-    public enum IReferenceIDs {
+    internal enum IReferenceIDs {
         public static var bool: COMInterfaceID { COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A) }
         public static var uint8: COMInterfaceID { COMInterfaceID(0xE5198CC8, 0x2873, 0x55F5, 0xB0A1, 0x84FF9E4AAD62) }
         public static var int16: COMInterfaceID { COMInterfaceID(0x6EC9E41B, 0x6709, 0x5647, 0x9918, 0xA1270110FC4E) }
@@ -32,84 +32,84 @@ internal enum PrimitiveBoxing {
         public static var guid: COMInterfaceID { COMInterfaceID(0x7D50F649, 0x632C, 0x51F9, 0x849A, 0xEE49428933EA) }
     }
 
-    public static func uint8(_ value: UInt8) throws -> COMReference<SWRT_IInspectable> {
+    public static func createUInt8(_ value: UInt8) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateUInt8(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func int16(_ value: Int16) throws -> COMReference<SWRT_IInspectable> {
+    public static func createInt16(_ value: Int16) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateInt16(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func uint16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
+    public static func createUInt16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateUInt16(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func int32(_ value: Int32) throws -> COMReference<SWRT_IInspectable> {
+    public static func createInt32(_ value: Int32) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateInt32(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func uint32(_ value: UInt32) throws -> COMReference<SWRT_IInspectable> {
+    public static func createUInt32(_ value: UInt32) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateUInt32(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func int64(_ value: Int64) throws -> COMReference<SWRT_IInspectable> {
+    public static func createInt64(_ value: Int64) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateInt64(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func uint64(_ value: UInt64) throws -> COMReference<SWRT_IInspectable> {
+    public static func createUInt64(_ value: UInt64) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateUInt64(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func single(_ value: Float) throws -> COMReference<SWRT_IInspectable> {
+    public static func createSingle(_ value: Float) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateSingle(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func double(_ value: Double) throws -> COMReference<SWRT_IInspectable> {
+    public static func createDouble(_ value: Double) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateDouble(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func char16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
+    public static func createChar16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateChar16(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func boolean(_ value: Bool) throws -> COMReference<SWRT_IInspectable> {
+    public static func createBoolean(_ value: Bool) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateBoolean(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func string(_ value: String) throws -> COMReference<SWRT_IInspectable> {
+    public static func createString(_ value: String) throws -> COMReference<SWRT_IInspectable> {
         var value_abi = try HStringProjection.toABI(value)
         defer { HStringProjection.release(&value_abi) }
         var propertyValue: IInspectablePointer? = nil
@@ -118,7 +118,7 @@ internal enum PrimitiveBoxing {
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func guid(_ value: UUID) throws -> COMReference<SWRT_IInspectable> {
+    public static func createGuid(_ value: UUID) throws -> COMReference<SWRT_IInspectable> {
         let value_abi = COM.GUIDProjection.toABI(value)
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateGuid(this, value_abi, &propertyValue))
