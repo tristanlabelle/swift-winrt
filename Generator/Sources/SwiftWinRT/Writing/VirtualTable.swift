@@ -52,7 +52,7 @@ fileprivate func writeVirtualTable(
             }
             else {
                 let implementationType = try projection.toTypeName(swiftType.definition)
-                output.write("\(SupportModule.implementABIMethodFunc)(this, type: \(implementationType).self)")
+                output.write("\(SupportModules.COM.implementABIMethodFunc)(this, type: \(implementationType).self)")
             }
 
             try output.writeIndentedBlock(header: " { this in") {
@@ -115,7 +115,7 @@ fileprivate func writeVirtualTableFunc(
         }
 
         if case .return(nullAsError: true) = returnParam.passBy {
-            output.write("try \(SupportModule.nullResult).`catch`(")
+            output.write("try \(SupportModules.COM.nullResult).`catch`(")
         }
     }
 

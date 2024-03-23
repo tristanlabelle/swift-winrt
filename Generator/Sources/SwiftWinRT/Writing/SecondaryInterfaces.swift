@@ -23,17 +23,17 @@ internal enum SecondaryInterfaces {
         // private [static] var _lazyIStringable: COM.COMLazyReference<SWRT_WindowsFoundation_IStringable> = .init()
         let storedPropertyName = getStoredPropertyName(interfaceName)
         writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
-            type: SupportModule.comLazyReference(to: abiStructType), initialValue: ".init()")
+            type: SupportModules.COM.comLazyReference(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
         //     try _lazyIStringable.getInterop { try _queryInterface(SWRT_IStringable.iid).reinterpret() }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
-        let abiInteropType: SwiftType = SupportModule.comInterop(of: abiStructType)
+        let abiInteropType: SwiftType = SupportModules.COM.comInterop(of: abiStructType)
         try writer.writeComputedProperty(
                 visibility: .internal, static: staticOf != nil, name: computedPropertyName,
                 type: abiInteropType, throws: true, get: { writer in
-            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModule.comLazyReference_getInterop)") { writer in
+            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comLazyReference_getInterop)") { writer in
                 if let staticOf {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                     if interfaceName == "IActivationFactory" {

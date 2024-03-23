@@ -86,7 +86,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
                     name: SwiftProjection.toMemberName(event),
                     params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                     throws: true,
-                    returnType: SupportModule.eventRegistration)
+                    returnType: SupportModules.WinRT.eventRegistration)
             }
 
             if let removeAccessor = try event.removeAccessor {
@@ -143,7 +143,7 @@ fileprivate func writeIAsyncExtensions(protocolName: String, resultType: SwiftTy
         writer.writeFunc(visibility: .public, name: "get", async: true, throws: true, returnType: resultType) { writer in
             writer.output.writeIndentedBlock(header: "if try _status() == .started {", footer: "}") {
                 // We can't await if the completed handler is already set
-                writer.writeStatement("guard try \(SupportModule.nullResult).catch(_completed()) == nil else { throw \(SupportModule.hresult).Error.illegalMethodCall }")
+                writer.writeStatement("guard try \(SupportModules.COM.nullResult).catch(_completed()) == nil else { throw \(SupportModules.COM.hresult).Error.illegalMethodCall }")
                 writer.writeStatement("let awaiter = WindowsRuntime.AsyncAwaiter()")
                 writer.writeStatement("try _completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })")
                 writer.writeStatement("await awaiter.wait()")

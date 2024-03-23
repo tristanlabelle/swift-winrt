@@ -207,14 +207,14 @@ fileprivate func writeClassOverrideSupport(
         writer.writeStoredProperty(
             visibility: .private, declarator: .var,
             name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
-            type: SupportModule.comExportedInterface, initialValue: ".uninitialized")
+            type: SupportModules.COM.comExportedInterface, initialValue: ".uninitialized")
     }
 
     // public override func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? {
     try writer.writeFunc(
             visibility: .public, override: true, name: "_queryOverridesInterfacePointer",
-            params: [ .init(label: "_", name: "id", type: SupportModule.comInterfaceID) ], throws: true,
-            returnType: .optional(wrapped: SupportModule.iunknownPointer)) { writer in
+            params: [ .init(label: "_", name: "id", type: SupportModules.COM.comInterfaceID) ], throws: true,
+            returnType: .optional(wrapped: SupportModules.COM.iunknownPointer)) { writer in
         for interface in interfaces {
             // if id == SWRT_IFoo.iid {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
@@ -227,7 +227,7 @@ fileprivate func writeClassOverrideSupport(
                 try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
                     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
                     let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix)
-                    writer.writeStatement("\(outerPropertyName) = \(SupportModule.comExportedInterface)(\n"
+                    writer.writeStatement("\(outerPropertyName) = \(SupportModules.COM.comExportedInterface)(\n"
                         + "swiftObject: self, virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
                 }
 
@@ -282,7 +282,7 @@ fileprivate func writeDefaultActivatableInitializer(
     try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
-        writer.writeStatement("self.init(_wrapping: \(SupportModule.comReference)(transferringRef: try Self.\(propertyName)"
+        writer.writeStatement("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
             + ".activateInstance(projection: \(projectionClassName).self)))")
     }
 }
@@ -304,7 +304,7 @@ fileprivate func writeActivatableInitializers(
             // Activation factory interop methods are special-cased to return the raw factory pointer,
             // so we can initialize our instance with it.
             let output = writer.output
-            output.write("self.init(_wrapping: \(SupportModule.comReference)(transferringRef: ")
+            output.write("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: ")
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
                 thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
