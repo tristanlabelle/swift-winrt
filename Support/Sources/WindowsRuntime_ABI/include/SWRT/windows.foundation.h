@@ -48,6 +48,42 @@ typedef enum SWRT_WindowsFoundation_PropertyType
     OtherTypeArray   = 1044
 } SWRT_WindowsFoundation_PropertyType;
 
+// Windows.Foundation.DateTime
+typedef struct SWRT_WindowsFoundation_DateTime
+{
+    int64_t UniversalTime;
+} SWRT_WindowsFoundation_DateTime;
+
+// Windows.Foundation.Point
+typedef struct SWRT_WindowsFoundation_Point
+{
+    float X;
+    float Y;
+} SWRT_WindowsFoundation_Point;
+
+// Windows.Foundation.Rect
+typedef struct SWRT_WindowsFoundation_Rect
+{
+    float X;
+    float Y;
+    float Width;
+    float Height;
+} SWRT_WindowsFoundation_Rect;
+
+// Windows.Foundation.Size
+typedef struct SWRT_WindowsFoundation_Size
+{
+    float Width;
+    float Height;
+} SWRT_WindowsFoundation_Size;
+
+// Windows.Foundation.TimeSpan
+typedef struct SWRT_WindowsFoundation_TimeSpan
+{
+    int64_t Duration;
+} SWRT_WindowsFoundation_TimeSpan;
+
+
 // Windows.Foundation.IPropertyValue
 typedef struct SWRT_WindowsFoundation_IPropertyValue {
     struct SWRT_WindowsFoundation_IPropertyValueVTable* lpVtbl;
@@ -75,11 +111,11 @@ struct SWRT_WindowsFoundation_IPropertyValueVTable {
     SWRT_HResult (__stdcall *GetBoolean)(SWRT_WindowsFoundation_IPropertyValue* _this, bool* value);
     SWRT_HResult (__stdcall *GetString)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_HString* value);
     SWRT_HResult (__stdcall *GetGuid)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_Guid* value);
-    void* GetDateTime; // SWRT_HResult (__stdcall *GetDateTime)(SWRT_WindowsFoundation_IPropertyValue* _this, Windows.Foundation.DateTime* value);
-    void* GetTimeSpan; // SWRT_HResult (__stdcall *GetTimeSpan)(SWRT_WindowsFoundation_IPropertyValue* _this, Windows.Foundation.TimeSpan* value);
-    void* GetPoint; // SWRT_HResult (__stdcall *GetPoint)(SWRT_WindowsFoundation_IPropertyValue* _this, Windows.Foundation.Point* value);
-    void* GetSize; // SWRT_HResult (__stdcall *GetSize)(SWRT_WindowsFoundation_IPropertyValue* _this, Windows.Foundation.Size* value);
-    void* GetRect; // SWRT_HResult (__stdcall *GetRect)(SWRT_WindowsFoundation_IPropertyValue* _this, Windows.Foundation.Rect* value);
+    SWRT_HResult (__stdcall *GetDateTime)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_WindowsFoundation_DateTime* value);
+    SWRT_HResult (__stdcall *GetTimeSpan)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_WindowsFoundation_TimeSpan* value);
+    SWRT_HResult (__stdcall *GetPoint)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_WindowsFoundation_Point* value);
+    SWRT_HResult (__stdcall *GetSize)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_WindowsFoundation_Size* value);
+    SWRT_HResult (__stdcall *GetRect)(SWRT_WindowsFoundation_IPropertyValue* _this, SWRT_WindowsFoundation_Rect* value);
     SWRT_HResult (__stdcall *GetUInt8Array)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, uint8_t** value);
     SWRT_HResult (__stdcall *GetInt16Array)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, int16_t** value);
     SWRT_HResult (__stdcall *GetUInt16Array)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, uint16_t** value);
@@ -94,11 +130,11 @@ struct SWRT_WindowsFoundation_IPropertyValueVTable {
     SWRT_HResult (__stdcall *GetStringArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, SWRT_HString** value);
     SWRT_HResult (__stdcall *GetInspectableArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, SWRT_IInspectable*** value);
     SWRT_HResult (__stdcall *GetGuidArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, SWRT_Guid** value);
-    void* GetDateTimeArray; // SWRT_HResult (__stdcall *GetDateTimeArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, Windows.Foundation.DateTime** value);
-    void* GetTimeSpanArray; // SWRT_HResult (__stdcall *GetTimeSpanArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, Windows.Foundation.TimeSpan** value);
-    void* GetPointArray; // SWRT_HResult (__stdcall *GetPointArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, Windows.Foundation.Point** value);
-    void* GetSizeArray; // SWRT_HResult (__stdcall *GetSizeArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, Windows.Foundation.Size** value);
-    void* GetRectArray; // SWRT_HResult (__stdcall *GetRectArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* __valueSize, Windows.Foundation.Rect** value);
+    SWRT_HResult (__stdcall *GetDateTimeArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* valueLength, SWRT_WindowsFoundation_DateTime** value);
+    SWRT_HResult (__stdcall *GetTimeSpanArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* valueLength, SWRT_WindowsFoundation_TimeSpan** value);
+    SWRT_HResult (__stdcall *GetPointArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* valueLength, SWRT_WindowsFoundation_Point** value);
+    SWRT_HResult (__stdcall *GetSizeArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* valueLength, SWRT_WindowsFoundation_Size** value);
+    SWRT_HResult (__stdcall *GetRectArray)(SWRT_WindowsFoundation_IPropertyValue* _this, uint32_t* valueLength, SWRT_WindowsFoundation_Rect** value);
 };
 
 // Windows.Foundation.IPropertyValueStatics
