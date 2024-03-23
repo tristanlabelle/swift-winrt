@@ -40,7 +40,7 @@ extension CAbi {
         ireference.addFunction(name: "get_Value", params: [
             .init(type: .void.makePointer(), name: "value")
         ])
-        ireference.write(comment: "IReference", to: writer)
+        ireference.write(comment: "WindowsFoundation_IReference", to: writer)
 
         // IActivationFactory
         var iactivationFactory = COMInterfaceDecl(interfaceName: iactivationFactoryName, inspectable: true)

@@ -21,10 +21,10 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
                     projection: IWeakReferenceSourceProjection.self,
                     implementation: WeakReferenceSource(target: self))
                 return .init(addingRef: export.unknownPointer)
-            case IStringableProjection.interfaceID where Self.implementIStringable:
+            case WindowsFoundation_IStringableProjection.interfaceID where Self.implementIStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
                     let export = createSecondaryExport(
-                        projection: IStringableProjection.self,
+                        projection: WindowsFoundation_IStringableProjection.self,
                         implementation: Stringable(target: customStringConvertible))
                     return .init(addingRef: export.unknownPointer)
                 }
@@ -44,7 +44,7 @@ open class WinRTExport<Projection: WinRTTwoWayProjection>
         var iids = Self.implements.map { $0.id }
         if Self.implementIAgileObject { iids.append(IAgileObjectProjection.interfaceID) }
         if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
-        if Self.implementIStringable, self is CustomStringConvertible { iids.append(IStringableProjection.interfaceID) }
+        if Self.implementIStringable, self is CustomStringConvertible { iids.append(WindowsFoundation_IStringableProjection.interfaceID) }
         return iids
     }
 
@@ -68,7 +68,7 @@ fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: CO
     }
 }
 
-fileprivate class Stringable: COMExport<IStringableProjection>, IStringableProtocol {
+fileprivate class Stringable: COMExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
     private let target: any CustomStringConvertible
     init(target: any CustomStringConvertible) { self.target = target }
     func toString() throws -> String { target.description }

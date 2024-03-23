@@ -57,7 +57,7 @@ internal final class WinRTExportTests: XCTestCase {
             var description: String { "hello" }
         }
 
-        XCTAssertEqual(try Stringable().queryInterface(IStringableProjection.self).toString(), "hello")
+        XCTAssertEqual(try Stringable().queryInterface(WindowsFoundation_IStringableProjection.self).toString(), "hello")
     }
 
     func testIWeakReferenceSource() throws {
