@@ -18,6 +18,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
+        try writeClassLoaderGlobalFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\ClassLoader.swift")
         try writeCOMInteropExtensionsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\COMInterop.swift")
         try writeABIProjectionsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\ABIProjections.swift")
 
@@ -47,4 +48,13 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
             }
         }
     }
+}
+
+fileprivate func writeClassLoaderGlobalFile(module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+    let classLoaderType = SupportModule.winRTClassLoader
+    writer.writeStoredProperty(visibility: .public, declarator: .var, name: "classLoader",
+        type: classLoaderType, initialValue: "\(classLoaderType).default")
 }

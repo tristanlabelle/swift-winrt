@@ -64,6 +64,8 @@ extension SupportModule {
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(winrtModuleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
     }
+
+    public static var winRTClassLoader: SwiftType { .chain(winrtModuleName, "WinRTClassLoader") }
 }
 
 extension SupportModule {
