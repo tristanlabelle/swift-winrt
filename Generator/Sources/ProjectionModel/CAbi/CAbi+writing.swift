@@ -21,9 +21,7 @@ extension CAbi {
 
     public static func writeEnumTypedef(_ enumDefinition: EnumDefinition, to writer: CSourceFileWriter) throws {
         let mangledName = try CAbi.mangleName(type: enumDefinition.bindType())
-        writer.writeTypedef(
-            type: CType.reference(name: try enumDefinition.isFlags ? "uint32_t" : "int32_t"),
-            name: mangledName)
+        writer.writeEnum(typedef: true, name: mangledName, enumerants: [])
     }
 
     public static func writeStruct(_ structDefinition: StructDefinition, to writer: CSourceFileWriter) throws {

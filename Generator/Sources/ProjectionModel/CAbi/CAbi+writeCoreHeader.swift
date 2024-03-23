@@ -24,8 +24,8 @@ extension CAbi {
         writer.writeStruct(comment: "HSTRING", name: hstringName + "_", members: [])
         writer.writeTypedef(type: .reference(kind: .struct, name: hstringName + "_").makePointer(), name: hstringName)
 
-        // TrustLevel (we don't need the enumerants)
-        writer.writeTypedef(comment: "TrustLevel", type: CType.reference(name: "int32_t"), name: namespacingPrefix + "TrustLevel")
+        // TrustLevel
+        writer.writeEnum(comment: "TrustLevel", typedef: true, name: namespacingPrefix + "TrustLevel", enumerants: [])
 
         // IInspectable
         COMInterfaceDecl(interfaceName: iinspectableName, inspectable: true).write(comment: "IInspectable", to: writer)
