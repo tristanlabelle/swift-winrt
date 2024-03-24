@@ -17,7 +17,7 @@ internal enum PropertyValueStatics {
     }
 
     internal enum IReferenceIDs {
-        public static var bool: COMInterfaceID { COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A) }
+        public static var boolean: COMInterfaceID { COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A) }
         public static var uint8: COMInterfaceID { COMInterfaceID(0xE5198CC8, 0x2873, 0x55F5, 0xB0A1, 0x84FF9E4AAD62) }
         public static var int16: COMInterfaceID { COMInterfaceID(0x6EC9E41B, 0x6709, 0x5647, 0x9918, 0xA1270110FC4E) }
         public static var uint16: COMInterfaceID { COMInterfaceID(0x5AB7D2C3, 0x6B62, 0x5E71, 0xA4B6, 0x2D49C4F238FD) }
@@ -95,8 +95,9 @@ internal enum PropertyValueStatics {
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func createChar16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
+    public static func createChar16(_ value: Char16) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
+        let value = Char16Projection.toABI(value)
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.CreateChar16(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)

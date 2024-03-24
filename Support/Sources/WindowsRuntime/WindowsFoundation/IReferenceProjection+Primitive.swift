@@ -3,92 +3,125 @@ import WindowsRuntime_ABI
 import struct Foundation.UUID
 
 extension WindowsFoundation_IReferenceProjection {
-    public typealias Bool = Primitive<BoolProjection>
-    public typealias UInt8 = Primitive<NumericProjection<Swift.UInt8>>
-    public typealias Int16 = Primitive<NumericProjection<Swift.Int16>>
-    public typealias UInt16 = Primitive<NumericProjection<Swift.UInt16>>
-    public typealias Int32 = Primitive<NumericProjection<Swift.Int32>>
-    public typealias UInt32 = Primitive<NumericProjection<Swift.UInt32>>
-    public typealias Int64 = Primitive<NumericProjection<Swift.Int64>>
-    public typealias UInt64 = Primitive<NumericProjection<Swift.UInt64>>
-    public typealias Float = Primitive<NumericProjection<Swift.Float>>
-    public typealias Double = Primitive<NumericProjection<Swift.Double>>
-    public typealias Char = Primitive<COM.WideCharProjection>
-    public typealias String = Primitive<HStringProjection>
-    public typealias Guid = Primitive<COM.GUIDProjection>
+    public enum Boolean: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Bool
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.boolean }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createBoolean(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-    public enum Primitive<Projection: ABIProjection>: ABIProjection {
-        public typealias SwiftValue = Projection.SwiftValue?
-        public typealias ABIValue = UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference>?
+    public enum UInt8: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.UInt8
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.uint8 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createUInt8(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        public static var abiDefaultValue: ABIValue { nil }
+    public enum Int16: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Int16
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.int16 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createInt16(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        public static var interfaceID: COMInterfaceID {
-            switch Projection.self {
-                case is BoolProjection.Type: PropertyValueStatics.IReferenceIDs.bool
-                case is NumericProjection<Swift.UInt8>.Type: PropertyValueStatics.IReferenceIDs.uint8
-                case is NumericProjection<Swift.Int16>.Type: PropertyValueStatics.IReferenceIDs.int16
-                case is NumericProjection<Swift.UInt16>.Type: PropertyValueStatics.IReferenceIDs.uint16
-                case is NumericProjection<Swift.Int32>.Type: PropertyValueStatics.IReferenceIDs.int32
-                case is NumericProjection<Swift.UInt32>.Type: PropertyValueStatics.IReferenceIDs.uint32
-                case is NumericProjection<Swift.Int64>.Type: PropertyValueStatics.IReferenceIDs.int64
-                case is NumericProjection<Swift.UInt64>.Type: PropertyValueStatics.IReferenceIDs.uint64
-                case is NumericProjection<Swift.Float>.Type: PropertyValueStatics.IReferenceIDs.single
-                case is NumericProjection<Swift.Double>.Type: PropertyValueStatics.IReferenceIDs.double
-                case is COM.WideCharProjection.Type: PropertyValueStatics.IReferenceIDs.char16
-                case is HStringProjection.Type: PropertyValueStatics.IReferenceIDs.string
-                case is COM.GUIDProjection.Type: PropertyValueStatics.IReferenceIDs.guid
-                default: fatalError("Invalid generic parameter: IReferenceProjection.Primitive<\(Projection.self)>")
-            }
-        }
+    public enum UInt16: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.UInt16
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.uint16 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createUInt16(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        public static func toSwift(_ comPointer: ABIValue) -> SwiftValue {
-            guard let comPointer else { return nil }
-            var value: Projection.ABIValue = Projection.abiDefaultValue
-            withUnsafeMutablePointer(to: &value) { valuePointer in
-                try! WinRTError.throwIfFailed(comPointer.pointee.lpVtbl.pointee.get_Value(
-                    comPointer, UnsafeMutableRawPointer(valuePointer)))
-            }
-            return Projection.toSwift(value)
-        }
+    public enum Int32: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Int32
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.int32 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createInt32(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        private static func box(_ value: Projection.SwiftValue) throws -> COMReference<SWRT_IInspectable> {
-            switch value {
-                case let value as Swift.Bool: return try PropertyValueStatics.createBoolean(value)
-                case let value as Swift.UInt8: return try PropertyValueStatics.createUInt8(value)
-                case let value as Swift.Int16: return try PropertyValueStatics.createInt16(value)
+    public enum UInt32: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.UInt32
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.uint32 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createUInt32(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-                // UInt16 aka Unicode.UTF16.CodeUnit must be disambiguated from the projection type
-                case let value as Swift.UInt16:
-                    return try Projection.self == COM.WideCharProjection.self
-                        ? PropertyValueStatics.createChar16(value)
-                        : PropertyValueStatics.createUInt16(value)
+    public enum Int64: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Int64
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.int64 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createInt64(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-                case let value as Swift.Int32: return try PropertyValueStatics.createInt32(value)
-                case let value as Swift.UInt32: return try PropertyValueStatics.createUInt32(value)
-                case let value as Swift.Int64: return try PropertyValueStatics.createInt64(value)
-                case let value as Swift.UInt64: return try PropertyValueStatics.createUInt64(value)
-                case let value as Swift.Float: return try PropertyValueStatics.createSingle(value)
-                case let value as Swift.Double: return try PropertyValueStatics.createDouble(value)
-                case let value as Swift.String: return try PropertyValueStatics.createString(value)
-                case let value as Foundation.UUID: return try PropertyValueStatics.createGuid(value)
-                default: throw HResult.Error.fail
-            }
-        }
+    public enum UInt64: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.UInt64
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.uint64 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createUInt64(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        public static func toABI(_ value: SwiftValue) throws -> ABIValue {
-            guard let value else { return nil }
+    public enum Single: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Float
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.single }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createSingle(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-            let inspectable = try box(value)
-            return try inspectable.interop.queryInterface(Self.interfaceID)
-                .reinterpret(to: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference.self)
-                .detach()
-        }
+    public enum Double: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.Double
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.double }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createDouble(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { getABIValue(reference.pointer) }
+    }
 
-        public static func release(_ value: inout ABIValue) {
-            guard let comPointer = value else { return }
-            COMInterop(comPointer).release()
-            value = nil
-        }
+    public enum Char16: IReferencePrimitiveProjection {
+        public typealias SwiftObject = WindowsRuntime.Char16
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.char16 }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createChar16(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { Char16Projection.toSwift(getABIValue(reference.pointer)) }
+    }
+
+    public enum String: IReferencePrimitiveProjection {
+        public typealias SwiftObject = Swift.String
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.string }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createString(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { HStringProjection.toSwift(getABIValue(reference.pointer)) }
+    }
+
+    public enum Guid: IReferencePrimitiveProjection {
+        public typealias SwiftObject = UUID
+        public static var interfaceID: COMInterfaceID { PropertyValueStatics.IReferenceIDs.guid }
+        internal static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable> { try PropertyValueStatics.createGuid(value) }
+        public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject { GUIDProjection.toSwift(getABIValue(reference.pointer)) }
+    }
+}
+
+fileprivate protocol IReferencePrimitiveProjection: COMProjection
+        where COMInterface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference,
+        COMVirtualTable == WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable {
+    static func box(_ value: SwiftObject) throws -> COMReference<SWRT_IInspectable>
+}
+
+extension IReferencePrimitiveProjection {
+    public static var abiDefaultValue: ABIValue { nil }
+
+    public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {
+        let inspectable = try box(value)
+        return try inspectable.interop.queryInterface(Self.interfaceID)
+            .reinterpret(to: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference.self)
+    }
+
+    public static func release(_ value: inout ABIValue) {
+        guard let comPointer = value else { return }
+        COMInterop(comPointer).release()
+        value = nil
+    }
+}
+
+fileprivate func getABIValue<ABIValue>(
+        _ pointer: UnsafeMutablePointer<SWRT_WindowsFoundation_IReference>) -> ABIValue {
+    return withUnsafeTemporaryAllocation(of: ABIValue.self, capacity: 1) { bufferPointer in
+        let abiValuePointer = bufferPointer.baseAddress!
+        try! HResult.throwIfFailed(pointer.pointee.lpVtbl.pointee.get_Value(pointer, abiValuePointer))
+        return abiValuePointer.pointee
     }
 }

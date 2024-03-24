@@ -6,7 +6,7 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     /// The Swift type to which the COM interface is projected.
     associatedtype SwiftObject
     /// The COM interface structure.
-    associatedtype COMInterface: COMIUnknownStruct
+    associatedtype COMInterface /* : COMIUnknownStruct */
     /// The COM interface's virtual table structure.
     associatedtype COMVirtualTable
     /// A pointer to the COM interface structure.
