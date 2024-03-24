@@ -1,5 +1,6 @@
 import CodeWriters
 import DotNetMetadata
+import WindowsMetadata
 
 public enum SupportModules {
     public enum COM {}
@@ -56,11 +57,15 @@ extension SupportModules.COM {
 extension SupportModules.WinRT {
     public static var moduleName: String { "WindowsRuntime" }
 
+    public static var char16: SwiftType { .chain(moduleName, "Char16") }
+    public static var char16Projection: SwiftType { .chain(moduleName, "Char16Projection") }
+
     public static var comIInspectableStruct: SwiftType { .chain(moduleName, "COMIInspectableStruct") }
     public static var eventRegistration: SwiftType { .chain(moduleName, "EventRegistration") }
     public static var eventRegistrationToken: SwiftType { .chain(moduleName, "EventRegistrationToken") }
     public static var hstringProjection: SwiftType { .chain(moduleName, "HStringProjection") }
     public static var iinspectable: SwiftType { .chain(moduleName, "IInspectable") }
+    public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
     public static var iinspectableProjection: SwiftType { .chain(moduleName, "IInspectableProjection") }
 
     public static var winRTProjection: SwiftType { .chain(moduleName, "WinRTProjection") }
@@ -68,6 +73,10 @@ extension SupportModules.WinRT {
 
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(moduleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
+    }
+
+    public static func ireferenceProjection(of type: WinRTPrimitiveType) -> SwiftType {
+        .chain([ .init(moduleName), .init("WindowsFoundation_IReferenceProjection"), .init(type.name) ])
     }
 
     public static var winRTClassLoader: SwiftType { .chain(moduleName, "WinRTClassLoader") }

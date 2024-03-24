@@ -18,10 +18,13 @@ extension CAbi {
     internal static func toCType(_ type: TypeNode) throws -> CType {
         guard case .bound(let type) = type else { throw UnexpectedTypeError(type.description) }
 
-        if let systemType = try toSystemType(type.definition) {
-            switch systemType {
-                case .object: return makeCType(name: iinspectableName).makePointer()
-                default: return makeCType(name: getName(systemType: systemType, mangled: false))
+        if type.definition.namespace == "System" {
+            if type.definition.name == "Object" {
+                return makeCType(name: iinspectableName).makePointer()
+            } else if let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
+                return makeCType(name: getName(primitiveType: primitiveType, mangled: false))
+            } else {
+                throw UnexpectedTypeError(type.definition.fullName, reason: "Not a well-known WinRT system type")
             }
         }
 
