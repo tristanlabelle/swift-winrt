@@ -68,7 +68,7 @@ fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: CO
     }
 }
 
-fileprivate class Stringable: COMExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+fileprivate class Stringable: WinRTExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
     private let target: any CustomStringConvertible
     init(target: any CustomStringConvertible) { self.target = target }
     func toString() throws -> String { target.description }

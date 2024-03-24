@@ -1,16 +1,17 @@
 import WindowsRuntime_ABI
 
 public typealias WindowsFoundation_IStringable = any WindowsFoundation_IStringableProtocol
-public protocol WindowsFoundation_IStringableProtocol: IUnknownProtocol {
+public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
-public enum WindowsFoundation_IStringableProjection: COMTwoWayProjection {
+public enum WindowsFoundation_IStringableProjection: WinRTTwoWayProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var runtimeClassName: String { "Windows.Foundation.IStringable" }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -21,7 +22,7 @@ public enum WindowsFoundation_IStringableProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+    private final class Import: WinRTImport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
         public func toString() throws -> String {
             try _interop.toString()
         }
