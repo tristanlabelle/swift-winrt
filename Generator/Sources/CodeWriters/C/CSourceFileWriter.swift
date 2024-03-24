@@ -54,24 +54,21 @@ public class CSourceFileWriter {
         output.beginLine(grouping: lineGrouping)
         if typedef { output.write("typedef ") }
         output.write("enum ")
-        output.write(name)
-        if enumerants.isEmpty {
-            output.write(" {}")
-        } else {
-            output.endLine()
-            output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
-                for (index, enumerant) in enumerants.enumerated() {
-                    if let enumerantPrefix { output.write(enumerantPrefix) }
-                    output.write(enumerant.name)
+        output.write(name, endLine: true)
+        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
+            for (index, enumerant) in enumerants.enumerated() {
+                if let enumerantPrefix { output.write(enumerantPrefix) }
+                output.write(enumerant.name)
+                if let value = enumerant.value {
                     output.write(" = ")
-                    output.write(String(enumerant.value))
-                    if index < enumerants.count - 1 { output.write(",") }
-                    output.endLine()
+                    output.write(String(value))
                 }
+                if index < enumerants.count - 1 { output.write(",") }
+                output.endLine()
             }
-            output.beginLine(grouping: lineGrouping)
-            output.write("}")
         }
+        output.beginLine(grouping: lineGrouping)
+        output.write("}")
         if typedef {
             output.write(" ")
             output.write(name)
