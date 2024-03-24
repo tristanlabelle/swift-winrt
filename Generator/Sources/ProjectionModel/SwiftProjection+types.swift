@@ -139,12 +139,20 @@ extension SwiftProjection {
     }
 
     private func getCoreLibraryTypeProjection(_ type: BoundType) throws -> TypeProjection? {
-        guard type.definition.namespace == "System",
-                let systemType = WinRTSystemType(fromName: type.definition.name) else {
-            return nil
-        }
+        guard type.definition.namespace == "System" else { return nil }
 
-        switch systemType {
+        if type.definition.name == "Object" {
+            return .init(
+                abiType: .optional(wrapped: SupportModules.WinRT.iinspectablePointer),
+                abiDefaultValue: .nil,
+                swiftType: .optional(wrapped: SupportModules.WinRT.iinspectable),
+                swiftDefaultValue: .nil,
+                projectionType: SupportModules.WinRT.iinspectableProjection,
+                kind: .allocating)
+        }
+        guard let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) else { return nil }
+
+        switch primitiveType {
             case .boolean:
                 return TypeProjection(
                     abiType: .bool,
@@ -152,7 +160,7 @@ extension SwiftProjection {
                     swiftType: .bool,
                     swiftDefaultValue: .`false`,
                     projectionType: SupportModules.COM.boolProjection,
-                    kind: .inert)
+                    kind: .identity)
             case .integer(.uint8): return .numeric(.uint(bits: 8))
             case .integer(.int16): return .numeric(.int(bits: 16))
             case .integer(.uint16): return .numeric(.uint(bits: 16))
@@ -162,14 +170,14 @@ extension SwiftProjection {
             case .integer(.uint64): return .numeric(.uint(bits: 64))
             case .float(double: false): return .numeric(.float)
             case .float(double: true): return .numeric(.double)
-            case .char:
+            case .char16:
                 return TypeProjection(
                     abiType: .chain("Swift", "UInt16"),
                     abiDefaultValue: .zero,
-                    swiftType: .chain("Swift", "Unicode", "UTF16", "CodeUnit"),
+                    swiftType: SupportModules.WinRT.char16,
                     swiftDefaultValue: .zero,
-                    projectionType: SupportModules.COM.wideCharProjection,
-                    kind: .identity)
+                    projectionType: SupportModules.WinRT.char16Projection,
+                    kind: .inert)
             case .guid:
                 return TypeProjection(
                     abiType: .chain(abiModuleName, CAbi.guidName),
@@ -185,14 +193,6 @@ extension SwiftProjection {
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
                     projectionType: SupportModules.WinRT.hstringProjection,
-                    kind: .allocating)
-            case .object:
-                return .init(
-                    abiType: .optional(wrapped: .chain("IInspectableProjection", "COMPointer")),
-                    abiDefaultValue: .nil,
-                    swiftType: .optional(wrapped: SupportModules.WinRT.iinspectable),
-                    swiftDefaultValue: .nil,
-                    projectionType: SupportModules.WinRT.iinspectableProjection,
                     kind: .allocating)
         }
     }
@@ -229,17 +229,14 @@ extension SwiftProjection {
 
     private func getIReferenceTypeProjection(of type: BoundType) throws -> TypeProjection? {
         if type.definition.namespace == "System",
-                let _ = WinRTSystemType(fromName: type.definition.name) {
+                let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
             let typeProjection = try getTypeProjection(type.asNode)
             return TypeProjection(
                 abiType: .optional(wrapped: .unsafeMutablePointer(to: .chain(abiModuleName, CAbi.ireferenceName))),
                 abiDefaultValue: .nil,
                 swiftType: .optional(wrapped: typeProjection.swiftType),
                 swiftDefaultValue: .nil,
-                projectionType: .chain(
-                    .init("WindowsRuntime"),
-                    .init("WindowsFoundation_IReferenceProjection"),
-                    .init("Primitive", genericArgs: [ typeProjection.projectionType ])),
+                projectionType: SupportModules.WinRT.ireferenceProjection(of: primitiveType),
                 kind: .allocating)
         }
 

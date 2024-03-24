@@ -19,7 +19,7 @@ extension IInspectableBoxing {
     public static func uint64(_ value: UInt64) throws -> IInspectable { try toSwift(PropertyValueStatics.createUInt64(value)) }
     public static func single(_ value: Float) throws -> IInspectable { try toSwift(PropertyValueStatics.createSingle(value)) }
     public static func double(_ value: Double) throws -> IInspectable { try toSwift(PropertyValueStatics.createDouble(value)) }
-    public static func char16(_ value: UTF16.CodeUnit) throws -> IInspectable { try toSwift(PropertyValueStatics.createChar16(value)) }
+    public static func char16(_ value: Char16) throws -> IInspectable { try toSwift(PropertyValueStatics.createChar16(value)) }
     public static func string(_ value: String) throws -> IInspectable { try toSwift(PropertyValueStatics.createString(value)) }
     public static func guid(_ value: UUID) throws -> IInspectable { try toSwift(PropertyValueStatics.createGuid(value)) }
 
@@ -64,15 +64,16 @@ extension IInspectableBoxing {
     public static func asDouble(_ inspectable: IInspectable) -> Double? {
         unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.double)
     }
-    public static func asChar16(_ inspectable: IInspectable) -> UTF16.CodeUnit? {
-        unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.char16)
+    public static func asChar16(_ inspectable: IInspectable) -> Char16? {
+        guard let codeUnit: UInt16 = unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.char16) else { return nil }
+        return Char16Projection.toSwift(codeUnit)
     }
     public static func asString(_ inspectable: IInspectable) -> String? {
         guard var hstring: SWRT_HString? = unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.string) else { return nil }
         return HStringProjection.toSwift(consuming: &hstring)
     }
     public static func asGuid(_ inspectable: IInspectable) -> UUID? {
-        guard var guid: SWRT_Guid = unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.guid) else { return nil }
-        return COM.GUIDProjection.toSwift(consuming: &guid)
+        guard let guid: SWRT_Guid = unboxPrimitive(inspectable, ireferenceID: PropertyValueStatics.IReferenceIDs.guid) else { return nil }
+        return COM.GUIDProjection.toSwift(guid)
     }
 }

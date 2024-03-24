@@ -16,16 +16,6 @@ public enum CAbi {
         return namespace
     }
 
-    internal static func toSystemType(_ typeDefinition: TypeDefinition) throws -> WinRTSystemType? {
-        let namespace = try getNamespace(typeDefinition)
-        guard !namespace.starts(with: "System.") else { throw UnexpectedTypeError(typeDefinition.fullName, reason: "Not a well-known WinRT System type") }
-        guard namespace == "System" else { return nil }
-        guard let systemType = WinRTSystemType(fromName: typeDefinition.name) else {
-            throw UnexpectedTypeError(typeDefinition.fullName, reason: "Not a well-known WinRT System type")
-        }
-        return systemType
-    }
-
     internal static func getName(integerType: WinRTIntegerType, mangled: Bool) -> String {
         switch integerType {
             case .uint8: return mangled ? "UInt8" : "uint8_t"
@@ -38,22 +28,27 @@ public enum CAbi {
         }
     }
 
-    internal static func getName(systemType: WinRTSystemType, mangled: Bool) -> String {
-        switch systemType {
+    internal static func getName(primitiveType: WinRTPrimitiveType, mangled: Bool) -> String {
+        switch primitiveType {
             case .boolean: return mangled ? "Bool" : "bool"
             case .integer(let type): return getName(integerType: type, mangled: mangled)
             case .float(double: false): return mangled ? "Float" : "float"
             case .float(double: true): return mangled ? "Double" : "double"
-            case .char: return mangled ? "Char" : "char16_t"
-            case .object: return mangled ? "Object" : CAbi.iinspectableName
+            case .char16: return mangled ? "Char" : "char16_t"
             case .string: return mangled ? "String" : CAbi.hstringName
             case .guid: return mangled ? "Guid" : CAbi.guidName
         }
     }
 
     private static func appendMangledName(type: BoundType, to result: inout String) throws {
-        if let systemType = try toSystemType(type.definition) {
-            result += getName(systemType: systemType, mangled: true)
+        if type.definition.namespace == "System" {
+            if type.definition.name == "Object" {
+                result += "IInspectable"
+            } else if let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
+                result += getName(primitiveType: primitiveType, mangled: true)
+            } else {
+                throw UnexpectedTypeError(type.definition.fullName, reason: "Not a well-known WinRT system type")
+            }
             return
         }
 
