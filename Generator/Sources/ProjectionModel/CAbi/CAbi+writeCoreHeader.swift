@@ -24,8 +24,8 @@ extension CAbi {
         writer.writeStruct(comment: "HSTRING", name: hstringName + "_", members: [])
         writer.writeTypedef(type: .reference(kind: .struct, name: hstringName + "_").makePointer(), name: hstringName)
 
-        // TrustLevel (we don't need the enumerants)
-        writer.writeTypedef(comment: "TrustLevel", type: CType.reference(name: "int32_t"), name: namespacingPrefix + "TrustLevel")
+        // TrustLevel
+        writer.writeTypedef(comment: "TrustLevel", type: .reference(name: "int32_t"), name: namespacingPrefix + "TrustLevel")
 
         // IInspectable
         COMInterfaceDecl(interfaceName: iinspectableName, inspectable: true).write(comment: "IInspectable", to: writer)
@@ -40,7 +40,7 @@ extension CAbi {
         ireference.addFunction(name: "get_Value", params: [
             .init(type: .void.makePointer(), name: "value")
         ])
-        ireference.write(comment: "IReference", to: writer)
+        ireference.write(comment: "WindowsFoundation_IReference", to: writer)
 
         // IActivationFactory
         var iactivationFactory = COMInterfaceDecl(interfaceName: iactivationFactoryName, inspectable: true)

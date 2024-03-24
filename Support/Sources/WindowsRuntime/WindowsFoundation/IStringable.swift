@@ -1,14 +1,14 @@
 import WindowsRuntime_ABI
 
-public typealias IStringable = any IStringableProtocol
-public protocol IStringableProtocol: IUnknownProtocol {
+public typealias WindowsFoundation_IStringable = any WindowsFoundation_IStringableProtocol
+public protocol WindowsFoundation_IStringableProtocol: IUnknownProtocol {
     func toString() throws -> String
 }
 
-public enum IStringableProjection: COMTwoWayProjection {
-    public typealias SwiftObject = IStringable
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IStringable
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IStringableVTable
+public enum WindowsFoundation_IStringableProjection: COMTwoWayProjection {
+    public typealias SwiftObject = WindowsFoundation_IStringable
+    public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
+    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
@@ -21,7 +21,7 @@ public enum IStringableProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IStringableProjection>, IStringableProtocol {
+    private final class Import: COMImport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
         public func toString() throws -> String {
             try _interop.toString()
         }
@@ -38,14 +38,14 @@ public enum IStringableProjection: COMTwoWayProjection {
 }
 
 #if swift(>=5.10)
-extension WindowsRuntime_ABI.SWRT_IStringable: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IStringable: /* @retroactive */ COMIInspectableStruct {
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IStringable {
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = HStringProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.ToString(this, &value))

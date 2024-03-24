@@ -25,7 +25,7 @@ extension IInspectableBoxing {
 
     private static func unboxPrimitive<ABIValue>(_ inspectable: IInspectable, ireferenceID: COMInterfaceID) -> ABIValue? {
         do {
-            let ireference = try inspectable._queryInterface(ireferenceID).reinterpret(to: SWRT_IReference.self)
+            let ireference = try inspectable._queryInterface(ireferenceID).reinterpret(to: SWRT_WindowsFoundation_IReference.self)
             return try withUnsafeTemporaryAllocation(of: ABIValue.self, capacity: 1) {
                 let valuePointer = $0.baseAddress
                 try WinRTError.throwIfFailed(ireference.pointer.pointee.lpVtbl.pointee.get_Value(ireference.pointer, valuePointer))

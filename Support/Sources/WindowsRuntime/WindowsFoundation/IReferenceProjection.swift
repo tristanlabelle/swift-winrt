@@ -1,0 +1,1 @@
+public enum WindowsFoundation_IReferenceProjection {}

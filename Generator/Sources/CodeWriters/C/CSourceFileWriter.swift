@@ -59,8 +59,10 @@ public class CSourceFileWriter {
             for (index, enumerant) in enumerants.enumerated() {
                 if let enumerantPrefix { output.write(enumerantPrefix) }
                 output.write(enumerant.name)
-                output.write(" = ")
-                output.write(String(enumerant.value))
+                if let value = enumerant.value {
+                    output.write(" = ")
+                    output.write(String(value))
+                }
                 if index < enumerants.count - 1 { output.write(",") }
                 output.endLine()
             }

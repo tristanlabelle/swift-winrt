@@ -2,7 +2,7 @@ import COM
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
-extension IReferenceProjection {
+extension WindowsFoundation_IReferenceProjection {
     public typealias Bool = Primitive<BoolProjection>
     public typealias UInt8 = Primitive<NumericProjection<Swift.UInt8>>
     public typealias Int16 = Primitive<NumericProjection<Swift.Int16>>
@@ -19,7 +19,7 @@ extension IReferenceProjection {
 
     public enum Primitive<Projection: ABIProjection>: ABIProjection {
         public typealias SwiftValue = Projection.SwiftValue?
-        public typealias ABIValue = UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IReference>?
+        public typealias ABIValue = UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference>?
 
         public static var abiDefaultValue: ABIValue { nil }
 
@@ -81,7 +81,7 @@ extension IReferenceProjection {
 
             let inspectable = try box(value)
             return try inspectable.interop.queryInterface(Self.interfaceID)
-                .reinterpret(to: WindowsRuntime_ABI.SWRT_IReference.self)
+                .reinterpret(to: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference.self)
                 .detach()
         }
 

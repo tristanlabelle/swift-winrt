@@ -238,7 +238,7 @@ extension SwiftProjection {
                 swiftDefaultValue: .nil,
                 projectionType: .chain(
                     .init("WindowsRuntime"),
-                    .init("IReferenceProjection"),
+                    .init("WindowsFoundation_IReferenceProjection"),
                     .init("Primitive", genericArgs: [ typeProjection.projectionType ])),
                 kind: .allocating)
         }
