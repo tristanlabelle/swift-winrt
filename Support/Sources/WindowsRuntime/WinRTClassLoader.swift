@@ -18,8 +18,8 @@ extension WinRTClassLoader {
 
     private class Default: WinRTClassLoader {
         override func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
-            var activatableId = try HStringProjection.toABI(runtimeClass)
-            defer { HStringProjection.release(&activatableId) }
+            var activatableId = try WinRTPrimitiveProjection.String.toABI(runtimeClass)
+            defer { WinRTPrimitiveProjection.String.release(&activatableId) }
 
             var iid = GUIDProjection.toABI(interfaceID)
             var rawPointer: UnsafeMutableRawPointer?
@@ -76,8 +76,8 @@ extension WinRTClassLoader {
         }
 
         override func getActivationFactory(runtimeClass: String) throws -> COMReference<SWRT_IActivationFactory> {
-            var activatableId = try HStringProjection.toABI(runtimeClass)
-            defer { HStringProjection.release(&activatableId) }
+            var activatableId = try WinRTPrimitiveProjection.String.toABI(runtimeClass)
+            defer { WinRTPrimitiveProjection.String.release(&activatableId) }
 
             var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
             try WinRTError.throwIfFailed(funcPointer(activatableId, &factoryPointer))
