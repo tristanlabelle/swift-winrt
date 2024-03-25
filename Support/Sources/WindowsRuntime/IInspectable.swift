@@ -67,7 +67,7 @@ extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
         try WinRTError.throwIfFailed(inspectable.pointee.lpVtbl.pointee.GetRuntimeClassName(inspectable, &runtimeClassName))
-        return HStringProjection.toSwift(consuming: &runtimeClassName)
+        return WinRTPrimitiveProjection.String.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {

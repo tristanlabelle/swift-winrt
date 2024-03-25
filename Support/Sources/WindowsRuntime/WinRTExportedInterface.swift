@@ -26,7 +26,7 @@ public enum WinRTExportedInterface {
         className.pointee = nil
         let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
         return HResult.catchValue {
-            className.pointee = try HStringProjection.toABI(object.getRuntimeClassName())
+            className.pointee = try WinRTPrimitiveProjection.String.toABI(object.getRuntimeClassName())
         }
     }
 

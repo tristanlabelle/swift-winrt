@@ -35,7 +35,7 @@ public enum WindowsFoundation_IStringableProjection: WinRTTwoWayProjection {
         GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
         GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
-        ToString: { this, value in _getter(this, value) { this in try HStringProjection.toABI(this.toString()) } })
+        ToString: { this, value in _getter(this, value) { this in try WinRTPrimitiveProjection.String.toABI(this.toString()) } })
 }
 
 #if swift(>=5.10)
@@ -48,8 +48,8 @@ extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: /* @retroactive
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
-        var value = HStringProjection.abiDefaultValue
+        var value = WinRTPrimitiveProjection.String.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.ToString(this, &value))
-        return HStringProjection.toSwift(consuming: &value)
+        return WinRTPrimitiveProjection.String.toSwift(consuming: &value)
     }
 }

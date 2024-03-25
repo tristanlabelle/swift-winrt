@@ -3,14 +3,13 @@ import WindowsRuntime
 
 internal final class HStringTests: XCTestCase {
     func testEmptyString() throws {
-        XCTAssertNil(try HStringProjection.toABI(""))
-        XCTAssertEqual(HStringProjection.toSwift(nil), "")
+        XCTAssertNil(try HString.create("").detach())
+        XCTAssertEqual(HString.toString(nil), "")
     }
 
     func testRoundTrip() throws {
         func assertRoundTrip(_ str: String) throws{
-            var abi = try HStringProjection.toABI(str)
-            let roundtripped = HStringProjection.toSwift(consuming: &abi)
+            let roundtripped = try HString.create(str).toString()
             XCTAssertEqual(str, roundtripped)
         }
 

@@ -2,8 +2,8 @@ import COM
 import WindowsRuntime_ABI
 
 public func getActivationFactory<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> COM.COMReference<COMInterface> {
-    var activatableId = try HStringProjection.toABI(activatableId)
-    defer { HStringProjection.release(&activatableId) }
+    var activatableId = try WinRTPrimitiveProjection.String.toABI(activatableId)
+    defer { WinRTPrimitiveProjection.String.release(&activatableId) }
 
     var iid = GUIDProjection.toABI(id)
     var rawPointer: UnsafeMutableRawPointer?
