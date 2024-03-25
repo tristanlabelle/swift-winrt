@@ -2,7 +2,7 @@ import COM
 import WindowsRuntime_ABI
 import struct Foundation.UUID
 
-public enum WindowsFoundation_IReferenceProjection {
+public enum IReferenceUnboxingProjection {
     public typealias Boolean = Of<WinRTPrimitiveProjection.Boolean>
     public typealias UInt8 = Of<WinRTPrimitiveProjection.UInt8>
     public typealias Int16 = Of<WinRTPrimitiveProjection.Int16>
@@ -17,30 +17,25 @@ public enum WindowsFoundation_IReferenceProjection {
     public typealias String = Of<WinRTPrimitiveProjection.String>
     public typealias Guid = Of<WinRTPrimitiveProjection.Guid>
 
-    public enum Of<UnboxedProjection: WinRTBoxableProjection>: COMProjection {
-        public typealias SwiftObject = UnboxedProjection.SwiftValue
+    public enum Of<Projection: WinRTBoxableProjection>: WinRTProjection {
+        public typealias SwiftObject = Projection.SwiftValue
         public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
         public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable
 
-        public static var interfaceID: COMInterfaceID { UnboxedProjection.ireferenceID }
+        public static var runtimeClassName: Swift.String { fatalError("Not implemented: \(#function)") }
+        public static var interfaceID: COMInterfaceID { Projection.ireferenceID }
 
         public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-            var abiValue = UnboxedProjection.abiDefaultValue
+            var abiValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
                 _ = try! HResult.throwIfFailed(reference.pointer.pointee.lpVtbl.pointee.get_Value(
                     reference.pointer, abiValuePointer))
             }
-            return UnboxedProjection.toSwift(consuming: &abiValue)
+            return Projection.toSwift(consuming: &abiValue)
         }
 
         public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {
-            try UnboxedProjection.box(value)._queryInterface(interfaceID).reinterpret()
-        }
-
-        public static func release(_ value: inout ABIValue) {
-            guard let comPointer = value else { return }
-            COMInterop(comPointer).release()
-            value = nil
+            try Projection.box(value)._queryInterface(interfaceID).reinterpret()
         }
     }
 }
