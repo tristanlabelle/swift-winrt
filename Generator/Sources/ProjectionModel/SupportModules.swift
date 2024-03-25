@@ -58,12 +58,10 @@ extension SupportModules.WinRT {
     public static var moduleName: String { "WindowsRuntime" }
 
     public static var char16: SwiftType { .chain(moduleName, "Char16") }
-    public static var char16Projection: SwiftType { .chain(moduleName, "Char16Projection") }
 
     public static var comIInspectableStruct: SwiftType { .chain(moduleName, "COMIInspectableStruct") }
     public static var eventRegistration: SwiftType { .chain(moduleName, "EventRegistration") }
     public static var eventRegistrationToken: SwiftType { .chain(moduleName, "EventRegistrationToken") }
-    public static var hstringProjection: SwiftType { .chain(moduleName, "HStringProjection") }
     public static var iinspectable: SwiftType { .chain(moduleName, "IInspectable") }
     public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
     public static var iinspectableProjection: SwiftType { .chain(moduleName, "IInspectableProjection") }
@@ -75,8 +73,12 @@ extension SupportModules.WinRT {
         .chain([ .init(moduleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
     }
 
-    public static func ireferenceProjection(of type: WinRTPrimitiveType) -> SwiftType {
-        .chain([ .init(moduleName), .init("WindowsFoundation_IReferenceProjection"), .init(type.name) ])
+    public static func winRTPrimitiveProjection(of type: WinRTPrimitiveType) -> SwiftType {
+        .chain([ .init(moduleName), .init("WinRTPrimitiveProjection"), .init(type.name) ])
+    }
+
+    public static func ireferenceUnboxingProjection(of type: WinRTPrimitiveType) -> SwiftType {
+        .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init(type.name) ])
     }
 
     public static var winRTClassLoader: SwiftType { .chain(moduleName, "WinRTClassLoader") }

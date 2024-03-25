@@ -153,30 +153,25 @@ extension SwiftProjection {
         guard let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) else { return nil }
 
         switch primitiveType {
-            case .boolean:
+            // Identity projections
+            case .boolean, .integer(_), .float(_):
+                let swiftType = primitiveType == .boolean ? SwiftType.bool
+                    : primitiveType == .float(double: false) ? SwiftType.float
+                    : SwiftType.chain("Swift", primitiveType.name)
                 return TypeProjection(
-                    abiType: .bool,
-                    abiDefaultValue: .`false`,
-                    swiftType: .bool,
-                    swiftDefaultValue: .`false`,
-                    projectionType: SupportModules.COM.boolProjection,
+                    abiType: swiftType,
+                    abiDefaultValue: primitiveType == .boolean ? .`false` : .zero,
+                    swiftType: swiftType,
+                    swiftDefaultValue: primitiveType == .boolean ? .`false` : .zero,
+                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
                     kind: .identity)
-            case .integer(.uint8): return .numeric(.uint(bits: 8))
-            case .integer(.int16): return .numeric(.int(bits: 16))
-            case .integer(.uint16): return .numeric(.uint(bits: 16))
-            case .integer(.int32): return .numeric(.int(bits: 32))
-            case .integer(.uint32): return .numeric(.uint(bits: 32))
-            case .integer(.int64): return .numeric(.int(bits: 64))
-            case .integer(.uint64): return .numeric(.uint(bits: 64))
-            case .float(double: false): return .numeric(.float)
-            case .float(double: true): return .numeric(.double)
             case .char16:
                 return TypeProjection(
                     abiType: .chain("Swift", "UInt16"),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.WinRT.char16,
-                    swiftDefaultValue: .zero,
-                    projectionType: SupportModules.WinRT.char16Projection,
+                    swiftDefaultValue: ".init(0)",
+                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
                     kind: .inert)
             case .guid:
                 return TypeProjection(
@@ -184,7 +179,7 @@ extension SwiftProjection {
                     abiDefaultValue: .defaultInitializer,
                     swiftType: .chain("Foundation", "UUID"),
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: SupportModules.COM.guidProjection,
+                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
                     kind: .inert)
             case .string:
                 return .init(
@@ -192,7 +187,7 @@ extension SwiftProjection {
                     abiDefaultValue: .nil,
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
-                    projectionType: SupportModules.WinRT.hstringProjection,
+                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
                     kind: .allocating)
         }
     }
@@ -236,7 +231,7 @@ extension SwiftProjection {
                 abiDefaultValue: .nil,
                 swiftType: .optional(wrapped: typeProjection.swiftType),
                 swiftDefaultValue: .nil,
-                projectionType: SupportModules.WinRT.ireferenceProjection(of: primitiveType),
+                projectionType: SupportModules.WinRT.ireferenceUnboxingProjection(of: primitiveType),
                 kind: .allocating)
         }
 
