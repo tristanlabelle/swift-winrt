@@ -1,23 +1,6 @@
 import COM
 import WindowsRuntime_ABI
 
-public func getActivationFactory<COMInterface>(activatableId: String, id: COMInterfaceID) throws -> COM.COMReference<COMInterface> {
-    var activatableId = try WinRTPrimitiveProjection.String.toABI(activatableId)
-    defer { WinRTPrimitiveProjection.String.release(&activatableId) }
-
-    var iid = GUIDProjection.toABI(id)
-    var rawPointer: UnsafeMutableRawPointer?
-    try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
-    guard let rawPointer else { throw HResult.Error.noInterface }
-
-    let pointer = rawPointer.bindMemory(to: COMInterface.self, capacity: 1)
-    return COM.COMReference(transferringRef: pointer)
-}
-
-public func getActivationFactory(activatableId: String) throws -> COM.COMReference<WindowsRuntime_ABI.SWRT_IActivationFactory> {
-    try getActivationFactory(activatableId: activatableId, id: WindowsRuntime_ABI.SWRT_IActivationFactory.iid)
-}
-
 public typealias IActivationFactory = any IActivationFactoryProtocol
 public protocol IActivationFactoryProtocol: IInspectableProtocol {
     func activateInstance() throws -> IInspectable
