@@ -68,6 +68,7 @@ extension SupportModules.WinRT {
 
     public static var winRTProjection: SwiftType { .chain(moduleName, "WinRTProjection") }
     public static var winRTTwoWayProjection: SwiftType { .chain(moduleName, "WinRTTwoWayProjection") }
+    public static var winRTBoxableProjection: SwiftType { .chain(moduleName, "WinRTBoxableProjection") }
 
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(moduleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
