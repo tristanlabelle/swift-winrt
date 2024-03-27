@@ -98,7 +98,7 @@ fileprivate func writeCOMInteropExtension(abiType: BoundType, projection: SwiftP
     }
 }
 
-fileprivate func toIIDExpression(_ uuid: UUID) throws -> String {
+internal func toIIDExpression(_ uuid: UUID) throws -> String {
     func toPrefixedPaddedHex<Value: UnsignedInteger & FixedWidthInteger>(
         _ value: Value,
         minimumLength: Int = MemoryLayout<Value>.size * 2) -> String {

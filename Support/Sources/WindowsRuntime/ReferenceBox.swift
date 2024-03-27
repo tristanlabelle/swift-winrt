@@ -13,4 +13,7 @@ internal class ReferenceBox<BoxableProjection: WinRTBoxableProjection>
     }
 
     public func _value() throws -> T { value }
+    public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
+        pointer.bindMemory(to: BoxableProjection.ABIValue.self, capacity: 1).pointee = try BoxableProjection.toABI(value)
+    }
 }

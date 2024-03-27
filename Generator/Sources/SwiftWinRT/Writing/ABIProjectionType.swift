@@ -44,9 +44,16 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
 
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
+        let protocolConformances = [
+            SupportModules.WinRT.winRTBoxableProjection,
+            SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")
+        ]
         try writer.writeExtension(
-            type: .identifier(projection.toTypeName(enumDefinition)),
-            protocolConformances: [SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")]) { _ in }
+                type: .identifier(projection.toTypeName(enumDefinition)),
+                protocolConformances: protocolConformances) { writer in
+            // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
+            try writeBoxableIReferenceID(boxableType: enumDefinition.bindType(), to: writer)
+        }
         return
     }
 
@@ -98,13 +105,16 @@ fileprivate func writeStructProjectionExtension(
         projection: SwiftProjection,
         to writer: SwiftSourceFileWriter) throws {
     let isInert = try projection.isProjectionInert(structDefinition)
-    let abiProjectionProtocol = isInert ? SupportModules.COM.abiInertProjection : SupportModules.COM.abiProjection
 
-    // TODO: Support strings and IReference<T> field types (non-inert)
-    // extension <struct>: ABIInertProjection
+    var protocolConformances = [SupportModules.WinRT.winRTBoxableProjection]
+    if isInert {
+        protocolConformances.append(SupportModules.COM.abiInertProjection)
+    }
+
+    // extension <struct>: WinRTBoxableProjection[, ABIInertProjection]
     try writer.writeExtension(
             type: .identifier(projection.toTypeName(structDefinition)),
-            protocolConformances: [abiProjectionProtocol]) { writer in
+            protocolConformances: protocolConformances) { writer in
 
         let abiType = try projection.toABIType(structDefinition.bindType())
 
@@ -113,6 +123,9 @@ fileprivate func writeStructProjectionExtension(
 
         // public typealias ABIValue = <abi-type>
         writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
+
+        // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
+        try writeBoxableIReferenceID(boxableType: structDefinition.bindType(), to: writer)
 
         // public static var abiDefaultValue: ABIValue { .init() }
         writer.writeComputedProperty(
@@ -223,6 +236,18 @@ fileprivate func writeStructSwiftToABIInitializerParam(
 
     if typeProjection.kind != .identity {
         output.write(")")
+    }
+}
+
+fileprivate func writeBoxableIReferenceID(boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
+    let ireferenceParameterizedInterfaceID = UUID(uuidString: "61c17706-2d65-11e0-9ae8-d48564015472")!
+
+    // public static var ireferenceID: COM.COMInterfaceID { UUID(...) }
+    try writer.writeComputedProperty(visibility: .public, static: true, name: "ireferenceID", type: SupportModules.COM.comInterfaceID) { writer in
+        let typeSignature = try WinRTTypeSignature.interface(
+            id: ireferenceParameterizedInterfaceID,
+            args: [ WinRTTypeSignature(boxableType) ])
+        writer.writeStatement(try toIIDExpression(typeSignature.parameterizedID))
     }
 }
 

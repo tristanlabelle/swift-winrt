@@ -1,0 +1,16 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+    static runtimeclass Boxing
+    {
+        static IInspectable BoxInt32(Int32 value);
+        static Int32 UnboxInt32(IInspectable value);
+        static IInspectable BoxString(String value);
+        static String UnboxString(IInspectable value);
+        static IInspectable BoxMinimalEnum(MinimalEnum value);
+        static MinimalEnum UnboxMinimalEnum(IInspectable value);
+        static IInspectable BoxMinimalStruct(MinimalStruct value);
+        static MinimalStruct UnboxMinimalStruct(IInspectable value);
+    };
+}

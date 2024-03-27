@@ -2,20 +2,20 @@ import WindowsRuntime_ABI
 import struct Foundation.UUID
 
 public enum IInspectableBoxing {
-    public func box(_ value: Bool) throws -> IInspectable { try WinRTPrimitiveProjection.Boolean.box(value) }
-    public func box(_ value: UInt8) throws -> IInspectable { try WinRTPrimitiveProjection.UInt8.box(value) }
-    public func box(_ value: Int16) throws -> IInspectable { try WinRTPrimitiveProjection.Int16.box(value) }
-    public func box(_ value: UInt16) throws -> IInspectable { try WinRTPrimitiveProjection.UInt16.box(value) }
-    public func box(_ value: Int32) throws -> IInspectable { try WinRTPrimitiveProjection.Int32.box(value) }
-    public func box(_ value: UInt32) throws -> IInspectable { try WinRTPrimitiveProjection.UInt32.box(value) }
-    public func box(_ value: Int64) throws -> IInspectable { try WinRTPrimitiveProjection.Int64.box(value) }
-    public func box(_ value: UInt64) throws -> IInspectable { try WinRTPrimitiveProjection.UInt64.box(value) }
-    public func box(_ value: Float) throws -> IInspectable { try WinRTPrimitiveProjection.Single.box(value) }
-    public func box(_ value: Double) throws -> IInspectable { try WinRTPrimitiveProjection.Double.box(value) }
-    public func box(_ value: Char16) throws -> IInspectable { try WinRTPrimitiveProjection.Char16.box(value) }
-    public func box(_ value: String) throws -> IInspectable { try WinRTPrimitiveProjection.String.box(value) }
-    public func box(_ value: UUID) throws -> IInspectable { try WinRTPrimitiveProjection.Guid.box(value) }
-    public func box<BoxableValue: WinRTBoxableProjection>(_ value: BoxableValue) throws -> IInspectable
+    public static func box(_ value: Bool) throws -> IInspectable { try WinRTPrimitiveProjection.Boolean.box(value) }
+    public static func box(_ value: UInt8) throws -> IInspectable { try WinRTPrimitiveProjection.UInt8.box(value) }
+    public static func box(_ value: Int16) throws -> IInspectable { try WinRTPrimitiveProjection.Int16.box(value) }
+    public static func box(_ value: UInt16) throws -> IInspectable { try WinRTPrimitiveProjection.UInt16.box(value) }
+    public static func box(_ value: Int32) throws -> IInspectable { try WinRTPrimitiveProjection.Int32.box(value) }
+    public static func box(_ value: UInt32) throws -> IInspectable { try WinRTPrimitiveProjection.UInt32.box(value) }
+    public static func box(_ value: Int64) throws -> IInspectable { try WinRTPrimitiveProjection.Int64.box(value) }
+    public static func box(_ value: UInt64) throws -> IInspectable { try WinRTPrimitiveProjection.UInt64.box(value) }
+    public static func box(_ value: Float) throws -> IInspectable { try WinRTPrimitiveProjection.Single.box(value) }
+    public static func box(_ value: Double) throws -> IInspectable { try WinRTPrimitiveProjection.Double.box(value) }
+    public static func box(_ value: Char16) throws -> IInspectable { try WinRTPrimitiveProjection.Char16.box(value) }
+    public static func box(_ value: String) throws -> IInspectable { try WinRTPrimitiveProjection.String.box(value) }
+    public static func box(_ value: UUID) throws -> IInspectable { try WinRTPrimitiveProjection.Guid.box(value) }
+    public static func box<BoxableValue: WinRTBoxableProjection>(_ value: BoxableValue) throws -> IInspectable
             where BoxableValue.SwiftValue == BoxableValue {
         try BoxableValue.box(value)
     }
