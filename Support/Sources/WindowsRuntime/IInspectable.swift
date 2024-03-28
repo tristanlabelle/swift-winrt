@@ -9,14 +9,14 @@ public protocol IInspectableProtocol: IUnknownProtocol {
     func getTrustLevel() throws -> TrustLevel
 }
 
-public enum IInspectableProjection: WinRTTwoWayProjection {
+public enum IInspectableProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = IInspectable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IInspectableVTable
 
+    public static var typeName: String { "IInspectable" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
-    public static var runtimeClassName: String { "IInspectable" }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)

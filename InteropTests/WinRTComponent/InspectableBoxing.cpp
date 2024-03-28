@@ -36,4 +36,12 @@ namespace winrt::WinRTComponent::implementation
     {
         return winrt::unbox_value<winrt::WinRTComponent::MinimalStruct>(value);
     }
+    winrt::Windows::Foundation::IInspectable InspectableBoxing::BoxMinimalDelegate(winrt::WinRTComponent::MinimalDelegate const& value)
+    {
+        return winrt::box_value(value);
+    }
+    winrt::WinRTComponent::MinimalDelegate InspectableBoxing::UnboxMinimalDelegate(winrt::Windows::Foundation::IInspectable const& value)
+    {
+        return winrt::unbox_value<winrt::WinRTComponent::MinimalDelegate>(value);
+    }
 }

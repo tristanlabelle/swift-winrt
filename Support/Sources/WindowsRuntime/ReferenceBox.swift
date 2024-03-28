@@ -5,6 +5,8 @@ internal class ReferenceBox<BoxableProjection: WinRTBoxableProjection>
         WindowsFoundation_IReferenceProtocol {
     public typealias T = BoxableProjection.SwiftValue
 
+    public override class var _runtimeClassName: String { "Windows.Foundation.IReference`1<\(BoxableProjection.typeName)>" }
+
     private let value: BoxableProjection.SwiftValue
 
     init(_ value: BoxableProjection.SwiftValue) {

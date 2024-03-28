@@ -4,14 +4,14 @@ import WindowsRuntime
 internal protocol IInspectable2Protocol: IInspectableProtocol {}
 internal typealias IInspectable2 = any IInspectable2Protocol
 
-internal enum IInspectable2Projection: WinRTTwoWayProjection {
+internal enum IInspectable2Projection: WinRTInterfaceProjection {
     public typealias SwiftObject = IInspectable2
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IInspectableVTable
 
+    public static var typeName: String { "IInspectable2" }
     public static let interfaceID = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
-    public static var runtimeClassName: String { "IInspectable2" }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)

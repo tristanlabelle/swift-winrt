@@ -6,13 +6,14 @@ public protocol IActivationFactoryProtocol: IInspectableProtocol {
     func activateInstance() throws -> IInspectable
 }
 
-public enum IActivationFactoryProjection: WinRTProjection {
+public enum IActivationFactoryProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = IActivationFactory
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IActivationFactoryVTable
 
+    public static var typeName: String { "IActivationFactory" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
-    public static var runtimeClassName: String { "IActivationFactory" }
+    public static var virtualTablePointer: COMVirtualTablePointer { fatalError("Not implemented: \(#function)") }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)
@@ -47,7 +48,7 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFacto
     }
 
     // TODO: Move elsewhere to keep COMInterop only for bridging.
-    public func activateInstance<Projection: WinRTProjection>(projection: Projection.Type) throws -> Projection.COMPointer {
+    public func activateInstance<Projection: WinRTProjection & COMProjection>(projection: Projection.Type) throws -> Projection.COMPointer {
         var inspectable = IInspectableProjection.abiDefaultValue
         try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.ActivateInstance(this, &inspectable))
         defer { IInspectableProjection.release(&inspectable) }

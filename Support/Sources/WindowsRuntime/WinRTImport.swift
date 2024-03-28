@@ -3,7 +3,7 @@ import COM
 import WinSDK
 import struct Foundation.UUID
 
-open class WinRTImport<Projection: WinRTProjection>: COMImport<Projection>, IInspectableProtocol {
+open class WinRTImport<Projection: WinRTProjection & COMProjection>: COMImport<Projection>, IInspectableProtocol {
     private var _inspectableInterop: COMInterop<WindowsRuntime_ABI.SWRT_IInspectable> {
         .init(casting: _interop)
     }

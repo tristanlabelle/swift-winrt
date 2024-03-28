@@ -12,5 +12,7 @@ namespace WinRTComponent
         static MinimalEnum UnboxMinimalEnum(IInspectable value);
         static IInspectable BoxMinimalStruct(MinimalStruct value);
         static MinimalStruct UnboxMinimalStruct(IInspectable value);
+        static IInspectable BoxMinimalDelegate(MinimalDelegate value);
+        static MinimalDelegate UnboxMinimalDelegate(IInspectable value);
     };
 }

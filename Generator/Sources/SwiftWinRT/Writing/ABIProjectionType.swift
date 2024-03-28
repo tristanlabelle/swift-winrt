@@ -44,15 +44,14 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
 
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
-        let protocolConformances = [
-            SupportModules.WinRT.winRTBoxableProjection,
-            SwiftType.chain("WindowsRuntime", "IntegerEnumProjection")
-        ]
         try writer.writeExtension(
                 type: .identifier(projection.toTypeName(enumDefinition)),
-                protocolConformances: protocolConformances) { writer in
+                protocolConformances: [ SupportModules.WinRT.winRTEnumProjection ]) { writer in
+            // public static var typeName: String { "..." }
+            try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
+
             // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-            try writeBoxableIReferenceID(boxableType: enumDefinition.bindType(), to: writer)
+            try writeIReferenceIDProperty(boxableType: enumDefinition.bindType(), to: writer)
         }
         return
     }
@@ -106,7 +105,7 @@ fileprivate func writeStructProjectionExtension(
         to writer: SwiftSourceFileWriter) throws {
     let isInert = try projection.isProjectionInert(structDefinition)
 
-    var protocolConformances = [SupportModules.WinRT.winRTBoxableProjection]
+    var protocolConformances = [SupportModules.WinRT.winRTStructProjection]
     if isInert {
         protocolConformances.append(SupportModules.COM.abiInertProjection)
     }
@@ -124,8 +123,11 @@ fileprivate func writeStructProjectionExtension(
         // public typealias ABIValue = <abi-type>
         writer.writeTypeAlias(visibility: .public, name: "ABIValue", target: abiType)
 
+        // public static var typeName: String { "..." }
+        try writeTypeNameProperty(type: structDefinition.bindType(), to: writer)
+
         // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-        try writeBoxableIReferenceID(boxableType: structDefinition.bindType(), to: writer)
+        try writeIReferenceIDProperty(boxableType: structDefinition.bindType(), to: writer)
 
         // public static var abiDefaultValue: ABIValue { .init() }
         writer.writeComputedProperty(
@@ -239,7 +241,7 @@ fileprivate func writeStructSwiftToABIInitializerParam(
     }
 }
 
-fileprivate func writeBoxableIReferenceID(boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
+fileprivate func writeIReferenceIDProperty(boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
     let ireferenceParameterizedInterfaceID = UUID(uuidString: "61c17706-2d65-11e0-9ae8-d48564015472")!
 
     // public static var ireferenceID: COM.COMInterfaceID { UUID(...) }
@@ -262,11 +264,12 @@ fileprivate func writeClassProjectionType(
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-            name: projectionTypeName, protocolConformances: [ SupportModules.WinRT.winRTProjection ]) { writer throws in
+            name: projectionTypeName,
+            protocolConformances: [ SupportModules.WinRT.winRTClassProjection ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
         let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
 
-        try writeCOMProjectionConformance(
+        try writeReferenceTypeProjectionConformance(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
             toSwiftBody: { writer, paramName in
@@ -315,7 +318,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
     let projectionProtocol = type.definition is InterfaceDefinition
-        ? SupportModules.WinRT.winRTTwoWayProjection : SupportModules.COM.comTwoWayProjection
+        ? SupportModules.WinRT.winRTInterfaceProjection : SupportModules.WinRT.winRTDelegateProjection
 
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(type.definition.visibility),
@@ -324,7 +327,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
 
         let importClassName = "Import"
 
-        try writeCOMProjectionConformance(
+        try writeReferenceTypeProjectionConformance(
             apiType: type, abiType: type,
             toSwiftBody: { writer, paramName in
                 if type.definition is InterfaceDefinition {
@@ -365,8 +368,14 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
     }
 }
 
+internal func writeTypeNameProperty(type: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
+    let typeName = try WinRTTypeName.from(type: type).description
+    writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "typeName",
+        initialValue: "\"\(typeName)\"")
+}
+
 /// Writes members implementing the COMProjection or WinRTProjection protocol
-internal func writeCOMProjectionConformance(
+internal func writeReferenceTypeProjectionConformance(
         apiType: BoundType, abiType: BoundType,
         toSwiftBody: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
         toCOMBody: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
@@ -379,16 +388,18 @@ internal func writeCOMProjectionConformance(
     writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
         target: try projection.toABIVirtualTableType(abiType))
 
+    // public static var typeName: String { "..." }
+    try writeTypeNameProperty(type: apiType, to: writer)
+
     // public static var interfaceID: COM.COMInterfaceID { COMInterface.iid }
     writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModules.COM.comInterfaceID) { writer in
         writer.writeStatement("COMInterface.iid")
     }
 
-    if !(abiType.definition is DelegateDefinition) {
-        // Delegates are IUnknown whereas interfaces are IInspectable
-        let runtimeClassName = try WinRTTypeName.from(type: apiType).description
-        writer.writeStoredProperty(visibility: .public, static: true, declarator: .let, name: "runtimeClassName",
-            initialValue: "\"\(runtimeClassName)\"")
+    if apiType.definition is DelegateDefinition {
+        // Delegates can be boxed to IReference<T>
+        // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
+        try writeIReferenceIDProperty(boxableType: apiType, to: writer)
     }
 
     let comReferenceType = SupportModules.COM.comReference(to: .identifier("COMInterface"))

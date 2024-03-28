@@ -18,12 +18,12 @@ extension WindowsFoundation_IReferenceProtocol {
     var value: T { try! _value() }
 }
 
-public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProjection>: WinRTTwoWayProjection {
+public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProjection>: WinRTInterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable
 
-    public static var runtimeClassName: String { fatalError("Not implemented: \(#function)") }
+    public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }
     public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 

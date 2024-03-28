@@ -66,9 +66,11 @@ extension SupportModules.WinRT {
     public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
     public static var iinspectableProjection: SwiftType { .chain(moduleName, "IInspectableProjection") }
 
-    public static var winRTProjection: SwiftType { .chain(moduleName, "WinRTProjection") }
-    public static var winRTTwoWayProjection: SwiftType { .chain(moduleName, "WinRTTwoWayProjection") }
-    public static var winRTBoxableProjection: SwiftType { .chain(moduleName, "WinRTBoxableProjection") }
+    public static var winRTEnumProjection: SwiftType { .chain(moduleName, "WinRTEnumProjection") }
+    public static var winRTStructProjection: SwiftType { .chain(moduleName, "WinRTStructProjection") }
+    public static var winRTInterfaceProjection: SwiftType { .chain(moduleName, "WinRTInterfaceProjection") }
+    public static var winRTDelegateProjection: SwiftType { .chain(moduleName, "WinRTDelegateProjection") }
+    public static var winRTClassProjection: SwiftType { .chain(moduleName, "WinRTClassProjection") }
 
     public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
         .chain([ .init(moduleName), .init("WinRTArrayProjection", genericArgs: [type]) ])

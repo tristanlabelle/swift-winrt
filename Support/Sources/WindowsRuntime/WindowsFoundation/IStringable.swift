@@ -5,13 +5,13 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
-public enum WindowsFoundation_IStringableProjection: WinRTTwoWayProjection {
+public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
     public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable
 
+    public static var typeName: String { "Windows.Foundation.IStringable" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
-    public static var runtimeClassName: String { "Windows.Foundation.IStringable" }
     public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
