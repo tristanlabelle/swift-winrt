@@ -15,9 +15,13 @@ public enum IInspectableBoxing {
     public static func box(_ value: Char16) throws -> IInspectable { try WinRTPrimitiveProjection.Char16.box(value) }
     public static func box(_ value: String) throws -> IInspectable { try WinRTPrimitiveProjection.String.box(value) }
     public static func box(_ value: UUID) throws -> IInspectable { try WinRTPrimitiveProjection.Guid.box(value) }
-    public static func box<BoxableValue: WinRTBoxableProjection>(_ value: BoxableValue) throws -> IInspectable
-            where BoxableValue.SwiftValue == BoxableValue {
+
+    public static func box<BoxableValue: WinRTValueTypeProjection>(_ value: BoxableValue) throws -> IInspectable {
         try BoxableValue.box(value)
+    }
+
+    public static func box<Projection: WinRTDelegateProjection>(_ value: Projection.SwiftObject, projection: Projection.Type) throws -> IInspectable {
+        try Projection.box(value)
     }
 
     public static func unboxBoolean(_ inspectable: IInspectable) -> Bool? {
@@ -59,7 +63,10 @@ public enum IInspectableBoxing {
     public static func unboxGuid(_ inspectable: IInspectable) -> UUID? {
         WinRTPrimitiveProjection.Guid.unbox(inspectable)
     }
-    public static func unbox<Projection: WinRTBoxableProjection>(_ inspectable: IInspectable, projection: Projection.Type) -> Projection.SwiftValue? {
+    public static func unbox<Projection: WinRTValueTypeProjection>(_ inspectable: IInspectable, projection: Projection.Type) -> Projection.SwiftValue? {
         Projection.unbox(inspectable)
+    }
+    public static func unbox<Projection: WinRTDelegateProjection>(_ inspectable: IInspectable, projection: Projection.Type) -> Projection.SwiftObject? {
+        Projection.unbox(inspectable).flatMap { $0! } // If we unboxed, the inner optional is non-nil
     }
 }

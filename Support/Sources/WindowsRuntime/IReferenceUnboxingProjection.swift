@@ -17,12 +17,12 @@ public enum IReferenceUnboxingProjection {
     public typealias String = Of<WinRTPrimitiveProjection.String>
     public typealias Guid = Of<WinRTPrimitiveProjection.Guid>
 
-    public enum Of<Projection: WinRTBoxableProjection>: WinRTProjection {
+    public enum Of<Projection: WinRTBoxableProjection>: WinRTProjection, COMProjection {
         public typealias SwiftObject = Projection.SwiftValue
         public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
         public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable
 
-        public static var runtimeClassName: Swift.String { fatalError("Not implemented: \(#function)") }
+        public static var typeName: Swift.String { "Windows.Foundation.IReference`1<\(Projection.typeName)>" }
         public static var interfaceID: COMInterfaceID { Projection.ireferenceID }
 
         public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {

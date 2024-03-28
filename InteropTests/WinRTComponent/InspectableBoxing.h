@@ -15,6 +15,8 @@ namespace winrt::WinRTComponent::implementation
         static winrt::WinRTComponent::MinimalEnum UnboxMinimalEnum(winrt::Windows::Foundation::IInspectable const& value);
         static winrt::Windows::Foundation::IInspectable BoxMinimalStruct(winrt::WinRTComponent::MinimalStruct const& value);
         static winrt::WinRTComponent::MinimalStruct UnboxMinimalStruct(winrt::Windows::Foundation::IInspectable const& value);
+        static winrt::Windows::Foundation::IInspectable BoxMinimalDelegate(winrt::WinRTComponent::MinimalDelegate const& value);
+        static winrt::WinRTComponent::MinimalDelegate UnboxMinimalDelegate(winrt::Windows::Foundation::IInspectable const& value);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation
