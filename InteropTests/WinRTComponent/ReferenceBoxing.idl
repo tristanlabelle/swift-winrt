@@ -1,0 +1,15 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+    static runtimeclass ReferenceBoxing
+    {
+        static Windows.Foundation.IReference<Int32> BoxInt32(Int32 value);
+        static Int32 UnboxInt32(Windows.Foundation.IReference<Int32> value);
+        // Windows.Foundation.IReference<String> is illegal: "Invalid parameter to IReference or IReferenceArray"
+        static Windows.Foundation.IReference<MinimalEnum> BoxMinimalEnum(MinimalEnum value);
+        static MinimalEnum UnboxMinimalEnum(Windows.Foundation.IReference<MinimalEnum> value);
+        static Windows.Foundation.IReference<MinimalStruct> BoxMinimalStruct(MinimalStruct value);
+        static MinimalStruct UnboxMinimalStruct(Windows.Foundation.IReference<MinimalStruct> value);
+    };
+}

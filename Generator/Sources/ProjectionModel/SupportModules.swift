@@ -82,6 +82,10 @@ extension SupportModules.WinRT {
         .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init(type.name) ])
     }
 
+    public static func ireferenceUnboxingProjection(of projectionType: SwiftType) -> SwiftType {
+        .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init("Of", genericArgs: [ projectionType ]) ])
+    }
+
     public static var winRTClassLoader: SwiftType { .chain(moduleName, "WinRTClassLoader") }
 }
 

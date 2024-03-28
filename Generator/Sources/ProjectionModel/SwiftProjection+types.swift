@@ -223,18 +223,22 @@ extension SwiftProjection {
     }
 
     private func getIReferenceTypeProjection(of type: BoundType) throws -> TypeProjection? {
+        let typeProjection = try getTypeProjection(type.asNode)
+        let projectionType: SwiftType
         if type.definition.namespace == "System",
                 let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
-            let typeProjection = try getTypeProjection(type.asNode)
-            return TypeProjection(
-                abiType: .optional(wrapped: .unsafeMutablePointer(to: .chain(abiModuleName, CAbi.ireferenceName))),
-                abiDefaultValue: .nil,
-                swiftType: .optional(wrapped: typeProjection.swiftType),
-                swiftDefaultValue: .nil,
-                projectionType: SupportModules.WinRT.ireferenceUnboxingProjection(of: primitiveType),
-                kind: .allocating)
+            projectionType = SupportModules.WinRT.ireferenceUnboxingProjection(of: primitiveType)
+        }
+        else {
+            projectionType = SupportModules.WinRT.ireferenceUnboxingProjection(of: typeProjection.projectionType)
         }
 
-        return nil
+        return TypeProjection(
+            abiType: .optional(wrapped: .unsafeMutablePointer(to: .chain(abiModuleName, CAbi.ireferenceName))),
+            abiDefaultValue: .nil,
+            swiftType: .optional(wrapped: typeProjection.swiftType),
+            swiftDefaultValue: .nil,
+            projectionType: projectionType,
+            kind: .allocating)
     }
 }

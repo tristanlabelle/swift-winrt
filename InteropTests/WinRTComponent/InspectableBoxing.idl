@@ -2,7 +2,7 @@ import "MinimalTypes.idl";
 
 namespace WinRTComponent
 {
-    static runtimeclass Boxing
+    static runtimeclass InspectableBoxing
     {
         static IInspectable BoxInt32(Int32 value);
         static Int32 UnboxInt32(IInspectable value);
