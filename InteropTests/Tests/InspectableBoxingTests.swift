@@ -2,8 +2,8 @@ import WindowsRuntime
 import WinRTComponent
 import XCTest
 
-class BoxingTests: WinRTTestCase {
-    typealias CppBoxing = WinRTComponent.Boxing
+class InspectableBoxingTests: WinRTTestCase {
+    typealias CppBoxing = WinRTComponent.InspectableBoxing
     typealias SwiftBoxing = WindowsRuntime.IInspectableBoxing
 
     func testRoundTripOfPrimitiveTypeWithIdentityProjection() throws {
