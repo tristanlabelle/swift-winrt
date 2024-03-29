@@ -33,7 +33,7 @@ extension WinRTBoxableProjection {
             let ireference = try inspectable._queryInterface(ireferenceID).reinterpret(to: SWRT_WindowsFoundation_IReference.self)
             var abiValue = abiDefaultValue
             try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.lpVtbl.pointee.get_Value(ireference.pointer, abiValuePointer))
+                _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.VirtualTable.pointee.get_Value(ireference.pointer, abiValuePointer))
             }
             return toSwift(consuming: &abiValue)
         }

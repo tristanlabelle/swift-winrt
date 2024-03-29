@@ -43,7 +43,7 @@ typedef struct SWRT_WindowsFoundation_TimeSpan
 
 // Windows.Foundation.IPropertyValue
 typedef struct SWRT_WindowsFoundation_IPropertyValue {
-    struct SWRT_WindowsFoundation_IPropertyValueVTable* lpVtbl;
+    struct SWRT_WindowsFoundation_IPropertyValueVTable* VirtualTable;
 } SWRT_WindowsFoundation_IPropertyValue;
 
 struct SWRT_WindowsFoundation_IPropertyValueVTable {
@@ -96,7 +96,7 @@ struct SWRT_WindowsFoundation_IPropertyValueVTable {
 
 // Windows.Foundation.IPropertyValueStatics
 typedef struct SWRT_WindowsFoundation_IPropertyValueStatics {
-    struct SWRT_WindowsFoundation_IPropertyValueStaticsVTable* lpVtbl;
+    struct SWRT_WindowsFoundation_IPropertyValueStaticsVTable* VirtualTable;
 } SWRT_WindowsFoundation_IPropertyValueStatics;
 
 struct SWRT_WindowsFoundation_IPropertyValueStaticsVTable {
@@ -149,7 +149,7 @@ struct SWRT_WindowsFoundation_IPropertyValueStaticsVTable {
 
 // // Windows.Foundation.IStringable
 typedef struct SWRT_WindowsFoundation_IStringable {
-    struct SWRT_WindowsFoundation_IStringableVTable* lpVtbl;
+    struct SWRT_WindowsFoundation_IStringableVTable* VirtualTable;
 } SWRT_WindowsFoundation_IStringable;
 
 struct SWRT_WindowsFoundation_IStringableVTable {
@@ -164,7 +164,7 @@ struct SWRT_WindowsFoundation_IStringableVTable {
 
 // Windows.Foundation.IReference<T>
 typedef struct SWRT_WindowsFoundation_IReference {
-    struct SWRT_WindowsFoundation_IReferenceVTable* lpVtbl;
+    struct SWRT_WindowsFoundation_IReferenceVTable* VirtualTable;
 } SWRT_WindowsFoundation_IReference;
 
 struct SWRT_WindowsFoundation_IReferenceVTable {

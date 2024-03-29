@@ -85,7 +85,7 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IRestrictedError
         defer { BStrProjection.release(&restrictedDescription_) }
         var capabilitySid_: WindowsRuntime_ABI.SWRT_BStr? = nil
         defer { BStrProjection.release(&capabilitySid_) }
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
         description = BStrProjection.toSwift(consuming: &description_)
         error = HResultProjection.toSwift(error_)
         restrictedDescription = BStrProjection.toSwift(consuming: &restrictedDescription_)
@@ -94,7 +94,7 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IRestrictedError
 
     public func getReference() throws -> String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetReference(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetReference(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 }

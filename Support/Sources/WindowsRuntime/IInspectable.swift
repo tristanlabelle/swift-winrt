@@ -59,20 +59,20 @@ extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
 
     public func getIids() throws -> [Foundation.UUID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
-        try WinRTError.throwIfFailed(inspectable.pointee.lpVtbl.pointee.GetIids(inspectable, &iids.count, &iids.pointer))
+        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetIids(inspectable, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
         return WinRTArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
-        try WinRTError.throwIfFailed(inspectable.pointee.lpVtbl.pointee.GetRuntimeClassName(inspectable, &runtimeClassName))
+        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetRuntimeClassName(inspectable, &runtimeClassName))
         return WinRTPrimitiveProjection.String.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
         var trustLevel: WindowsRuntime_ABI.SWRT_TrustLevel = 0
-        try WinRTError.throwIfFailed(inspectable.pointee.lpVtbl.pointee.GetTrustLevel(inspectable, &trustLevel))
+        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetTrustLevel(inspectable, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }
 }

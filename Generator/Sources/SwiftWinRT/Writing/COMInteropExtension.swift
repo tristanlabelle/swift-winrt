@@ -240,7 +240,7 @@ fileprivate func writeSwiftToAbiCall(
 
     func writeCall() throws {
         writer.writeStatement("try WinRTError.throwIfFailed("
-            + "this.pointee.lpVtbl.pointee.\(abiMethodName)("
+            + "this.pointee.VirtualTable.pointee.\(abiMethodName)("
             + "\(abiArgs.joined(separator: ", "))))")
     }
 

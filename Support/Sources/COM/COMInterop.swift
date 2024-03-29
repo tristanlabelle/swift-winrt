@@ -35,18 +35,18 @@ public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
 
     @discardableResult
     public func addRef() -> UInt32 {
-        unknown.pointee.lpVtbl.pointee.AddRef(unknown)
+        unknown.pointee.VirtualTable.pointee.AddRef(unknown)
     }
 
     @discardableResult
     public func release() -> UInt32 {
-        unknown.pointee.lpVtbl.pointee.Release(unknown)
+        unknown.pointee.VirtualTable.pointee.Release(unknown)
     }
 
     public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         var iid = GUIDProjection.toABI(id)
         var rawPointer: UnsafeMutableRawPointer? = nil
-        try HResult.throwIfFailed(unknown.pointee.lpVtbl.pointee.QueryInterface(unknown, &iid, &rawPointer))
+        try HResult.throwIfFailed(unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
         guard let rawPointer else {
             assertionFailure("QueryInterface succeeded but returned a null pointer")
             throw HResult.Error.noInterface

@@ -8,7 +8,7 @@ typedef int32_t SWRT_TrustLevel;
 
 // IInspectable
 typedef struct SWRT_IInspectable {
-    struct SWRT_IInspectableVTable* lpVtbl;
+    struct SWRT_IInspectableVTable* VirtualTable;
 } SWRT_IInspectable;
 
 struct SWRT_IInspectableVTable {

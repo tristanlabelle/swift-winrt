@@ -12,5 +12,5 @@ struct SWRT_IBufferByteAccessVTable {
 };
 
 struct SWRT_IBufferByteAccess {
-    struct SWRT_IBufferByteAccessVTable* lpVtbl;
+    struct SWRT_IBufferByteAccessVTable* VirtualTable;
 };

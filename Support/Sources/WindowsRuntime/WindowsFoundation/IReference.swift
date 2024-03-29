@@ -78,6 +78,6 @@ extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: @retroactive COM
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference {
     public func get_Value(_ value: UnsafeMutableRawPointer) throws {
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.get_Value(this, value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.get_Value(this, value))
     }
 }

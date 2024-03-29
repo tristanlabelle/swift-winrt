@@ -46,7 +46,7 @@ extension WindowsRuntime_ABI.SWRT_IBufferByteAccess {
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.Buffer(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.Buffer(this, &value))
         return value
     }
 }
