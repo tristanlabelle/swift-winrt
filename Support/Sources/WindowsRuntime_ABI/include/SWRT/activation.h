@@ -4,7 +4,7 @@
 
 // IActivationFactory
 typedef struct SWRT_IActivationFactory {
-    struct SWRT_IActivationFactoryVTable* lpVtbl;
+    struct SWRT_IActivationFactoryVTable* VirtualTable;
 } SWRT_IActivationFactory;
 
 struct SWRT_IActivationFactoryVTable {

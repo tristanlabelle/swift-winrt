@@ -49,7 +49,7 @@ extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: /* @retroactive
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = WinRTPrimitiveProjection.String.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.ToString(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))
         return WinRTPrimitiveProjection.String.toSwift(consuming: &value)
     }
 }

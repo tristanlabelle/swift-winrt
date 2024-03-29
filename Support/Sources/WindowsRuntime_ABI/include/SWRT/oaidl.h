@@ -4,7 +4,7 @@
 #include "SWRT/unknwn.h"
 
 typedef struct SWRT_IErrorInfo {
-    struct SWRT_IErrorInfoVTable* lpVtbl;
+    struct SWRT_IErrorInfoVTable* VirtualTable;
 } SWRT_IErrorInfo;
 
 struct SWRT_IErrorInfoVTable {

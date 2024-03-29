@@ -28,7 +28,7 @@ public enum IReferenceUnboxingProjection {
         public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
             var abiValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                _ = try! HResult.throwIfFailed(reference.pointer.pointee.lpVtbl.pointee.get_Value(
+                _ = try! HResult.throwIfFailed(reference.pointer.pointee.VirtualTable.pointee.get_Value(
                     reference.pointer, abiValuePointer))
             }
             return Projection.toSwift(consuming: &abiValue)

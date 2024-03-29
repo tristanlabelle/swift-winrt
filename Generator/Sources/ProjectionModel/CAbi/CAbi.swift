@@ -81,5 +81,5 @@ public enum CAbi {
     public static var iactivationFactoryName: String { namespacingPrefix + "IActivationFactory" }
 
     public static var virtualTableSuffix: String { "VTable" }
-    public static var virtualTableFieldName: String { "lpVtbl" }
+    public static var virtualTableFieldName: String { "VirtualTable" }
 }

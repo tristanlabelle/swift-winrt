@@ -6,7 +6,7 @@
 
 // IAgileObject
 typedef struct SWRT_IAgileObject {
-    struct SWRT_IAgileObjectVTable* lpVtbl;
+    struct SWRT_IAgileObjectVTable* VirtualTable;
 } SWRT_IAgileObject;
 
 struct SWRT_IAgileObjectVTable {
@@ -20,7 +20,7 @@ typedef struct SWRT_IStream SWRT_IStream;
 
 // IMarshal
 typedef struct SWRT_IMarshal {
-    struct SWRT_IMarshal* lpVtbl;
+    struct SWRT_IMarshal* VirtualTable;
 } SWRT_IMarshal;
 
 struct SWRT_IMarshalVTable {

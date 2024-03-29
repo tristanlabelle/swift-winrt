@@ -52,31 +52,31 @@ extension WindowsRuntime_ABI.SWRT_IErrorInfo: /* @retroactive */ COMIUnknownStru
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IErrorInfo {
     public func getGuid() throws -> Foundation.UUID {
         var value = GUIDProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetGUID(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetGUID(this, &value))
         return GUIDProjection.toSwift(value)
     }
 
     public func getSource() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetSource(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetSource(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getDescription() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetDescription(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetDescription(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpFile() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetHelpFile(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetHelpFile(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpContext() throws ->  UInt32 {
         var value = UInt32()
-        try HResult.throwIfFailed(this.pointee.lpVtbl.pointee.GetHelpContext(this, &value))
+        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetHelpContext(this, &value))
         return value
     }
 }

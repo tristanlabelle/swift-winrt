@@ -43,14 +43,14 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFacto
     // Activation factory methods are special-cased to return the pointer.
     public func activateInstance() throws -> IInspectablePointer? {
         var instance = IInspectableProjection.abiDefaultValue
-        try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.ActivateInstance(this, &instance))
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.ActivateInstance(this, &instance))
         return instance
     }
 
     // TODO: Move elsewhere to keep COMInterop only for bridging.
     public func activateInstance<Projection: WinRTProjection & COMProjection>(projection: Projection.Type) throws -> Projection.COMPointer {
         var inspectable = IInspectableProjection.abiDefaultValue
-        try WinRTError.throwIfFailed(this.pointee.lpVtbl.pointee.ActivateInstance(this, &inspectable))
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.ActivateInstance(this, &inspectable))
         defer { IInspectableProjection.release(&inspectable) }
         guard let inspectable else { throw COM.HResult.Error.noInterface }
         return try COMInterop<IInspectableProjection.COMInterface>(inspectable)

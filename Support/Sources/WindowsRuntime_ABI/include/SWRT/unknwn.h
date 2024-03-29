@@ -5,7 +5,7 @@
 
 // IUnknown
 typedef struct SWRT_IUnknown {
-    struct SWRT_IUnknownVTable* lpVtbl;
+    struct SWRT_IUnknownVTable* VirtualTable;
 } SWRT_IUnknown;
 
 struct SWRT_IUnknownVTable {

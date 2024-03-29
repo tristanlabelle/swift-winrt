@@ -3,7 +3,7 @@
 #include "SWRT/inspectable.h"
 
 typedef struct SWRT_IWeakReference {
-    struct SWRT_IWeakReferenceVTable* lpVtbl;
+    struct SWRT_IWeakReferenceVTable* VirtualTable;
 } SWRT_IWeakReference;
 
 struct SWRT_IWeakReferenceVTable {
@@ -14,7 +14,7 @@ struct SWRT_IWeakReferenceVTable {
 };
 
 typedef struct SWRT_IWeakReferenceSource {
-    struct SWRT_IWeakReferenceSourceVTable* lpVtbl;
+    struct SWRT_IWeakReferenceSourceVTable* VirtualTable;
 } SWRT_IWeakReferenceSource;
 
 struct SWRT_IWeakReferenceSourceVTable {
