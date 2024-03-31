@@ -59,7 +59,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
             defer { if !_success, let capabilitySid { BStrProjection.release(&capabilitySid.pointee) } }
             _success = true
         } },
-        GetReference: { this, reference in _getter(this, reference) { try BStrProjection.toABI($0.reference) } })
+        GetReference: { this, reference in _implement(this) { try _set(reference, BStrProjection.toABI($0.reference)) } })
 }
 
 #if swift(>=5.10)

@@ -15,6 +15,10 @@ SWRT_HResult SWRT_RoGetMatchingRestrictedErrorInfo(SWRT_HResult hrIn, SWRT_IRest
     return (SWRT_HResult)RoGetMatchingRestrictedErrorInfo((HRESULT)hrIn, (IRestrictedErrorInfo**)ppRestrictedErrorInfo);
 }
 
+bool SWRT_RoOriginateError(SWRT_HResult error, SWRT_HString message) {
+    return RoOriginateError((HRESULT)error, (HSTRING)message);
+}
+
 bool SWRT_RoOriginateErrorW(SWRT_HResult error, uint32_t cchMax, const char16_t* message) {
     return RoOriginateErrorW((HRESULT)error, (UINT)cchMax, (PCWSTR)message);
 }

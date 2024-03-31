@@ -30,7 +30,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },
-        Buffer: { this, value in _getter(this, value) { try $0.buffer } })
+        Buffer: { this, value in _implement(this) { try _set(value, $0.buffer) } })
 }
 
 #if swift(>=5.10)

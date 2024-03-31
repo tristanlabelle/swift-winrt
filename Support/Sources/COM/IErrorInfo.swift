@@ -38,11 +38,11 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },
-        GetGUID: { this, pguid in _getter(this, pguid) { try GUIDProjection.toABI($0.guid) } },
-        GetSource: { this, source in _getter(this, source) { try BStrProjection.toABI($0.source) } },
-        GetDescription: { this, description in _getter(this, description) { try BStrProjection.toABI($0.description) } },
-        GetHelpFile: { this, helpFile in _getter(this, helpFile) { try BStrProjection.toABI($0.helpFile) } },
-        GetHelpContext: { this, helpContext in _getter(this, helpContext) { try $0.helpContext } })
+        GetGUID: { this, pguid in _implement(this) { try _set(pguid, GUIDProjection.toABI($0.guid)) } },
+        GetSource: { this, source in _implement(this) { try _set(source, BStrProjection.toABI($0.source)) } },
+        GetDescription: { this, description in _implement(this) { try _set(description, BStrProjection.toABI($0.description)) } },
+        GetHelpFile: { this, helpFile in _implement(this) { try _set(helpFile, BStrProjection.toABI($0.helpFile)) } },
+        GetHelpContext: { this, helpContext in _implement(this) { try _set(helpContext, $0.helpContext) } })
 }
 
 extension WindowsRuntime_ABI.SWRT_IErrorInfo: /* @retroactive */ COMIUnknownStruct {

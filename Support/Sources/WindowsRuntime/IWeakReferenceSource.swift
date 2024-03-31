@@ -31,7 +31,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },
-        GetWeakReference: { this, weakReference in _getter(this, weakReference) { try IWeakReferenceProjection.toABI($0.getWeakReference()) } })
+        GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceProjection.toABI($0.getWeakReference())) } })
 }
 
 #if swift(>=5.10)
