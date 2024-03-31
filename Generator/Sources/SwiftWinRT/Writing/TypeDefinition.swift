@@ -20,6 +20,13 @@ internal func writeTypeDefinition(_ typeDefinition: TypeDefinition, projection: 
 }
 
 fileprivate func writeEnumDefinition(_ enumDefinition: EnumDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+    if SupportModules.WinRT.getBuiltInTypeKind(enumDefinition) != nil {
+        // Defined in WindowsRuntime, merely reexport it here.
+        let typeName = try projection.toTypeName(enumDefinition)
+        writer.writeImport(exported: true, kind: .struct, module: SupportModules.WinRT.moduleName, symbolName: typeName)
+        return
+    }
+
     // Enums are syntactic sugar for integers in .NET,
     // so we cannot guarantee that the enumerants are exhaustive,
     // therefore we cannot project them to Swift enums

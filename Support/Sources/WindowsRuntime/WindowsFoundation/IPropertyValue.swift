@@ -1,9 +1,17 @@
+import WindowsRuntime_ABI
 import struct Foundation.UUID
 
+/// Represents a value in a property store. You can't implement this interface, see Remarks.
 public typealias WindowsFoundation_IPropertyValue = any WindowsFoundation_IPropertyValueProtocol
+
+/// Represents a value in a property store. You can't implement this interface, see Remarks.
 public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
-    // var type: SWRT_WindowsFoundation_PropertyType { get }
-    // var isNumericScalar: Bool { get }
+    /// Returns the type stored in the property value.
+    func _type() throws -> WindowsFoundation_PropertyType
+
+    /// Gets a value that indicates whether the property value is a scalar value.
+    func _isNumericScalar() throws -> Bool
+
     func getUInt8() throws -> UInt8
     func getInt16() throws -> Int16
     func getUInt16() throws -> UInt16
@@ -17,33 +25,36 @@ public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
     func getBoolean() throws -> Bool
     func getString() throws -> String
     func getGuid() throws -> UUID
-    // func getDateTime() throws -> WindowsFoundation_DateTime
-    // func getTimeSpan() throws -> WindowsFoundation_TimeSpan
-    // func getPoint() throws -> WindowsFoundation_Point
-    // func getSize() throws -> WindowsFoundation_Size
-    // func getRect() throws -> WindowsFoundation_Rect
-    func getUInt8Array() throws -> [UInt8]
-    func getInt16Array() throws -> [Int16]
-    func getUInt16Array() throws -> [UInt16]
-    func getInt32Array() throws -> [Int32]
-    func getUInt32Array() throws -> [UInt32]
-    func getInt64Array() throws -> [Int64]
-    func getUInt64Array() throws -> [UInt64]
-    func getSingleArray() throws -> [Float]
-    func getDoubleArray() throws -> [Double]
-    func getChar16Array() throws -> [Char16]
-    func getBooleanArray() throws -> [Bool]
-    func getStringArray() throws -> [String]
-    func getInspectableArray() throws -> [IInspectable]
-    func getGuidArray() throws -> [UUID]
-    // func getDateTimeArray() throws -> [WindowsFoundation_DateTime]
-    // func getTimeSpanArray() throws -> [WindowsFoundation_TimeSpan]
-    // func getPointArray() throws -> [WindowsFoundation_Point]
-    // func getSizeArray() throws -> [WindowsFoundation_Size]
-    // func getRectArray() throws -> [WindowsFoundation_Rect]
+    func getDateTime() throws -> WindowsFoundation_DateTime
+    func getTimeSpan() throws -> WindowsFoundation_TimeSpan
+    func getPoint() throws -> WindowsFoundation_Point
+    func getSize() throws -> WindowsFoundation_Size
+    func getRect() throws -> WindowsFoundation_Rect
+    func getUInt8Array(_ value: inout [UInt8]) throws
+    func getInt16Array(_ value: inout [Int16]) throws
+    func getUInt16Array(_ value: inout [UInt16]) throws
+    func getInt32Array(_ value: inout [Int32]) throws
+    func getUInt32Array(_ value: inout [UInt32]) throws
+    func getInt64Array(_ value: inout [Int64]) throws
+    func getUInt64Array(_ value: inout [UInt64]) throws
+    func getSingleArray(_ value: inout [Float]) throws
+    func getDoubleArray(_ value: inout [Double]) throws
+    func getChar16Array(_ value: inout [Char16]) throws
+    func getBooleanArray(_ value: inout [Bool]) throws
+    func getStringArray(_ value: inout [String]) throws
+    func getInspectableArray(_ value: inout [IInspectable?]) throws
+    func getGuidArray(_ value: inout [UUID]) throws
+    func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws
+    func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws
+    func getPointArray(_ value: inout [WindowsFoundation_Point]) throws
+    func getSizeArray(_ value: inout [WindowsFoundation_Size]) throws
+    func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws
 }
 
 extension WindowsFoundation_IPropertyValueProtocol {
+    public var type: WindowsFoundation_PropertyType { try! _type() }
+    public var isNumericScalar: Bool { try! _isNumericScalar() }
+
     public func getUInt8() throws -> UInt8 { throw HResult.Error.notImpl }
     public func getInt16() throws -> Int16 { throw HResult.Error.notImpl }
     public func getUInt16() throws -> UInt16 { throw HResult.Error.notImpl }
@@ -57,18 +68,48 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getBoolean() throws -> Bool { throw HResult.Error.notImpl }
     public func getString() throws -> String { throw HResult.Error.notImpl }
     public func getGuid() throws -> UUID { throw HResult.Error.notImpl }
-    public func getUInt8Array() throws -> [UInt8] { throw HResult.Error.notImpl }
-    public func getInt16Array() throws -> [Int16] { throw HResult.Error.notImpl }
-    public func getUInt16Array() throws -> [UInt16] { throw HResult.Error.notImpl }
-    public func getInt32Array() throws -> [Int32] { throw HResult.Error.notImpl }
-    public func getUInt32Array() throws -> [UInt32] { throw HResult.Error.notImpl }
-    public func getInt64Array() throws -> [Int64] { throw HResult.Error.notImpl }
-    public func getUInt64Array() throws -> [UInt64] { throw HResult.Error.notImpl }
-    public func getSingleArray() throws -> [Float] { throw HResult.Error.notImpl }
-    public func getDoubleArray() throws -> [Double] { throw HResult.Error.notImpl }
-    public func getChar16Array() throws -> [Char16] { throw HResult.Error.notImpl }
-    public func getBooleanArray() throws -> [Bool] { throw HResult.Error.notImpl }
-    public func getStringArray() throws -> [String] { throw HResult.Error.notImpl }
-    public func getInspectableArray() throws -> [IInspectable] { throw HResult.Error.notImpl }
-    public func getGuidArray() throws -> [UUID] { throw HResult.Error.notImpl }
+    public func getDateTime() throws -> WindowsFoundation_DateTime { throw HResult.Error.notImpl }
+    public func getTimeSpan() throws -> WindowsFoundation_TimeSpan { throw HResult.Error.notImpl }
+    public func getPoint() throws -> WindowsFoundation_Point { throw HResult.Error.notImpl }
+    public func getSize() throws -> WindowsFoundation_Size { throw HResult.Error.notImpl }
+    public func getRect() throws -> WindowsFoundation_Rect { throw HResult.Error.notImpl }
+    public func getUInt8Array(_ value: inout [UInt8]) throws { throw HResult.Error.notImpl }
+    public func getInt16Array(_ value: inout [Int16]) throws { throw HResult.Error.notImpl }
+    public func getUInt16Array(_ value: inout [UInt16]) throws { throw HResult.Error.notImpl }
+    public func getInt32Array(_ value: inout [Int32]) throws { throw HResult.Error.notImpl }
+    public func getUInt32Array(_ value: inout [UInt32]) throws { throw HResult.Error.notImpl }
+    public func getInt64Array(_ value: inout [Int64]) throws { throw HResult.Error.notImpl }
+    public func getUInt64Array(_ value: inout [UInt64]) throws { throw HResult.Error.notImpl }
+    public func getSingleArray(_ value: inout [Float]) throws { throw HResult.Error.notImpl }
+    public func getDoubleArray(_ value: inout [Double]) throws { throw HResult.Error.notImpl }
+    public func getChar16Array(_ value: inout [Char16]) throws { throw HResult.Error.notImpl }
+    public func getBooleanArray(_ value: inout [Bool]) throws { throw HResult.Error.notImpl }
+    public func getStringArray(_ value: inout [String]) throws { throw HResult.Error.notImpl }
+    public func getInspectableArray(_ value: inout [IInspectable?]) throws { throw HResult.Error.notImpl }
+    public func getGuidArray(_ value: inout [UUID]) throws { throw HResult.Error.notImpl }
+    public func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws { throw HResult.Error.notImpl }
+    public func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws { throw HResult.Error.notImpl }
+    public func getPointArray(_ value: inout [WindowsFoundation_Point]) throws { throw HResult.Error.notImpl }
+    public func getSizeArray(_ value: inout [WindowsFoundation_Size]) throws { throw HResult.Error.notImpl }
+    public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
+}
+
+#if swift(>=5.10)
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: @retroactive WindowsRuntime.COMIInspectableStruct {}
+#else
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}
+#endif
+
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
+    public static let iid = COMInterfaceID(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
+}
+
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
+    internal func get_Type() throws -> WindowsFoundation_PropertyType {
+        fatalError("Not implemented")
+    }
+
+    internal func get_IsNumericScalar() throws -> Bool {
+        fatalError("Not implemented")
+    }
 }

@@ -91,14 +91,44 @@ extension SupportModules.WinRT {
     public static var winRTClassLoader: SwiftType { .chain(moduleName, "WinRTClassLoader") }
 }
 
+public enum BuiltInTypeKind {
+    /// Indicates that the support module has special support for this type,
+    /// and no definition or projection should be generated.
+    case special
+    /// Indicates that the support module exposes a definition for this type, but no projection.
+    case definitionOnly
+    /// Indicates that the support module exposes both a definition and a projection for this type.
+    case definitionAndProjection
+}
+
 extension SupportModules.WinRT {
-    public static func hasBuiltInProjection(_ typeDefinition: TypeDefinition) -> Bool {
-        if typeDefinition.namespace == "Windows.Foundation" {
-            switch typeDefinition.name {
-                case "EventRegistrationToken", "HResult", "IReference`1": return true
-                default: return false
-            }
+    private enum BuiltInTypes {
+        internal static let windowsFoundation: Dictionary<String, BuiltInTypeKind> = [
+            "DateTime": .definitionOnly,
+            "EventRegistrationToken": .special,
+            "HResult": .special,
+            "IPropertyValue": .definitionOnly,
+            "IReference`1": .definitionAndProjection,
+            "IStringable": .definitionAndProjection,
+            "Point": .definitionOnly,
+            "PropertyType": .definitionOnly,
+            "Rect": .definitionOnly,
+            "Size": .definitionOnly,
+            "TimeSpan": .definitionOnly
+        ]
+        internal static let windowsFoundationCollections = [
+            "IIterable`1",
+            "IIterator`1"
+        ]
+    }
+
+    public static func getBuiltInTypeKind(_ typeDefinition: TypeDefinition) -> BuiltInTypeKind? {
+        switch typeDefinition.namespace {
+            case "Windows.Foundation":
+                return BuiltInTypes.windowsFoundation[typeDefinition.name]
+            case "Windows.Foundation.Collections":
+                return BuiltInTypes.windowsFoundationCollections.contains(typeDefinition.name) ? .definitionOnly : nil
+            default: return nil
         }
-        return false
     }
 }

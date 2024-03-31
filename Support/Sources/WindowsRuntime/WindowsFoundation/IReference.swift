@@ -1,20 +1,24 @@
 import WindowsRuntime_ABI
 import struct Foundation.UUID
-import class Foundation.NSLock
 
+/// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public typealias WindowsFoundation_IReference<T> = any WindowsFoundation_IReferenceProtocol<T>
 
-/// Allows nongeneric uses of the protocol (see virtual table).
+/// Allows nongeneric uses of the IReference protocol.
 public protocol WindowsFoundation_IReferenceProtocolABI {
     func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws
 }
 
+/// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public protocol WindowsFoundation_IReferenceProtocol<T>: WindowsFoundation_IPropertyValueProtocol, WindowsFoundation_IReferenceProtocolABI {
     associatedtype T
+
+    /// Gets the type that is represented as an IPropertyValue.
     func _value() throws -> T
 }
 
 extension WindowsFoundation_IReferenceProtocol {
+    /// Gets the type that is represented as an IPropertyValue.
     var value: T { try! _value() }
 }
 
@@ -39,6 +43,24 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProj
             : WinRTImport<WindowsFoundation_IReferenceProjection<TProjection>>,
             WindowsFoundation_IReferenceProtocol {
         public typealias T = TProjection.SwiftValue
+
+        private var _lazyIPropertyValue: COMLazyReference<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue> = .init()
+        public var _ipropertyValue: COMInterop<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue> {
+            get throws {
+                try _lazyIPropertyValue.getInterop {
+                    try _queryInterface(WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.iid)
+                        .reinterpret(to: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.self)
+                }
+            }
+        }
+
+        public func _type() throws -> WindowsFoundation_PropertyType {
+            try _ipropertyValue.get_Type()
+        }
+
+        public func _isNumericScalar() throws -> Bool {
+            try _ipropertyValue.get_IsNumericScalar()
+        }
 
         public func _value() throws -> T {
             var abiValue = TProjection.abiDefaultValue
@@ -73,7 +95,9 @@ fileprivate var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferen
     })
 
 #if swift(>=5.10)
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: @retroactive COMIUnknownStruct {}
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: @retroactive WindowsRuntime.COMIInspectableStruct {}
+#else
+extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: WindowsRuntime.COMIInspectableStruct {}
 #endif
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference {

@@ -1,7 +1,11 @@
 import WindowsRuntime_ABI
 
+/// Provides a way to represent the current object as a string.
 public typealias WindowsFoundation_IStringable = any WindowsFoundation_IStringableProtocol
+
+/// Provides a way to represent the current object as a string.
 public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
+    /// Gets a string that represents the current object.
     func toString() throws -> String
 }
 

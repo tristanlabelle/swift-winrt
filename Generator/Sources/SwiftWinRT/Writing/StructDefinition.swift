@@ -4,22 +4,21 @@ import ProjectionModel
 import WindowsMetadata
 
 internal func writeStructDefinition(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
-    try writer.writeStruct(
-            documentation: projection.getDocumentationComment(structDefinition),
-            visibility: SwiftProjection.toVisibility(structDefinition.visibility),
-            name: try projection.toTypeName(structDefinition),
-            typeParams: structDefinition.genericParams.map { $0.name },
-            protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
-        try writeStructFields(structDefinition, projection: projection, to: writer)
-        try writeDefaultInitializer(structDefinition, projection: projection, to: writer)
-        try writeFieldwiseInitializer(structDefinition, projection: projection, to: writer)
-    }
-
-    if structDefinition.fullName == "Windows.Foundation.DateTime" {
-        try writeDateTimeExtensions(typeName: try projection.toTypeName(structDefinition), to: writer)
-    }
-    else if structDefinition.fullName == "Windows.Foundation.TimeSpan" {
-        try writeTimeSpanExtensions(typeName: try projection.toTypeName(structDefinition), to: writer)
+    if SupportModules.WinRT.getBuiltInTypeKind(structDefinition) != nil {
+        // Defined in WindowsRuntime, merely reexport it here.
+        let typeName = try projection.toTypeName(structDefinition)
+        writer.writeImport(exported: true, kind: .struct, module: SupportModules.WinRT.moduleName, symbolName: typeName)
+    } else {
+        try writer.writeStruct(
+                documentation: projection.getDocumentationComment(structDefinition),
+                visibility: SwiftProjection.toVisibility(structDefinition.visibility),
+                name: try projection.toTypeName(structDefinition),
+                typeParams: structDefinition.genericParams.map { $0.name },
+                protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
+            try writeStructFields(structDefinition, projection: projection, to: writer)
+            try writeDefaultInitializer(structDefinition, projection: projection, to: writer)
+            try writeFieldwiseInitializer(structDefinition, projection: projection, to: writer)
+        }
     }
 }
 
@@ -75,49 +74,5 @@ fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition,
         for param in params {
             $0.output.write("self.\(param.name) = \(param.name)", endLine: true)
         }
-    }
-}
-
-fileprivate func writeDateTimeExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
-    writer.writeImport(module: "Foundation", struct: "Date")
-
-    writer.writeExtension(type: .identifier(typeName)) { writer in
-        // public init(foundationDate: Date)
-        writer.writeInit(visibility: .public,
-                params: [.init(name: "foundationDate", type: .chain("Foundation", "Date"))]) { writer in
-            // TimeInterval has limited precision to work with (it is a Double), so explicitly work at millisecond precision
-            writer.writeStatement("self.init(universalTime: (Int64(foundationDate.timeIntervalSince1970 * 1000) + 11_644_473_600_000) * 10_000)")
-        }
-
-        // public var foundationDate: Date
-        writer.writeComputedProperty(visibility: .public, name: "foundationDate", type: .chain("Foundation", "Date"),
-            get: { writer in
-                // TimeInterval has limited precision to work with (it is a Double), so explicitly work at millisecond precision
-                writer.writeStatement("Date(timeIntervalSince1970: Double(universalTime / 10_000) / 1000 - 11_644_473_600)")
-            },
-            set: { writer in
-                writer.writeStatement("self = Self(foundationDate: newValue)")
-            })
-    }
-}
-
-fileprivate func writeTimeSpanExtensions(typeName: String, to writer: SwiftSourceFileWriter) throws {
-    writer.writeImport(module: "Foundation", struct: "TimeInterval")
-
-    writer.writeExtension(type: .identifier(typeName)) { writer in
-        // public init(timeInterval: TimeInterval)
-        writer.writeInit(visibility: .public,
-                params: [.init(name: "timeInterval", type: .chain("Foundation", "TimeInterval"))]) { writer in
-            writer.writeStatement("self.init(duration: Int64(timeInterval * 10_000_000))")
-        }
-
-        // public var timeInterval: TimeInterval
-        writer.writeComputedProperty(visibility: .public, name: "timeInterval", type: .chain("Foundation", "TimeInterval"),
-            get: { writer in
-                writer.writeStatement("Double(duration) / 10_000_000")
-            },
-            set: { writer in
-                writer.writeStatement("self = Self(timeInterval: newValue)")
-            })
     }
 }

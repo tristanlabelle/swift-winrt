@@ -15,19 +15,20 @@ import WindowsMetadata
 //
 //     var foo: IFoo? = getFoo()
 internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
-    try writeProtocolTypeAlias(interface, projection: projection, to: writer)
-    try writeProtocol(interface, projection: projection, to: writer)
+    if SupportModules.WinRT.getBuiltInTypeKind(interface) != nil {
+        // Defined in WindowsRuntime, merely reexport it here.
+        let protocolName = try projection.toProtocolName(interface)
+        writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: protocolName)
 
-    let typeName = try projection.toProtocolName(interface)
-    switch interface.name {
-        case "IAsyncAction", "IAsyncActionWithProgress`1":
-            try writeIAsyncExtensions(protocolName: typeName, resultType: nil, to: writer)
-        case "IAsyncOperation`1", "IAsyncOperationWithProgress`2":
-            try writeIAsyncExtensions(
-                protocolName: typeName,
-                resultType: .identifier(name: String(interface.genericParams[0].name)),
-                to: writer)
-        default: break
+        // Import the existential typealias as a protocol to work around compiler bug https://github.com/apple/swift/issues/72724:
+        // "'IFoo' was imported as 'typealias', but is a protocol"
+        let typeName = try projection.toTypeName(interface)
+        writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: typeName)
+    }
+    else {
+        try writeProtocolTypeAlias(interface, projection: projection, to: writer)
+        try writeProtocol(interface, projection: projection, to: writer)
+        try writeInterfaceExtensions(interface, projection: projection, to: writer)
     }
 }
 
@@ -135,22 +136,4 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
             protocolModifier: .existential,
             name: try projection.toProtocolName(interfaceDefinition),
             genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
-}
-
-fileprivate func writeIAsyncExtensions(protocolName: String, resultType: SwiftType?, to writer: SwiftSourceFileWriter) throws {
-    writer.writeExtension(type: .identifier(protocolName)) { writer in
-        // public get() async throws
-        writer.writeFunc(visibility: .public, name: "get", async: true, throws: true, returnType: resultType) { writer in
-            writer.output.writeIndentedBlock(header: "if try _status() == .started {", footer: "}") {
-                // We can't await if the completed handler is already set
-                writer.writeStatement("guard try \(SupportModules.COM.nullResult).catch(_completed()) == nil else { throw \(SupportModules.COM.hresult).Error.illegalMethodCall }")
-                writer.writeStatement("let awaiter = WindowsRuntime.AsyncAwaiter()")
-                writer.writeStatement("try _completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })")
-                writer.writeStatement("await awaiter.wait()")
-            }
-
-            // Handles exceptions and cancelation
-            writer.writeStatement("return try getResults()")
-        }
-    }
 }

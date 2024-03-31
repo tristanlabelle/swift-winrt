@@ -5,18 +5,22 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
         self.output = IndentedTextOutputStream(inner: output, indent: indent)
     }
 
-    public func writeImport(module: String) {
+    public func writeImport(exported: Bool = false, module: String) {
         output.beginLine(grouping: .withName("import"))
+        if exported { output.write("@_exported ") }
         output.write("import ")
         output.write(module, endLine: true)
     }
 
-    public func writeImport(module: String, struct: String) {
+    public func writeImport(exported: Bool = false, kind: SwiftImportKind, module: String, symbolName: String) {
         output.beginLine(grouping: .withName("import"))
-        output.write("import struct ")
+        if exported { output.write("@_exported ") }
+        output.write("import ")
+        output.write(String(describing: kind))
+        output.write(" ")
         output.write(module)
         output.write(".")
-        output.write(`struct`, endLine: true)
+        output.write(symbolName, endLine: true)
     }
 
     public func writeExtension(

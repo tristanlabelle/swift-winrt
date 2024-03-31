@@ -28,7 +28,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
             var typeDefinitions = Array(typeDefinitions)
             try typeDefinitions.removeAll {
-                try !$0.isPublic || SupportModules.WinRT.hasBuiltInProjection($0) || $0.hasAttribute(ApiContractAttribute.self)
+                try !$0.isPublic || SupportModules.WinRT.getBuiltInTypeKind($0) == .special || $0.hasAttribute(ApiContractAttribute.self)
             }
             typeDefinitions.sort { $0.fullName < $1.fullName }
 
