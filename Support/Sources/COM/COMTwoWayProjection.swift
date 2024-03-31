@@ -17,13 +17,10 @@ extension COMTwoWayProjection {
         return HResult.catchValue { try body(implementation) }
     }
 
-    public static func _getter<Value>(
-            _ this: COMPointer?,
-            _ value: UnsafeMutablePointer<Value>?,
-            _ code: (SwiftObject) throws -> Value) -> WindowsRuntime_ABI.SWRT_HResult {
-        _implement(this) {
-            guard let value else { throw HResult.Error.pointer }
-            value.pointee = try code($0)
-        }
+    public static func _set<Value>(
+            _ pointer: UnsafeMutablePointer<Value>?,
+            _ value: @autoclosure () throws -> Value) throws {
+        guard let pointer else { throw HResult.Error.pointer }
+        pointer.pointee = try value()
     }
 }

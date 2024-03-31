@@ -46,15 +46,7 @@ fileprivate func writeVirtualTable(
                 output.write(abiParamName)
             }
 
-            output.write(" in ")
-            if swiftType == abiType {
-                output.write("_implement(this)")
-            }
-            else {
-                let implementationType = try projection.toTypeName(swiftType.definition)
-                output.write("\(SupportModules.COM.implementABIMethodFunc)(this, type: \(implementationType).self)")
-            }
-
+            output.write(" in _implement(this)")
             try output.writeIndentedBlock(header: " { this in") {
                 try writeVirtualTableFunc(
                     params: params, returnParam: returnParam,

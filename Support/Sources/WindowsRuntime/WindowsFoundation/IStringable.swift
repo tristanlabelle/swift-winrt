@@ -39,7 +39,7 @@ public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
         GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
         GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
-        ToString: { this, value in _getter(this, value) { this in try WinRTPrimitiveProjection.String.toABI(this.toString()) } })
+        ToString: { this, value in _implement(this) { try _set(value, WinRTPrimitiveProjection.String.toABI($0.toString())) } })
 }
 
 #if swift(>=5.10)

@@ -23,6 +23,20 @@ public struct WinRTError: COMError, CustomStringConvertible {
         throw error
     }
 
+    public static func catchAndOriginate(_ body: () throws -> Void) -> WindowsRuntime_ABI.SWRT_HResult {
+        do {
+            try body()
+            return HResult.ok.value
+        }
+        catch let error {
+            let hresult = (error as? COMError)?.hresult ?? HResult.fail
+            var message = (try? WinRTPrimitiveProjection.String.toABI(error.localizedDescription)) ?? nil
+            defer { WinRTPrimitiveProjection.String.release(&message) }
+            WindowsRuntime_ABI.SWRT_RoOriginateError(hresult.value, message)
+            return hresult.value
+        }
+    }
+
     public static func getRestrictedErrorInfo() throws -> IRestrictedErrorInfo? {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
         defer { IRestrictedErrorInfoProjection.release(&restrictedErrorInfo) }
