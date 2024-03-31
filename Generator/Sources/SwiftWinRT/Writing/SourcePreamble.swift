@@ -15,5 +15,5 @@ internal func writeModulePreamble(_ module: SwiftProjection.Module, to writer: S
         writer.writeImport(module: referencedModule.name)
     }
 
-    writer.writeImport(module: "Foundation", struct: "UUID")
+    writer.writeImport(kind: .struct, module: "Foundation", symbolName: "UUID")
 }

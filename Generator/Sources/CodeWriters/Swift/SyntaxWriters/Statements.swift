@@ -61,4 +61,34 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
             try body(SwiftStatementWriter(output: output))
         }
     }
+
+    public func writeIf(
+            conditions: [String],
+            then: (_ writer: SwiftStatementWriter) throws -> Void,
+            else: ((_ writer: SwiftStatementWriter) throws -> Void)? = nil) rethrows {
+        precondition(!conditions.isEmpty)
+        output.write("if ")
+        for (index, condition) in conditions.enumerated() {
+            if index > 0 { output.write(", ") }
+            output.write(condition)
+        }
+        output.write(" {", endLine: true)
+        try output.writeIndentedBlock { try then(SwiftStatementWriter(output: output)) }
+        output.endLine()
+        output.write("}")
+        if let `else` {
+            output.write(" else {", endLine: true)
+            try output.writeIndentedBlock { try `else`(SwiftStatementWriter(output: output)) }
+            output.endLine()
+            output.write("}")
+        }
+        output.endLine()
+    }
+
+    public func writeIf(
+            _ condition: String,
+            then: (_ writer: SwiftStatementWriter) throws -> Void,
+            else: ((_ writer: SwiftStatementWriter) throws -> Void)? = nil) rethrows {
+        try writeIf(conditions: [condition], then: then, else: `else`)
+    }
 }

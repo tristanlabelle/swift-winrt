@@ -1,0 +1,10 @@
+namespace WinRTComponent
+{
+    static runtimeclass Collections
+    {
+        static Windows.Foundation.Collections.IIterable<Int32> CreateIterable(Int32[] values);
+        static Windows.Foundation.Collections.IVector<Int32> CreateVector(Int32[] values);
+
+        static Int32[] IterableToArray(Windows.Foundation.Collections.IIterable<Int32> iterable);
+    };
+}

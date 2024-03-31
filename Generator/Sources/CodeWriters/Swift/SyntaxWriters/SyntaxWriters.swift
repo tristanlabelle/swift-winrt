@@ -60,6 +60,7 @@ extension SwiftSyntaxWriter {
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
+        mutating: Bool = false,
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
@@ -71,6 +72,7 @@ extension SwiftSyntaxWriter {
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
+        if `mutating` { output.write("mutating ") }
         output.write("func ")
         SwiftIdentifier.write(name, to: &output)
         writeTypeParams(typeParams)

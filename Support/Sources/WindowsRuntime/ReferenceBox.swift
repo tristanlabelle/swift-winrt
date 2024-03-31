@@ -14,6 +14,10 @@ internal class ReferenceBox<BoxableProjection: WinRTBoxableProjection>
         super.init()
     }
 
+    // IPropertyValue members
+    public func _type() throws -> WindowsFoundation_PropertyType { .otherType }
+    public func _isNumericScalar() throws -> Bool { false }
+
     public func _value() throws -> T { value }
     public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
         pointer.bindMemory(to: BoxableProjection.ABIValue.self, capacity: 1).pointee = try BoxableProjection.toABI(value)

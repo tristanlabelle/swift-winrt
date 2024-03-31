@@ -69,6 +69,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         documentation: SwiftDocumentationComment? = nil,
         isPropertySetter: Bool = false,
         static: Bool = false,
+        mutating: Bool = false,
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
@@ -81,6 +82,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         writeFuncHeader(
             visibility: .implicit,
             static: `static`,
+            mutating: `mutating`,
             name: name,
             typeParams: typeParams,
             params: params,

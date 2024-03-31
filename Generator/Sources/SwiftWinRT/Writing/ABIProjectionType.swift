@@ -14,7 +14,7 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
         for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
             if let classDefinition = typeDefinition as? ClassDefinition, classDefinition.isStatic { continue }
             guard typeDefinition.isPublic,
-                !SupportModules.WinRT.hasBuiltInProjection(typeDefinition),
+                SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .special,
                 try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
 
             writer.writeMarkComment(typeDefinition.fullName)
@@ -25,7 +25,7 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
     let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
         .sorted { $0.key.fullName < $1.key.fullName }
     for (typeDefinition, instantiations) in closedGenericTypesByDefinition {
-        guard !SupportModules.WinRT.hasBuiltInProjection(typeDefinition) else { continue }
+        guard SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .special else { continue }
 
         for genericArgs in instantiations {
             writer.writeMarkComment(try WinRTTypeName.from(type: typeDefinition.bindType(genericArgs: genericArgs)).description)
@@ -36,6 +36,15 @@ internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath pat
 
 /// Writes a type or extension providing the ABIProjection conformance for a given projected WinRT type.
 internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+    if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndProjection {
+        // The support module already defines a projection, just import and reexport it.
+        if typeDefinition.isReferenceType {
+            let projectionTypeName = try projection.toProjectionTypeName(typeDefinition)
+            writer.writeImport(exported: true, kind: .enum, module: SupportModules.WinRT.moduleName, symbolName: projectionTypeName)
+        }
+        return
+    }
+
     if let structDefinition = typeDefinition as? StructDefinition {
         assert(genericArgs == nil)
         try writeStructProjectionExtension(structDefinition, projection: projection, to: writer)

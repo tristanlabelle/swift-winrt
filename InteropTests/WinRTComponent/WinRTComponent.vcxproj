@@ -115,8 +115,8 @@
     <ClInclude Include="Arrays.h">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClInclude>
-    <ClInclude Include="InspectableBoxing.h">
-      <DependentUpon>InspectableBoxing.idl</DependentUpon>
+    <ClInclude Include="Collections.h">
+      <DependentUpon>Collections.idl</DependentUpon>
     </ClInclude>
     <ClInclude Include="DateTimes.h">
       <DependentUpon>DateTimes.idl</DependentUpon>
@@ -129,6 +129,9 @@
     </ClInclude>
     <ClInclude Include="Errors.h">
       <DependentUpon>Errors.idl</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="InspectableBoxing.h">
+      <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClInclude>
     <ClInclude Include="Int32Wrapper.h">
       <DependentUpon>Int32Wrapper.idl</DependentUpon>
@@ -180,8 +183,8 @@
     <ClCompile Include="Arrays.cpp">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClCompile>
-    <ClCompile Include="InspectableBoxing.cpp">
-      <DependentUpon>InspectableBoxing.idl</DependentUpon>
+    <ClCompile Include="Collections.cpp">
+      <DependentUpon>Collections.idl</DependentUpon>
     </ClCompile>
     <ClCompile Include="DateTimes.cpp">
       <DependentUpon>DateTimes.idl</DependentUpon>
@@ -194,6 +197,9 @@
     </ClCompile>
     <ClCompile Include="Errors.cpp">
       <DependentUpon>Errors.idl</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="InspectableBoxing.cpp">
+      <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClCompile>
     <ClCompile Include="Int32Wrapper.cpp">
       <DependentUpon>Int32Wrapper.idl</DependentUpon>
@@ -237,11 +243,12 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="Arrays.idl" />
-    <Midl Include="InspectableBoxing.idl" />
+    <Midl Include="Collections.idl" />
     <Midl Include="DateTimes.idl" />
     <Midl Include="Enums.idl" />
     <Midl Include="Errors.idl" />
     <Midl Include="Events.idl" />
+    <Midl Include="InspectableBoxing.idl" />
     <Midl Include="Int32Wrapper.idl" />
     <Midl Include="ManualAsyncOperation.idl" />
     <Midl Include="MinimalTypes.idl" />
