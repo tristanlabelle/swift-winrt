@@ -19,13 +19,13 @@ open class WinRTExport<Projection: WinRTInterfaceProjection>
             case IWeakReferenceSourceProjection.interfaceID where Self.implementIWeakReferenceSource:
                 let export = createSecondaryExport(
                     projection: IWeakReferenceSourceProjection.self,
-                    implementation: WeakReferenceSource(target: self))
+                    implementation: ExportedWeakReferenceSource(target: self))
                 return .init(addingRef: export.unknownPointer)
             case WindowsFoundation_IStringableProjection.interfaceID where Self.implementIStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
                     let export = createSecondaryExport(
                         projection: WindowsFoundation_IStringableProjection.self,
-                        implementation: Stringable(target: customStringConvertible))
+                        implementation: ExportedStringable(target: customStringConvertible))
                     return .init(addingRef: export.unknownPointer)
                 }
                 break
@@ -68,23 +68,23 @@ fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: CO
     }
 }
 
-fileprivate class Stringable: WinRTExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+fileprivate class ExportedStringable: WinRTExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
     private let target: any CustomStringConvertible
     init(target: any CustomStringConvertible) { self.target = target }
     func toString() throws -> String { target.description }
 }
 
-fileprivate class WeakReference: COMExport<IWeakReferenceProjection>, IWeakReferenceProtocol {
+fileprivate class ExportedWeakReference: COMExport<IWeakReferenceProjection>, IWeakReferenceProtocol {
     weak var target: IInspectable?
     init(target: IInspectable) { self.target = target }
     func resolve() throws -> IInspectable? { target }
 }
 
-fileprivate class WeakReferenceSource: IWeakReferenceSourceProtocol {
+fileprivate class ExportedWeakReferenceSource: IWeakReferenceSourceProtocol {
     public let target: IInspectable
     init(target: IInspectable) { self.target = target }
 
-    func getWeakReference() throws -> IWeakReference { WeakReference(target: target) }
+    func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: target) }
 
     func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         try target._queryInterface(id)
