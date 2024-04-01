@@ -6,7 +6,6 @@ import WindowsRuntime_ABI
 public enum IAgileObjectProjection: COMProjection {
     public typealias SwiftObject = IUnknown // Avoid introducing an interface for IAgileObject since it is a marker interface.
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IAgileObject
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IAgileObjectVTable
 
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
 

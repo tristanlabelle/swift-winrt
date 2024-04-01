@@ -7,12 +7,8 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     associatedtype SwiftObject
     /// The COM interface structure.
     associatedtype COMInterface /* : COMIUnknownStruct */
-    /// The COM interface's virtual table structure.
-    associatedtype COMVirtualTable
     /// A pointer to the COM interface structure.
     typealias COMPointer = UnsafeMutablePointer<COMInterface>
-    /// A pointer to the COM interface's virtual table structure.
-    typealias COMVirtualTablePointer = UnsafePointer<COMVirtualTable>
 
     // Non-nullable overloads
     static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject

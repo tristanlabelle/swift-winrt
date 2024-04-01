@@ -12,11 +12,10 @@ public protocol IInspectableProtocol: IUnknownProtocol {
 public enum IInspectableProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = IInspectable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IInspectableVTable
 
     public static var typeName: String { "IInspectable" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
-    public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
+    public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)
@@ -28,7 +27,7 @@ public enum IInspectableProjection: WinRTInterfaceProjection {
 
     private final class Import: WinRTImport<IInspectableProjection> {}
 
-    private static var virtualTable: COMVirtualTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IInspectableVTable = .init(
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },

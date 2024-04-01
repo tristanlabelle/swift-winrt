@@ -20,7 +20,6 @@ public enum IReferenceUnboxingProjection {
     public enum Of<Projection: WinRTBoxableProjection>: WinRTProjection, COMProjection {
         public typealias SwiftObject = Projection.SwiftValue
         public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
-        public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable
 
         public static var typeName: Swift.String { "Windows.Foundation.IReference`1<\(Projection.typeName)>" }
         public static var interfaceID: COMInterfaceID { Projection.ireferenceID }

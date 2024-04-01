@@ -9,11 +9,10 @@ public protocol IActivationFactoryProtocol: IInspectableProtocol {
 public enum IActivationFactoryProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = IActivationFactory
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_IActivationFactoryVTable
 
     public static var typeName: String { "IActivationFactory" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
-    public static var virtualTablePointer: COMVirtualTablePointer { fatalError("Not implemented: \(#function)") }
+    public static var virtualTablePointer: UnsafeRawPointer { fatalError("Not implemented: \(#function)") }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)
