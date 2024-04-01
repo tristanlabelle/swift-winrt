@@ -50,3 +50,9 @@ extension WinRTReferenceTypeProjection {
         }
     }
 }
+
+extension WinRTDelegateProjection {
+    public static func box(_ value: SwiftValue) throws -> IInspectable {
+        ReferenceBox<Self>(value)
+    }
+}

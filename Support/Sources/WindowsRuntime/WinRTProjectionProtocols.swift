@@ -33,11 +33,5 @@ public protocol WinRTInterfaceProjection: WinRTReferenceTypeProjection, COMTwoWa
 /// Convenience protocol for projections of WinRT delegates into Swift.
 public protocol WinRTDelegateProjection: WinRTReferenceTypeProjection, WinRTBoxableProjection, COMTwoWayProjection {}
 
-extension WinRTDelegateProjection {
-    public static func box(_ value: SwiftValue) throws -> IInspectable {
-        ReferenceBox<Self>(value)
-    }
-}
-
 /// Convenience protocol for projections of WinRT classes into Swift.
 public protocol WinRTClassProjection: WinRTReferenceTypeProjection {}
