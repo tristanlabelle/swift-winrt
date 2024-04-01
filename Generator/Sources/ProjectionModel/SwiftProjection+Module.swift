@@ -7,7 +7,7 @@ extension SwiftProjection {
         public unowned let projection: SwiftProjection
         public let name: String
         public let flattenNamespaces: Bool
-        public private(set) var typeDefinitionsByNamespace = OrderedDictionary<String, Set<TypeDefinition>>()
+        private var _typeDefinitions = OrderedSet<TypeDefinition>()
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
@@ -17,21 +17,26 @@ extension SwiftProjection {
             self.flattenNamespaces = flattenNamespaces
         }
 
+        public var typeDefinitions: OrderedSet<TypeDefinition> {
+            _typeDefinitions.sort { $0.fullName < $1.fullName }
+            return _typeDefinitions
+        }
+
         public var references: [Module] { weakReferences.map { $0.target } }
 
-        public var isEmpty: Bool { typeDefinitionsByNamespace.isEmpty }
+        public var isEmpty: Bool { _typeDefinitions.isEmpty }
 
         public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
             projection.assembliesToModules[assembly] = AssemblyEntry(module: self, documentation: documentation)
         }
 
         public func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
-            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type)]?.contains(type) ?? false
+            _typeDefinitions.contains(type)
         }
 
         public func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.getModule(type.assembly) === self)
-            typeDefinitionsByNamespace[Module.getNamespaceOrEmpty(type), default: Set()].insert(type)
+            _typeDefinitions.append(type)
         }
 
         public func addClosedGenericType(_ type: BoundType) {

@@ -10,11 +10,9 @@ internal func writeExeManifestFile(projectionConfig: ProjectionConfig, projectio
         guard let moduleConfig = projectionConfig.modules[module.name],
             let fileNameInManifest = moduleConfig.fileNameInManifest else { continue }
 
-        for typeDefinitions in module.typeDefinitionsByNamespace.values {
-            for typeDefinition in typeDefinitions {
-                guard typeDefinition is ClassDefinition else { continue }
-                activatableClassesPerFileName[fileNameInManifest, default: []].append(typeDefinition.fullName)
-            }
+        for typeDefinition in module.typeDefinitions {
+            guard typeDefinition is ClassDefinition else { continue }
+            activatableClassesPerFileName[fileNameInManifest, default: []].append(typeDefinition.fullName)
         }
     }
 

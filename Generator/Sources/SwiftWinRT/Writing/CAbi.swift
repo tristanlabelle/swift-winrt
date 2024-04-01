@@ -38,11 +38,9 @@ internal func writeCAbiFile(module: SwiftProjection.Module, toPath path: String)
 
 fileprivate func getSortedEnums(module: SwiftProjection.Module) throws -> [EnumDefinition] {
     var enumDefinitions = [EnumDefinition]()
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions {
-            guard let enumDefinition = typeDefinition as? EnumDefinition else { continue }
-            enumDefinitions.append(enumDefinition)
-        }
+    for typeDefinition in module.typeDefinitions {
+        guard let enumDefinition = typeDefinition as? EnumDefinition else { continue }
+        enumDefinitions.append(enumDefinition)
     }
 
     enumDefinitions.sort { $0.fullName < $1.fullName }
@@ -53,12 +51,9 @@ fileprivate func getSortedEnums(module: SwiftProjection.Module) throws -> [EnumD
 fileprivate func getSortedStructs(module: SwiftProjection.Module) throws -> [StructDefinition] {
     // Create an initial deterministic ordering of structs
     var sortedByFullName = [StructDefinition]()
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions {
-            if let structDefinition = typeDefinition as? StructDefinition {
-                sortedByFullName.append(structDefinition)
-            }
-        }
+    for typeDefinition in module.typeDefinitions {
+        guard let structDefinition = typeDefinition as? StructDefinition else { continue }
+        sortedByFullName.append(structDefinition)
     }
 
     sortedByFullName.sort { $0.fullName < $1.fullName }
@@ -90,16 +85,14 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
     var interfacesByMangledName = OrderedDictionary<String, BoundType>()
 
     // Add nongeneric type definitions
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions {
-            guard typeDefinition.isReferenceType else { continue }
-            guard !(typeDefinition is ClassDefinition) else { continue }
-            guard typeDefinition.genericArity == 0 else { continue }
+    for typeDefinition in module.typeDefinitions {
+        guard typeDefinition.isReferenceType else { continue }
+        guard !(typeDefinition is ClassDefinition) else { continue }
+        guard typeDefinition.genericArity == 0 else { continue }
 
-            let type = typeDefinition.bindType()
-            let mangledName = try CAbi.mangleName(type: type)
-            interfacesByMangledName[mangledName] = type
-        }
+        let type = typeDefinition.bindType()
+        let mangledName = try CAbi.mangleName(type: type)
+        interfacesByMangledName[mangledName] = type
     }
 
     // Add closed generic type instanciations
