@@ -2,7 +2,7 @@ import WindowsRuntime_ABI
 
 /// Protocol for strongly-typed two-way COM interface projections into and from Swift.
 public protocol COMTwoWayProjection: COMProjection {
-    static var virtualTablePointer: COMVirtualTablePointer { get }
+    static var virtualTablePointer: UnsafeRawPointer { get }
 }
 
 /// Helpers for implementing virtual tables

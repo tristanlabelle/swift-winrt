@@ -336,14 +336,14 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
             type, visibility: .private, name: importClassName, projectionName: projectionName,
             projection: projection, to: writer)
 
-        // public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
-        // private static var virtualTable = COMVirtualTable(...)
+        // public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
         writer.writeComputedProperty(
                 visibility: .public, static: true, name: "virtualTablePointer",
-                type: .identifier("COMVirtualTablePointer")) { writer in
-            writer.writeStatement("withUnsafePointer(to: &virtualTable) { $0 }")
+                type: .identifier("UnsafeRawPointer")) { writer in
+            writer.writeStatement(".init(withUnsafePointer(to: &virtualTable) { $0 })")
         }
 
+        // private static var virtualTable = SWRT_IFooVTable(...)
         try writeVirtualTableProperty(name: "virtualTable", abiType: type, swiftType: type, projection: projection, to: writer)
     }
 }
@@ -365,8 +365,6 @@ internal func writeReferenceTypeProjectionConformance(
         target: try projection.toType(apiType.asNode).unwrapOptional())
     writer.writeTypeAlias(visibility: .public, name: "COMInterface",
         target: try projection.toABIType(abiType))
-    writer.writeTypeAlias(visibility: .public, name: "COMVirtualTable",
-        target: try projection.toABIVirtualTableType(abiType))
 
     // public static var typeName: String { "..." }
     try writeTypeNameProperty(type: apiType, to: writer)

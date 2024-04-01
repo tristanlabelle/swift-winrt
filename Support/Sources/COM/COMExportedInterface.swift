@@ -11,21 +11,18 @@ public struct COMExportedInterface {
         comObject = .init()
     }
 
-    public init<SwiftObject: IUnknownProtocol, VirtualTable>(
+    public init<SwiftObject: IUnknownProtocol>(
             swiftObject: SwiftObject,
-            virtualTable: UnsafePointer<VirtualTable>) {
-        comObject = .init(
-            comVirtualTable: virtualTable.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknownVTable.self, capacity: 1) { $0 },
+            virtualTable: UnsafeRawPointer) {
+        comObject = .init(virtualTable: virtualTable,
             swiftObject: Unmanaged<AnyObject>.passUnretained(swiftObject).toOpaque())
     }
 
-    private init<VirtualTable>(virtualTable: UnsafePointer<VirtualTable>) {
-        comObject = .init(
-            comVirtualTable: virtualTable.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknownVTable.self, capacity: 1) { $0 },
-            swiftObject: nil)
+    private init(virtualTable: UnsafeRawPointer) {
+        comObject = .init(virtualTable: virtualTable, swiftObject: nil)
     }
 
-    public static func withLateSwiftObjectInit<VirtualTable>(virtualTable: UnsafePointer<VirtualTable>) -> COMExportedInterface {
+    public static func withLateSwiftObjectInit(virtualTable: UnsafeRawPointer) -> COMExportedInterface {
         .init(virtualTable: virtualTable)
     }
 

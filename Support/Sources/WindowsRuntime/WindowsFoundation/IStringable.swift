@@ -12,11 +12,10 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
 public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable
 
     public static var typeName: String { "Windows.Foundation.IStringable" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
-    public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
+    public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(reference)
@@ -32,7 +31,7 @@ public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
         }
     }
 
-    private static var virtualTable: COMVirtualTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable = .init(
         QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
         AddRef: { COMExportedInterface.AddRef($0) },
         Release: { COMExportedInterface.Release($0) },

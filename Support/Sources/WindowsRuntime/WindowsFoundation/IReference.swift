@@ -25,11 +25,10 @@ extension WindowsFoundation_IReferenceProtocol {
 public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProjection>: WinRTInterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
-    public typealias COMVirtualTable = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable
 
     public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }
     public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
-    public static var virtualTablePointer: COMVirtualTablePointer { withUnsafePointer(to: &virtualTable) { $0 } }
+    public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         Import.toSwift(consume reference)
