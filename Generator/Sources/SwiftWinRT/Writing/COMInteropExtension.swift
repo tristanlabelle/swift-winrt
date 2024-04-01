@@ -5,43 +5,6 @@ import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 
-/// Writes a file that extends COMInterop<I> for every COM interface with
-/// methods that translate from the Swift shape to the ABI shape.
-internal func writeCOMInteropExtensionsFile(module: SwiftProjection.Module, toPath path: String) throws {
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    writeGeneratedCodePreamble(to: writer)
-    writeModulePreamble(module, to: writer)
-
-    // Gather bound interfaces and delegates, generic or not, sorted by ABI name
-    var boundAbiTypes = [(interface: BoundType, abiName: String)]()
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions {
-            guard typeDefinition.genericArity == 0 else { continue }
-            guard typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition else { continue }
-            let boundType = typeDefinition.bindType()
-            boundAbiTypes.append((boundType, try CAbi.mangleName(type: boundType)))
-        }
-    }
-
-    for (typeDefinition, instantiations) in module.closedGenericTypesByDefinition {
-        assert(typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition)
-        for genericArgs in instantiations {
-            let boundType = typeDefinition.bindType(genericArgs: genericArgs)
-            boundAbiTypes.append((boundType, try CAbi.mangleName(type: boundType)))
-        }
-    }
-
-    // Write the COMInterop<I> extension for each interface
-    boundAbiTypes.sort { $0.abiName < $1.abiName }
-    for (boundType, _) in boundAbiTypes {
-        // IReference is special cased, with a single definition for all generic instantiations
-        guard boundType.definition.fullName != "Windows.Foundation.IReference`1" else { continue }
-
-        writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
-        try writeCOMInteropExtension(abiType: boundType, projection: module.projection, to: writer)
-    }
-}
-
 fileprivate enum ABIInterfaceUsage {
     case activationFactory
     case composableFactory
@@ -65,7 +28,7 @@ fileprivate enum ABIInterfaceUsage {
     }
 }
 
-fileprivate func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     let abiSwiftType = try projection.toABIType(abiType)
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 

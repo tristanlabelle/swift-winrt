@@ -5,35 +5,6 @@ import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 
-internal func writeABIProjectionsFile(module: SwiftProjection.Module, toPath path: String) throws {
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    writeGeneratedCodePreamble(to: writer)
-    writeModulePreamble(module, to: writer)
-
-    for (_, typeDefinitions) in module.typeDefinitionsByNamespace {
-        for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
-            if let classDefinition = typeDefinition as? ClassDefinition, classDefinition.isStatic { continue }
-            guard typeDefinition.isPublic,
-                SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .special,
-                try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
-
-            writer.writeMarkComment(typeDefinition.fullName)
-            try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
-        }
-    }
-
-    let closedGenericTypesByDefinition = module.closedGenericTypesByDefinition
-        .sorted { $0.key.fullName < $1.key.fullName }
-    for (typeDefinition, instantiations) in closedGenericTypesByDefinition {
-        guard SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .special else { continue }
-
-        for genericArgs in instantiations {
-            writer.writeMarkComment(try WinRTTypeName.from(type: typeDefinition.bindType(genericArgs: genericArgs)).description)
-            try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
-        }
-    }
-}
-
 /// Writes a type or extension providing the ABIProjection conformance for a given projected WinRT type.
 internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndProjection {

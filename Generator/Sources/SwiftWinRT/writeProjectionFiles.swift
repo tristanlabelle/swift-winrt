@@ -19,34 +19,109 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
         try writeClassLoaderGlobalFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\ClassLoader.swift")
-        try writeCOMInteropExtensionsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\COMInterop.swift")
-        try writeABIProjectionsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\ABIProjections.swift")
 
-        for (namespace, typeDefinitions) in module.typeDefinitionsByNamespace {
+        for typeDefinition in module.typeDefinitions + Array(module.closedGenericTypesByDefinition.keys) {
+            guard try hasSwiftDefinition(typeDefinition) else { continue }
+
+            let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
+            let assemblyNamespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
+
+            if module.typeDefinitions.contains(typeDefinition) {
+                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix).swift")
+            }
+
+            if (typeDefinition as? ClassDefinition)?.isStatic != true {
+                try writeABIProjectionConformanceFile(typeDefinition, module: module,
+                    toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeDefinition.nameWithoutGenericSuffix)+Projection.swift")
+            }
+        }
+
+        for abiType in try getABITypes(module: module) {
+            guard let namespace = abiType.definition.namespace else { continue }
             let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
-            print("Generating types for namespace \(namespace)...")
+            let mangledName = try CAbi.mangleName(type: abiType)
+            try writeCOMInteropExtensionFile(abiType: abiType, module: module,
+                toPath: "\(assemblyModuleDirectoryPath)\\\(compactNamespace)\\COMInterop\\\(mangledName).swift")
+        }
 
-            var typeDefinitions = Array(typeDefinitions)
-            try typeDefinitions.removeAll {
-                try !$0.isPublic || SupportModules.WinRT.getBuiltInTypeKind($0) == .special || $0.hasAttribute(ApiContractAttribute.self)
-            }
-            typeDefinitions.sort { $0.fullName < $1.fullName }
+        if !module.flattenNamespaces {
+            let typeDefinitionsByNamespace = OrderedDictionary(grouping: module.typeDefinitions, by: { $0.namespace })
+            for (namespace, typeDefinitions) in typeDefinitionsByNamespace {
+                let typeDefinitions = try typeDefinitions.filter(hasSwiftDefinition)
+                guard !typeDefinitions.isEmpty else { continue }
 
-            // Write the type definition file
-            for typeDefinition in typeDefinitions {
-                let filePath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)\\\(typeDefinition.nameWithoutGenericSuffix).swift"
-                let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: filePath, directoryCreation: .ancestors))
-                writeGeneratedCodePreamble(to: writer)
-                writeModulePreamble(module, to: writer)
-                try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
-            }
-
-            // Write the namespace aliases file
-            if !module.flattenNamespaces {
+                let compactNamespace = SwiftProjection.toCompactNamespace(namespace!)
                 let namespaceAliasesPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)\\Aliases.swift"
                 try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
             }
         }
+    }
+}
+
+fileprivate func hasSwiftDefinition(_ typeDefinition: TypeDefinition) throws -> Bool {
+    return try SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .special
+        && !typeDefinition.hasAttribute(ApiContractAttribute.self)
+        && typeDefinition.isPublic
+}
+
+fileprivate func writeTypeDefinitionFile(_ typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+    try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
+}
+
+fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+
+    if module.typeDefinitions.contains(typeDefinition) {
+        try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
+    }
+
+    for genericArgs in module.closedGenericTypesByDefinition[typeDefinition] ?? [] {
+        let boundType = typeDefinition.bindType(genericArgs: genericArgs)
+        writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
+        try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
+    }
+}
+
+fileprivate func getABITypes(module: SwiftProjection.Module) throws -> [BoundType] {
+    var abiTypes = [BoundType]()
+    for typeDefinition in module.typeDefinitions {
+        guard typeDefinition.genericArity == 0 else { continue }
+        guard typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition else { continue }
+        abiTypes.append(typeDefinition.bindType())
+    }
+
+    for (typeDefinition, instantiations) in module.closedGenericTypesByDefinition {
+        // IReference<T> is implemented generically in the support module.
+        if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { continue }
+        for genericArgs in instantiations {
+            abiTypes.append(typeDefinition.bindType(genericArgs: genericArgs))
+        }
+    }
+
+    return abiTypes
+}
+
+fileprivate func writeCOMInteropExtensionFile(abiType: BoundType, module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writeModulePreamble(module, to: writer)
+    try writeCOMInteropExtension(abiType: abiType, projection: module.projection, to: writer)
+}
+
+internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: SwiftProjection.Module, toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+    writer.writeImport(module: module.name)
+
+    for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
+        guard typeDefinition.isPublic else { continue }
+
+        try writeNamespaceAlias(typeDefinition, projection: module.projection, to: writer)
     }
 }
 

@@ -2,18 +2,6 @@ import CodeWriters
 import DotNetMetadata
 import ProjectionModel
 
-internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: SwiftProjection.Module, toPath path: String) throws {
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    writeGeneratedCodePreamble(to: writer)
-    writer.writeImport(module: module.name)
-
-    for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
-        guard typeDefinition.isPublic else { continue }
-
-        try writeNamespaceAlias(typeDefinition, projection: module.projection, to: writer)
-    }
-}
-
 internal func writeNamespaceAlias(_ typeDefinition: TypeDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     try writer.writeTypeAlias(
         visibility: SwiftProjection.toVisibility(typeDefinition.visibility),

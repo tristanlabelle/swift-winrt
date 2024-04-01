@@ -1,4 +1,5 @@
 import CodeWriters
+import Collections
 import DotNetMetadata
 import ProjectionModel
 import struct Foundation.URL
@@ -47,7 +48,15 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
 
         // Namespace modules
         if !module.flattenNamespaces {
-            for (namespace, _) in module.typeDefinitionsByNamespace {
+            var namespaces = OrderedSet<String>()
+            for typeDefinition in module.typeDefinitions {
+                guard let namespace = typeDefinition.namespace else { continue }
+                namespaces.append(namespace)
+            }
+
+            namespaces.sort()
+
+            for namespace in namespaces {
                 var namespaceModuleTarget = SwiftPackage.Target(
                     name: module.getNamespaceModuleName(namespace: namespace))
                 let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
