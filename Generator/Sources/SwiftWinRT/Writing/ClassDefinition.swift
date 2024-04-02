@@ -6,19 +6,24 @@ import WindowsMetadata
 import struct Foundation.UUID
 
 internal func writeClassDefinition(_ classDefinition: ClassDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
-    let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
-    let interfaces = try ClassInterfaces(of: classDefinition, composable: composable)
+    let classKind = try ClassKind(classDefinition)
+    let interfaces = try ClassInterfaces(of: classDefinition, kind: classKind)
     let typeName = try projection.toTypeName(classDefinition)
 
-    if interfaces.default != nil {
+    if classKind != .static {
         let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
-        assert(classDefinition.isSealed || composable)
-        assert(!classDefinition.isAbstract || composable)
+        assert(classDefinition.isSealed || classKind.isComposable)
+        assert(!classDefinition.isAbstract || classKind.isComposable)
 
-        // Write the Swift class definition
-        let base: SwiftType = .chain(.init("WindowsRuntime"), composable
-            ? .init("WinRTComposableClass")
-            : .init("WinRTImport", genericArgs: [ .identifier(projectionTypeName) ]))
+        let base: SwiftType
+        switch classKind {
+            case .composable(base: .some(let baseClassDefinition)):
+                base = try projection.toType(baseClassDefinition.bindType(), nullable: false)
+            case .composable(base: nil):
+                base = SupportModules.WinRT.winRTComposableClass
+            default:
+                base = SupportModules.WinRT.winRTImport(of: .identifier(projectionTypeName))
+        }
 
         var protocolConformances: [SwiftType] = []
         for baseInterface in classDefinition.baseInterfaces {
@@ -32,7 +37,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
                 final: classDefinition.isSealed, name: typeName, base: base, protocolConformances: protocolConformances) { writer in
             try writeClassMembers(
-                classDefinition, interfaces: interfaces, composable: composable,
+                classDefinition, interfaces: interfaces, kind: classKind,
                 projection: projection, to: writer)
         }
     }
@@ -45,8 +50,36 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility),
                 name: typeName) { writer in
             try writeClassMembers(
-                classDefinition, interfaces: interfaces, composable: false,
+                classDefinition, interfaces: interfaces, kind: .static,
                 projection: projection, to: writer)
+        }
+    }
+}
+
+fileprivate enum ClassKind: Equatable {
+    case activatable
+    case composable(base: ClassDefinition?)
+    case `static`
+
+    init(_ classDefinition: ClassDefinition) throws {
+        if classDefinition.isStatic {
+            self = .static
+        } else if try classDefinition.hasAttribute(ComposableAttribute.self) {
+            if let baseClassDefinition = try classDefinition.base?.definition as? ClassDefinition,
+                    try baseClassDefinition != classDefinition.context.coreLibrary.systemObject {
+                self = .composable(base: baseClassDefinition)
+            } else {
+                self = .composable(base: nil)
+            }
+        } else {
+            self = .activatable
+        }
+    }
+
+    public var isComposable: Bool {
+        switch self {
+            case .composable: return true
+            default: return false
         }
     }
 }
@@ -64,25 +97,30 @@ fileprivate struct ClassInterfaces {
         var protected: Bool
     }
 
-    public init(of classDefinition: ClassDefinition, composable: Bool) throws {
-        if composable {
-            factories = try classDefinition.getAttributes(ComposableAttribute.self).map { $0.factory }
-            hasDefaultFactory = false
-        }
-        else {
-            let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
-            factories = activatableAttributes.compactMap { $0.factory }
-            hasDefaultFactory = activatableAttributes.count > factories.count
+    public init(of classDefinition: ClassDefinition, kind: ClassKind) throws {
+        switch kind {
+            case .activatable:
+                let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
+                factories = activatableAttributes.compactMap { $0.factory }
+                hasDefaultFactory = activatableAttributes.count > factories.count
+            case .composable:
+                factories = try classDefinition.getAttributes(ComposableAttribute.self).map { $0.factory }
+                hasDefaultFactory = false
+            case .static:
+                factories = []
+                hasDefaultFactory = false
         }
 
-        for baseInterface in classDefinition.baseInterfaces {
-            if try baseInterface.hasAttribute(DefaultAttribute.self) {
-                `default` = try baseInterface.interface
-            }
-            else {
-                let overridable = try baseInterface.hasAttribute(OverridableAttribute.self)
-                let protected = try baseInterface.hasAttribute(ProtectedAttribute.self)
-                secondary.append(Secondary(interface: try baseInterface.interface, overridable: overridable, protected: protected))
+        if kind != .static {
+            for baseInterface in classDefinition.baseInterfaces {
+                if try baseInterface.hasAttribute(DefaultAttribute.self) {
+                    `default` = try baseInterface.interface
+                }
+                else {
+                    let overridable = try baseInterface.hasAttribute(OverridableAttribute.self)
+                    let protected = try baseInterface.hasAttribute(ProtectedAttribute.self)
+                    secondary.append(Secondary(interface: try baseInterface.interface, overridable: overridable, protected: protected))
+                }
             }
         }
 
@@ -91,20 +129,20 @@ fileprivate struct ClassInterfaces {
 }
 
 fileprivate func writeClassMembers(
-        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, composable: Bool,
+        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, projection: projection, to: writer)
 
     try writeClassInterfaceImplementations(
-        classDefinition, interfaces: interfaces, composable: composable,
+        classDefinition, interfaces: interfaces, kind: kind,
         projection: projection, to: writer)
 
     writer.writeMarkComment("Implementation details")
     try writeClassInterfaceProperties(
-        classDefinition, interfaces: interfaces, composable: composable,
+        classDefinition, interfaces: interfaces, kind: kind,
         projection: projection, to: writer)
 
-    if composable {
+    if kind.isComposable {
         let overridableInterfaces = interfaces.secondary.compactMap { $0.overridable ? $0.interface : nil }
         if !overridableInterfaces.isEmpty {
             writer.writeMarkComment("Override support")
@@ -114,7 +152,7 @@ fileprivate func writeClassMembers(
 }
 
 fileprivate func writeClassInterfaceImplementations(
-        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, composable: Bool,
+        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     if interfaces.hasDefaultFactory {
         writeMarkComment(forInterface: "IActivationFactory", to: writer)
@@ -124,8 +162,8 @@ fileprivate func writeClassInterfaceImplementations(
     for factoryInterface in interfaces.factories {
         if factoryInterface.methods.isEmpty { continue }
         try writeMarkComment(forInterface: factoryInterface.bind(), to: writer)
-        if composable {
-            try writeComposableInitializers(classDefinition, factoryInterface: factoryInterface, projection: projection, to: writer)
+        if case .composable(base: let base) = kind {
+            try writeComposableInitializers(classDefinition, factoryInterface: factoryInterface, base: base, projection: projection, to: writer)
         }
         else {
             try writeActivatableInitializers(classDefinition, activationFactory: factoryInterface, projection: projection, to: writer)
@@ -134,7 +172,7 @@ fileprivate func writeClassInterfaceImplementations(
 
     if let defaultInterface = interfaces.default, !defaultInterface.definition.methods.isEmpty {
         try writeMarkComment(forInterface: defaultInterface, to: writer)
-        let thisPointer: ThisPointer = composable
+        let thisPointer: ThisPointer = kind.isComposable
             ? .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
             : .init(name: "_interop")
         try writeInterfaceImplementation(
@@ -164,18 +202,18 @@ fileprivate func writeClassInterfaceImplementations(
 }
 
 fileprivate func writeClassInterfaceProperties(
-        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, composable: Bool,
+        _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     // Instance properties, initializers and deinit
-    if composable, let defaultInterface = interfaces.default {
-        try SecondaryInterfaces.writeDeclaration(defaultInterface, composable: composable, projection: projection, to: writer)
+    if kind.isComposable, let defaultInterface = interfaces.default {
+        try SecondaryInterfaces.writeDeclaration(defaultInterface, composable: kind.isComposable, projection: projection, to: writer)
     }
 
     for secondaryInterface in interfaces.secondary {
-        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, composable: composable, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, composable: kind.isComposable, projection: projection, to: writer)
     }
 
-    if composable, let defaultInterface = interfaces.default {
+    if kind.isComposable, let defaultInterface = interfaces.default {
         try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
     }
 
@@ -249,7 +287,7 @@ fileprivate func writeMarkComment(forInterface interfaceName: String, to writer:
 }
 
 fileprivate func writeComposableInitializers(
-        _ classDefinition: ClassDefinition, factoryInterface: InterfaceDefinition,
+        _ classDefinition: ClassDefinition, factoryInterface: InterfaceDefinition, base: ClassDefinition?,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
@@ -259,6 +297,7 @@ fileprivate func writeComposableInitializers(
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
+                override: params.count == 2 && base != nil, // Hack: assume all base classes have a default initializer we are overriding
                 params: params.dropLast(2).map { $0.toSwiftParam() },
                 throws: true) { writer in
             let output = writer.output

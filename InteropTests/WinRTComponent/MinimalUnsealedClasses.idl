@@ -1,0 +1,19 @@
+namespace WinRTComponent
+{
+    unsealed runtimeclass MinimalBaseClass
+    {
+        MinimalBaseClass();
+        overridable String TypeName { get; };
+
+        static MinimalBaseClass CreateBase();
+        static MinimalBaseClass CreatePrivate();
+        static MinimalBaseClass Passthrough(MinimalBaseClass value);
+        static String GetTypeName(MinimalBaseClass value);
+    };
+
+    unsealed runtimeclass MinimalDerivedClass : MinimalBaseClass
+    {
+        MinimalDerivedClass();
+        static MinimalDerivedClass CreateDerived();
+    };
+}

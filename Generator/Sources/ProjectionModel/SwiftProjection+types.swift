@@ -6,14 +6,7 @@ extension SwiftProjection {
     public func toType(_ type: TypeNode) throws -> SwiftType {
         switch type {
             case let .bound(type):
-                if let specialTypeProjection = try getSpecialTypeProjection(type) {
-                    return specialTypeProjection.swiftType
-                }
-
-                let swiftObjectType = SwiftType.identifier(
-                    name: try toTypeName(type.definition),
-                    genericArgs: try type.genericArgs.map { try toType($0) })
-                return type.definition.isValueType ? swiftObjectType : .optional(wrapped: swiftObjectType)
+                return try toType(type)
             case let .genericParam(param):
                 return .identifier(param.name)
             case let .array(of: element):
@@ -21,6 +14,17 @@ extension SwiftProjection {
             default:
                 fatalError("Not implemented: Swift representation of values of type \(type)")
         }
+    }
+
+    public func toType(_ boundType: BoundType, nullable: Bool = true) throws -> SwiftType {
+        if let specialTypeProjection = try getSpecialTypeProjection(boundType) {
+            return specialTypeProjection.swiftType
+        }
+
+        let swiftObjectType = SwiftType.identifier(
+            name: try toTypeName(boundType.definition),
+            genericArgs: try boundType.genericArgs.map { try toType($0) })
+        return boundType.definition.isReferenceType && nullable ? .optional(wrapped: swiftObjectType) : swiftObjectType
     }
 
     public func isProjectionInert(_ typeDefinition: TypeDefinition) throws -> Bool {
