@@ -139,8 +139,8 @@
     <ClInclude Include="ManualAsyncOperation.h">
       <DependentUpon>ManualAsyncOperation.idl</DependentUpon>
     </ClInclude>
-    <ClInclude Include="MinimalUnsealedClass.h">
-      <DependentUpon>MinimalUnsealedClass.idl</DependentUpon>
+    <ClInclude Include="MinimalUnsealedClasses.h">
+      <DependentUpon>MinimalUnsealedClasses.idl</DependentUpon>
     </ClInclude>
     <ClInclude Include="NullValues.h">
       <DependentUpon>NullValues.idl</DependentUpon>
@@ -210,8 +210,8 @@
     <ClCompile Include="ManualAsyncOperation.cpp">
       <DependentUpon>ManualAsyncOperation.idl</DependentUpon>
     </ClCompile>
-    <ClCompile Include="MinimalUnsealedClass.cpp">
-      <DependentUpon>MinimalUnsealedClass.idl</DependentUpon>
+    <ClCompile Include="MinimalUnsealedClasses.cpp">
+      <DependentUpon>MinimalUnsealedClasses.idl</DependentUpon>
     </ClCompile>
     <ClCompile Include="NullValues.cpp">
       <DependentUpon>NullValues.idl</DependentUpon>
@@ -258,7 +258,7 @@
     <Midl Include="Int32Wrapper.idl" />
     <Midl Include="ManualAsyncOperation.idl" />
     <Midl Include="MinimalTypes.idl" />
-    <Midl Include="MinimalUnsealedClass.idl" />
+    <Midl Include="MinimalUnsealedClasses.idl" />
     <Midl Include="NullValues.idl" />
     <Midl Include="Numbers.idl" />
     <Midl Include="ObjectReferencer.idl" />
