@@ -104,5 +104,6 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
         }
     }
 
+    interfacesByMangledName.sort { $0.key < $1.key }
     return Array(interfacesByMangledName.values)
 }

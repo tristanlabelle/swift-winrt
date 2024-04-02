@@ -45,7 +45,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
         }
 
         if !module.flattenNamespaces {
-            let typeDefinitionsByNamespace = OrderedDictionary(grouping: module.typeDefinitions, by: { $0.namespace })
+            let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
             for (namespace, typeDefinitions) in typeDefinitionsByNamespace {
                 let typeDefinitions = try typeDefinitions.filter(hasSwiftDefinition)
                 guard !typeDefinitions.isEmpty else { continue }

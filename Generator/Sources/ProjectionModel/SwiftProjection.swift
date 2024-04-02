@@ -21,6 +21,7 @@ public class SwiftProjection {
         precondition(modulesByName[name] == nil)
         let module = Module(projection: self, name: name, flattenNamespaces: flattenNamespaces)
         modulesByName[name] = module
+        modulesByName.sort { $0.key < $1.key }
         return module
     }
 
