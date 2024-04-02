@@ -1,6 +1,5 @@
 import COM
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public enum IReferenceUnboxingProjection {
     public typealias Boolean = Of<WinRTPrimitiveProjection.Boolean>

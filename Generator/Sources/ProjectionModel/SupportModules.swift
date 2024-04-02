@@ -10,6 +10,8 @@ public enum SupportModules {
 extension SupportModules.COM {
     public static var moduleName: String { "COM" }
 
+    public static var guid: SwiftType { .chain(moduleName, "GUID") }
+
     public static var iunknownPointer: SwiftType { .chain(moduleName, "IUnknownPointer") }
     public static var comInterfaceID: SwiftType { .chain(moduleName, "COMInterfaceID") }
     public static var comIUnknownStruct: SwiftType { .chain(moduleName, "COMIUnknownStruct") }

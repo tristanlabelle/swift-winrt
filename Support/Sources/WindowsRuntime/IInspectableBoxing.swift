@@ -1,5 +1,4 @@
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public enum IInspectableBoxing {
     public static func box(_ value: Bool) throws -> IInspectable { try WinRTPrimitiveProjection.Boolean.box(value) }
@@ -14,7 +13,7 @@ public enum IInspectableBoxing {
     public static func box(_ value: Double) throws -> IInspectable { try WinRTPrimitiveProjection.Double.box(value) }
     public static func box(_ value: Char16) throws -> IInspectable { try WinRTPrimitiveProjection.Char16.box(value) }
     public static func box(_ value: String) throws -> IInspectable { try WinRTPrimitiveProjection.String.box(value) }
-    public static func box(_ value: UUID) throws -> IInspectable { try WinRTPrimitiveProjection.Guid.box(value) }
+    public static func box(_ value: GUID) throws -> IInspectable { try WinRTPrimitiveProjection.Guid.box(value) }
 
     public static func box<BoxableValue: WinRTValueTypeProjection>(_ value: BoxableValue) throws -> IInspectable {
         try BoxableValue.box(value)
@@ -60,7 +59,7 @@ public enum IInspectableBoxing {
     public static func unboxString(_ inspectable: IInspectable) -> String? {
         WinRTPrimitiveProjection.String.unbox(inspectable)
     }
-    public static func unboxGuid(_ inspectable: IInspectable) -> UUID? {
+    public static func unboxGuid(_ inspectable: IInspectable) -> GUID? {
         WinRTPrimitiveProjection.Guid.unbox(inspectable)
     }
     public static func unbox<Projection: WinRTValueTypeProjection>(_ inspectable: IInspectable, projection: Projection.Type) -> Projection.SwiftValue? {

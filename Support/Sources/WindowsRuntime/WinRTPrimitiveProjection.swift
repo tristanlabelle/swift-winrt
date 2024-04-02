@@ -1,6 +1,5 @@
 import COM
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public enum WinRTPrimitiveProjection {
     public enum Boolean: WinRTBoxableProjection, ABIIdentityProjection {
@@ -135,7 +134,7 @@ public enum WinRTPrimitiveProjection {
 
     public enum Guid: WinRTBoxableProjection, ABIInertProjection {
         public typealias ABIType = WindowsRuntime_ABI.SWRT_Guid
-        public typealias SwiftType = UUID
+        public typealias SwiftType = GUID
 
         public static var typeName: Swift.String { "Windows.Foundation.IReference`<Guid>" }
         public static var ireferenceID: COM.COMInterfaceID { COMInterfaceID(0x7D50F649, 0x632C, 0x51F9, 0x849A, 0xEE49428933EA) }

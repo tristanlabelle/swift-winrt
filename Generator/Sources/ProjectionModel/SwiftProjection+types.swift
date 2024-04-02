@@ -177,7 +177,7 @@ extension SwiftProjection {
                 return TypeProjection(
                     abiType: .chain(abiModuleName, CAbi.guidName),
                     abiDefaultValue: .defaultInitializer,
-                    swiftType: .chain("Foundation", "UUID"),
+                    swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
                     projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
                     kind: .inert)

@@ -1,6 +1,5 @@
 import COM
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public typealias IInspectable = any IInspectableProtocol
 public protocol IInspectableProtocol: IUnknownProtocol {
@@ -56,7 +55,7 @@ extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
         this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IInspectable.self, capacity: 1) { $0 }
     }
 
-    public func getIids() throws -> [Foundation.UUID] {
+    public func getIids() throws -> [COMInterfaceID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
         try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetIids(inspectable, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
