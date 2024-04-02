@@ -16,6 +16,8 @@ internal func writeExeManifestFile(projectionConfig: ProjectionConfig, projectio
         }
     }
 
+    activatableClassesPerFileName.sort { $0.key < $1.key }
+
     let manifest = XMLDocument(rootElement: XMLElement(
         name: "assembly",
         attributes: [
