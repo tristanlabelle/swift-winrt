@@ -1,5 +1,4 @@
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 /// Represents a value in a property store. You can't implement this interface, see Remarks.
 public typealias WindowsFoundation_IPropertyValue = any WindowsFoundation_IPropertyValueProtocol
@@ -24,7 +23,7 @@ public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
     func getChar16() throws -> Char16
     func getBoolean() throws -> Bool
     func getString() throws -> String
-    func getGuid() throws -> UUID
+    func getGuid() throws -> GUID
     func getDateTime() throws -> WindowsFoundation_DateTime
     func getTimeSpan() throws -> WindowsFoundation_TimeSpan
     func getPoint() throws -> WindowsFoundation_Point
@@ -43,7 +42,7 @@ public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
     func getBooleanArray(_ value: inout [Bool]) throws
     func getStringArray(_ value: inout [String]) throws
     func getInspectableArray(_ value: inout [IInspectable?]) throws
-    func getGuidArray(_ value: inout [UUID]) throws
+    func getGuidArray(_ value: inout [GUID]) throws
     func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws
     func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws
     func getPointArray(_ value: inout [WindowsFoundation_Point]) throws
@@ -67,7 +66,7 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getChar16() throws -> Char16 { throw HResult.Error.notImpl }
     public func getBoolean() throws -> Bool { throw HResult.Error.notImpl }
     public func getString() throws -> String { throw HResult.Error.notImpl }
-    public func getGuid() throws -> UUID { throw HResult.Error.notImpl }
+    public func getGuid() throws -> GUID { throw HResult.Error.notImpl }
     public func getDateTime() throws -> WindowsFoundation_DateTime { throw HResult.Error.notImpl }
     public func getTimeSpan() throws -> WindowsFoundation_TimeSpan { throw HResult.Error.notImpl }
     public func getPoint() throws -> WindowsFoundation_Point { throw HResult.Error.notImpl }
@@ -86,7 +85,7 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getBooleanArray(_ value: inout [Bool]) throws { throw HResult.Error.notImpl }
     public func getStringArray(_ value: inout [String]) throws { throw HResult.Error.notImpl }
     public func getInspectableArray(_ value: inout [IInspectable?]) throws { throw HResult.Error.notImpl }
-    public func getGuidArray(_ value: inout [UUID]) throws { throw HResult.Error.notImpl }
+    public func getGuidArray(_ value: inout [GUID]) throws { throw HResult.Error.notImpl }
     public func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws { throw HResult.Error.notImpl }
     public func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws { throw HResult.Error.notImpl }
     public func getPointArray(_ value: inout [WindowsFoundation_Point]) throws { throw HResult.Error.notImpl }

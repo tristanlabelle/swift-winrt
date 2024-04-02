@@ -1,5 +1,4 @@
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 /// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public typealias WindowsFoundation_IReference<T> = any WindowsFoundation_IReferenceProtocol<T>

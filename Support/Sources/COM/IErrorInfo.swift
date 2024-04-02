@@ -1,9 +1,8 @@
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public typealias IErrorInfo = any IErrorInfoProtocol
 public protocol IErrorInfoProtocol: IUnknownProtocol {
-    var guid: Foundation.UUID { get throws }
+    var guid: GUID { get throws }
     var source: String? { get throws }
     var description: String? { get throws }
     var helpFile: String? { get throws }
@@ -26,7 +25,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     }
 
     private final class Import: COMImport<IErrorInfoProjection>, IErrorInfoProtocol {
-        public var guid: Foundation.UUID { get throws { try _interop.getGuid() } }
+        public var guid: GUID { get throws { try _interop.getGuid() } }
         public var source: String? { get throws { try _interop.getSource() } }
         public var description: String? { get throws { try _interop.getDescription() } }
         public var helpFile: String? { get throws { try _interop.getHelpFile() } }
@@ -49,7 +48,7 @@ extension WindowsRuntime_ABI.SWRT_IErrorInfo: /* @retroactive */ COMIUnknownStru
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IErrorInfo {
-    public func getGuid() throws -> Foundation.UUID {
+    public func getGuid() throws -> GUID {
         var value = GUIDProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetGUID(this, &value))
         return GUIDProjection.toSwift(value)

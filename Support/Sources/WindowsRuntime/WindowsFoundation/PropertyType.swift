@@ -1,5 +1,3 @@
-import struct Foundation.UUID
-
 /// Specifies property value types.
 public struct WindowsFoundation_PropertyType: RawRepresentable, Hashable, Codable {
     public var rawValue: Swift.Int32

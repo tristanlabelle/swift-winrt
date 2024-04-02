@@ -1,5 +1,7 @@
 import WindowsRuntime_ABI
 
+public typealias COMInterfaceID = GUID
+
 /// A type which projects a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.
 public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, ABIValue == COMPointer? {

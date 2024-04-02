@@ -1,6 +1,5 @@
 import COM
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 internal enum PropertyValueStatics {
     private static let iid = COMInterfaceID(0x629BDBC8, 0xD932, 0x4FF4, 0x96B9, 0x8D96C5C1E858)
@@ -103,7 +102,7 @@ internal enum PropertyValueStatics {
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func createGuid(_ value: UUID) throws -> COMReference<SWRT_IInspectable> {
+    public static func createGuid(_ value: GUID) throws -> COMReference<SWRT_IInspectable> {
         let value_abi = COM.GUIDProjection.toABI(value)
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateGuid(this, value_abi, &propertyValue))

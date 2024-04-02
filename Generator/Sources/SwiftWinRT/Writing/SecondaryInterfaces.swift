@@ -3,7 +3,6 @@ import Collections
 import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
-import struct Foundation.UUID
 
 internal enum SecondaryInterfaces {
     internal static func writeDeclaration(

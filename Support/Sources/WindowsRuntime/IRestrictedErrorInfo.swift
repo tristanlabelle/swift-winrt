@@ -1,5 +1,4 @@
 import WindowsRuntime_ABI
-import struct Foundation.UUID
 
 public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
