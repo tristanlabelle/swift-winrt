@@ -12,12 +12,17 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     /// A pointer to the COM interface structure.
     typealias COMPointer = UnsafeMutablePointer<COMInterface>
 
-    // Non-nullable overloads
-    static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject
-    static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface>
-
     /// Gets the COM interface identifier.
     static var interfaceID: COMInterfaceID { get }
+
+    // Non-nullable overloads
+    static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface>
+
+    // Wraps a COM object into a new Swift object, without attempting to unwrap it first.
+    static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject
+
+    // Indicates whether an exported Swift object can be unwrapped back from the COM object.
+    static var unwrappable: Bool { get }
 }
 
 extension COMProjection {
@@ -44,5 +49,18 @@ extension COMProjection {
         guard let comPointer = value else { return }
         COMInterop(comPointer).release()
         value = nil
+    }
+
+    // Default COMProjection implementation
+    public static var unwrappable: Bool { true }
+
+    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        // If this was originally a Swift object, return it
+        if unwrappable, let implementation: SwiftObject = COMExportBase.getImplementation(reference.pointer) {
+            return implementation
+        }
+
+        // Wrap the COM object into a new Swift object
+        return _wrap(consume reference)
     }
 }

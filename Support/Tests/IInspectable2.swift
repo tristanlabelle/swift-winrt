@@ -12,8 +12,8 @@ internal enum IInspectable2Projection: WinRTInterfaceProjection {
     public static let interfaceID = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-        Import.toSwift(reference)
+    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import(_wrapping: reference)
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {

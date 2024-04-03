@@ -52,6 +52,9 @@ extension WinRTReferenceTypeProjection {
 }
 
 extension WinRTDelegateProjection {
+    // Closures have no identity, so there's no sense unwrapping them.
+    public static var unwrappable: Bool { false }
+
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         ReferenceBox<Self>(value)
     }
