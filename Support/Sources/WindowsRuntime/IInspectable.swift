@@ -16,8 +16,8 @@ public enum IInspectableProjection: WinRTInterfaceProjection {
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-        Import.toSwift(reference)
+    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import(_wrapping: reference)
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {

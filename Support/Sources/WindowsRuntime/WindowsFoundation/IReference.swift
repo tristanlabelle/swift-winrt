@@ -29,8 +29,8 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProj
     public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func toSwift(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-        Import.toSwift(consume reference)
+    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        Import(_wrapping: consume reference)
     }
 
     public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {

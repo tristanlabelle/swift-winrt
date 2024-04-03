@@ -21,16 +21,6 @@ open class COMImport<Projection: COMProjection>: IUnknownProtocol {
     }
 
     // COMProjection implementation helpers
-    public class func toSwift(_ reference: consuming COMReference<Projection.COMInterface>) -> Projection.SwiftObject {
-        // If this was originally a Swift object, return it
-        if let implementation: Projection.SwiftObject = COMExportBase.getImplementation(reference.pointer) {
-            return implementation
-        }
-
-        // Wrap the COM object in a Swift object
-        return Self(_wrapping: consume reference) as! Projection.SwiftObject
-    }
-
     open class func toCOM(_ object: Projection.SwiftObject) throws -> COMReference<Projection.COMInterface> {
         switch object {
             // If this is already a wrapped COM object, return the wrapped object

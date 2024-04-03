@@ -28,10 +28,10 @@ public protocol WinRTStructProjection: WinRTValueTypeProjection {} // Inert stru
 public protocol WinRTReferenceTypeProjection: WinRTProjection, COMProjection {}
 
 /// Convenience protocol for projections of WinRT interfaces into Swift.
-public protocol WinRTInterfaceProjection: WinRTReferenceTypeProjection, COMTwoWayProjection {}
+public protocol WinRTInterfaceProjection: WinRTReferenceTypeProjection, COMTwoWayProjection {} // where SwiftObject: any IInspectable
 
 /// Convenience protocol for projections of WinRT delegates into Swift.
 public protocol WinRTDelegateProjection: WinRTReferenceTypeProjection, WinRTBoxableProjection, COMTwoWayProjection {}
 
 /// Convenience protocol for projections of WinRT classes into Swift.
-public protocol WinRTClassProjection: WinRTReferenceTypeProjection {}
+public protocol WinRTClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable
