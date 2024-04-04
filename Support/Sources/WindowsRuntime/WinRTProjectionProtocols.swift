@@ -34,4 +34,5 @@ public protocol WinRTInterfaceProjection: WinRTReferenceTypeProjection, COMTwoWa
 public protocol WinRTDelegateProjection: WinRTReferenceTypeProjection, WinRTBoxableProjection, COMTwoWayProjection {}
 
 /// Convenience protocol for projections of WinRT classes into Swift.
-public protocol WinRTClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable
+public protocol WinRTActivatableClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable
+public protocol WinRTComposableClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable

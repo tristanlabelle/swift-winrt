@@ -7,6 +7,10 @@ public protocol COMTwoWayProjection: COMProjection {
 
 /// Helpers for implementing virtual tables
 extension COMTwoWayProjection {
+    public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
+        COMExportBase.getImplementation(pointer)
+    }
+
     public static func _implement(_ this: COMPointer?, _ body: (SwiftObject) throws -> Void) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")

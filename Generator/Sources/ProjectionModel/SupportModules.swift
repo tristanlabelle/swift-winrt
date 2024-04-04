@@ -70,7 +70,8 @@ extension SupportModules.WinRT {
     public static var winRTStructProjection: SwiftType { .chain(moduleName, "WinRTStructProjection") }
     public static var winRTInterfaceProjection: SwiftType { .chain(moduleName, "WinRTInterfaceProjection") }
     public static var winRTDelegateProjection: SwiftType { .chain(moduleName, "WinRTDelegateProjection") }
-    public static var winRTClassProjection: SwiftType { .chain(moduleName, "WinRTClassProjection") }
+    public static var winRTActivatableClassProjection: SwiftType { .chain(moduleName, "WinRTActivatableClassProjection") }
+    public static var winRTComposableClassProjection: SwiftType { .chain(moduleName, "WinRTComposableClassProjection") }
 
     public static var winRTComposableClass: SwiftType { .chain(moduleName, "WinRTComposableClass") }
 

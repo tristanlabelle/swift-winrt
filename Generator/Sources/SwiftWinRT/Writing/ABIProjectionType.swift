@@ -241,33 +241,25 @@ fileprivate func writeClassProjectionType(
         to writer: SwiftSourceFileWriter) throws {
     assert(!classDefinition.isStatic)
 
+    let projectionProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
+        ? SupportModules.WinRT.winRTComposableClassProjection
+        : SupportModules.WinRT.winRTActivatableClassProjection
+
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
-            name: projectionTypeName,
-            protocolConformances: [ SupportModules.WinRT.winRTClassProjection ]) { writer throws in
+            name: projectionTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
         let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
 
         try writeReferenceTypeProjectionConformance(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
-            unwrappable: !classDefinition.isSealed, // Sealed classes are always created by WinRT, so don't need unwrapping.
             wrapImpl: { writer, paramName in
                 if composable {
                     writer.writeStatement("\(typeName)(_transferringRef: \(paramName).detach())")
                 } else {
                     writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
-                }
-            },
-            toCOMImpl: { writer, paramName in
-                if composable {
-                    let propertyName = SecondaryInterfaces.getPropertyName(defaultInterface)
-                    writer.writeStatement("try \(SupportModules.COM.comReference)(addingRef: object.\(propertyName).this)")
-                }
-                else {
-                    // WinRTImport exposes comPointer
-                    writer.writeStatement("object._reference.clone()")
                 }
             },
             projection: projection,
@@ -306,29 +298,29 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
 
         let importClassName = "Import"
 
-        try writeReferenceTypeProjectionConformance(
-            apiType: type, abiType: type,
-            // unwrappable: WinRTDelegateProjection will set this appropriately
-            wrapImpl: { writer, paramName in
-                if type.definition is InterfaceDefinition {
+        if type.definition is InterfaceDefinition {
+            try writeReferenceTypeProjectionConformance(
+                apiType: type, abiType: type,
+                wrapImpl: { writer, paramName in
                     writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName))")
-                }
-                else {
+                },
+                projection: projection,
+                to: writer)
+        }
+        else {
+            assert(type.definition is DelegateDefinition)
+            try writeReferenceTypeProjectionConformance(
+                apiType: type, abiType: type,
+                wrapImpl: { writer, paramName in
                     writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName)).invoke")
-                }
-            },
-            toCOMImpl: { writer, paramName in
-                if type.definition is InterfaceDefinition {
-                    // Interfaces might be SwiftObjects or previous COMImports
-                    writer.writeStatement("try \(importClassName).toCOM(\(paramName))")
-                }
-                else {
+                },
+                toCOMImpl: { writer, paramName in
                     // Delegates have no identity, so create one for them
                     writer.writeStatement("COMWrappingExport<Self>(implementation: \(paramName)).toCOM()")
-                }
-            },
-            projection: projection,
-            to: writer)
+                },
+                projection: projection,
+                to: writer)
+        }
 
         try writeCOMImportClass(
             type, visibility: .private, name: importClassName, projectionName: projectionName,
@@ -355,9 +347,8 @@ internal func writeTypeNameProperty(type: BoundType, to writer: SwiftTypeDefinit
 /// Writes members implementing the COMProjection or WinRTProjection protocol
 internal func writeReferenceTypeProjectionConformance(
         apiType: BoundType, abiType: BoundType,
-        unwrappable: Bool = true,
         wrapImpl: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
-        toCOMImpl: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
+        toCOMImpl: ((_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void)? = nil,
         projection: SwiftProjection,
         to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
@@ -379,10 +370,6 @@ internal func writeReferenceTypeProjectionConformance(
         try writeIReferenceIDProperty(boxableType: apiType, to: writer)
     }
 
-    if !unwrappable {
-        writer.writeComputedProperty(visibility: .public, static: true, name: "unwrappable", type: .bool, get: { $0.writeStatement("false") })
-    }
-
     let comReferenceType = SupportModules.COM.comReference(to: .identifier("COMInterface"))
 
     try writer.writeFunc(
@@ -392,10 +379,12 @@ internal func writeReferenceTypeProjectionConformance(
         try wrapImpl(&writer, "reference")
     }
 
-    try writer.writeFunc(
-            visibility: .public, static: true, name: "toCOM",
-            params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
-            throws: true, returnType: comReferenceType) { writer in
-        try toCOMImpl(&writer, "object")
+    if let toCOMImpl {
+        try writer.writeFunc(
+                visibility: .public, static: true, name: "toCOM",
+                params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
+                throws: true, returnType: comReferenceType) { writer in
+            try toCOMImpl(&writer, "object")
+        }
     }
 }
