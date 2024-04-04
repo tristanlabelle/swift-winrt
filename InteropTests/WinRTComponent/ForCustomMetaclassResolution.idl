@@ -1,0 +1,9 @@
+namespace WinRTComponent
+{
+    // Only use this type once, as part of a custom metaclass resolution test,
+    // since metaclass resolution only happens once.
+    static runtimeclass ForCustomMetaclassResolution
+    {
+        static void Method();
+    }
+}
