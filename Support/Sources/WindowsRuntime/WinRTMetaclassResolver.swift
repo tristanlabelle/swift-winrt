@@ -2,10 +2,13 @@ import WindowsRuntime_ABI
 import WinSDK
 import class Foundation.NSLock
 
-/// Supports class instantiation for the WinRT projection.
-open class WinRTClassLoader {
+/// Looks up and resolves the metaclass object (aka activation factory) for runtime classes from their name.
+open class WinRTMetaclassResolver {
+    public init() {}
+
     open func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
-        try getActivationFactory(runtimeClass: runtimeClass).reinterpret(to: COMInterface.self)
+        let activationFactory = try getActivationFactory(runtimeClass: runtimeClass)
+        return try activationFactory.interop.queryInterface(interfaceID).reinterpret(to: COMInterface.self)
     }
 
     open func getActivationFactory(runtimeClass: String) throws -> COMReference<SWRT_IActivationFactory> {
@@ -13,10 +16,10 @@ open class WinRTClassLoader {
     }
 }
 
-extension WinRTClassLoader {
-    public static let `default`: WinRTClassLoader = Default()
+extension WinRTMetaclassResolver {
+    public static let `default`: WinRTMetaclassResolver = Default()
 
-    private class Default: WinRTClassLoader {
+    private class Default: WinRTMetaclassResolver {
         override func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
             var activatableId = try WinRTPrimitiveProjection.String.toABI(runtimeClass)
             defer { WinRTPrimitiveProjection.String.release(&activatableId) }
@@ -32,21 +35,28 @@ extension WinRTClassLoader {
     }
 }
 
-extension WinRTClassLoader {
-    public static func dll(name: String) -> WinRTClassLoader { Dll(name: name) }
+extension WinRTMetaclassResolver {
+    public static func fromDll(name: String) -> WinRTMetaclassResolver { Dll(name: name) }
+    public static func fromDll(moduleHandle: HMODULE) -> WinRTMetaclassResolver { Dll(moduleHandle: moduleHandle) }
 
-    private class Dll: WinRTClassLoader {
-        private let name: String
+    private class Dll: WinRTMetaclassResolver {
+        private let libraryNameToLoad: String?
         private let lock = NSLock()
         private var libraryHandle: WinSDK.HMODULE?
         private var cachedFuncPointer: WindowsRuntime_ABI.SWRT_DllGetActivationFactory?
 
         init(name: String) {
-            self.name = name
+            self.libraryNameToLoad = name
+            self.libraryHandle = nil // Loaded on demand
+        }
+
+        init(moduleHandle: HMODULE) {
+            self.libraryNameToLoad = nil
+            self.libraryHandle = moduleHandle
         }
 
         deinit {
-            if let libraryHandle {
+            if libraryNameToLoad != nil, let libraryHandle {
                 WinSDK.FreeLibrary(libraryHandle)
             }
         }
@@ -58,8 +68,8 @@ extension WinRTClassLoader {
                 lock.lock()
                 defer { lock.unlock() }
 
-                if libraryHandle == nil {
-                    name.withCString(encodedAs: UTF16.self) { name in
+                if let libraryNameToLoad, libraryHandle == nil {
+                    libraryNameToLoad.withCString(encodedAs: UTF16.self) { name in
                         libraryHandle = WinSDK.LoadLibraryW(name)
                     }
                     guard libraryHandle != nil else { throw HResult.Error.fail }

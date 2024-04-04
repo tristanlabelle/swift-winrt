@@ -18,7 +18,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
         let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
-        try writeClassLoaderGlobalFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\ClassLoader.swift")
+        try writeGlobalsFile(module: module, toPath: "\(assemblyModuleDirectoryPath)\\Globals.swift")
 
         for typeDefinition in module.typeDefinitions + Array(module.closedGenericTypesByDefinition.keys) {
             guard try hasSwiftDefinition(typeDefinition) else { continue }
@@ -125,11 +125,13 @@ internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], modul
     }
 }
 
-fileprivate func writeClassLoaderGlobalFile(module: SwiftProjection.Module, toPath path: String) throws {
+internal let metaclassResolverGlobalName = "metaclassResolver"
+
+fileprivate func writeGlobalsFile(module: SwiftProjection.Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    let classLoaderType = SupportModules.WinRT.winRTClassLoader
-    writer.writeStoredProperty(visibility: .public, declarator: .var, name: "classLoader",
-        type: classLoaderType, initialValue: "\(classLoaderType).default")
+    let metaclassResolverType = SupportModules.WinRT.winRTMetaclassResolver
+    writer.writeStoredProperty(visibility: .public, declarator: .var, name: metaclassResolverGlobalName,
+        type: metaclassResolverType, initialValue: "\(metaclassResolverType).default")
 }

@@ -130,6 +130,9 @@
     <ClInclude Include="Errors.h">
       <DependentUpon>Errors.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="ForCustomMetaclassResolution.h">
+      <DependentUpon>ForCustomMetaclassResolution.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="InspectableBoxing.h">
       <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClInclude>
@@ -201,6 +204,9 @@
     <ClCompile Include="Errors.cpp">
       <DependentUpon>Errors.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="ForCustomMetaclassResolution.cpp">
+      <DependentUpon>ForCustomMetaclassResolution.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="InspectableBoxing.cpp">
       <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClCompile>
@@ -253,6 +259,7 @@
     <Midl Include="DateTimes.idl" />
     <Midl Include="Enums.idl" />
     <Midl Include="Errors.idl" />
+    <Midl Include="ForCustomMetaclassResolution.idl" />
     <Midl Include="Events.idl" />
     <Midl Include="InspectableBoxing.idl" />
     <Midl Include="Int32Wrapper.idl" />
