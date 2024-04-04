@@ -51,11 +51,15 @@ open class COMExportBase: IUnknownProtocol {
         return nil
     }
 
-    public static func getImplementationUnsafe<Interface, Implementation>(_ this: UnsafeMutablePointer<Interface>) -> Implementation {
+    public static func getImplementationUnsafe<Interface, Implementation>(
+            _ this: UnsafeMutablePointer<Interface>,
+            type: Implementation.Type = Implementation.self) -> Implementation {
         getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this))!
     }
 
-    public static func getImplementation<Interface, Implementation>(_ this: UnsafeMutablePointer<Interface>) -> Implementation? {
+    public static func getImplementation<Interface, Implementation>(
+            _ this: UnsafeMutablePointer<Interface>,
+            type: Implementation.Type = Implementation.self) -> Implementation? {
         guard COMExportedInterface.test(this) else { return nil }
         return getImplementation(unwrapped: COMExportedInterface.unwrapUnsafe(this))
     }
