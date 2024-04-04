@@ -8,7 +8,7 @@ open class WinRTMetaclassResolver {
 
     open func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
         let activationFactory = try getActivationFactory(runtimeClass: runtimeClass)
-        return try activationFactory.interop.queryInterface(interfaceID).reinterpret(to: COMInterface.self)
+        return try activationFactory.interop.queryInterface(interfaceID)
     }
 
     open func getActivationFactory(runtimeClass: String) throws -> COMReference<SWRT_IActivationFactory> {

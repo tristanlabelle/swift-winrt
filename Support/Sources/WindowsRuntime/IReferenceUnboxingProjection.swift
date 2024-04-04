@@ -34,7 +34,7 @@ public enum IReferenceUnboxingProjection {
         }
 
         public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {
-            try Projection.box(value)._queryInterface(interfaceID).reinterpret()
+            try Projection.box(value)._queryInterface(interfaceID)
         }
     }
 }

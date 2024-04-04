@@ -6,13 +6,17 @@ public protocol IUnknownProtocol: AnyObject {
 }
 
 extension IUnknownProtocol {
+    public func _queryInterface<Interface /* COMIUnknownStruct */>(
+            _ id: COMInterfaceID, type: Interface.Type = Interface.self) throws -> COMReference<Interface> {
+        (try _queryInterface(id) as IUnknownReference).reinterpret(to: type)
+    }
+
     public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> COMReference<Projection.COMInterface> {
-        try _queryInterface(Projection.interfaceID).reinterpret()
+        try _queryInterface(Projection.interfaceID)
     }
 
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.SwiftObject {
-        let reference = try self._queryInterface(Projection.self)
-        return Projection.toSwift(consume reference)
+        Projection.toSwift(try self._queryInterface(Projection.self))
     }
 }
 

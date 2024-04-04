@@ -23,7 +23,7 @@ extension WindowsFoundation_IReferenceProtocol {
 
 public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProjection>: WinRTInterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
+    public typealias COMInterface = SWRT_WindowsFoundation_IReference
 
     public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }
     public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
@@ -42,12 +42,11 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProj
             WindowsFoundation_IReferenceProtocol {
         public typealias T = TProjection.SwiftValue
 
-        private var _lazyIPropertyValue: COMLazyReference<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue> = .init()
-        public var _ipropertyValue: COMInterop<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue> {
+        private var _lazyIPropertyValue: COMLazyReference<SWRT_WindowsFoundation_IPropertyValue> = .init()
+        public var _ipropertyValue: COMInterop<SWRT_WindowsFoundation_IPropertyValue> {
             get throws {
                 try _lazyIPropertyValue.getInterop {
-                    try _queryInterface(WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.iid)
-                        .reinterpret(to: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.self)
+                    try _queryInterface(SWRT_WindowsFoundation_IPropertyValue.iid)
                 }
             }
         }
@@ -76,7 +75,7 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: WinRTBoxableProj
 
 // A generic type cannot have stored properties,
 // and closures converted to C function pointers cannot capture generic arguments.
-fileprivate var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferenceVTable =  .init(
+fileprivate var virtualTable: SWRT_WindowsFoundation_IReferenceVTable =  .init(
     QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
     AddRef: { COMExportedInterface.AddRef($0) },
     Release: { COMExportedInterface.Release($0) },
@@ -93,12 +92,12 @@ fileprivate var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IReferen
     })
 
 #if swift(>=5.10)
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: @retroactive WindowsRuntime.COMIInspectableStruct {}
+extension SWRT_WindowsFoundation_IReference: @retroactive WindowsRuntime.COMIInspectableStruct {}
 #else
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference: WindowsRuntime.COMIInspectableStruct {}
+extension SWRT_WindowsFoundation_IReference: WindowsRuntime.COMIInspectableStruct {}
 #endif
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference {
+extension COMInterop where Interface == SWRT_WindowsFoundation_IReference {
     public func get_Value(_ value: UnsafeMutableRawPointer) throws {
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.get_Value(this, value))
     }

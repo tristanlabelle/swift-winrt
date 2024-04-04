@@ -55,4 +55,9 @@ public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
         let pointer = rawPointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
         return COMReference(transferringRef: pointer)
     }
+
+    public func queryInterface<Other /* COMIUnknownStruct */>(
+            _ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
+        (try queryInterface(id) as IUnknownReference).reinterpret(to: type)
+    }
 }
