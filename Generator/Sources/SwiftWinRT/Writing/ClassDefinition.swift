@@ -20,7 +20,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
             case .composable(base: .some(let baseClassDefinition)):
                 base = try projection.toType(baseClassDefinition.bindType(), nullable: false)
             case .composable(base: nil):
-                base = SupportModules.WinRT.winRTComposableClass
+                base = SupportModules.WinRT.composableClass
             default:
                 base = SupportModules.WinRT.winRTImport(of: .identifier(projectionTypeName))
         }

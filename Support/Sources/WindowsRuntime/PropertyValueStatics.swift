@@ -8,7 +8,7 @@ internal enum PropertyValueStatics {
     private static var this: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValueStatics> {
         get throws {
             try lazyReference.getPointer {
-                try WinRTMetaclassResolver.default.getActivationFactory(
+                try MetaclassResolver.default.getActivationFactory(
                     runtimeClass: "Windows.Foundation.PropertyValue",
                     interfaceID: iid)
             }
@@ -80,7 +80,7 @@ internal enum PropertyValueStatics {
 
     public static func createChar16(_ value: Char16) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
-        let value = WinRTPrimitiveProjection.Char16.toABI(value)
+        let value = PrimitiveProjection.Char16.toABI(value)
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateChar16(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
@@ -94,8 +94,8 @@ internal enum PropertyValueStatics {
     }
 
     public static func createString(_ value: String) throws -> COMReference<SWRT_IInspectable> {
-        var value_abi = try WinRTPrimitiveProjection.String.toABI(value)
-        defer { WinRTPrimitiveProjection.String.release(&value_abi) }
+        var value_abi = try PrimitiveProjection.String.toABI(value)
+        defer { PrimitiveProjection.String.release(&value_abi) }
         var propertyValue: IInspectablePointer? = nil
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateString(this, value_abi, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }

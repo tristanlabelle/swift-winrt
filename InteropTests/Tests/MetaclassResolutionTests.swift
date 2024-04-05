@@ -4,8 +4,8 @@ import WinRTComponent
 
 class MetaclassResolutionTests: WinRTTestCase {
     func testCustomResolver() throws {
-        class Resolver: WinRTMetaclassResolver {
-            private let dllResolver = WinRTMetaclassResolver.fromDll(name: "WinRTComponent")
+        class Resolver: MetaclassResolver {
+            private let dllResolver = MetaclassResolver.fromDll(name: "WinRTComponent")
             var lastRuntimeClass: String? = nil
 
             override func getActivationFactory(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {

@@ -1,6 +1,6 @@
 import WindowsRuntime_ABI
 
-extension WinRTBoxableProjection {
+extension BoxableProjection {
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         ReferenceBox<Self>(value)
     }
@@ -29,7 +29,7 @@ extension WinRTBoxableProjection {
     }
 }
 
-extension WinRTReferenceTypeProjection {
+extension ReferenceTypeProjection {
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
@@ -51,13 +51,13 @@ extension WinRTReferenceTypeProjection {
     }
 }
 
-extension WinRTDelegateProjection {
+extension DelegateProjection {
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         ReferenceBox<Self>(value)
     }
 }
 
-extension WinRTComposableClassProjection {
+extension ComposableClassProjection {
     public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
         COMExportedInterface.unwrap(pointer) as? SwiftObject
     }

@@ -26,7 +26,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
         assert(genericArgs == nil)
         try writer.writeExtension(
                 type: .identifier(projection.toTypeName(enumDefinition)),
-                protocolConformances: [ SupportModules.WinRT.winRTEnumProjection ]) { writer in
+                protocolConformances: [ SupportModules.WinRT.enumProjection ]) { writer in
             // public static var typeName: String { "..." }
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
 
@@ -85,12 +85,12 @@ fileprivate func writeStructProjectionExtension(
         to writer: SwiftSourceFileWriter) throws {
     let isInert = try projection.isProjectionInert(structDefinition)
 
-    var protocolConformances = [SupportModules.WinRT.winRTStructProjection]
+    var protocolConformances = [SupportModules.WinRT.structProjection]
     if isInert {
         protocolConformances.append(SupportModules.COM.abiInertProjection)
     }
 
-    // extension <struct>: WinRTBoxableProjection[, ABIInertProjection]
+    // extension <struct>: BoxableProjection[, ABIInertProjection]
     try writer.writeExtension(
             type: .identifier(projection.toTypeName(structDefinition)),
             protocolConformances: protocolConformances) { writer in
@@ -242,8 +242,8 @@ fileprivate func writeClassProjectionType(
     assert(!classDefinition.isStatic)
 
     let projectionProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
-        ? SupportModules.WinRT.winRTComposableClassProjection
-        : SupportModules.WinRT.winRTActivatableClassProjection
+        ? SupportModules.WinRT.composableClassProjection
+        : SupportModules.WinRT.activatableClassProjection
 
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeEnum(
@@ -289,7 +289,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
     let projectionProtocol = type.definition is InterfaceDefinition
-        ? SupportModules.WinRT.winRTInterfaceProjection : SupportModules.WinRT.winRTDelegateProjection
+        ? SupportModules.WinRT.interfaceProjection : SupportModules.WinRT.delegateProjection
 
     try writer.writeEnum(
             visibility: SwiftProjection.toVisibility(type.definition.visibility),

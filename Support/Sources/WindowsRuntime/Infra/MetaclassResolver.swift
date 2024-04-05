@@ -3,7 +3,7 @@ import WinSDK
 import class Foundation.NSLock
 
 /// Looks up and resolves the metaclass object (aka activation factory) for runtime classes from their name.
-open class WinRTMetaclassResolver {
+open class MetaclassResolver {
     public init() {}
 
     open func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
@@ -16,13 +16,13 @@ open class WinRTMetaclassResolver {
     }
 }
 
-extension WinRTMetaclassResolver {
-    public static let `default`: WinRTMetaclassResolver = Default()
+extension MetaclassResolver {
+    public static let `default`: MetaclassResolver = Default()
 
-    private class Default: WinRTMetaclassResolver {
+    private class Default: MetaclassResolver {
         override func getActivationFactory<COMInterface>(runtimeClass: String, interfaceID: COMInterfaceID) throws -> COMReference<COMInterface> {
-            var activatableId = try WinRTPrimitiveProjection.String.toABI(runtimeClass)
-            defer { WinRTPrimitiveProjection.String.release(&activatableId) }
+            var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
+            defer { PrimitiveProjection.String.release(&activatableId) }
 
             var iid = GUIDProjection.toABI(interfaceID)
             var rawPointer: UnsafeMutableRawPointer?
@@ -35,11 +35,11 @@ extension WinRTMetaclassResolver {
     }
 }
 
-extension WinRTMetaclassResolver {
-    public static func fromDll(name: String) -> WinRTMetaclassResolver { Dll(name: name) }
-    public static func fromDll(moduleHandle: HMODULE) -> WinRTMetaclassResolver { Dll(moduleHandle: moduleHandle) }
+extension MetaclassResolver {
+    public static func fromDll(name: String) -> MetaclassResolver { Dll(name: name) }
+    public static func fromDll(moduleHandle: HMODULE) -> MetaclassResolver { Dll(moduleHandle: moduleHandle) }
 
-    private class Dll: WinRTMetaclassResolver {
+    private class Dll: MetaclassResolver {
         private let libraryNameToLoad: String?
         private let lock = NSLock()
         private var libraryHandle: WinSDK.HMODULE?
@@ -86,8 +86,8 @@ extension WinRTMetaclassResolver {
         }
 
         override func getActivationFactory(runtimeClass: String) throws -> COMReference<SWRT_IActivationFactory> {
-            var activatableId = try WinRTPrimitiveProjection.String.toABI(runtimeClass)
-            defer { WinRTPrimitiveProjection.String.release(&activatableId) }
+            var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
+            defer { PrimitiveProjection.String.release(&activatableId) }
 
             var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
             try WinRTError.throwIfFailed(funcPointer(activatableId, &factoryPointer))

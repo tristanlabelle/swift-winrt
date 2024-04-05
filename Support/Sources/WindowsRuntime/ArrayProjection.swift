@@ -1,6 +1,6 @@
 import COM
 
-public enum WinRTArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
+public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
     // WinRT does not have a distinct representation for null and empty
     public typealias SwiftValue = [ElementProjection.SwiftValue]
     public typealias ABIValue = COMArray<ElementProjection.ABIValue>

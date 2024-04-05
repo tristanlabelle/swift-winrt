@@ -13,7 +13,7 @@ public enum WinRTExportedInterface {
         let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
         return HResult.catchValue {
             let idsArray = try object.getIids()
-            let comArray = try WinRTArrayProjection<GUIDProjection>.toABI(idsArray)
+            let comArray = try ArrayProjection<GUIDProjection>.toABI(idsArray)
             count.pointee = comArray.count
             iids.pointee = comArray.pointer
         }
@@ -26,7 +26,7 @@ public enum WinRTExportedInterface {
         className.pointee = nil
         let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
         return HResult.catchValue {
-            className.pointee = try WinRTPrimitiveProjection.String.toABI(object.getRuntimeClassName())
+            className.pointee = try PrimitiveProjection.String.toABI(object.getRuntimeClassName())
         }
     }
 

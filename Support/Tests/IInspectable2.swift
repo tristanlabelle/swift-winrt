@@ -4,7 +4,7 @@ import WindowsRuntime
 internal protocol IInspectable2Protocol: IInspectableProtocol {}
 internal typealias IInspectable2 = any IInspectable2Protocol
 
-internal enum IInspectable2Projection: WinRTInterfaceProjection {
+internal enum IInspectable2Projection: InterfaceProjection {
     public typealias SwiftObject = IInspectable2
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
 

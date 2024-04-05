@@ -2,21 +2,21 @@ import COM
 import WindowsRuntime_ABI
 
 public enum IReferenceUnboxingProjection {
-    public typealias Boolean = Of<WinRTPrimitiveProjection.Boolean>
-    public typealias UInt8 = Of<WinRTPrimitiveProjection.UInt8>
-    public typealias Int16 = Of<WinRTPrimitiveProjection.Int16>
-    public typealias UInt16 = Of<WinRTPrimitiveProjection.UInt16>
-    public typealias Int32 = Of<WinRTPrimitiveProjection.Int32>
-    public typealias UInt32 = Of<WinRTPrimitiveProjection.UInt32>
-    public typealias Int64 = Of<WinRTPrimitiveProjection.Int64>
-    public typealias UInt64 = Of<WinRTPrimitiveProjection.UInt64>
-    public typealias Single = Of<WinRTPrimitiveProjection.Single>
-    public typealias Double = Of<WinRTPrimitiveProjection.Double>
-    public typealias Char16 = Of<WinRTPrimitiveProjection.Char16>
-    public typealias String = Of<WinRTPrimitiveProjection.String>
-    public typealias Guid = Of<WinRTPrimitiveProjection.Guid>
+    public typealias Boolean = Of<PrimitiveProjection.Boolean>
+    public typealias UInt8 = Of<PrimitiveProjection.UInt8>
+    public typealias Int16 = Of<PrimitiveProjection.Int16>
+    public typealias UInt16 = Of<PrimitiveProjection.UInt16>
+    public typealias Int32 = Of<PrimitiveProjection.Int32>
+    public typealias UInt32 = Of<PrimitiveProjection.UInt32>
+    public typealias Int64 = Of<PrimitiveProjection.Int64>
+    public typealias UInt64 = Of<PrimitiveProjection.UInt64>
+    public typealias Single = Of<PrimitiveProjection.Single>
+    public typealias Double = Of<PrimitiveProjection.Double>
+    public typealias Char16 = Of<PrimitiveProjection.Char16>
+    public typealias String = Of<PrimitiveProjection.String>
+    public typealias Guid = Of<PrimitiveProjection.Guid>
 
-    public enum Of<Projection: WinRTBoxableProjection>: WinRTProjection, COMProjection {
+    public enum Of<Projection: BoxableProjection>: WinRTProjection, COMProjection {
         public typealias SwiftObject = Projection.SwiftValue
         public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
 
