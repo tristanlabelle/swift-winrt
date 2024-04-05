@@ -8,10 +8,10 @@ extension SwiftType: CustomStringConvertible, TextOutputStreamable {
     public func write(to output: inout some TextOutputStream) {
         switch self {
             case let .chain(chain):
-                if chain.protocolModifier == .existential {
+                if chain.protocolModifier == .any {
                     output.write("any ")
                 }
-                else if chain.protocolModifier == .opaque {
+                else if chain.protocolModifier == .some {
                     output.write("some ")
                 }
 

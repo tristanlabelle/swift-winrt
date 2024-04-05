@@ -24,11 +24,19 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
         return pointer
     }
 
+    public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
+        try interop.queryInterface(id)
+    }
+
+    public func queryInterface<Other>(_ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> /* where Interface: COMIUnknownStruct */ {
+        try interop.queryInterface(id, type: type)
+    }
+
     // Should require COMIUnknownStruct but we run into compiler bugs.
-    public consuming func reinterpret<NewInterface>(to type: NewInterface.Type = NewInterface.self) -> COMReference<NewInterface> /* where Interface: COMIUnknownStruct */ {
+    public consuming func cast<Other>(to type: Other.Type = Other.self) -> COMReference<Other> /* where Interface: COMIUnknownStruct */ {
         let pointer = self.pointer
         discard self
-        return COMReference<NewInterface>(transferringRef: pointer.withMemoryRebound(to: NewInterface.self, capacity: 1) { $0 })
+        return COMReference<Other>(transferringRef: pointer.withMemoryRebound(to: Other.self, capacity: 1) { $0 })
     }
 
     deinit {

@@ -5,12 +5,12 @@ import WinRTComponent
 class MetaclassResolutionTests: WinRTTestCase {
     func testCustomResolver() throws {
         class Resolver: MetaclassResolver {
-            private let dllResolver = MetaclassResolver.fromDll(name: "WinRTComponent")
+            private let dllResolver = DllMetaclassResolver(name: "WinRTComponent.dll")
             var lastRuntimeClass: String? = nil
 
-            override func getActivationFactory(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
+            func resolve(runtimeClass: String) throws -> IInspectableReference {
                 lastRuntimeClass = runtimeClass
-                return try dllResolver.getActivationFactory(runtimeClass: runtimeClass)
+                return try dllResolver.resolve(runtimeClass: runtimeClass)
             }
         }
 

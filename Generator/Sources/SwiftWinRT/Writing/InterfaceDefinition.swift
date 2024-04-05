@@ -133,7 +133,7 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
         name: try projection.toTypeName(interfaceDefinition),
         typeParams: interfaceDefinition.genericParams.map { $0.name },
         target: .identifier(
-            protocolModifier: .existential,
+            protocolModifier: .any,
             name: try projection.toProtocolName(interfaceDefinition),
             genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
 }
