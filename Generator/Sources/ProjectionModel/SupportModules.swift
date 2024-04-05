@@ -95,7 +95,7 @@ extension SupportModules.WinRT {
         .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init("Of", genericArgs: [ projectionType ]) ])
     }
 
-    public static var winRTMetaclassResolver: SwiftType { .chain(moduleName, "WinRTMetaclassResolver") }
+    public static var resolveMetaclass: SwiftType { .chain(moduleName, "ResolveMetaclass") }
 }
 
 public enum BuiltInTypeKind {

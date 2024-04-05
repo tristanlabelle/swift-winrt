@@ -125,13 +125,13 @@ internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], modul
     }
 }
 
-internal let metaclassResolverGlobalName = "metaclassResolver"
+internal let resolveMetaclassGlobalName = "resolveMetaclass"
 
 fileprivate func writeGlobalsFile(module: SwiftProjection.Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    let metaclassResolverType = SupportModules.WinRT.winRTMetaclassResolver
-    writer.writeStoredProperty(visibility: .public, declarator: .var, name: metaclassResolverGlobalName,
-        type: metaclassResolverType, initialValue: "\(metaclassResolverType).default")
+    let resolveMetaclassType = SupportModules.WinRT.resolveMetaclass
+    writer.writeStoredProperty(visibility: .public, declarator: .var, name: resolveMetaclassGlobalName,
+        type: resolveMetaclassType, initialValue: "\(SupportModules.WinRT.moduleName).defaultResolveMetaclass")
 }

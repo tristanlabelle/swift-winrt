@@ -37,10 +37,11 @@ internal enum SecondaryInterfaces {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                     if interfaceName == "IActivationFactory" {
                         // Workaround a compiler bug where the compiler doesn't see the SWRT_IActivationFactory extension.
-                        writer.writeStatement("try \(metaclassResolverGlobalName).getActivationFactory(runtimeClass: \"\(activatableId)\")")
+                        writer.writeStatement("try \(resolveMetaclassGlobalName)(\"\(activatableId)\")\n"
+                            + ".queryInterface(\(SupportModules.WinRT.moduleName).IActivationFactoryProjection.interfaceID)")
                     } else {
-                        writer.writeStatement("try \(metaclassResolverGlobalName).getActivationFactory(\n"
-                            + "runtimeClass: \"\(activatableId)\", interfaceID: \(abiStructType).iid)")
+                        writer.writeStatement("try \(resolveMetaclassGlobalName)("
+                            + "\"\(activatableId)\").queryInterface(\(abiStructType).iid)")
                     }
                 }
                 else {

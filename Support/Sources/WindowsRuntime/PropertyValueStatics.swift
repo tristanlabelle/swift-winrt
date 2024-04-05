@@ -8,9 +8,7 @@ internal enum PropertyValueStatics {
     private static var this: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValueStatics> {
         get throws {
             try lazyReference.getPointer {
-                try WinRTMetaclassResolver.default.getActivationFactory(
-                    runtimeClass: "Windows.Foundation.PropertyValue",
-                    interfaceID: iid)
+                try defaultResolveMetaclass(runtimeClass: "Windows.Foundation.PropertyValue").queryInterface(iid)
             }
         }
     }
