@@ -58,6 +58,6 @@ public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
 
     public func queryInterface<Other /* COMIUnknownStruct */>(
             _ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
-        (try queryInterface(id) as IUnknownReference).reinterpret(to: type)
+        (try queryInterface(id) as IUnknownReference).cast(to: type)
     }
 }

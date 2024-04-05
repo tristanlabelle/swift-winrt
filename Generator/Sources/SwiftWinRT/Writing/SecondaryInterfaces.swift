@@ -25,7 +25,7 @@ internal enum SecondaryInterfaces {
             type: SupportModules.COM.comLazyReference(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
-        //     try _lazyIStringable.getInterop { try _queryInterface(SWRT_IStringable.iid).reinterpret() }
+        //     try _lazyIStringable.getInterop { try _queryInterface(SWRT_IStringable.iid).cast() }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
         let abiInteropType: SwiftType = SupportModules.COM.comInterop(of: abiStructType)
@@ -37,15 +37,18 @@ internal enum SecondaryInterfaces {
                     let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
                     if interfaceName == "IActivationFactory" {
                         // Workaround a compiler bug where the compiler doesn't see the SWRT_IActivationFactory extension.
-                        writer.writeStatement("try \(metaclassResolverGlobalName).getActivationFactory(runtimeClass: \"\(activatableId)\")")
+                        writer.writeStatement("try \(metaclassResolverGlobalName).resolve("
+                            + "runtimeClass: \"\(activatableId)\", "
+                            + "interfaceID: \(SupportModules.WinRT.iactivationFactoryProjection).interfaceID)")
                     } else {
-                        writer.writeStatement("try \(metaclassResolverGlobalName).getActivationFactory(\n"
-                            + "runtimeClass: \"\(activatableId)\", interfaceID: \(abiStructType).iid)")
+                        writer.writeStatement("try \(metaclassResolverGlobalName).resolve("
+                            + "runtimeClass: \"\(activatableId)\", "
+                            + "interfaceID: \(abiStructType).iid)")
                     }
                 }
                 else {
                     let qiMethodName = composable ? "_queryInnerInterface" : "_queryInterface"
-                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).reinterpret()")
+                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).cast()")
                 }
             }
         })

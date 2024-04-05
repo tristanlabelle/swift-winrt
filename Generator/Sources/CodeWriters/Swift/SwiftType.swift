@@ -11,8 +11,8 @@ public enum SwiftType {
     case any
 
     public enum ProtocolModifier {
-        case existential // any
-        case opaque // some
+        case any // existential
+        case some // opaque
     }
 
     public struct Chain {

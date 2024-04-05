@@ -10,7 +10,7 @@ public enum IAgileObjectProjection: COMProjection {
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-        IUnknownProjection._wrap(reference.reinterpret())
+        IUnknownProjection._wrap(reference.cast())
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {

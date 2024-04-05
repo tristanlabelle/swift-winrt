@@ -8,7 +8,7 @@ public protocol IUnknownProtocol: AnyObject {
 extension IUnknownProtocol {
     public func _queryInterface<Interface /* COMIUnknownStruct */>(
             _ id: COMInterfaceID, type: Interface.Type = Interface.self) throws -> COMReference<Interface> {
-        (try _queryInterface(id) as IUnknownReference).reinterpret(to: type)
+        (try _queryInterface(id) as IUnknownReference).cast(to: type)
     }
 
     public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> COMReference<Projection.COMInterface> {
