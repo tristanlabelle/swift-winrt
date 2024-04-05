@@ -9,30 +9,30 @@ public protocol WinRTProjection: ABIProjection {
 
 /// Protocol for the projection of WinRT types that can be boxed into an IInspectable,
 /// which includes value types and delegates.
-public protocol WinRTBoxableProjection: WinRTProjection {
+public protocol BoxableProjection: WinRTProjection {
     static var ireferenceID: COMInterfaceID { get }
     static func box(_ value: SwiftValue) throws -> IInspectable
 }
 
 /// Marker protocol for projections of WinRT value types into Swift.
 /// Value types implement the projection protocol directly since they can't define clashing static members.
-public protocol WinRTValueTypeProjection: WinRTBoxableProjection where SwiftValue == Self {}
+public protocol ValueTypeProjection: BoxableProjection where SwiftValue == Self {}
 
 /// Convenience protocol for projections of WinRT types into Swift.
-public protocol WinRTEnumProjection: WinRTValueTypeProjection, IntegerEnumProjection {}
+public protocol EnumProjection: ValueTypeProjection, IntegerEnumProjection {}
 
 /// Convenience protocol for projections of WinRT structs into Swift.
-public protocol WinRTStructProjection: WinRTValueTypeProjection {} // Inert structs will also conform to ABIInertProjection
+public protocol StructProjection: ValueTypeProjection {} // Inert structs will also conform to ABIInertProjection
 
 /// Marker protocol for projections of WinRT reference types into Swift.
-public protocol WinRTReferenceTypeProjection: WinRTProjection, COMProjection {}
+public protocol ReferenceTypeProjection: WinRTProjection, COMProjection {}
 
 /// Convenience protocol for projections of WinRT interfaces into Swift.
-public protocol WinRTInterfaceProjection: WinRTReferenceTypeProjection, COMTwoWayProjection {} // where SwiftObject: any IInspectable
+public protocol InterfaceProjection: ReferenceTypeProjection, COMTwoWayProjection {} // where SwiftObject: any IInspectable
 
 /// Convenience protocol for projections of WinRT delegates into Swift.
-public protocol WinRTDelegateProjection: WinRTReferenceTypeProjection, WinRTBoxableProjection, COMTwoWayProjection {}
+public protocol DelegateProjection: ReferenceTypeProjection, BoxableProjection, COMTwoWayProjection {}
 
 /// Convenience protocol for projections of WinRT classes into Swift.
-public protocol WinRTActivatableClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable
-public protocol WinRTComposableClassProjection: WinRTReferenceTypeProjection {} // where SwiftObject: any IInspectable
+public protocol ActivatableClassProjection: ReferenceTypeProjection {} // where SwiftObject: any IInspectable
+public protocol ComposableClassProjection: ReferenceTypeProjection {} // where SwiftObject: any IInspectable

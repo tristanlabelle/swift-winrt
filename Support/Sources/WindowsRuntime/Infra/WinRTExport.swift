@@ -1,7 +1,7 @@
 import COM
 
 /// Base for classes exported to WinRT and COM consumers.
-open class WinRTExport<Projection: WinRTInterfaceProjection>
+open class WinRTExport<Projection: InterfaceProjection>
         : COMExport<Projection>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }

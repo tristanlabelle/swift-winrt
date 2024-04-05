@@ -75,7 +75,7 @@ extension SwiftProjection {
                     abiDefaultValue: .defaultInitializer,
                     swiftType: swiftType,
                     swiftDefaultValue: "[]",
-                    projectionType: SupportModules.WinRT.winRTArrayProjection(of: elementProjection.projectionType),
+                    projectionType: SupportModules.WinRT.arrayProjection(of: elementProjection.projectionType),
                     kind: .array)
 
             default:
@@ -167,7 +167,7 @@ extension SwiftProjection {
                     abiDefaultValue: primitiveType == .boolean ? .`false` : .zero,
                     swiftType: swiftType,
                     swiftDefaultValue: primitiveType == .boolean ? .`false` : .zero,
-                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
+                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
                     kind: .identity)
             case .char16:
                 return TypeProjection(
@@ -175,7 +175,7 @@ extension SwiftProjection {
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.WinRT.char16,
                     swiftDefaultValue: ".init(0)",
-                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
+                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
                     kind: .inert)
             case .guid:
                 return TypeProjection(
@@ -183,7 +183,7 @@ extension SwiftProjection {
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
+                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
                     kind: .inert)
             case .string:
                 return .init(
@@ -191,7 +191,7 @@ extension SwiftProjection {
                     abiDefaultValue: .nil,
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
-                    projectionType: SupportModules.WinRT.winRTPrimitiveProjection(of: primitiveType),
+                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
                     kind: .allocating)
         }
     }

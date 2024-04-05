@@ -7,7 +7,7 @@ import WindowsRuntime_ABI
 /// - Wrapping an existing WinRT object pointer
 /// - Creating a new WinRT object, which does not need to support method overrides
 /// - Creating a derived Swift class that can override methods
-open class WinRTComposableClass: IInspectableProtocol {
+open class ComposableClass: IInspectableProtocol {
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
     private var innerWithRef: IInspectablePointer // Strong ref'd (not a COMReference<> because of initialization order issues)
 

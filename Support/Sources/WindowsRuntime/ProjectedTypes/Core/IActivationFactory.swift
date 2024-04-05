@@ -6,7 +6,7 @@ public protocol IActivationFactoryProtocol: IInspectableProtocol {
     func activateInstance() throws -> IInspectable
 }
 
-public enum IActivationFactoryProjection: WinRTInterfaceProjection {
+public enum IActivationFactoryProjection: InterfaceProjection {
     public typealias SwiftObject = IActivationFactory
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
 

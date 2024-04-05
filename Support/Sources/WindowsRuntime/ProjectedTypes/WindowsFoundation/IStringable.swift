@@ -9,7 +9,7 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
-public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
+public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
 
@@ -38,7 +38,7 @@ public enum WindowsFoundation_IStringableProjection: WinRTInterfaceProjection {
         GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
         GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
-        ToString: { this, value in _implement(this) { try _set(value, WinRTPrimitiveProjection.String.toABI($0.toString())) } })
+        ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
 }
 
 #if swift(>=5.10)
@@ -51,8 +51,8 @@ extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: /* @retroactive
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
-        var value = WinRTPrimitiveProjection.String.abiDefaultValue
+        var value = PrimitiveProjection.String.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))
-        return WinRTPrimitiveProjection.String.toSwift(consuming: &value)
+        return PrimitiveProjection.String.toSwift(consuming: &value)
     }
 }

@@ -66,25 +66,25 @@ extension SupportModules.WinRT {
     public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
     public static var iinspectableProjection: SwiftType { .chain(moduleName, "IInspectableProjection") }
 
-    public static var winRTEnumProjection: SwiftType { .chain(moduleName, "WinRTEnumProjection") }
-    public static var winRTStructProjection: SwiftType { .chain(moduleName, "WinRTStructProjection") }
-    public static var winRTInterfaceProjection: SwiftType { .chain(moduleName, "WinRTInterfaceProjection") }
-    public static var winRTDelegateProjection: SwiftType { .chain(moduleName, "WinRTDelegateProjection") }
-    public static var winRTActivatableClassProjection: SwiftType { .chain(moduleName, "WinRTActivatableClassProjection") }
-    public static var winRTComposableClassProjection: SwiftType { .chain(moduleName, "WinRTComposableClassProjection") }
+    public static var enumProjection: SwiftType { .chain(moduleName, "EnumProjection") }
+    public static var structProjection: SwiftType { .chain(moduleName, "StructProjection") }
+    public static var interfaceProjection: SwiftType { .chain(moduleName, "InterfaceProjection") }
+    public static var delegateProjection: SwiftType { .chain(moduleName, "DelegateProjection") }
+    public static var activatableClassProjection: SwiftType { .chain(moduleName, "ActivatableClassProjection") }
+    public static var composableClassProjection: SwiftType { .chain(moduleName, "ComposableClassProjection") }
 
-    public static var winRTComposableClass: SwiftType { .chain(moduleName, "WinRTComposableClass") }
+    public static var composableClass: SwiftType { .chain(moduleName, "ComposableClass") }
 
     public static func winRTImport(of type: SwiftType) -> SwiftType {
         .chain([ .init(moduleName), .init("WinRTImport", genericArgs: [type]) ])
     }
 
-    public static func winRTArrayProjection(of type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("WinRTArrayProjection", genericArgs: [type]) ])
+    public static func arrayProjection(of type: SwiftType) -> SwiftType {
+        .chain([ .init(moduleName), .init("ArrayProjection", genericArgs: [type]) ])
     }
 
-    public static func winRTPrimitiveProjection(of type: WinRTPrimitiveType) -> SwiftType {
-        .chain([ .init(moduleName), .init("WinRTPrimitiveProjection"), .init(type.name) ])
+    public static func primitiveProjection(of type: WinRTPrimitiveType) -> SwiftType {
+        .chain([ .init(moduleName), .init("PrimitiveProjection"), .init(type.name) ])
     }
 
     public static func ireferenceUnboxingProjection(of type: WinRTPrimitiveType) -> SwiftType {
@@ -95,7 +95,7 @@ extension SupportModules.WinRT {
         .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init("Of", genericArgs: [ projectionType ]) ])
     }
 
-    public static var winRTMetaclassResolver: SwiftType { .chain(moduleName, "WinRTMetaclassResolver") }
+    public static var metaclassResolver: SwiftType { .chain(moduleName, "MetaclassResolver") }
 }
 
 public enum BuiltInTypeKind {

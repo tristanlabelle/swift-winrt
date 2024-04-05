@@ -2,7 +2,7 @@ import COM
 import WindowsRuntime_ABI
 
 /// A weak reference to a WinRT object.
-public final class WeakReference<Projection: WinRTReferenceTypeProjection> {
+public final class WeakReference<Projection: ReferenceTypeProjection> {
     private var weakReference: COMReference<SWRT_IWeakReference>
 
     public init(_ target: Projection.SwiftObject) throws {

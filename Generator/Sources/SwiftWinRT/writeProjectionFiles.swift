@@ -131,7 +131,7 @@ fileprivate func writeGlobalsFile(module: SwiftProjection.Module, toPath path: S
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    let metaclassResolverType = SupportModules.WinRT.winRTMetaclassResolver
+    let metaclassResolverType = SupportModules.WinRT.metaclassResolver
     writer.writeStoredProperty(visibility: .public, declarator: .var, name: metaclassResolverGlobalName,
         type: metaclassResolverType, initialValue: "\(metaclassResolverType).default")
 }

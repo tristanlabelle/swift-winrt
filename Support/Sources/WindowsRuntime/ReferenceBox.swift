@@ -1,15 +1,15 @@
 import WindowsRuntime_ABI
 
-internal class ReferenceBox<BoxableProjection: WinRTBoxableProjection>
-        : WinRTExport<WindowsFoundation_IReferenceProjection<BoxableProjection>>,
+internal class ReferenceBox<TProjection: BoxableProjection>
+        : WinRTExport<WindowsFoundation_IReferenceProjection<TProjection>>,
         WindowsFoundation_IReferenceProtocol {
-    public typealias T = BoxableProjection.SwiftValue
+    public typealias T = TProjection.SwiftValue
 
-    public override class var _runtimeClassName: String { "Windows.Foundation.IReference`1<\(BoxableProjection.typeName)>" }
+    public override class var _runtimeClassName: String { "Windows.Foundation.IReference`1<\(TProjection.typeName)>" }
 
-    private let value: BoxableProjection.SwiftValue
+    private let value: TProjection.SwiftValue
 
-    init(_ value: BoxableProjection.SwiftValue) {
+    init(_ value: TProjection.SwiftValue) {
         self.value = value
         super.init()
     }
@@ -20,6 +20,6 @@ internal class ReferenceBox<BoxableProjection: WinRTBoxableProjection>
 
     public func _value() throws -> T { value }
     public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
-        pointer.bindMemory(to: BoxableProjection.ABIValue.self, capacity: 1).pointee = try BoxableProjection.toABI(value)
+        pointer.bindMemory(to: TProjection.ABIValue.self, capacity: 1).pointee = try TProjection.toABI(value)
     }
 }

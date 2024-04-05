@@ -30,8 +30,8 @@ public struct WinRTError: COMError, CustomStringConvertible {
         }
         catch let error {
             let hresult = (error as? COMError)?.hresult ?? HResult.fail
-            var message = (try? WinRTPrimitiveProjection.String.toABI(error.localizedDescription)) ?? nil
-            defer { WinRTPrimitiveProjection.String.release(&message) }
+            var message = (try? PrimitiveProjection.String.toABI(error.localizedDescription)) ?? nil
+            defer { PrimitiveProjection.String.release(&message) }
             WindowsRuntime_ABI.SWRT_RoOriginateError(hresult.value, message)
             return hresult.value
         }
