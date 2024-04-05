@@ -53,8 +53,7 @@ extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFacto
         defer { IInspectableProjection.release(&inspectable) }
         guard let inspectable else { throw COM.HResult.Error.noInterface }
         return try COMInterop<IInspectableProjection.COMInterface>(inspectable)
-            .queryInterface(projection.interfaceID)
-            .reinterpret(to: Projection.COMInterface.self)
+            .queryInterface(projection.interfaceID, type: Projection.COMInterface.self)
             .detach()
     }
 }

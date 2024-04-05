@@ -10,8 +10,7 @@ public enum IAgileObjectProjection: COMProjection {
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
-        let reference = reference.reinterpret(to: WindowsRuntime_ABI.SWRT_IUnknown.self)
-        return IUnknownProjection._wrap(consume reference)
+        IUnknownProjection._wrap(reference.reinterpret())
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {

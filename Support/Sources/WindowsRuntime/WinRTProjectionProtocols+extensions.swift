@@ -16,7 +16,7 @@ extension WinRTBoxableProjection {
 
     public static func unbox(_ inspectable: IInspectable) -> SwiftValue? {
         do {
-            let ireference = try inspectable._queryInterface(ireferenceID).reinterpret(to: SWRT_WindowsFoundation_IReference.self)
+            let ireference = try inspectable._queryInterface(ireferenceID, type: SWRT_WindowsFoundation_IReference.self)
             var abiValue = abiDefaultValue
             try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
                 _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.VirtualTable.pointee.get_Value(ireference.pointer, abiValuePointer))
