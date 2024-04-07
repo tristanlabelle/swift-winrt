@@ -102,6 +102,22 @@ extension SwiftPackage.Target {
                 writer.write(",", endLine: true)
                 writer.write("path: \"\(escapeStringLiteral(path))\"")
             }
+
+            if !cUnsafeFlags.isEmpty {
+                writer.write(",", endLine: true)
+                writer.writeIndentedBlock(header: "cSettings: [") {
+                    writer.writeIndentedBlock(header: ".unsafeFlags([") {
+                        for (index, flag) in cUnsafeFlags.enumerated() {
+                            if index > 0 { writer.write(", ", endLine: true) }
+                            writer.write("\"")
+                            writer.write(flag)
+                            writer.write("\"")
+                        }
+                    }
+                    writer.write("])")
+                }
+                writer.write("]")
+            }
         }
         writer.write(")")
     }
