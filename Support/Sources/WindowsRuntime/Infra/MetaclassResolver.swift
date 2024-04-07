@@ -18,6 +18,8 @@ extension MetaclassResolver {
     }
 }
 
+public var metaclassResolver: any MetaclassResolver = SystemMetaclassResolver()
+
 /// The metaclass resolver provided by the system, delegating to RoGetActivationFactory.
 /// This resolves system classes in the "Windows." namespaces and classes listed in the application manifest.
 public struct SystemMetaclassResolver: MetaclassResolver {

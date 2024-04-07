@@ -50,27 +50,24 @@ extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectab
 public typealias IInspectablePointer = IInspectableProjection.COMPointer
 public typealias IInspectableReference = COMReference<IInspectableProjection.COMInterface>
 
-extension COMInterop where Interface: /* @retroactive */ COMIInspectableStruct {
-    private var inspectable: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IInspectable>{
-        this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IInspectable.self, capacity: 1) { $0 }
-    }
-
+// Ideally this would be "where Interface: COMIInspectableStruct", but we run into compiler bugs
+extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getIids() throws -> [COMInterfaceID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
-        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetIids(inspectable, &iids.count, &iids.pointer))
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
         return ArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
-        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetRuntimeClassName(inspectable, &runtimeClassName))
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
         return PrimitiveProjection.String.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
         var trustLevel: WindowsRuntime_ABI.SWRT_TrustLevel = 0
-        try WinRTError.throwIfFailed(inspectable.pointee.VirtualTable.pointee.GetTrustLevel(inspectable, &trustLevel))
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetTrustLevel(this, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }
 }

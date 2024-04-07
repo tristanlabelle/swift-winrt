@@ -58,7 +58,18 @@ extension DelegateProjection {
 }
 
 extension ComposableClassProjection {
+    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
+        guard let pointer = value else { return nil }
+        let reference = COMReference(transferringRef: pointer)
+        if let swiftObject = _unwrap(reference.pointer) { return swiftObject }
+        return swiftWrapperFactory.create(reference, projection: Self.self)
+    }
+
     public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
         COMExportedInterface.unwrap(pointer) as? SwiftObject
+    }
+
+    public static func _wrapObject(_ reference: consuming IInspectableReference) -> IInspectable {
+        try! _wrap(reference.queryInterface(interfaceID)) as! IInspectable
     }
 }

@@ -11,6 +11,7 @@ namespace winrt::WinRTComponent::implementation
         virtual winrt::hstring TypeName();
 
         static winrt::WinRTComponent::MinimalBaseClass CreateBase();
+        static winrt::WinRTComponent::MinimalBaseClass CreateDerivedAsBase();
         static winrt::WinRTComponent::MinimalBaseClass CreatePrivate();
         static winrt::WinRTComponent::MinimalBaseClass Passthrough(winrt::WinRTComponent::MinimalBaseClass const& value);
         static winrt::hstring GetTypeName(winrt::WinRTComponent::MinimalBaseClass const& value);

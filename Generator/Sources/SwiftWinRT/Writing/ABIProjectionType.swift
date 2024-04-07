@@ -246,7 +246,7 @@ fileprivate func writeClassProjectionType(
         : SupportModules.WinRT.activatableClassProjection
 
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
-    try writer.writeEnum(
+    try writer.writeClass(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
             name: projectionTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
