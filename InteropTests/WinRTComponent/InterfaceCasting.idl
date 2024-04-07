@@ -1,0 +1,9 @@
+import "MinimalTypes.idl";
+
+namespace WinRTComponent
+{
+    static runtimeclass InterfaceCasting
+    {
+        static IMinimalInterface AsMinimalInterface(IInspectable object);
+    }
+}

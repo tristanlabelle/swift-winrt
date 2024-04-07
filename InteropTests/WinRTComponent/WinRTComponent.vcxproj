@@ -136,6 +136,9 @@
     <ClInclude Include="InspectableBoxing.h">
       <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="InterfaceCasting.h">
+      <DependentUpon>InterfaceCasting.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Int32Wrapper.h">
       <DependentUpon>Int32Wrapper.idl</DependentUpon>
     </ClInclude>
@@ -210,6 +213,9 @@
     <ClCompile Include="InspectableBoxing.cpp">
       <DependentUpon>InspectableBoxing.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="InterfaceCasting.cpp">
+      <DependentUpon>InterfaceCasting.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="Int32Wrapper.cpp">
       <DependentUpon>Int32Wrapper.idl</DependentUpon>
     </ClCompile>
@@ -262,6 +268,7 @@
     <Midl Include="ForCustomMetaclassResolution.idl" />
     <Midl Include="Events.idl" />
     <Midl Include="InspectableBoxing.idl" />
+    <Midl Include="InterfaceCasting.idl" />
     <Midl Include="Int32Wrapper.idl" />
     <Midl Include="ManualAsyncOperation.idl" />
     <Midl Include="MinimalTypes.idl" />
