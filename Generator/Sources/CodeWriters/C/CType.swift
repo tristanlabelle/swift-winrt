@@ -1,7 +1,13 @@
 public enum CTypeSpecifier {
     case reference(kind: CTypeDeclKind? = nil, name: String)
-    indirect case pointer(to: CType)
+    indirect case pointer(to: CType, nullability: CNullability? = nil)
     indirect case functionPointer(return: CType, callingConvention: CCallingConvention? = nil, params: [CParamDecl] = [])
+}
+
+public enum CNullability {
+    case nonnull
+    case nullable
+    case unspecified
 }
 
 public struct CType {
@@ -21,13 +27,13 @@ extension CType {
         .init(.reference(kind: kind, name: name), const: const, volatile: volatile)
     }
 
-    public static func pointer(to pointee: CType, const: Bool = false, volatile: Bool = false) -> Self {
-        .init(.pointer(to: pointee), const: const, volatile: volatile)
+    public static func pointer(to pointee: CType, const: Bool = false, volatile: Bool = false, nullability: CNullability? = nil) -> Self {
+        .init(.pointer(to: pointee, nullability: nullability), const: const, volatile: volatile)
     }
 
     public static let void: Self = .reference(name: "void")
 
-    public func makePointer(const: Bool = false, volatile: Bool = false) -> Self {
-        .init(.pointer(to: self), const: const, volatile: volatile)
+    public func makePointer(const: Bool = false, volatile: Bool = false, nullability: CNullability? = nil) -> Self {
+        .init(.pointer(to: self, nullability: nullability), const: const, volatile: volatile)
     }
 }

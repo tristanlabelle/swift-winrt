@@ -15,11 +15,13 @@ let package = Package(
         .target(
             name: "COM",
             dependencies: ["WindowsRuntime_ABI"],
-            path: "Support/Sources/COM"),
+            path: "Support/Sources/COM",
+            cSettings: [.unsafeFlags([ "-Xclang", "-Wno-nullability-completeness" ])]),
         .target(
             name: "WindowsRuntime",
             dependencies: ["WindowsRuntime_ABI", "COM"],
-            path: "Support/Sources/WindowsRuntime"),
+            path: "Support/Sources/WindowsRuntime",
+            cSettings: [.unsafeFlags([ "-Xclang", "-Wno-nullability-completeness" ])]),
         .testTarget(
             name: "Tests",
             dependencies: ["COM", "WindowsRuntime"],

@@ -22,8 +22,9 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
         package.dependencies.append(.package(path: supportPackageLocation))
     }
 
-    package.targets.append(
-        .target(name: projection.abiModuleName, path: projection.abiModuleName))
+    package.targets.append(.target(
+        name: projection.abiModuleName,
+        path: projection.abiModuleName))
 
     var productTargets = [String]()
 
@@ -31,7 +32,9 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
         guard !module.isEmpty else { continue }
 
         // Assembly module
-        var assemblyModuleTarget = SwiftPackage.Target(name: module.name)
+        var assemblyModuleTarget = SwiftPackage.Target(
+            name: module.name,
+            cUnsafeFlags: [ "-Xclang", "-Wno-nullability-completeness" ])
         assemblyModuleTarget.path = "\(module.name)/Assembly"
 
         assemblyModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))

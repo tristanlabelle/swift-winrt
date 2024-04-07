@@ -83,7 +83,6 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReferenceVTable =  .init(
     GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
     GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
     get_Value: { this, value in
-        guard let this else { return HResult.pointer.value }
         guard let this: any WindowsFoundation_IReferenceProtocolABI = COMExportBase.getImplementationUnsafe(this) else {
             return HResult.fail.value
         }

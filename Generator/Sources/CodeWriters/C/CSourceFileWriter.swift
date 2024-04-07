@@ -148,10 +148,17 @@ public class CSourceFileWriter {
     }
 
     private func writeQualifiersAndPointers(_ type: CType, name: String?) {
-        if case let .pointer(pointee) = type.specifier {
+        if case let .pointer(pointee, nullability) = type.specifier {
             writeQualifiersAndPointers(pointee, name: name)
             output.write("*")
             writeQualifiers(type, prefix: false)
+            if let nullability {
+                switch nullability {
+                    case .nonnull: output.write(" _Nonnull")
+                    case .nullable: output.write(" _Nullable")
+                    case .unspecified: break
+                }
+            }
         } else {
             writeQualifiers(type, prefix: true)
             if let name { output.write(name) }
@@ -169,7 +176,7 @@ public class CSourceFileWriter {
 
     private static func getLeafTypeSpecifier(_ type: CType) -> CTypeSpecifier {
         switch type.specifier {
-            case .pointer(let pointee): return getLeafTypeSpecifier(pointee)
+            case .pointer(let pointee, _): return getLeafTypeSpecifier(pointee)
             default: return type.specifier
         }
     }

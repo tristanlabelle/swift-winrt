@@ -64,24 +64,14 @@ public struct COMExportedInterface {
 
 // IUnknown virtual table implementations
 extension COMExportedInterface {
-    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
-        guard let this else {
-            assertionFailure("COM this pointer was null")
-            return 1
-        }
-
+    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UInt32 {
         let unmanaged = toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
     }
 
-    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
-        guard let this else {
-            assertionFailure("COM this pointer was null")
-            return 0
-        }
-
+    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UInt32 {
         let unmanaged = toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
@@ -90,14 +80,9 @@ extension COMExportedInterface {
     }
 
     public static func QueryInterface<Interface>(
-            _ this: UnsafeMutablePointer<Interface>?,
+            _ this: UnsafeMutablePointer<Interface>,
             _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
-        guard let this else {
-            assertionFailure("COM this pointer was null")
-            return HResult.pointer.value
-        }
-
         guard let ppvObject else { return HResult.pointer.value }
         ppvObject.pointee = nil
 

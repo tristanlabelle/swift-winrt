@@ -3,16 +3,16 @@ import DotNetMetadata
 import WindowsMetadata
 
 extension CAbi {
-    internal static func makeCType(name: String, indirections: Int = 0) -> CType {
+    internal static func makeCType(name: String, indirections: Int = 0, nullability: CNullability? = nil) -> CType {
         var type = CType.reference(name: name)
-        for _ in 0..<indirections {
-            type = type.makePointer()
+        for i in 0..<indirections {
+            type = type.makePointer(nullability: i == indirections - 1 ? nullability : nil)
         }
         return type
     }
 
-    internal static func makeCParam(type: String, indirections: Int = 0, name: String?) -> CParamDecl {
-        .init(type: makeCType(name: type, indirections: indirections), name: name)
+    internal static func makeCParam(type: String, indirections: Int = 0, nullability: CNullability? = nil, name: String?) -> CParamDecl {
+        .init(type: makeCType(name: type, indirections: indirections, nullability: nullability), name: name)
     }
 
     internal static func toCType(_ type: TypeNode) throws -> CType {
