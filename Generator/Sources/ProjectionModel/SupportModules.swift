@@ -97,8 +97,8 @@ extension SupportModules.WinRT {
 
     public static var iactivationFactoryProjection: SwiftType { .chain(moduleName, "IActivationFactoryProjection") }
 
-    public static var anyMetaclassResolver: SwiftType { .chain(protocolModifier: .any, moduleName, "MetaclassResolver") }
-    public static var systemMetaclassResolver: SwiftType { .chain(moduleName, "SystemMetaclassResolver") }
+    public static var metaclassResolverGlobal: String { "\(moduleName).metaclassResolver" }
+    public static var swiftWrapperFactoryGlobal: String { "\(moduleName).swiftWrapperFactory" }
 }
 
 public enum BuiltInTypeKind {

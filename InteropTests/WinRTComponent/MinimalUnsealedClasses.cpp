@@ -18,6 +18,10 @@ namespace winrt::WinRTComponent::implementation
     {
         return winrt::make<MinimalBaseClass>();
     }
+    winrt::WinRTComponent::MinimalBaseClass MinimalBaseClass::CreateDerivedAsBase()
+    {
+        return winrt::make<MinimalDerivedClass>();
+    }
     winrt::WinRTComponent::MinimalBaseClass MinimalBaseClass::CreatePrivate()
     {
         return winrt::make<PrivateClass>();

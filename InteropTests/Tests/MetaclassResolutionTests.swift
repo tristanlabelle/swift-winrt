@@ -16,9 +16,9 @@ class MetaclassResolutionTests: WinRTTestCase {
 
         // Temporarily install the new resolver (avoid affecting other tests)
         let resolver = Resolver()
-        let originalResolver = WinRTComponent.metaclassResolver
-        WinRTComponent.metaclassResolver = resolver
-        defer { WinRTComponent.metaclassResolver = originalResolver }
+        let originalResolver = WindowsRuntime.metaclassResolver
+        WindowsRuntime.metaclassResolver = resolver
+        defer { WindowsRuntime.metaclassResolver = originalResolver }
 
         // Trigger the metaclass resolution
         try ForCustomMetaclassResolution.method()

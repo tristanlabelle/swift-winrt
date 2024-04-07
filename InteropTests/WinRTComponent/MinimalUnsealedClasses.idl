@@ -6,6 +6,7 @@ namespace WinRTComponent
         overridable String TypeName { get; };
 
         static MinimalBaseClass CreateBase();
+        static MinimalBaseClass CreateDerivedAsBase();
         static MinimalBaseClass CreatePrivate();
         static MinimalBaseClass Passthrough(MinimalBaseClass value);
         static String GetTypeName(MinimalBaseClass value);

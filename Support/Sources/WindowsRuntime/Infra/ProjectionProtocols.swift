@@ -33,6 +33,11 @@ public protocol InterfaceProjection: ReferenceTypeProjection, COMTwoWayProjectio
 /// Convenience protocol for projections of WinRT delegates into Swift.
 public protocol DelegateProjection: ReferenceTypeProjection, BoxableProjection, COMTwoWayProjection {}
 
-/// Convenience protocol for projections of WinRT classes into Swift.
-public protocol ActivatableClassProjection: ReferenceTypeProjection {} // where SwiftObject: any IInspectable
-public protocol ComposableClassProjection: ReferenceTypeProjection {} // where SwiftObject: any IInspectable
+/// Convenience protocol for projections of WinRT activatable classes into Swift.
+public protocol ActivatableClassProjection: ReferenceTypeProjection {} // where SwiftObject: IInspectable
+
+/// Convenience protocol for projections of WinRT composable classes into Swift.
+/// Conforms to AnyObject so that conforming types must be classes, which can be looked up using NSClassFromString.
+public protocol ComposableClassProjection: ReferenceTypeProjection, AnyObject { // where SwiftObject: IInspectable
+    static func _wrapObject(_ reference: consuming IInspectableReference) -> IInspectable
+}
