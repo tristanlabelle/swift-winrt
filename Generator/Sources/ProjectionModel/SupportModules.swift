@@ -128,7 +128,9 @@ extension SupportModules.WinRT {
         ]
         internal static let windowsFoundationCollections = [
             "IIterable`1",
-            "IIterator`1"
+            "IIterator`1",
+            "IVector`1",
+            "IVectorView`1"
         ]
     }
 
