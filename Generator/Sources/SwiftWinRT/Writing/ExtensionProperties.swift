@@ -43,14 +43,25 @@ internal func writeNonthrowingPropertyImplementation(
         writeSetter = nil
     }
 
+    // Convert nullability representation from NullResult errors to implicitly unwrapped optionals (T!)
+    var propertyType = try projection.toReturnType(property.type)
+    let catchNullResult = projection.isNullAsErrorEligible(try property.type)
+    if catchNullResult {
+        propertyType = .optional(wrapped: propertyType, implicitUnwrap: true)
+    }
+
     try writer.writeComputedProperty(
         documentation: projection.getDocumentationComment(property),
         visibility: .public,
         static: `static`,
         name: SwiftProjection.toMemberName(property),
-        type: projection.toReturnType(property.type),
+        type: propertyType,
         get: { writer in
-            writer.writeStatement("try! \(selfKeyword).\(SwiftProjection.toMemberName(getter))()")
+            let output = writer.output
+            output.write("try! ")
+            if catchNullResult { output.write("NullResult.catch(") }
+            output.write("\(selfKeyword).\(SwiftProjection.toMemberName(getter))()")
+            if catchNullResult { output.write(")") }
         },
         set: writeSetter)
 }
