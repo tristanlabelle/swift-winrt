@@ -13,6 +13,25 @@ For examples of using projections, refer to [interop tests](InteropTests/Tests).
 
 This project is a pure Swift rewrite of [its namesake from The Browser Company](https://github.com/thebrowsercompany/swift-winrt).
 
+## Feature set
+
+Swift/WinRT should support the majority of WinRT interop scenarios thanks to the following features:
+
+- Swift representation of the full WinRT type system:
+  - **Core types**: boolean, integers, floats, char16, string, guid, `IInspectable`
+  - **Type definitions**: structs, enums, interfaces (+generic), delegates (+generic), classes (activatable, composable and static)
+  - **Members (instance and static)**: constructors, struct fields, enumerants, methods, properties, events
+  - **Parameters**: in, inout, out, and return values
+  - **Types**: arrays, `IReference<T>` boxing, `IAsyncInfo`/`IAsyncOperation`, weak references and collection interfaces
+  - **Nullability** and **exceptions**
+  - **Namespaces**
+- Documentation comment generation from xml documentation
+- Interoperability between WinRT objects and COM interfaces
+- Implementing COM or WinRT interfaces in Swift objects to be used by WinRT
+- Deriving from WinRT composable classes, e.g. for Xaml controls
+- Manifest and registration-less WinRT class instantiation
+- Opt-in upcasting support, e.g. casting a returned WinRT `UIElement` to a `Button` using `as`
+
 ## Design philosophy
 
 - **Correctness & completeness first**: The information loss from WinRT APIs should be minimal, including when this results in less Swifty code. For example, most methods are throwing as to capture any failure HRESULTs, and namespaces are simulated to avoid name clashes. If information loss is desirable for ergonomics, opt-in switches may be provided.
