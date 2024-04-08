@@ -4,7 +4,15 @@ import WindowsMetadata
 
 extension SwiftProjection {
     public func toABIType(_ type: BoundType) throws -> SwiftType {
-        precondition(!(type.definition is ClassDefinition)) // Classes have no ABI representation
+        if let classDefinition = type.definition as? ClassDefinition {
+            // The ABI representation of a (non-static) class is that of its default interface.
+            precondition(!classDefinition.isStatic)
+            guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else {
+                throw WinMDError.missingAttribute
+            }
+            return try toABIType(defaultInterface.asBoundType)
+        }
+
         return .chain(abiModuleName, try CAbi.mangleName(type: type))
     }
 

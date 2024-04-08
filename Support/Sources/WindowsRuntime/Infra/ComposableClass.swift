@@ -26,7 +26,7 @@ open class ComposableClass: IInspectableProtocol {
 
     public typealias ComposableFactory<Interface> = (
         _ outer: IInspectablePointer?,
-        _ inner: inout IInspectablePointer?) throws -> UnsafeMutablePointer<Interface>?
+        _ inner: inout IInspectablePointer?) throws -> COMReference<Interface>
 
     /// Initializer for instances created in Swift
     /// - Parameter _compose: Whether to create a composed object that supports method overrides in Swift.
@@ -43,8 +43,7 @@ open class ComposableClass: IInspectableProtocol {
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
             var inner: IInspectablePointer? = nil
-            let composed = try _factory(IInspectablePointer(OpaquePointer(outer.unknownPointer)), &inner)
-            if let composed { COMInterop(composed).release() }
+            _ = try _factory(IInspectablePointer(OpaquePointer(outer.unknownPointer)), &inner)
             guard let inner else { throw HResult.Error.fail }
             self.innerWithRef = inner
         }
@@ -55,8 +54,7 @@ open class ComposableClass: IInspectableProtocol {
             // We don't care about the inner object since WinRT provides us with the composed object.
             var inner: IInspectablePointer? = nil
             defer { IInspectableProjection.release(&inner) }
-            guard let composed = try _factory(nil, &inner) else { throw HResult.Error.fail }
-            self.innerWithRef = IInspectablePointer(OpaquePointer(composed))
+            self.innerWithRef = try _factory(nil, &inner).cast().detach()
         }
     }
 

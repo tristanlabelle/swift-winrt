@@ -293,12 +293,12 @@ fileprivate func writeComposableInitializers(
 
     for method in factoryInterface.methods {
         // The last 2 params should be the IInspectable outer and inner pointers
-        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
+        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [], abiKind: .composableFactory)
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
                 override: params.count == 2 && base != nil, // Hack: assume all base classes have a default initializer we are overriding
-                params: params.dropLast(2).map { $0.toSwiftParam() },
+                params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
                 throws: true) { writer in
             let output = writer.output
             let composeCondition = "Self.self != \(try projection.toTypeName(classDefinition)).self"
@@ -332,7 +332,7 @@ fileprivate func writeActivatableInitializers(
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
     for method in activationFactory.methods {
-        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [])
+        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [], abiKind: .activationFactory)
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
@@ -340,15 +340,15 @@ fileprivate func writeActivatableInitializers(
                 params: params.map { $0.toSwiftParam() },
                 throws: true) { writer in
 
-            // Activation factory interop methods are special-cased to return the raw factory pointer,
+            // Activation factory interop methods are special-cased to return a COMReference<T> (ABI representation),
             // so we can initialize our instance with it.
             let output = writer.output
-            output.write("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: ")
+            output.write("self.init(_wrapping: ")
             try writeInteropMethodCall(
                 name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
                 thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                 projection: projection, to: writer.output)
-            output.write("))")
+            output.write(")")
             output.endLine()
         }
     }

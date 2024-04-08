@@ -5,29 +5,6 @@ import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 
-fileprivate enum ABIInterfaceUsage {
-    case activationFactory
-    case composableFactory
-    case other
-
-    static func from(typeDefinition: TypeDefinition) throws -> ABIInterfaceUsage {
-        if let classDefinition = try typeDefinition.findAttribute(ExclusiveToAttribute.self)?.target {
-            for activatableAttribute in try classDefinition.getAttributes(ActivatableAttribute.self) {
-                if activatableAttribute.factory == typeDefinition {
-                    return .activationFactory
-                }
-            }
-
-            for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
-                if composableAttribute.factory == typeDefinition {
-                    return .composableFactory
-                }
-            }
-        }
-        return .other
-    }
-}
-
 internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
     let abiSwiftType = try projection.toABIType(abiType)
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
@@ -49,13 +26,13 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProj
     }
 
     try writer.writeExtension(type: SupportModules.COM.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
-        let interfaceUsage = try ABIInterfaceUsage.from(typeDefinition: abiType.definition)
+        let methodKind = try ABIMethodKind.forABITypeMethods(definition: abiType.definition)
         for method in abiType.definition.methods {
             // For delegates, only expose the Invoke method
             guard abiType.definition is InterfaceDefinition || method.name == "Invoke" else { continue }
             try writeCOMInteropMethod(
                 method, typeGenericArgs: abiType.genericArgs,
-                visibility: visibility, interfaceUsage: interfaceUsage,
+                visibility: visibility, methodKind: methodKind,
                 projection: projection, to: writer)
         }
     }
@@ -91,41 +68,11 @@ internal func toIIDExpression(_ uuid: UUID) throws -> String {
 
 fileprivate func writeCOMInteropMethod(
         _ method: Method, typeGenericArgs: [TypeNode],
-        visibility: SwiftVisibility, interfaceUsage: ABIInterfaceUsage,
+        visibility: SwiftVisibility, methodKind: ABIMethodKind,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
-    var (paramProjections, returnProjection) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
-
-    func preserveABIPointer(_ param: ParamProjection) -> ParamProjection {
-        let abiType = param.typeProjection.abiType
-        return ParamProjection(
-            name: param.name,
-            typeProjection: TypeProjection(
-                abiType: abiType,
-                abiDefaultValue: .`nil`,
-                swiftType: abiType,
-                swiftDefaultValue: .`nil`,
-                projectionType: .void, // No projection needed
-                kind: .identity),
-            passBy: param.passBy)
-    }
-
-    switch interfaceUsage {
-        case .activationFactory:
-            // Prevent the return value from being projected to Swift.
-            // Activation factory methods are called in class constructors,
-            // which need the resulting COM pointer for initialization.
-            returnProjection = preserveABIPointer(returnProjection!)
-
-        case .composableFactory:
-            let paramCount = paramProjections.count
-            // Preserve the pointer to the outer and inner inspectables
-            paramProjections[paramCount - 1] = preserveABIPointer(paramProjections[paramCount - 1])
-            paramProjections[paramCount - 2] = preserveABIPointer(paramProjections[paramCount - 2])
-            returnProjection = preserveABIPointer(returnProjection!)
-
-        default: break
-    }
+    let (paramProjections, returnProjection) = try projection.getParamProjections(
+        method: method, genericTypeArgs: typeGenericArgs, abiKind: methodKind)
 
     // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
     try writer.writeFunc(
@@ -133,18 +80,20 @@ fileprivate func writeCOMInteropMethod(
             name: SwiftProjection.toInteropMethodName(method),
             params: paramProjections.map { $0.toSwiftParam() },
             throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
-        try writeSwiftToAbiCall(
+        try writeSwiftToABICall(
             abiMethodName: abiMethodName,
             params: paramProjections,
             returnParam: returnProjection,
+            returnCOMReference: methodKind == .activationFactory || methodKind == .composableFactory,
             to: writer)
     }
 }
 
-fileprivate func writeSwiftToAbiCall(
+fileprivate func writeSwiftToABICall(
         abiMethodName: String,
         params: [ParamProjection],
         returnParam: ParamProjection?,
+        returnCOMReference: Bool,
         to writer: SwiftStatementWriter) throws {
 
     var abiArgs = ["this"]
@@ -229,10 +178,17 @@ fileprivate func writeSwiftToAbiCall(
     }
 
     // Handle the return value
-    let returnValue: String = switch returnTypeProjection.kind {
-        case .identity: returnParam.name
-        case .inert: "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
-        default: "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
+    let returnValue: String
+    switch returnTypeProjection.kind {
+        case .identity where returnCOMReference:
+            writer.writeStatement("guard let \(returnParam.name) else { throw HResult.Error.pointer }")
+            returnValue = "\(SupportModules.COM.comReference)(transferringRef: \(returnParam.name))"
+        case .identity where !returnCOMReference:
+            returnValue = returnParam.name
+        case .inert:
+            returnValue = "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
+        default:
+            returnValue = "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
     }
 
     writer.writeReturnStatement(value: returnValue)
