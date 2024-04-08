@@ -32,11 +32,55 @@ extension SwiftProjection {
             passBy: passBy)
     }
 
-    public func getParamProjections(method: Method, genericTypeArgs: [TypeNode]) throws -> (params: [ParamProjection], return: ParamProjection?) {
-        return (
-            params: try method.params.map { try getParamProjection($0, genericTypeArgs: genericTypeArgs) },
-            return: try method.hasReturnValue
-                ? getParamProjection(method.returnParam, genericTypeArgs: genericTypeArgs)
-                : nil)
+    public func getParamProjections(method: Method, genericTypeArgs: [TypeNode], abiKind: ABIMethodKind? = nil) throws -> (params: [ParamProjection], return: ParamProjection?) {
+        let abiKind = try abiKind ?? ABIMethodKind.forABITypeMethods(definition: method.definingType)
+
+        var paramProjections = try method.params.map { try getParamProjection($0, genericTypeArgs: genericTypeArgs) }
+
+        if abiKind == .composableFactory {
+            // The last two parameters are the outer and inner objects,
+            // which should not be projected to Swift.
+            for i in paramProjections.count-2..<paramProjections.count {
+                let paramProjection = paramProjections[i]
+                let abiType = paramProjection.typeProjection.abiType
+                paramProjections[i] = ParamProjection(
+                    name: paramProjection.name,
+                    typeProjection: TypeProjection(
+                        abiType: abiType,
+                        abiDefaultValue: .`nil`,
+                        swiftType: abiType,
+                        swiftDefaultValue: .`nil`,
+                        projectionType: .void, // No projection needed
+                        kind: .identity),
+                    passBy: paramProjection.passBy)
+            }
+        }
+
+        let returnProjection: ParamProjection?
+        switch abiKind {
+            case .activationFactory, .composableFactory:
+                // Factory method. Preserve the ABI and return it as COMReference
+                guard case .bound(let objectType) = try method.returnType else {
+                    fatalError("ABI factory methods are expected to return a bound type.")
+                }
+                let abiType = try toABIType(objectType)
+                returnProjection = ParamProjection(
+                    name: "_result",
+                    typeProjection: TypeProjection(
+                        abiType: .optional(wrapped: .unsafeMutablePointer(to: abiType)),
+                        abiDefaultValue: .`nil`,
+                        swiftType: SupportModules.COM.comReference(to: abiType),
+                        swiftDefaultValue: .`nil`, // No projection needed
+                        projectionType: .void, // No projection needed
+                        kind: .identity),
+                    passBy: .return(nullAsError: false))
+
+            default:
+                returnProjection = try method.hasReturnValue
+                    ? getParamProjection(method.returnParam, genericTypeArgs: genericTypeArgs)
+                    : nil
+        }
+
+        return (params: paramProjections, return: returnProjection)
     }
 }
