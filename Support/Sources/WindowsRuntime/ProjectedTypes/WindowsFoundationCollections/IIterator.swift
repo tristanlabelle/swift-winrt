@@ -1,3 +1,5 @@
+// Public types and protocols in here must be compatible with what the code generator would emit.
+
 /// Supports simple iteration over a collection.
 public typealias WindowsFoundationCollections_IIterator<T> = any WindowsFoundationCollections_IIteratorProtocol<T>
 
