@@ -34,12 +34,6 @@ open class WinRTExport<Projection: InterfaceProjection>
         return try super._queryInterface(id)
     }
 
-    public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
-            projection: SecondaryProjection.Type,
-            implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
-        WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
-    }
-
     open func getIids() throws -> [COMInterfaceID] {
         var iids = Self.implements.map { $0.id }
         if Self.implementIAgileObject { iids.append(IAgileObjectProjection.interfaceID) }
@@ -52,23 +46,7 @@ open class WinRTExport<Projection: InterfaceProjection>
     public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }
 
-fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: COMWrappingExport<Projection> {
-    override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
-        // Delegate our identity
-        if let foreignIdentity, id == IInspectableProjection.interfaceID {
-            return .init(addingRef: foreignIdentity.unknownPointer)
-        }
-        return try super._queryInterface(id)
-    }
-
-    public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
-            projection: SecondaryProjection.Type,
-            implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
-        WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
-    }
-}
-
-fileprivate class ExportedStringable: WinRTExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+fileprivate class ExportedStringable: WindowsFoundation_IStringableProtocol {
     private let target: any CustomStringConvertible
     init(target: any CustomStringConvertible) { self.target = target }
     func toString() throws -> String { target.description }

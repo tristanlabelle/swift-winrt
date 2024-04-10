@@ -4,7 +4,7 @@
 public typealias WindowsFoundationCollections_IVectorView<T> = any WindowsFoundationCollections_IVectorViewProtocol<T>
 
 /// Represents an immutable view into a vector.
-public protocol WindowsFoundationCollections_IVectorViewProtocol<T>: WindowsFoundationCollections_IIterableProtocol {
+public protocol WindowsFoundationCollections_IVectorViewProtocol<T>: AnyObject {
     associatedtype T
 
     /// Returns the item at the specified index in the vector view.

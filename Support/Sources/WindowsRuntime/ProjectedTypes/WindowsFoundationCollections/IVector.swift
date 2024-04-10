@@ -4,7 +4,7 @@
 public typealias WindowsFoundationCollections_IVector<T> = any WindowsFoundationCollections_IVectorProtocol<T>
 
 /// Represents a random-access collection of elements.
-public protocol WindowsFoundationCollections_IVectorProtocol<T>: WindowsFoundationCollections_IIterableProtocol {
+public protocol WindowsFoundationCollections_IVectorProtocol<T>: AnyObject {
     associatedtype T
 
     /// Returns the item at the specified index in the vector.

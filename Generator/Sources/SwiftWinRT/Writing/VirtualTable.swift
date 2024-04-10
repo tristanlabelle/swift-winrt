@@ -17,9 +17,9 @@ fileprivate func writeVirtualTable(
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
     try output.writeIndentedBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
-        output.writeFullLine("QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },")
-        output.writeFullLine("AddRef: { COMExportedInterface.AddRef($0) },")
-        output.write("Release: { COMExportedInterface.Release($0) }")
+        output.writeFullLine("QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },")
+        output.writeFullLine("AddRef: { COMEmbedding.AddRef($0) },")
+        output.write("Release: { COMEmbedding.Release($0) }")
 
         // IInspectable methods (except for delegates)
         if abiType.definition is InterfaceDefinition {

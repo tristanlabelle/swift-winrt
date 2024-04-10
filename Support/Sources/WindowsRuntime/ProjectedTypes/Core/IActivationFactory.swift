@@ -2,7 +2,7 @@ import COM
 import WindowsRuntime_ABI
 
 public typealias IActivationFactory = any IActivationFactoryProtocol
-public protocol IActivationFactoryProtocol: IInspectableProtocol {
+public protocol IActivationFactoryProtocol: AnyObject {
     func activateInstance() throws -> IInspectable
 }
 

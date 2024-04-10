@@ -1,7 +1,7 @@
 import WindowsRuntime_ABI
 
 public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
-public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
+public protocol IRestrictedErrorInfoProtocol: AnyObject {
     func getErrorDetails(
         description: inout String?,
         error: inout HResult,
@@ -38,9 +38,9 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IRestrictedErrorInfoVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },
+        AddRef: { COMEmbedding.AddRef($0) },
+        Release: { COMEmbedding.Release($0) },
         GetErrorDetails: { this, description, error, restrictedDescription, capabilitySid in _implement(this) {
             var description_: String? = nil
             var error_: HResult = .ok

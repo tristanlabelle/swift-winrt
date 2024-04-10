@@ -2,7 +2,7 @@ import WindowsRuntime_ABI
 import COM
 
 public typealias IBufferByteAccess = any IBufferByteAccessProtocol
-public protocol IBufferByteAccessProtocol: IUnknownProtocol {
+public protocol IBufferByteAccessProtocol: AnyObject {
     var buffer: UnsafeMutablePointer<UInt8> { get throws }
 }
 
@@ -26,9 +26,9 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IBufferByteAccessVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },
+        AddRef: { COMEmbedding.AddRef($0) },
+        Release: { COMEmbedding.Release($0) },
         Buffer: { this, value in _implement(this) { try _set(value, $0.buffer) } })
 }
 

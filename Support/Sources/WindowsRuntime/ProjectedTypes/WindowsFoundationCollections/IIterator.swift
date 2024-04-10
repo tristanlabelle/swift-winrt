@@ -4,7 +4,7 @@
 public typealias WindowsFoundationCollections_IIterator<T> = any WindowsFoundationCollections_IIteratorProtocol<T>
 
 /// Supports simple iteration over a collection.
-public protocol WindowsFoundationCollections_IIteratorProtocol<T>: IInspectableProtocol {
+public protocol WindowsFoundationCollections_IIteratorProtocol<T>: AnyObject {
     associatedtype T
 
     /// Advances the iterator to the next item in the collection.

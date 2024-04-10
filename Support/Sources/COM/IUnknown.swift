@@ -38,9 +38,9 @@ public enum IUnknownProjection: COMTwoWayProjection {
     private final class Import: COMImport<IUnknownProjection> {}
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IUnknownVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) })
+        QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },
+        AddRef: { COMEmbedding.AddRef($0) },
+        Release: { COMEmbedding.Release($0) })
 }
 
 extension WindowsRuntime_ABI.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {

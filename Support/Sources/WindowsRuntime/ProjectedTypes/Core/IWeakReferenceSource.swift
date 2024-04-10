@@ -1,7 +1,7 @@
 import WindowsRuntime_ABI
 
 public typealias IWeakReferenceSource = any IWeakReferenceSourceProtocol
-public protocol IWeakReferenceSourceProtocol: IUnknownProtocol {
+public protocol IWeakReferenceSourceProtocol: AnyObject {
     func getWeakReference() throws -> IWeakReference
 }
 
@@ -27,9 +27,9 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IWeakReferenceSourceVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },
+        AddRef: { COMEmbedding.AddRef($0) },
+        Release: { COMEmbedding.Release($0) },
         GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceProjection.toABI($0.getWeakReference())) } })
 }
 

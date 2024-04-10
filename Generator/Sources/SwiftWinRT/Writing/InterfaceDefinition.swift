@@ -49,7 +49,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
         }
     }
 
-    if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
+    if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("AnyObject")) }
 
     let documentation = projection.getDocumentation(interfaceDefinition)
     let protocolName = try projection.toProtocolName(interfaceDefinition)

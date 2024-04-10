@@ -4,7 +4,7 @@ import WindowsRuntime_ABI
 public typealias WindowsFoundation_IPropertyValue = any WindowsFoundation_IPropertyValueProtocol
 
 /// Represents a value in a property store. You can't implement this interface, see Remarks.
-public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
+public protocol WindowsFoundation_IPropertyValueProtocol: AnyObject {
     /// Returns the type stored in the property value.
     func _type() throws -> WindowsFoundation_PropertyType
 

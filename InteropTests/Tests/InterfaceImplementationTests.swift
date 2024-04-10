@@ -5,7 +5,7 @@ import WinRTComponent
 class InterfaceImplementationTests: WinRTTestCase {
     func testWithSwiftObject() throws {
         class Exported: WinRTExport<IInspectableProjection>, IMinimalInterfaceProtocol {
-            override class var implements: [Implements] { [
+            override class var implements: [COMImplements] { [
                 .init(IMinimalInterfaceProjection.self)
             ] }
 

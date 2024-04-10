@@ -4,7 +4,7 @@ import WindowsRuntime_ABI
 public typealias WindowsFoundation_IStringable = any WindowsFoundation_IStringableProtocol
 
 /// Provides a way to represent the current object as a string.
-public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
+public protocol WindowsFoundation_IStringableProtocol: AnyObject {
     /// Gets a string that represents the current object.
     func toString() throws -> String
 }
@@ -32,9 +32,9 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { COMEmbedding.QueryInterface($0, $1, $2) },
+        AddRef: { COMEmbedding.AddRef($0) },
+        Release: { COMEmbedding.Release($0) },
         GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
         GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
