@@ -73,17 +73,25 @@ Swift protocols generated for COM/WinRT interfaces have a "Protocol" suffix. The
 
 **Example**: `class CustomVector: IVectorProtocol { func getView() throws -> IVectorView }`
 
-## Members
-### Property setters as functions
-Property setters are exposed as functions taking a new value argument and returning `Void`, instead of as property setters.
+### Upcasting support
+Given a `getObject() -> Base` that actually returns a `Derived`, there is opt-in support for casting `Base` to `Derived` through implementing `SwiftObjectWrapperFactory`.
 
-**Rationale**: Swift does not support throwing property setters, and we don't want to ignore or failfast on exceptions. WinRT should not overload properties to methods whereas Swift can, so this is safe.
+**Rationale**: The C# projection supports this and it makes for a more natural use of projections, however it requires costly dynamic wrapper type lookup and instantiation on every method return. A built-in implementation would require lower-level assemblies to know about module names of higher-level assemblies.
+
+## Members
+### Properties and accessors
+Properties are generated as both throwing accessors methods and nonthrowing properties (returning implicitly unwrapped optionals).
+
+**Rationale**: Swift does not support throwing property setters. This is a compromise between exposing errors from property accessors and supporting the convenient property syntax.
 
 **Example**:
 ```swift 
-// In IAsyncAction
-var completed: AsyncActionCompletedHandler { get throws }
-func completed(_ value: AsyncActionCompletedHandler!) throws
+func _myProperty() throws -> IClosable // Getter
+func _myProperty(_ value: IClosable) throws // Setter
+
+extension {
+    var myProperty: IClosable! { get set } // Nonthrowing property
+}
 ```
 
 ### Nullability via thrown errors
@@ -92,25 +100,3 @@ func completed(_ value: AsyncActionCompletedHandler!) throws
 **Rationale**: Null return values are rare and WinRT projections already require handling exceptions so this unifies error handling.
 
 **Example**: `IVector` has `func getView() throws -> IVectorView` (not nullable)
-
-## Open Questions
-### Should IFoo = any IFooProtocol?
-There are two ways to project interfaces:
-```swift
-// IFoo = any IFooProtocol
-protocol IFooProtocol: IUnknownProtocol {}
-typealias IFoo = any IFooProtocol
-class IFooProjection: IFoo {}
-// IFoo = projection
-protocol IFooProtocol {} // No need for IUnknownProtocol
-class IFoo: IFooProtocol {}
-```
-
-Comparison:
-| IFoo =             | any Protocol                                                 | Projection                                                   |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Typical usage      | ➕ Like C#                                                    | ➕ Like C#                                                    |
-| Swift impls        | ➕ Straightforward declaration<br />➖ Straightforward passing in<br />➖ Ill-defined QI method | ➕ Straightforward declaration<br />➖ Passing in requires `.projection`<br />➕ No QI method |
-| Casting ergonomics | ➕ `as` supported in most cases (⚠️)<br />➖ QI requires using `Projection` class | ➖ `as` mostly unsupported (⚠️)<br />➕ No separate `Projection` type |
-| Correctness        | ➖ Can pass in non-projectable Swift objects                  | ➕ Can only pass in COM-projectable objects                   |
-| Performance        | ➖ runtimeclass lookup on creation to support `as`<br />➖ Existential protocol dispatch | ➕ No runtimeclass lookup on creation (?) <br />➕ Class virtual dispatch |
