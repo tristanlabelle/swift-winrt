@@ -17,16 +17,16 @@ fileprivate func writeVirtualTable(
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
     try output.writeIndentedBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
-        output.writeFullLine("QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },")
-        output.writeFullLine("AddRef: { COMExportedInterface.AddRef($0) },")
-        output.write("Release: { COMExportedInterface.Release($0) }")
+        output.writeFullLine("QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },")
+        output.writeFullLine("AddRef: { IUnknownVirtualTable.AddRef($0) },")
+        output.write("Release: { IUnknownVirtualTable.Release($0) }")
 
         // IInspectable methods (except for delegates)
         if abiType.definition is InterfaceDefinition {
             output.write(",", endLine: true)
-            output.writeFullLine("GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },")
-            output.writeFullLine("GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },")
-            output.write("GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) }")
+            output.writeFullLine("GetIids: { IInspectableVirtualTable.GetIids($0, $1, $2) },")
+            output.writeFullLine("GetRuntimeClassName: { IInspectableVirtualTable.GetRuntimeClassName($0, $1) },")
+            output.write("GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) }")
         }
 
         // Custom interface/delegate methods

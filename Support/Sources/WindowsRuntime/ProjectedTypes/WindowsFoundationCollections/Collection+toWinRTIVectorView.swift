@@ -10,7 +10,7 @@ extension Collection where Index == Int, Element: Equatable {
     }
 }
 
-fileprivate class CollectionVectorView<C: Collection>: WinRTExport<IInspectableProjection>,
+fileprivate class CollectionVectorView<C: Collection>: WinRTPrimaryExport<IInspectableProjection>,
         WindowsFoundationCollections_IVectorViewProtocol
         where C.Index == Int {
     public typealias T = C.Element

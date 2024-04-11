@@ -29,7 +29,7 @@ extension SupportModules.COM {
     public static var comProjection: SwiftType { .chain(moduleName, "COMProjection") }
     public static var comTwoWayProjection: SwiftType { .chain(moduleName, "COMTwoWayProjection") }
 
-    public static var comExportedInterface: SwiftType { .chain(moduleName, "COMExportedInterface") }
+    public static var comEmbedding: SwiftType { .chain(moduleName, "COMEmbedding") }
 
     public static var comReference: SwiftType { .chain(moduleName, "COMReference") }
     public static func comReference(to type: SwiftType) -> SwiftType {

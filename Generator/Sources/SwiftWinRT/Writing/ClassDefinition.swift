@@ -241,11 +241,11 @@ fileprivate func writeClassOverrideSupport(
     let outerPropertySuffix = "outer"
 
     for interface in interfaces {
-        // private var _istringable_outer: COM.COMExportedInterface = .uninitialized
+        // private var _istringable_outer: COM.COMEmbedding = .uninitialized
         writer.writeStoredProperty(
             visibility: .private, declarator: .var,
             name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
-            type: SupportModules.COM.comExportedInterface, initialValue: ".uninitialized")
+            type: SupportModules.COM.comEmbedding, initialValue: ".uninitialized")
     }
 
     // public override func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? {
@@ -258,15 +258,15 @@ fileprivate func writeClassOverrideSupport(
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
             try writer.writeBracedBlock("if id == \(abiSwiftType).iid") { writer in
                 // if !_ifooOverrides_outer.isInitialized {
-                //     _ifooOverrides_outer = COMExportedInterface(
+                //     _ifooOverrides_outer = COMEmbedding(
                 //         swiftObject: self, virtualTable: &FooProjection.VirtualTables.ifooOverrides)
                 // }
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
                 try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
                     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
                     let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix)
-                    writer.writeStatement("\(outerPropertyName) = \(SupportModules.COM.comExportedInterface)(\n"
-                        + "swiftObject: self, virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
+                    writer.writeStatement("\(outerPropertyName).initialize(embedder: self,\n"
+                        + "virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
                 }
 
                 // return _iminimalUnsealedClassOverridesOuter.unknownPointer.addingRef()

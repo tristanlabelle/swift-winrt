@@ -1,8 +1,7 @@
 import COM
 import WindowsRuntime_ABI
 
-/// IInspectable virtual table implementations
-public enum WinRTExportedInterface {
+public enum IInspectableVirtualTable {
     public static func GetIids<Interface>(
             _ this: UnsafeMutablePointer<Interface>,
             _ count: UnsafeMutablePointer<UInt32>?,
@@ -10,7 +9,7 @@ public enum WinRTExportedInterface {
         guard let count, let iids else { return HResult.invalidArg.value }
         count.pointee = 0
         iids.pointee = nil
-        let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
+        let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return HResult.catchValue {
             let idsArray = try object.getIids()
             let comArray = try ArrayProjection<GUIDProjection>.toABI(idsArray)
@@ -24,7 +23,7 @@ public enum WinRTExportedInterface {
             _ className: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_HString?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let className else { return HResult.invalidArg.value }
         className.pointee = nil
-        let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
+        let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return HResult.catchValue {
             className.pointee = try PrimitiveProjection.String.toABI(object.getRuntimeClassName())
         }
@@ -34,7 +33,7 @@ public enum WinRTExportedInterface {
             _ this: UnsafeMutablePointer<Interface>,
             _ trustLevel: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_TrustLevel>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let trustLevel else { return HResult.invalidArg.value }
-        let object = COMExportedInterface.unwrapUnsafe(this) as! IInspectable
+        let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return HResult.catchValue {
             trustLevel.pointee = try TrustLevel.toABI(object.getTrustLevel())
         }

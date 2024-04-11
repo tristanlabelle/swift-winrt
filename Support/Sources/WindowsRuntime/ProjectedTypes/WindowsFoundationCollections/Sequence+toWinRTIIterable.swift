@@ -7,7 +7,7 @@ extension Sequence {
     }
 }
 
-fileprivate class SequenceIterable<S: Sequence>: WinRTExport<IInspectableProjection>, WindowsFoundationCollections_IIterableProtocol {
+fileprivate class SequenceIterable<S: Sequence>: WinRTPrimaryExport<IInspectableProjection>, WindowsFoundationCollections_IIterableProtocol {
     typealias T = S.Element
 
     private let sequence: S
@@ -21,7 +21,7 @@ fileprivate class SequenceIterable<S: Sequence>: WinRTExport<IInspectableProject
     }
 }
 
-internal class SequenceIterator<I: IteratorProtocol>: WinRTExport<IInspectableProjection>, WindowsFoundationCollections_IIteratorProtocol {
+internal class SequenceIterator<I: IteratorProtocol>: WinRTPrimaryExport<IInspectableProjection>, WindowsFoundationCollections_IIteratorProtocol {
     typealias T = I.Element
 
     private var iterator: I

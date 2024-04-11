@@ -40,11 +40,11 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testIAgileObject() throws {
-        final class AgileObject: WinRTExport<IInspectableProjection> {
+        final class AgileObject: WinRTPrimaryExport<IInspectableProjection> {
             override class var implementIAgileObject: Bool { true }
         }
 
-        final class NonAgileObject: WinRTExport<IInspectableProjection> {
+        final class NonAgileObject: WinRTPrimaryExport<IInspectableProjection> {
             override class var implementIAgileObject: Bool { false }
         }
 
@@ -53,7 +53,7 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testIStringable() throws {
-        final class Stringable: WinRTExport<IInspectableProjection>, CustomStringConvertible {
+        final class Stringable: WinRTPrimaryExport<IInspectableProjection>, CustomStringConvertible {
             var description: String { "hello" }
         }
 
@@ -61,11 +61,11 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testIWeakReferenceSource() throws {
-        final class WeakReferenceSource: WinRTExport<IInspectableProjection> {
+        final class WeakReferenceSource: WinRTPrimaryExport<IInspectableProjection> {
             override class var implementIWeakReferenceSource: Bool { true }
         }
 
-        final class NonWeakReferenceSource: WinRTExport<IInspectableProjection> {
+        final class NonWeakReferenceSource: WinRTPrimaryExport<IInspectableProjection> {
             override class var implementIWeakReferenceSource: Bool { false }
         }
 

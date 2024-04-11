@@ -26,9 +26,9 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IBufferByteAccessVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
+        AddRef: { IUnknownVirtualTable.AddRef($0) },
+        Release: { IUnknownVirtualTable.Release($0) },
         Buffer: { this, value in _implement(this) { try _set(value, $0.buffer) } })
 }
 
