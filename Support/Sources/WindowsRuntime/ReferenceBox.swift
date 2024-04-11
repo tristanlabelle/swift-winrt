@@ -1,7 +1,7 @@
 import WindowsRuntime_ABI
 
 internal class ReferenceBox<TProjection: BoxableProjection>
-        : WinRTExport<WindowsFoundation_IReferenceProjection<TProjection>>,
+        : WinRTPrimaryExport<WindowsFoundation_IReferenceProjection<TProjection>>,
         WindowsFoundation_IReferenceProtocol {
     public typealias T = TProjection.SwiftValue
 

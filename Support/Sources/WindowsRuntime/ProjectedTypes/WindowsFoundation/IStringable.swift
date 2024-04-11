@@ -32,12 +32,12 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
-        GetIids: { WinRTExportedInterface.GetIids($0, $1, $2) },
-        GetRuntimeClassName: { WinRTExportedInterface.GetRuntimeClassName($0, $1) },
-        GetTrustLevel: { WinRTExportedInterface.GetTrustLevel($0, $1) },
+        QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
+        AddRef: { IUnknownVirtualTable.AddRef($0) },
+        Release: { IUnknownVirtualTable.Release($0) },
+        GetIids: { IInspectableVirtualTable.GetIids($0, $1, $2) },
+        GetRuntimeClassName: { IInspectableVirtualTable.GetRuntimeClassName($0, $1) },
+        GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
         ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
 }
 

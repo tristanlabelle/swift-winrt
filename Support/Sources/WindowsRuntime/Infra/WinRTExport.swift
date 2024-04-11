@@ -1,8 +1,7 @@
 import COM
 
 /// Base for classes exported to WinRT and COM consumers.
-open class WinRTExport<Projection: InterfaceProjection>
-        : COMExport<Projection>, IInspectableProtocol {
+open class WinRTPrimaryExport<Projection: InterfaceProjection>: COMPrimaryExport<Projection>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
     open class var implementIStringable: Bool { true }
@@ -15,29 +14,18 @@ open class WinRTExport<Projection: InterfaceProjection>
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
             // QI for IInspectable should return the identity interface just like IUnknown.
-            case IInspectableProjection.interfaceID: return .init(addingRef: unknownPointer)
+            case IInspectableProjection.interfaceID:
+                return .init(addingRef: unknownPointer)
             case IWeakReferenceSourceProjection.interfaceID where Self.implementIWeakReferenceSource:
-                let export = createSecondaryExport(
-                    projection: IWeakReferenceSourceProjection.self,
-                    implementation: ExportedWeakReferenceSource(target: self))
-                return .init(addingRef: export.unknownPointer)
+                return ExportedWeakReferenceSource(target: self).toCOM().cast()
             case WindowsFoundation_IStringableProjection.interfaceID where Self.implementIStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
-                    let export = createSecondaryExport(
-                        projection: WindowsFoundation_IStringableProjection.self,
-                        implementation: ExportedStringable(target: customStringConvertible))
-                    return .init(addingRef: export.unknownPointer)
+                    return ExportedStringable(implementation: customStringConvertible, identity: self).toCOM().cast()
                 }
                 break
             default: break
         }
         return try super._queryInterface(id)
-    }
-
-    public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
-            projection: SecondaryProjection.Type,
-            implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
-        WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
     }
 
     open func getIids() throws -> [COMInterfaceID] {
@@ -52,41 +40,35 @@ open class WinRTExport<Projection: InterfaceProjection>
     public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }
 
-fileprivate final class WinRTWrappingExport<Projection: COMTwoWayProjection>: COMWrappingExport<Projection> {
-    override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
-        // Delegate our identity
-        if let foreignIdentity, id == IInspectableProjection.interfaceID {
-            return .init(addingRef: foreignIdentity.unknownPointer)
-        }
-        return try super._queryInterface(id)
+open class WinRTSecondaryExport<Projection: InterfaceProjection>: COMSecondaryExport<Projection>, IInspectableProtocol {
+    public init(identity: IInspectable) {
+        super.init(identity: identity)
     }
 
-    public override func createSecondaryExport<SecondaryProjection: COMTwoWayProjection>(
-            projection: SecondaryProjection.Type,
-            implementation: SecondaryProjection.SwiftObject) -> COMExport<SecondaryProjection> {
-        WinRTWrappingExport<SecondaryProjection>(implementation: implementation, foreignIdentity: self)
+    // Delegate to the identity object, though we should be using that object's IInspectable implementation in the first place.
+    public func getIids() throws -> [COMInterfaceID] { try (identity as! IInspectable).getIids() }
+    public func getRuntimeClassName() throws -> String { try (identity as! IInspectable).getRuntimeClassName() }
+    public func getTrustLevel() throws -> TrustLevel { try (identity as! IInspectable).getTrustLevel() }
+}
+
+fileprivate class ExportedStringable: WinRTSecondaryExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+    private let implementation: any CustomStringConvertible
+
+    init(implementation: any CustomStringConvertible, identity: IInspectable) {
+        self.implementation = implementation
+        super.init(identity: identity)
     }
+
+    func toString() throws -> String { implementation.description }
 }
 
-fileprivate class ExportedStringable: WinRTExport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
-    private let target: any CustomStringConvertible
-    init(target: any CustomStringConvertible) { self.target = target }
-    func toString() throws -> String { target.description }
+fileprivate class ExportedWeakReferenceSource: COMSecondaryExport<IWeakReferenceSourceProjection>, IWeakReferenceSourceProtocol {
+    init(target: IInspectable) { super.init(identity: target) }
+    func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: identity as! IInspectable) }
 }
 
-fileprivate class ExportedWeakReference: COMExport<IWeakReferenceProjection>, IWeakReferenceProtocol {
+fileprivate class ExportedWeakReference: COMPrimaryExport<IWeakReferenceProjection>, IWeakReferenceProtocol {
     weak var target: IInspectable?
     init(target: IInspectable) { self.target = target }
     func resolve() throws -> IInspectable? { target }
-}
-
-fileprivate class ExportedWeakReferenceSource: IWeakReferenceSourceProtocol {
-    public let target: IInspectable
-    init(target: IInspectable) { self.target = target }
-
-    func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: target) }
-
-    func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        try target._queryInterface(id)
-    }
 }

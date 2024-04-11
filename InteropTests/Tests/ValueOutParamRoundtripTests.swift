@@ -107,7 +107,7 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         XCTAssertNil(roundtripped)
     }
 
-    class OutputArgumentImplementation: WinRTExport<IOutputArgumentProjection>, IOutputArgumentProtocol {
+    class OutputArgumentImplementation: WinRTPrimaryExport<IOutputArgumentProjection>, IOutputArgumentProtocol {
         func int32(_ value: Int32, _ result: inout Int32) throws { result = value }
         func string(_ value: String, _ result: inout String) throws { result = value }
         func object(_ value: WindowsRuntime.IInspectable?, _ result: inout WindowsRuntime.IInspectable?) throws { result = value }

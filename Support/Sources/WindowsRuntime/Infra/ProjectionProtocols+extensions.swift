@@ -36,7 +36,7 @@ extension ReferenceTypeProjection {
             return HResult.pointer.value
         }
 
-        let implementation: SwiftObject = COMExportBase.getImplementationUnsafe(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
         return WinRTError.catchAndOriginate { try body(implementation) }
     }
 
@@ -66,7 +66,7 @@ extension ComposableClassProjection {
     }
 
     public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
-        COMExportedInterface.unwrap(pointer) as? SwiftObject
+        COMEmbedding.getImplementation(pointer, type: SwiftObject.self)
     }
 
     public static func _wrapObject(_ reference: consuming IInspectableReference) -> IInspectable {

@@ -33,9 +33,9 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     }
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IErrorInfoVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) },
+        QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
+        AddRef: { IUnknownVirtualTable.AddRef($0) },
+        Release: { IUnknownVirtualTable.Release($0) },
         GetGUID: { this, pguid in _implement(this) { try _set(pguid, GUIDProjection.toABI($0.guid)) } },
         GetSource: { this, source in _implement(this) { try _set(source, BStrProjection.toABI($0.source)) } },
         GetDescription: { this, description in _implement(this) { try _set(description, BStrProjection.toABI($0.description)) } },

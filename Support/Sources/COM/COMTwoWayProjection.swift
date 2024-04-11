@@ -5,19 +5,19 @@ public protocol COMTwoWayProjection: COMProjection {
     static var virtualTablePointer: UnsafeRawPointer { get }
 }
 
-/// Helpers for implementing virtual tables
 extension COMTwoWayProjection {
     public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
-        COMExportBase.getImplementation(pointer)
+        COMEmbedding.getImplementation(pointer)
     }
 
+    /// Helper for implementing virtual tables
     public static func _implement(_ this: COMPointer?, _ body: (SwiftObject) throws -> Void) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.pointer.value
         }
 
-        let implementation: SwiftObject = COMExportBase.getImplementationUnsafe(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
         return HResult.catchValue { try body(implementation) }
     }
 

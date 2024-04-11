@@ -13,7 +13,7 @@ open class ComposableClass: IInspectableProtocol {
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
-    private var outer: COMExportedInterface
+    private var outer: COMEmbedding
 
     /// Initializer for instances created in WinRT
     // Should take a COMReference<>, but this runs into cmopiler bugs.
@@ -38,7 +38,7 @@ open class ComposableClass: IInspectableProtocol {
             // - self.inner needs to be initialized before being able to reference self
             self.outer = .uninitialized
             self.innerWithRef = IInspectablePointer(OpaquePointer(outer.unknownPointer)) // We need to assign inner to something, it doesn't matter what.
-            self.outer = .init(swiftObject: self, virtualTable: IInspectableProjection.virtualTablePointer)
+            self.outer.initialize(embedder: self, virtualTable: IInspectableProjection.virtualTablePointer)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.

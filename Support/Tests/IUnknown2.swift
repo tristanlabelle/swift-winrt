@@ -22,7 +22,7 @@ internal enum IUnknown2Projection: COMTwoWayProjection {
     private final class Import: COMImport<IUnknown2Projection>, IUnknown2Protocol {}
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IUnknownVTable = .init(
-        QueryInterface: { COMExportedInterface.QueryInterface($0, $1, $2) },
-        AddRef: { COMExportedInterface.AddRef($0) },
-        Release: { COMExportedInterface.Release($0) })
+        QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
+        AddRef: { IUnknownVirtualTable.AddRef($0) },
+        Release: { IUnknownVirtualTable.Release($0) })
 }

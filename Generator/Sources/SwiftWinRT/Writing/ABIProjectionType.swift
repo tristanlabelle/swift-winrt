@@ -316,7 +316,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
                 },
                 toCOMImpl: { writer, paramName in
                     // Delegates have no identity, so create one for them
-                    writer.writeStatement("COMWrappingExport<Self>(implementation: \(paramName)).toCOM()")
+                    writer.writeStatement("ExportedDelegate<Self>(\(paramName)).toCOM()")
                 },
                 projection: projection,
                 to: writer)
