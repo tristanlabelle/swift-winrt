@@ -29,11 +29,16 @@ open class WinRTPrimaryExport<Projection: InterfaceProjection>: COMPrimaryExport
     }
 
     open func getIids() throws -> [COMInterfaceID] {
-        var iids = Self.implements.map { $0.id }
+        var iids = [COMInterfaceID]()
+        try _appendIids(&iids)
+        return iids
+    }
+
+    open func _appendIids(_ iids: inout [COMInterfaceID]) throws {
+        for implement in Self.implements { iids.append(implement.id) }
         if Self.implementIAgileObject { iids.append(IAgileObjectProjection.interfaceID) }
         if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceProjection.interfaceID) }
         if Self.implementIStringable, self is CustomStringConvertible { iids.append(WindowsFoundation_IStringableProjection.interfaceID) }
-        return iids
     }
 
     public final func getRuntimeClassName() throws -> String { Self._runtimeClassName }
