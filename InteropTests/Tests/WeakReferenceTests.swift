@@ -13,7 +13,7 @@ class WeakReferenceTests: WinRTTestCase {
 
     func testNulledWhenUnreferencedFromWinRT() throws {
         var target: MinimalClass! = try MinimalClass()
-        let strongReferencer = try StrongReferencer(target)
+        let strongReferencer = try ObjectReferencer(target)
         let weakReference = try WeakReference<MinimalClassProjection>(target)
         target = nil
 

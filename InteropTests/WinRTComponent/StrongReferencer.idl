@@ -1,9 +1,0 @@
-namespace WinRTComponent
-{
-    runtimeclass StrongReferencer
-    {
-        StrongReferencer(Object target);
-        Object Target { get; };
-        void Clear();
-    }
-}
