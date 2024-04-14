@@ -75,7 +75,7 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjectio
 
 // A generic type cannot have stored properties,
 // and closures converted to C function pointers cannot capture generic arguments.
-fileprivate var virtualTable: SWRT_WindowsFoundation_IReferenceVTable =  .init(
+fileprivate var virtualTable: SWRT_WindowsFoundation_IReference_VirtualTable =  .init(
     QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
     AddRef: { IUnknownVirtualTable.AddRef($0) },
     Release: { IUnknownVirtualTable.Release($0) },

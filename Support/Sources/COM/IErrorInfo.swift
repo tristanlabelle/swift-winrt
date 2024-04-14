@@ -32,7 +32,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         public var helpContext: UInt32 { get throws { try _interop.getHelpContext() } }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IErrorInfoVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IErrorInfo_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

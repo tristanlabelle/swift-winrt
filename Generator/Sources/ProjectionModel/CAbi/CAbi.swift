@@ -80,6 +80,6 @@ public enum CAbi {
     public static var ireferenceName: String { namespacingPrefix + "WindowsFoundation_IReference" }
     public static var iactivationFactoryName: String { namespacingPrefix + "IActivationFactory" }
 
-    public static var virtualTableSuffix: String { "VTable" }
+    public static var virtualTableSuffix: String { "_VirtualTable" }
     public static var virtualTableFieldName: String { "VirtualTable" }
 }

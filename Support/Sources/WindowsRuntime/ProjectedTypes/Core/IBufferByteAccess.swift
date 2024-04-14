@@ -25,7 +25,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
         public var buffer: UnsafeMutablePointer<UInt8> { get throws { try NullResult.unwrap(_interop.buffer()) } }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IBufferByteAccessVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IBufferByteAccess_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

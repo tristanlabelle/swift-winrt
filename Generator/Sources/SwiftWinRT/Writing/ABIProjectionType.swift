@@ -333,7 +333,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
             writer.writeStatement(".init(withUnsafePointer(to: &virtualTable) { $0 })")
         }
 
-        // private static var virtualTable = SWRT_IFooVTable(...)
+        // private static var virtualTable = SWRT_IFoo_VirtualTable(...)
         try writeVirtualTableProperty(name: "virtualTable", abiType: type, swiftType: type, projection: projection, to: writer)
     }
 }

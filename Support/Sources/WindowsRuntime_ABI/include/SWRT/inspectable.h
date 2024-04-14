@@ -8,10 +8,10 @@ typedef int32_t SWRT_TrustLevel;
 
 // IInspectable
 typedef struct SWRT_IInspectable {
-    struct SWRT_IInspectableVTable* VirtualTable;
+    struct SWRT_IInspectable_VirtualTable* VirtualTable;
 } SWRT_IInspectable;
 
-struct SWRT_IInspectableVTable {
+struct SWRT_IInspectable_VirtualTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IInspectable* _Nonnull _this, SWRT_Guid* riid, void** ppvObject);
     uint32_t (__stdcall *AddRef)(SWRT_IInspectable* _Nonnull _this);
     uint32_t (__stdcall *Release)(SWRT_IInspectable* _Nonnull _this);

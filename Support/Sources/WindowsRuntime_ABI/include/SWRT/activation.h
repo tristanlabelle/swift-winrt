@@ -4,10 +4,10 @@
 
 // IActivationFactory
 typedef struct SWRT_IActivationFactory {
-    struct SWRT_IActivationFactoryVTable* VirtualTable;
+    struct SWRT_IActivationFactory_VirtualTable* VirtualTable;
 } SWRT_IActivationFactory;
 
-struct SWRT_IActivationFactoryVTable {
+struct SWRT_IActivationFactory_VirtualTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IActivationFactory* _Nonnull _this, SWRT_Guid* riid, void** ppvObject);
     uint32_t (__stdcall *AddRef)(SWRT_IActivationFactory* _Nonnull _this);
     uint32_t (__stdcall *Release)(SWRT_IActivationFactory* _Nonnull _this);

@@ -56,7 +56,7 @@ internal enum FreeThreadedMarshalProjection: COMTwoWayProjection {
         fatalError("Not implemented")
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IMarshalVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IMarshal_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
