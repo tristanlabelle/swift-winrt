@@ -2,6 +2,7 @@
 open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Projection> {
     open class var implements: [COMImplements] { [] }
     open class var implementIAgileObject: Bool { true }
+    open class var implementFreeThreadedMarshaling: Bool { implementIAgileObject }
 
     public override init() {
         super.init()
@@ -15,6 +16,8 @@ open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Proj
                 return toCOM().cast()
             case IAgileObjectProjection.interfaceID where Self.implementIAgileObject:
                 return toCOM().cast()
+            case FreeThreadedMarshalProjection.interfaceID where Self.implementFreeThreadedMarshaling:
+                return try FreeThreadedMarshal(self).toCOM().cast()
             default:
                 if let interface = Self.implements.first(where: { $0.id == id }) {
                     return interface.createCOM(identity: self)
