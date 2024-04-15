@@ -4,7 +4,7 @@
 
 typedef struct SWRT_IBufferByteAccess SWRT_IBufferByteAccess;
 
-struct SWRT_IBufferByteAccessVTable {
+struct SWRT_IBufferByteAccess_VirtualTable {
     SWRT_HResult (__stdcall* QueryInterface)(SWRT_IBufferByteAccess* _Nonnull _this, SWRT_Guid* riid, void** ppvObject);
     uint32_t (__stdcall* AddRef)(SWRT_IBufferByteAccess* _Nonnull _this);
     uint32_t (__stdcall* Release)(SWRT_IBufferByteAccess* _Nonnull _this);
@@ -12,5 +12,5 @@ struct SWRT_IBufferByteAccessVTable {
 };
 
 struct SWRT_IBufferByteAccess {
-    struct SWRT_IBufferByteAccessVTable* VirtualTable;
+    struct SWRT_IBufferByteAccess_VirtualTable* VirtualTable;
 };

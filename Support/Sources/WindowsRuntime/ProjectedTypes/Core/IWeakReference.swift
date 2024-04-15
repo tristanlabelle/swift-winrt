@@ -26,7 +26,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IWeakReferenceVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IWeakReference_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

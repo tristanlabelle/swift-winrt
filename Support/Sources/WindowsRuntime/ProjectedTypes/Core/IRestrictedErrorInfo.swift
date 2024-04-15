@@ -37,7 +37,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
         public var reference: String? { get throws { try _interop.getReference() } }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IRestrictedErrorInfoVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

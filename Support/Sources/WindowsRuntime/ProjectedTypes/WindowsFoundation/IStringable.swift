@@ -31,7 +31,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringableVTable = .init(
+    private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

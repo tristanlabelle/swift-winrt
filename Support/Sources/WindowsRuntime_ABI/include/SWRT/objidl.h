@@ -6,10 +6,10 @@
 
 // IAgileObject
 typedef struct SWRT_IAgileObject {
-    struct SWRT_IAgileObjectVTable* VirtualTable;
+    struct SWRT_IAgileObject_VirtualTable* VirtualTable;
 } SWRT_IAgileObject;
 
-struct SWRT_IAgileObjectVTable {
+struct SWRT_IAgileObject_VirtualTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IAgileObject* _Nonnull _this, SWRT_Guid* riid, void** ppvObject);
     uint32_t (__stdcall *AddRef)(SWRT_IAgileObject* _Nonnull _this);
     uint32_t (__stdcall *Release)(SWRT_IAgileObject* _Nonnull _this);
@@ -20,10 +20,10 @@ typedef struct SWRT_IStream SWRT_IStream;
 
 // IMarshal
 typedef struct SWRT_IMarshal {
-    struct SWRT_IMarshalVTable* VirtualTable;
+    struct SWRT_IMarshal_VirtualTable* VirtualTable;
 } SWRT_IMarshal;
 
-struct SWRT_IMarshalVTable {
+struct SWRT_IMarshal_VirtualTable {
     SWRT_HResult (__stdcall *QueryInterface)(SWRT_IMarshal* _Nonnull _this, SWRT_Guid* riid, void** ppvObject);
     uint32_t (__stdcall *AddRef)(SWRT_IMarshal* _Nonnull _this);
     uint32_t (__stdcall *Release)(SWRT_IMarshal* _Nonnull _this);
