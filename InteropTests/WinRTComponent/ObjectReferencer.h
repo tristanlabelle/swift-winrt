@@ -6,13 +6,14 @@ namespace winrt::WinRTComponent::implementation
     struct ObjectReferencer : ObjectReferencerT<ObjectReferencer>
     {
         ObjectReferencer(winrt::Windows::Foundation::IInspectable const& obj);
-        ~ObjectReferencer() noexcept;
 
+        winrt::Windows::Foundation::IInspectable Target();
+        void Clear();
         uint32_t CallAddRef();
         uint32_t CallRelease();
 
     private:
-        ::IUnknown* m_object = nullptr;
+        winrt::Windows::Foundation::IInspectable m_object = nullptr;
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

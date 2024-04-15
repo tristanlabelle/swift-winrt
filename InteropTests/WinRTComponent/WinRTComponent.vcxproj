@@ -172,9 +172,6 @@
     <ClInclude Include="Strings.h">
       <DependentUpon>Strings.idl</DependentUpon>
     </ClInclude>
-    <ClInclude Include="StrongReferencer.h">
-      <DependentUpon>StrongReferencer.idl</DependentUpon>
-    </ClInclude>
     <ClInclude Include="Structs.h">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClInclude>
@@ -249,9 +246,6 @@
     <ClCompile Include="Strings.cpp">
       <DependentUpon>Strings.idl</DependentUpon>
     </ClCompile>
-    <ClCompile Include="StrongReferencer.cpp">
-      <DependentUpon>StrongReferencer.idl</DependentUpon>
-    </ClCompile>
     <ClCompile Include="Structs.cpp">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClCompile>
@@ -281,7 +275,6 @@
     <Midl Include="ReferenceBoxing.idl" />
     <Midl Include="ReturnArgument.idl" />
     <Midl Include="Strings.idl" />
-    <Midl Include="StrongReferencer.idl" />
     <Midl Include="Structs.idl" />
     <Midl Include="WeakReferencer.idl" />
   </ItemGroup>

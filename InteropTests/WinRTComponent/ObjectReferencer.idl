@@ -3,7 +3,9 @@ namespace WinRTComponent
     runtimeclass ObjectReferencer
     {
         ObjectReferencer(Object obj);
+        Object Target { get; };
         UInt32 CallAddRef();
         UInt32 CallRelease();
+        void Clear();
     }
 }
