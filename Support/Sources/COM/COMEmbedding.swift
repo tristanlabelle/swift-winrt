@@ -97,14 +97,22 @@ extension WindowsRuntime_ABI.SWRT_SwiftCOMObject {
 }
 
 public enum IUnknownVirtualTable {
-    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UInt32 {
+    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let this else {
+            assertionFailure("COM this pointer was null")
+            return 0
+        }
         let unmanaged = COMEmbedding.toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
     }
 
-    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>) -> UInt32 {
+    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+        guard let this else {
+            assertionFailure("COM this pointer was null")
+            return 0
+        }
         let unmanaged = COMEmbedding.toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
@@ -113,13 +121,11 @@ public enum IUnknownVirtualTable {
     }
 
     public static func QueryInterface<Interface>(
-            _ this: UnsafeMutablePointer<Interface>,
+            _ this: UnsafeMutablePointer<Interface>?,
             _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
-        guard let ppvObject else { return HResult.pointer.value }
+        guard let this, let iid, let ppvObject else { return HResult.invalidArg.value }
         ppvObject.pointee = nil
-
-        guard let iid else { return HResult.pointer.value }
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)

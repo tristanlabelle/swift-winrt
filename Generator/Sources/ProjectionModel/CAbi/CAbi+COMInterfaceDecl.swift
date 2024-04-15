@@ -32,7 +32,7 @@ extension CAbi {
         }
 
         public mutating func addFunction(name: String, return: CType = .reference(name: hresultName), params: [CParamDecl] = []) {
-            let params = [ makeCParam(type: interfaceName, indirections: 1, nullability: .nonnull, name: "_this") ] + params
+            let params = [ makeCParam(type: interfaceName, indirections: 1, name: "_this") ] + params
             let typeSpecifier = CTypeSpecifier.functionPointer(
                 return: `return`, callingConvention: .stdcall, params: params)
             members.append(CVariableDecl(type: CType(typeSpecifier), name: name))

@@ -83,11 +83,11 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReference_VirtualTable =  
     GetRuntimeClassName: { IInspectableVirtualTable.GetRuntimeClassName($0, $1) },
     GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
     get_Value: { this, value in
-        guard let this: any WindowsFoundation_IReferenceProtocolABI = COMEmbedding.getImplementation(this) else {
+        guard let this, let value else { return HResult.invalidArg.value }
+        guard let reference: any WindowsFoundation_IReferenceProtocolABI = COMEmbedding.getImplementation(this) else {
             return HResult.fail.value
         }
-        guard let value else { return HResult.pointer.value }
-        return HResult.catch { try this._getABIValue(value) }.value
+        return HResult.catch { try reference._getABIValue(value) }.value
     })
 
 #if swift(>=5.10)
