@@ -1,5 +1,5 @@
 /// Contains number values that represent the location and size of a rectangle.
-public struct WindowsFoundation_Rect: Hashable, Codable {
+public struct WindowsFoundation_Rect: Hashable, Codable, Sendable {
     /// The x-coordinate of the upper-left corner of the rectangle.
     public var x: Swift.Float
 

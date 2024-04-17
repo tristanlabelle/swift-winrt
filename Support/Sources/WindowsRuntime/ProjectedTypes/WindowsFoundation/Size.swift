@@ -1,5 +1,5 @@
 /// Represents number values that specify a height and width.
-public struct WindowsFoundation_Size: Hashable, Codable {
+public struct WindowsFoundation_Size: Hashable, Codable, Sendable {
     /// The width.
     public var width: Swift.Float
 

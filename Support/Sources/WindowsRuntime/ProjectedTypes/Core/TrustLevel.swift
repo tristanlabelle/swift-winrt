@@ -1,7 +1,7 @@
 import WindowsRuntime_ABI
 import COM
 
-public struct TrustLevel: Hashable, RawRepresentable {
+public struct TrustLevel: Hashable, RawRepresentable, Sendable {
     public var rawValue: Int32
     public init(rawValue: Int32 = 0) { self.rawValue = rawValue }
 
