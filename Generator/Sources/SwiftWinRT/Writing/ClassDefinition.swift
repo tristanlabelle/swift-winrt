@@ -318,7 +318,14 @@ fileprivate func writeComposableInitializers(
 fileprivate func writeDefaultActivatableInitializer(
         _ classDefinition: ClassDefinition,
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    try writer.writeInit(visibility: .public, convenience: true, throws: true) { writer in
+    let documentationComment: SwiftDocumentationComment?
+    if let constructor = classDefinition.findConstructor(arity: 0, inherited: false) {
+        documentationComment = try projection.getDocumentationComment(constructor)
+    } else {
+        documentationComment = nil
+    }
+
+    try writer.writeInit(documentation: documentationComment, visibility: .public, convenience: true, throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
         let projectionClassName = try projection.toProjectionTypeName(classDefinition)
         writer.writeStatement("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
