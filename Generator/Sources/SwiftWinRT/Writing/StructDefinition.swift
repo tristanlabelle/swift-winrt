@@ -9,12 +9,17 @@ internal func writeStructDefinition(_ structDefinition: StructDefinition, projec
         let typeName = try projection.toTypeName(structDefinition)
         writer.writeImport(exported: true, kind: .struct, module: SupportModules.WinRT.moduleName, symbolName: typeName)
     } else {
+        let protocolConformances: [SwiftType] = [
+            .identifier("Codable"),
+            .identifier("Hashable"),
+            .identifier("Sendable")
+        ]
         try writer.writeStruct(
                 documentation: projection.getDocumentationComment(structDefinition),
                 visibility: SwiftProjection.toVisibility(structDefinition.visibility),
                 name: try projection.toTypeName(structDefinition),
                 typeParams: structDefinition.genericParams.map { $0.name },
-                protocolConformances: [ .identifier("Hashable"), .identifier("Codable") ]) { writer throws in
+                protocolConformances: protocolConformances) { writer throws in
             try writeStructFields(structDefinition, projection: projection, to: writer)
             try writeDefaultInitializer(structDefinition, projection: projection, to: writer)
             try writeFieldwiseInitializer(structDefinition, projection: projection, to: writer)

@@ -1,6 +1,6 @@
 import WindowsRuntime_ABI
 
-public struct HResult: Hashable, CustomStringConvertible {
+public struct HResult: Hashable, Codable, CustomStringConvertible, Sendable {
     public typealias Value = Int32
     public typealias UnsignedValue = UInt32
 

@@ -1,5 +1,5 @@
 /// Represents an instant in time, typically expressed as a date and time of day.
-public struct WindowsFoundation_DateTime: Hashable, Codable {
+public struct WindowsFoundation_DateTime: Hashable, Codable, Sendable {
     /// A 64-bit signed integer that represents a point in time as the number of 100-nanosecond intervals prior to or after midnight on January 1, 1601 (according to the Gregorian Calendar).
     public var universalTime: Swift.Int64
 

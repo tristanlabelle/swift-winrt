@@ -37,8 +37,9 @@ fileprivate func writeEnumDefinition(_ enumDefinition: EnumDefinition, projectio
             name: try projection.toTypeName(enumDefinition),
             protocolConformances: [
                 .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
+                .identifier("Codable"),
                 .identifier("Hashable"),
-                .identifier("Codable") ]) { writer throws in
+                .identifier("Sendable") ]) { writer throws in
 
         let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
         writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)

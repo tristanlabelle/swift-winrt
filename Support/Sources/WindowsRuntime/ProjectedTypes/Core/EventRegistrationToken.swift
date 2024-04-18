@@ -1,7 +1,7 @@
 import COM
 import WindowsRuntime_ABI
 
-public struct EventRegistrationToken: Hashable {
+public struct EventRegistrationToken: Hashable, Sendable {
     public var value: Int64
     public init(_ value: Int64 = 0) { self.value = value }
 

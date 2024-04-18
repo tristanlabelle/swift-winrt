@@ -1,5 +1,5 @@
 /// Specifies property value types.
-public struct WindowsFoundation_PropertyType: RawRepresentable, Hashable, Codable {
+public struct WindowsFoundation_PropertyType: RawRepresentable, Hashable, Codable, Sendable {
     public var rawValue: Swift.Int32
 
     public init(rawValue: Swift.Int32 = 0) {
