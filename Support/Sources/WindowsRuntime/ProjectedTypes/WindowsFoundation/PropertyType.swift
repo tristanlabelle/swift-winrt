@@ -129,3 +129,11 @@ public struct WindowsFoundation_PropertyType: RawRepresentable, Hashable, Codabl
     /// An array of an unspecified type.
     public static let otherTypeArray = Self(rawValue: 1044)
 }
+
+extension WindowsFoundation_PropertyType: WindowsRuntime.EnumProjection {
+    public static let typeName = "Windows.Foundation.PropertyType"
+
+    public static var ireferenceID: COM.COMInterfaceID {
+        COMInterfaceID(0xECEBDE54, 0xFAC0, 0x5AEB, 0x9BA9, 0x9E1FE17E31D5)
+    }
+}

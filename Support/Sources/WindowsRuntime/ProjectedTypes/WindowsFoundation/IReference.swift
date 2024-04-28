@@ -1,5 +1,3 @@
-import WindowsRuntime_ABI
-
 /// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public typealias WindowsFoundation_IReference<T> = any WindowsFoundation_IReferenceProtocol<T>
 
@@ -20,6 +18,8 @@ extension WindowsFoundation_IReferenceProtocol {
     /// Gets the type that is represented as an IPropertyValue.
     var value: T { try! _value() }
 }
+
+import WindowsRuntime_ABI
 
 public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>

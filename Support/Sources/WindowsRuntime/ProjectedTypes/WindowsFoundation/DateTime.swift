@@ -1,3 +1,7 @@
+// We don't project Windows.Foundation.DataTime to Foundation.Date because
+// the latter can only be constructed from a Foundation.TimeInterval,
+// which is a floating-point number and would lose precision vs DataTime.
+
 /// Represents an instant in time, typically expressed as a date and time of day.
 public struct WindowsFoundation_DateTime: Hashable, Codable, Sendable {
     /// A 64-bit signed integer that represents a point in time as the number of 100-nanosecond intervals prior to or after midnight on January 1, 1601 (according to the Gregorian Calendar).
@@ -26,5 +30,32 @@ extension WindowsFoundation_DateTime {
         set {
             self = Self(foundationDate: newValue)
         }
+    }
+}
+
+import WindowsRuntime_ABI
+
+extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIInertProjection {
+    public typealias SwiftValue = Self
+    public typealias ABIValue = SWRT_WindowsFoundation_DateTime
+
+    public static let typeName = "Windows.Foundation.DateTime"
+
+    public static var ireferenceID: COM.COMInterfaceID {
+        COMInterfaceID(0x5541D8A7, 0x497C, 0x5AA4, 0x86FC, 0x7713ADBF2A2C)
+    }
+
+    public static var abiDefaultValue: ABIValue { .init() }
+
+    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+        .init(universalTime: value.UniversalTime)
+    }
+
+    public static func toABI(_ value: SwiftValue) -> ABIValue {
+        .init(UniversalTime: value.universalTime)
+    }
+
+    public static func box(_ value: SwiftValue) throws -> IInspectable {
+        try IInspectableProjection.toSwift(PropertyValueStatics.createDateTime(value))
     }
 }

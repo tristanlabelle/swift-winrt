@@ -1,5 +1,3 @@
-import WindowsRuntime_ABI
-
 /// Provides a way to represent the current object as a string.
 public typealias WindowsFoundation_IStringable = any WindowsFoundation_IStringableProtocol
 
@@ -9,9 +7,11 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
+import WindowsRuntime_ABI
+
 public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable
+    public typealias COMInterface = SWRT_WindowsFoundation_IStringable
 
     public static var typeName: String { "Windows.Foundation.IStringable" }
     public static var interfaceID: COMInterfaceID { COMInterface.iid }
@@ -31,7 +31,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable_VirtualTable = .init(
+    private static var virtualTable: SWRT_WindowsFoundation_IStringable_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
@@ -42,14 +42,14 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
 }
 
 #if swift(>=5.10)
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
+extension SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {
+extension SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {
     public static let iid = COMInterfaceID(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable {
+extension COMInterop where Interface == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = PrimitiveProjection.String.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))
