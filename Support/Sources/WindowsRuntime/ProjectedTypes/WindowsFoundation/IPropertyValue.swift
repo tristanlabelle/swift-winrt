@@ -93,11 +93,12 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
 }
 
-#if swift(>=5.10)
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: @retroactive WindowsRuntime.COMIInspectableStruct {}
-#else
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}
-#endif
+// Generated projections will declare this conformance
+// #if swift(>=5.10)
+// extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: @retroactive WindowsRuntime.COMIInspectableStruct {}
+// #else
+// extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}
+// #endif
 
 extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
     public static let iid = COMInterfaceID(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
