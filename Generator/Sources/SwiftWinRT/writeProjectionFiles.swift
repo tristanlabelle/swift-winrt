@@ -29,7 +29,8 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
                 try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix).swift")
             }
 
-            if (typeDefinition as? ClassDefinition)?.isStatic != true {
+            if (typeDefinition as? ClassDefinition)?.isStatic != true,
+                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
                 try writeABIProjectionConformanceFile(typeDefinition, module: module,
                     toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeDefinition.nameWithoutGenericSuffix)+Projection.swift")
             }

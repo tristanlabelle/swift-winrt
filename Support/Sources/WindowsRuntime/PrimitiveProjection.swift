@@ -5,7 +5,7 @@ public enum PrimitiveProjection {
     public enum Boolean: BoxableProjection, ABIIdentityProjection {
         public static var typeName: Swift.String { "Windows.Foundation.IReference`<Boolean>" }
         public static var ireferenceID: COMInterfaceID { COMInterfaceID(0x3C00FD60, 0x2950, 0x5939, 0xA21A, 0x2D12C5A01B8A) }
-        public static var abiDefaultValue: Swift.Bool { false }
+        public static var abiDefaultValue: CBool { false }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createBoolean(value))
         }
@@ -77,7 +77,7 @@ public enum PrimitiveProjection {
     public enum Single: BoxableProjection, ABIIdentityProjection {
         public static var typeName: Swift.String { "Windows.Foundation.IReference`<Single>" }
         public static var ireferenceID: COMInterfaceID { COMInterfaceID(0x719CC2BA, 0x3E76, 0x5DEF, 0x9F1A, 0x38D85A145EA8) }
-        public static var abiDefaultValue: Swift.Float { 0 }
+        public static var abiDefaultValue: CFloat { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createSingle(value))
         }
@@ -86,7 +86,7 @@ public enum PrimitiveProjection {
     public enum Double: BoxableProjection, ABIIdentityProjection {
         public static var typeName: Swift.String { "Windows.Foundation.IReference`<Double>" }
         public static var ireferenceID: COMInterfaceID { COMInterfaceID(0x2F2D6C29, 0x5473, 0x5F3E, 0x92E7, 0x96572BB990E2) }
-        public static var abiDefaultValue: Swift.Double { 0 }
+        public static var abiDefaultValue: CDouble { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createDouble(value))
         }

@@ -114,17 +114,17 @@ public enum BuiltInTypeKind {
 extension SupportModules.WinRT {
     private enum BuiltInTypes {
         internal static let windowsFoundation: Dictionary<String, BuiltInTypeKind> = [
-            "DateTime": .definitionOnly,
+            "DateTime": .definitionAndProjection,
             "EventRegistrationToken": .special,
             "HResult": .special,
             "IPropertyValue": .definitionOnly,
             "IReference`1": .definitionAndProjection,
             "IStringable": .definitionAndProjection,
-            "Point": .definitionOnly,
-            "PropertyType": .definitionOnly,
-            "Rect": .definitionOnly,
-            "Size": .definitionOnly,
-            "TimeSpan": .definitionOnly
+            "Point": .definitionAndProjection,
+            "PropertyType": .definitionAndProjection,
+            "Rect": .definitionAndProjection,
+            "Size": .definitionAndProjection,
+            "TimeSpan": .definitionAndProjection
         ]
         internal static let windowsFoundationCollections = [
             "IIterable`1",

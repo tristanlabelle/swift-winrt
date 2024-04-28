@@ -109,4 +109,44 @@ internal enum PropertyValueStatics {
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
+
+    public static func createDateTime(_ value: WindowsFoundation_DateTime) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        let value_abi = WindowsFoundation_DateTime.toABI(value)
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateDateTime(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createTimeSpan(_ value: WindowsFoundation_TimeSpan) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        let value_abi = WindowsFoundation_TimeSpan.toABI(value)
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateTimeSpan(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createPoint(_ value: WindowsFoundation_Point) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        let value_abi = WindowsFoundation_Point.toABI(value)
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreatePoint(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createSize(_ value: WindowsFoundation_Size) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        let value_abi = WindowsFoundation_Size.toABI(value)
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateSize(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createRect(_ value: WindowsFoundation_Rect) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        let value_abi = WindowsFoundation_Rect.toABI(value)
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateRect(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
 }

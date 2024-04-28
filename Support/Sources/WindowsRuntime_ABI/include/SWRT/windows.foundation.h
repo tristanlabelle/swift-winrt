@@ -121,11 +121,11 @@ struct SWRT_WindowsFoundation_IPropertyValueStatics_VirtualTable {
     SWRT_HResult (__stdcall *CreateString)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_HString value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateInspectable)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_IInspectable* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateGuid)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_Guid value, SWRT_IInspectable** propertyValue);
-    void* CreateDateTime; // SWRT_HResult (__stdcall *CreateDateTime)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, Windows.Foundation.DateTime value, SWRT_IInspectable** propertyValue);
-    void* CreateTimeSpan; // SWRT_HResult (__stdcall *CreateTimeSpan)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, Windows.Foundation.TimeSpan value, SWRT_IInspectable** propertyValue);
-    void* CreatePoint; // SWRT_HResult (__stdcall *CreatePoint)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, Windows.Foundation.Point value, SWRT_IInspectable** propertyValue);
-    void* CreateSize; // SWRT_HResult (__stdcall *CreateSize)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, Windows.Foundation.Size value, SWRT_IInspectable** propertyValue);
-    void* CreateRect; // SWRT_HResult (__stdcall *CreateRect)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, Windows.Foundation.Rect value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateDateTime)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_WindowsFoundation_DateTime value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateTimeSpan)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_WindowsFoundation_TimeSpan value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreatePoint)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_WindowsFoundation_Point value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateSize)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_WindowsFoundation_Size value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateRect)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, SWRT_WindowsFoundation_Rect value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateUInt8Array)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, uint8_t* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateInt16Array)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, int16_t* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateUInt16Array)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, uint16_t* value, SWRT_IInspectable** propertyValue);
@@ -140,11 +140,11 @@ struct SWRT_WindowsFoundation_IPropertyValueStatics_VirtualTable {
     SWRT_HResult (__stdcall *CreateStringArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_HString* value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateInspectableArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_IInspectable** value, SWRT_IInspectable** propertyValue);
     SWRT_HResult (__stdcall *CreateGuidArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_Guid* value, SWRT_IInspectable** propertyValue);
-    void* CreateDateTimeArray; // SWRT_HResult (__stdcall *CreateDateTimeArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, Windows.Foundation.DateTime* value, SWRT_IInspectable** propertyValue);
-    void* CreateTimeSpanArray; // SWRT_HResult (__stdcall *CreateTimeSpanArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, Windows.Foundation.TimeSpan* value, SWRT_IInspectable** propertyValue);
-    void* CreatePointArray; // SWRT_HResult (__stdcall *CreatePointArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, Windows.Foundation.Point* value, SWRT_IInspectable** propertyValue);
-    void* CreateSizeArray; // SWRT_HResult (__stdcall *CreateSizeArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, Windows.Foundation.Size* value, SWRT_IInspectable** propertyValue);
-    void* CreateRectArray; // SWRT_HResult (__stdcall *CreateRectArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, Windows.Foundation.Rect* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateDateTimeArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_WindowsFoundation_DateTime* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateTimeSpanArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_WindowsFoundation_TimeSpan* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreatePointArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_WindowsFoundation_Point* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateSizeArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_WindowsFoundation_Size* value, SWRT_IInspectable** propertyValue);
+    SWRT_HResult (__stdcall *CreateRectArray)(SWRT_WindowsFoundation_IPropertyValueStatics* _this, uint32_t __valueSize, SWRT_WindowsFoundation_Rect* value, SWRT_IInspectable** propertyValue);
 };
 
 // // Windows.Foundation.IStringable

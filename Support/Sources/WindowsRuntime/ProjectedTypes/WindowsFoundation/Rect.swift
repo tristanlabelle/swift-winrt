@@ -26,3 +26,30 @@ public struct WindowsFoundation_Rect: Hashable, Codable, Sendable {
         self.height = height
     }
 }
+
+import WindowsRuntime_ABI
+
+extension WindowsFoundation_Rect: WindowsRuntime.StructProjection, COM.ABIInertProjection {
+    public typealias SwiftValue = Self
+    public typealias ABIValue = SWRT_WindowsFoundation_Rect
+
+    public static let typeName = "Windows.Foundation.Rect"
+
+    public static var ireferenceID: COM.COMInterfaceID {
+        COMInterfaceID(0x80423F11, 0x054F, 0x5EAC, 0xAFD3, 0x63B6CE15E77B)
+    }
+
+    public static var abiDefaultValue: ABIValue { .init() }
+
+    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+        .init(x: value.X, y: value.Y, width: value.Width, height: value.Height)
+    }
+
+    public static func toABI(_ value: SwiftValue) -> ABIValue {
+        .init(X: value.x, Y: value.y, Width: value.width, Height: value.height)
+    }
+
+    public static func box(_ value: SwiftValue) throws -> IInspectable {
+        try IInspectableProjection.toSwift(PropertyValueStatics.createRect(value))
+    }
+}

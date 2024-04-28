@@ -14,6 +14,11 @@ public enum IInspectableBoxing {
     public static func box(_ value: Char16) throws -> IInspectable { try PrimitiveProjection.Char16.box(value) }
     public static func box(_ value: String) throws -> IInspectable { try PrimitiveProjection.String.box(value) }
     public static func box(_ value: GUID) throws -> IInspectable { try PrimitiveProjection.Guid.box(value) }
+    public static func box(_ value: WindowsFoundation_DateTime) throws -> IInspectable { try WindowsFoundation_DateTime.box(value) }
+    public static func box(_ value: WindowsFoundation_TimeSpan) throws -> IInspectable { try WindowsFoundation_TimeSpan.box(value) }
+    public static func box(_ value: WindowsFoundation_Point) throws -> IInspectable { try WindowsFoundation_Point.box(value) }
+    public static func box(_ value: WindowsFoundation_Size) throws -> IInspectable { try WindowsFoundation_Size.box(value) }
+    public static func box(_ value: WindowsFoundation_Rect) throws -> IInspectable { try WindowsFoundation_Rect.box(value) }
 
     public static func box<BoxableValue: ValueTypeProjection>(_ value: BoxableValue) throws -> IInspectable {
         try BoxableValue.box(value)

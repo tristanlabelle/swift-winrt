@@ -13,6 +13,9 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
             let projectionTypeName = try projection.toProjectionTypeName(typeDefinition)
             writer.writeImport(exported: true, kind: .enum, module: SupportModules.WinRT.moduleName, symbolName: projectionTypeName)
         }
+        else {
+            // The struct conforms to ABIProjection itself, and we already imported it.
+        }
         return
     }
 
