@@ -17,19 +17,13 @@ class InterfaceImplementationTests: WinRTTestCase {
 
     func testWithDerivedClass() throws {
         class Derived: MinimalBaseClass, IMinimalInterfaceProtocol {
-            public override init() throws { try super.init() }
-
-            override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
-                if id == IMinimalInterfaceProjection.interfaceID {
-                    // TODO
-                }
-                return try super._queryInterface(id)
-            }
+            override class var implements: [COMImplements] { [
+                .init(IMinimalInterfaceProjection.self)
+            ] }
 
             func method() throws {}
         }
 
-        try XCTSkipIf(true, "TODO: Implement _queryInterface delegating to a composable class identity")
         XCTAssertNotNil(try InterfaceCasting.asMinimalInterface(Derived()))
     }
 }

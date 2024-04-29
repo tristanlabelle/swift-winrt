@@ -62,6 +62,8 @@ open class ComposableClass: IInspectableProtocol {
         COMInterop(innerWithRef).release()
     }
 
+    open class var implements: [COMImplements] { [] }
+
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
@@ -69,9 +71,22 @@ open class ComposableClass: IInspectableProtocol {
     }
 
     open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        // If we are a composed object create from Swift, we may have overrides.
-        if outer.isInitialized, let overrides = try _queryOverridesInterfacePointer(id) {
-            return .init(addingRef: overrides)
+        // If we are a composed object create from Swift, act as such
+        if outer.isInitialized {
+            // We own the identity, don't delegate to the inner object.
+            if id == IUnknownProjection.interfaceID || id == IInspectableProjection.interfaceID {
+                return outer.toCOM()
+            }
+
+            // Check for overrides.
+            if let overrides = try _queryOverridesInterfacePointer(id) {
+                return .init(addingRef: overrides)
+            }
+
+            // Check for additional implemented interfaces.
+            if let interface = Self.implements.first(where: { $0.id == id }) {
+                return interface.createCOM(identity: self)
+            }
         }
 
         // Delegate to the inner object.
@@ -83,7 +98,7 @@ open class ComposableClass: IInspectableProtocol {
     open func getIids() throws -> [COM.COMInterfaceID] {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(innerWithRef).getIids()
+        try COMInterop(innerWithRef).getIids() + Self.implements.map { $0.id }
     }
 
     open func getRuntimeClassName() throws -> String {
