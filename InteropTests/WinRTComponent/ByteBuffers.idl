@@ -1,0 +1,8 @@
+namespace WinRTComponent
+{
+    static runtimeclass ByteBuffers
+    {
+        static Windows.Foundation.IMemoryBuffer CreateMemoryBuffer(UInt8[] data);
+        static UInt8[] GetMemoryBufferBytes(Windows.Foundation.IMemoryBufferReference bufferReference);
+    }
+}
