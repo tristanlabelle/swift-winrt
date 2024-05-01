@@ -1,10 +1,11 @@
-import WindowsRuntime_ABI
 import COM
 
 public typealias IBufferByteAccess = any IBufferByteAccessProtocol
 public protocol IBufferByteAccessProtocol: IUnknownProtocol {
     var buffer: UnsafeMutablePointer<UInt8> { get throws }
 }
+
+import WindowsRuntime_ABI
 
 public enum IBufferByteAccessProjection: COMTwoWayProjection {
     public typealias SwiftObject = IBufferByteAccess
@@ -44,7 +45,7 @@ extension WindowsRuntime_ABI.SWRT_IBufferByteAccess {
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
-        var value = UnsafeMutablePointer<UInt8>(bitPattern: 0)
+        var value: UnsafeMutablePointer<UInt8>? = nil
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.Buffer(this, &value))
         return value
     }
