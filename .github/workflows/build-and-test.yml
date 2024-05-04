@@ -26,6 +26,10 @@ jobs:
         branch: swift-5.9.1-release
         tag: 5.9.1-RELEASE
 
+    - name: Find mdmerge
+      shell: cmd
+      run: where mdmerge
+
     - name: Build code generator
       working-directory: Generator
       shell: pwsh
