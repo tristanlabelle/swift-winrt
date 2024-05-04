@@ -59,7 +59,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
 
         if let sourceModule = projection.getModule(assembly) {
             for reference in assembly.references {
-                if let targetModule = projection.getModule(try reference.resolve()) {
+                if let targetModule = projection.getModule(try reference.resolve()), targetModule !== sourceModule {
                     sourceModule.addReference(targetModule)
                 }
             }
