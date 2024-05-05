@@ -25,7 +25,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
             let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
             let assemblyNamespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
 
-            if module.typeDefinitions.contains(typeDefinition) {
+            if module.hasTypeDefinition(typeDefinition) {
                 try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix).swift")
             }
 
@@ -76,7 +76,7 @@ fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinit
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
 
-    if module.typeDefinitions.contains(typeDefinition) {
+    if module.hasTypeDefinition(typeDefinition) {
         try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
     }
 
