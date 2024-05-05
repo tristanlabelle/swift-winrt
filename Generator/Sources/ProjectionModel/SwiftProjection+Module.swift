@@ -7,8 +7,11 @@ extension SwiftProjection {
         public unowned let projection: SwiftProjection
         public let name: String
         public let flattenNamespaces: Bool
-        private var _typeDefinitions = OrderedSet<TypeDefinition>()
-        private var typeDefinitionsSortingDirty = false
+
+        // OrderedSets are not sorted. Sort it lazily for stable iteration.
+        private var lazySortedTypeDefinitions = OrderedSet<TypeDefinition>()
+        private var typeDefinitionsSorted = true
+
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
@@ -19,33 +22,34 @@ extension SwiftProjection {
         }
 
         public var typeDefinitions: OrderedSet<TypeDefinition> {
-            if typeDefinitionsSortingDirty {
-                _typeDefinitions.sort { $0.fullName < $1.fullName }
-                typeDefinitionsSortingDirty = false
+            if !typeDefinitionsSorted {
+                lazySortedTypeDefinitions.sort { $0.fullName < $1.fullName }
+                typeDefinitionsSorted = true
             }
-            return _typeDefinitions
+            return lazySortedTypeDefinitions
         }
 
         public var references: [Module] { weakReferences.map { $0.target } }
 
-        public var isEmpty: Bool { _typeDefinitions.isEmpty }
+        public var isEmpty: Bool { lazySortedTypeDefinitions.isEmpty }
 
         public func addAssembly(_ assembly: Assembly, documentation: AssemblyDocumentation? = nil) {
             projection.assembliesToModules[assembly] = AssemblyEntry(module: self, documentation: documentation)
         }
 
         public func hasTypeDefinition(_ type: TypeDefinition) -> Bool {
-            _typeDefinitions.contains(type)
+            lazySortedTypeDefinitions.contains(type)
         }
 
         public func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.getModule(type.assembly) === self)
-            _typeDefinitions.append(type)
-            typeDefinitionsSortingDirty = true
+            lazySortedTypeDefinitions.append(type)
+            typeDefinitionsSorted = false
         }
 
         public func addClosedGenericType(_ type: BoundType) {
             precondition(!type.genericArgs.isEmpty && !type.isParameterized)
+            guard closedGenericTypesByDefinition[type.definition]?.contains(type.genericArgs) == false else { return }
             closedGenericTypesByDefinition[type.definition, default: []].append(type.genericArgs)
         }
 
