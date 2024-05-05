@@ -8,6 +8,7 @@ extension SwiftProjection {
         public let name: String
         public let flattenNamespaces: Bool
         private var _typeDefinitions = OrderedSet<TypeDefinition>()
+        private var typeDefinitionsSortingDirty = false
         public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
@@ -18,7 +19,10 @@ extension SwiftProjection {
         }
 
         public var typeDefinitions: OrderedSet<TypeDefinition> {
-            _typeDefinitions.sort { $0.fullName < $1.fullName }
+            if typeDefinitionsSortingDirty {
+                _typeDefinitions.sort { $0.fullName < $1.fullName }
+                typeDefinitionsSortingDirty = false
+            }
             return _typeDefinitions
         }
 
@@ -37,6 +41,7 @@ extension SwiftProjection {
         public func addTypeDefinition(_ type: TypeDefinition) {
             precondition(projection.getModule(type.assembly) === self)
             _typeDefinitions.append(type)
+            typeDefinitionsSortingDirty = true
         }
 
         public func addClosedGenericType(_ type: BoundType) {
