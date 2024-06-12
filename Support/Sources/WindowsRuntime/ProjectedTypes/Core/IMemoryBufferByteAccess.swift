@@ -38,7 +38,7 @@ public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
         } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: @retroactive COMIUnknownStruct {}
 #else
 extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: COMIUnknownStruct {}

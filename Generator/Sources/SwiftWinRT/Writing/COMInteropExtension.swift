@@ -10,10 +10,10 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProj
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
     // Mark the COM interface struct as conforming to IUnknown (delegates) or IInspectable (interfaces)
-    // @retroactive is only supported in Swift 5.10 and above.
+    // @retroactive is only supported starting in Swift 6 and above.
     let group = writer.output.allocateVerticalGrouping()
     let comStructProtocol = abiType.definition is InterfaceDefinition ? SupportModules.WinRT.comIInspectableStruct : SupportModules.COM.comIUnknownStruct
-    writer.output.writeFullLine(grouping: group, "#if swift(>=5.10)")
+    writer.output.writeFullLine(grouping: group, "#if swift(>=6)")
     writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): @retroactive \(comStructProtocol) {}")
     writer.output.writeFullLine(grouping: group, "#else")
     writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): \(comStructProtocol) {}")

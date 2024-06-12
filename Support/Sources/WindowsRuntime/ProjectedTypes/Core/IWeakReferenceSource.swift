@@ -33,7 +33,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceProjection.toABI($0.getWeakReference())) } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IWeakReferenceSource: @retroactive COMIUnknownStruct {}
 #endif
 

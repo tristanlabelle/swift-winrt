@@ -42,7 +42,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IWeakReference: @retroactive COMIUnknownStruct {}
 #endif
 

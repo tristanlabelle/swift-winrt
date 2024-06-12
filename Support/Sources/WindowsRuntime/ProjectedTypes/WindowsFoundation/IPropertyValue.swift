@@ -94,7 +94,7 @@ extension WindowsFoundation_IPropertyValueProtocol {
 }
 
 // Generated projections will declare this conformance
-// #if swift(>=5.10)
+// #if swift(>=6)
 // extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: @retroactive WindowsRuntime.COMIInspectableStruct {}
 // #else
 // extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}

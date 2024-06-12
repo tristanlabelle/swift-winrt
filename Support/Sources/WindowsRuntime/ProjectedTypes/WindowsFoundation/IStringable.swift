@@ -41,7 +41,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
 #endif
 

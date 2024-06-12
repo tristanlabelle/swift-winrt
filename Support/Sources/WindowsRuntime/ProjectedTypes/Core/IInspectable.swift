@@ -39,7 +39,7 @@ public enum IInspectableProjection: InterfaceProjection {
 /// Do not use for dynamic casting because conformances will be @retroactive.
 public protocol COMIInspectableStruct: COMIUnknownStruct {}
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
 #endif
 
