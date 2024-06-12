@@ -90,7 +90,7 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReference_VirtualTable =  
         return HResult.catch { try reference._getABIValue(value) }.value
     })
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension SWRT_WindowsFoundation_IReference: @retroactive WindowsRuntime.COMIInspectableStruct {}
 #else
 extension SWRT_WindowsFoundation_IReference: WindowsRuntime.COMIInspectableStruct {}

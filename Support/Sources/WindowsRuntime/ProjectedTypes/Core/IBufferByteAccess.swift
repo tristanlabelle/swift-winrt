@@ -33,7 +33,7 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
         Buffer: { this, value in _implement(this) { try _set(value, $0.buffer) } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: @retroactive COMIUnknownStruct {}
 #else
 extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: COMIUnknownStruct {}

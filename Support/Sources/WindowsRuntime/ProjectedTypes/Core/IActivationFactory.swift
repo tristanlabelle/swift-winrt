@@ -30,7 +30,7 @@ public enum IActivationFactoryProjection: InterfaceProjection {
     }
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension SWRT_IActivationFactory: @retroactive COMIUnknownStruct {}
 #endif
 

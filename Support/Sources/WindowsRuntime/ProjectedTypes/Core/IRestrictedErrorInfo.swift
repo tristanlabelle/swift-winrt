@@ -60,7 +60,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
         GetReference: { this, reference in _implement(this) { try _set(reference, BStrProjection.toABI($0.reference)) } })
 }
 
-#if swift(>=5.10)
+#if swift(>=6)
 extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: @retroactive COMIUnknownStruct {}
 #else
 extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: COMIUnknownStruct {}
