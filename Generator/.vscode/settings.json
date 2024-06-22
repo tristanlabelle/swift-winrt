@@ -4,6 +4,6 @@
         "**/.build/**": true
     },
     "files.associations": {
-        "*.swift.resource": "swift"
+        "*_swift": "swift"
     }
 }

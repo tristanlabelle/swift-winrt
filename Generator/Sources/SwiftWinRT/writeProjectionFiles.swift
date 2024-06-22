@@ -26,30 +26,32 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
             let assemblyNamespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
 
             if module.hasTypeDefinition(typeDefinition) {
-                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix).swift")
+                let typeName = try projection.toTypeName(typeDefinition)
+                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeName).swift")
 
                 let extensionFileBytes: [UInt8]?
                 switch typeDefinition.fullName {
                     case "Windows.Foundation.Collections.IIterable`1":
-                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IIterable_1_swift_resource
+                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IIterable_swift
                     case "Windows.Foundation.Collections.IVector`1":
-                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IVector_1_swift_resource
+                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IVector_swift
                     case "Windows.Foundation.Collections.IVectorView`1":
-                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IVectorView_1_swift_resource
+                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IVectorView_swift
                     default:
                         extensionFileBytes = nil
                 }
                 if let extensionFileBytes {
                     try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
-                        "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix)+ext.swift",
+                        "\(assemblyNamespaceDirectoryPath)\\\(typeName)+extras.swift",
                         isDirectory: false))
                 }
             }
 
             if (typeDefinition as? ClassDefinition)?.isStatic != true,
                 !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
+                let typeName = try projection.toTypeName(typeDefinition)
                 try writeABIProjectionConformanceFile(typeDefinition, module: module,
-                    toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeDefinition.nameWithoutGenericSuffix)+Projection.swift")
+                    toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeName)+Projection.swift")
             }
         }
 

@@ -35,9 +35,9 @@ let package = Package(
             ],
             path: "Sources/SwiftWinRT",
             resources: [
-                .embedInCode("Extensions/Windows.Foundation.Collections.IIterable`1.swift.resource"),
-                .embedInCode("Extensions/Windows.Foundation.Collections.IVector`1.swift.resource"),
-                .embedInCode("Extensions/Windows.Foundation.Collections.IVectorView`1.swift.resource")
+                .embedInCode("Extensions/WindowsFoundationCollections_IIterable_swift"),
+                .embedInCode("Extensions/WindowsFoundationCollections_IVector_swift"),
+                .embedInCode("Extensions/WindowsFoundationCollections_IVectorView_swift")
             ],
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
