@@ -34,6 +34,11 @@ let package = Package(
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
             ],
             path: "Sources/SwiftWinRT",
+            resources: [
+                .embedInCode("Extensions/Windows.Foundation.Collections.IIterable`1.swift.resource"),
+                .embedInCode("Extensions/Windows.Foundation.Collections.IVector`1.swift.resource"),
+                .embedInCode("Extensions/Windows.Foundation.Collections.IVectorView`1.swift.resource")
+            ],
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
         .testTarget(

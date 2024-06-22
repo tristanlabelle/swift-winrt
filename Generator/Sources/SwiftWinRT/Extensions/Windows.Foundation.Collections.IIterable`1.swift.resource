@@ -1,3 +1,5 @@
+import WindowsRuntime
+
 extension Sequence {
     /// Converts a Swift sequence to a WinRT IIterable.
     /// - Parameter sequence: The sequence to convert.

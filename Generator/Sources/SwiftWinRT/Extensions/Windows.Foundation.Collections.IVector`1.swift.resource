@@ -1,3 +1,5 @@
+import WindowsRuntime
+
 extension Array {
     public func toWinRTIVector(elementEquals: @escaping (Element, Element) -> Bool) -> ArrayVector<Element> {
         ArrayVector(self, elementEquals: elementEquals)
