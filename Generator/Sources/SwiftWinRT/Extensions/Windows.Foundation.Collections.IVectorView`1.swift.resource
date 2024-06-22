@@ -1,3 +1,5 @@
+import WindowsRuntime
+
 extension Collection where Index == Int {
     public func toWinRTIVectorView(elementEquals: @escaping (Element, Element) -> Bool) -> WindowsFoundationCollections_IVectorView<Element> {
         CollectionVectorView(self, elementEquals: elementEquals)

@@ -126,20 +126,12 @@ extension SupportModules.WinRT {
             "Size": .definitionAndProjection,
             "TimeSpan": .definitionAndProjection
         ]
-        internal static let windowsFoundationCollections = [
-            "IIterable`1",
-            "IIterator`1",
-            "IVector`1",
-            "IVectorView`1"
-        ]
     }
 
     public static func getBuiltInTypeKind(_ typeDefinition: TypeDefinition) -> BuiltInTypeKind? {
         switch typeDefinition.namespace {
             case "Windows.Foundation":
                 return BuiltInTypes.windowsFoundation[typeDefinition.name]
-            case "Windows.Foundation.Collections":
-                return BuiltInTypes.windowsFoundationCollections.contains(typeDefinition.name) ? .definitionOnly : nil
             default: return nil
         }
     }

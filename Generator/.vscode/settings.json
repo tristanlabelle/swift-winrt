@@ -1,0 +1,9 @@
+{
+    "swift.autoGenerateLaunchConfigurations": false,
+    "search.exclude": {
+        "**/.build/**": true
+    },
+    "files.associations": {
+        "*.swift.resource": "swift"
+    }
+}

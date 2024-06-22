@@ -27,6 +27,23 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
             if module.hasTypeDefinition(typeDefinition) {
                 try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix).swift")
+
+                let extensionFileBytes: [UInt8]?
+                switch typeDefinition.fullName {
+                    case "Windows.Foundation.Collections.IIterable`1":
+                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IIterable_1_swift_resource
+                    case "Windows.Foundation.Collections.IVector`1":
+                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IVector_1_swift_resource
+                    case "Windows.Foundation.Collections.IVectorView`1":
+                        extensionFileBytes = PackageResources.Windows_Foundation_Collections_IVectorView_1_swift_resource
+                    default:
+                        extensionFileBytes = nil
+                }
+                if let extensionFileBytes {
+                    try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
+                        "\(assemblyNamespaceDirectoryPath)\\\(typeDefinition.nameWithoutGenericSuffix)+ext.swift",
+                        isDirectory: false))
+                }
             }
 
             if (typeDefinition as? ClassDefinition)?.isStatic != true,
