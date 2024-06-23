@@ -31,12 +31,16 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
                 let extensionFileBytes: [UInt8]?
                 switch typeDefinition.fullName {
+                    case "Windows.Foundation.IMemoryBufferReference":
+                        extensionFileBytes = PackageResources.WindowsFoundation_IMemoryBufferReference_swift
                     case "Windows.Foundation.Collections.IIterable`1":
                         extensionFileBytes = PackageResources.WindowsFoundationCollections_IIterable_swift
                     case "Windows.Foundation.Collections.IVector`1":
                         extensionFileBytes = PackageResources.WindowsFoundationCollections_IVector_swift
                     case "Windows.Foundation.Collections.IVectorView`1":
                         extensionFileBytes = PackageResources.WindowsFoundationCollections_IVectorView_swift
+                    case "Windows.Storage.Streams.IBuffer":
+                        extensionFileBytes = PackageResources.WindowsStorageStreams_IBuffer_swift
                     default:
                         extensionFileBytes = nil
                 }

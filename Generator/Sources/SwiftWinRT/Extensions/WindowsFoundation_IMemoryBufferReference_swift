@@ -1,0 +1,8 @@
+import WindowsRuntime
+
+extension WindowsFoundation_IMemoryBufferReferenceProtocol {
+    var bytes: UnsafeMutableBufferPointer<UInt8> {
+        let byteAccess = self._queryInterface(IMemoryBufferByteAccessProjection.self)
+        return try byteAccess.buffer
+    }
+}
