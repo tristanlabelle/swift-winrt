@@ -35,6 +35,10 @@ let package = Package(
             ],
             path: "Sources/SwiftWinRT",
             resources: [
+                .embedInCode("Extensions/WindowsFoundation_IAsyncAction_swift"),
+                .embedInCode("Extensions/WindowsFoundation_IAsyncActionWithProgress_swift"),
+                .embedInCode("Extensions/WindowsFoundation_IAsyncOperation_swift"),
+                .embedInCode("Extensions/WindowsFoundation_IAsyncOperationWithProgress_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IMemoryBufferReference_swift"),
                 .embedInCode("Extensions/WindowsFoundationCollections_IIterable_swift"),
                 .embedInCode("Extensions/WindowsFoundationCollections_IVector_swift"),

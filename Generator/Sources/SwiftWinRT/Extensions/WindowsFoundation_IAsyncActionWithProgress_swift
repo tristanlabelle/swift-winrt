@@ -1,0 +1,16 @@
+import COM
+import WindowsRuntime
+
+extension WindowsFoundation_IAsyncActionWithProgressProtocol {
+    public func get() async throws {
+        if try _status() == .started {
+            // We can't await if the completed handler is already set
+            guard try COM.NullResult.catch(_completed()) == nil else { throw COM.HResult.Error.illegalMethodCall }
+            let awaiter = WindowsRuntime.AsyncAwaiter()
+            try _completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })
+            await awaiter.wait()
+        }
+
+        return try getResults()
+    }
+}

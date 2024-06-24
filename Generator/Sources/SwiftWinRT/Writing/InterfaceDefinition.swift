@@ -28,7 +28,6 @@ internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, project
     else {
         try writeProtocolTypeAlias(interface, projection: projection, to: writer)
         try writeProtocol(interface, projection: projection, to: writer)
-        try writeInterfaceExtensions(interface, projection: projection, to: writer)
     }
 }
 
