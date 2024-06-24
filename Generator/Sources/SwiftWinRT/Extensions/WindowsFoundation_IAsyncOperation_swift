@@ -1,7 +1,7 @@
 import WindowsRuntime
 
 extension WindowsFoundation_IAsyncOperationProtocol {
-    public get() async throws -> TResult {
+    public func get() async throws -> TResult {
         if try _status() == .started {
             // We can't await if the completed handler is already set
             guard try NullResult.catch(_completed()) == nil else { throw HResult.Error.illegalMethodCall }
