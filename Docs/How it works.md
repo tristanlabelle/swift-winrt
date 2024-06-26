@@ -82,6 +82,10 @@ To make such COM objects more usable, we use a `COMInterop<T>` struct which wrap
 For example:
 
 ```swift
+extension SWRT_IFoo {
+    public static let iid = COMInterfaceID(0x94EA2B94, 0xE9CC, 0x49E0, 0xC0FF, 0xEE64CA8F5B90)
+}
+
 extension COMInterop when T == SWRT_IFoo {
     func getName() throws -> String {
         var name: BSTR? = nil
@@ -107,14 +111,95 @@ private class IFooImport: COMImport<IFooProjection>, IFooProtocol {
 }
 ```
 
-This class is private and instantiated within `IFooProjection.toSwift(pointer)`. The `COMImport` base class handles the reference counting of the underlying COM object and implements `queryInterface`.
+The `COMImport` base class handles the reference counting of the underlying COM object and implements `queryInterface`. If the `IFoo` interface requires other interfaces like `IBar`, this `IFooImport` class would also provide implementations for the additional methods from `IBarProtocol`.
+
+### COMProjection (generated)
+
+At this point we have enough to generate our ABI projection type, which as we recall is used to map values between their ABI and Swift representations. This conceptually looks like the below:
+```swift
+enum IFooProjection: COMProjection { // COMProjection conforms to ABIProjection
+    public typealias SwiftValue = IFoo?
+    public typealias ABIValue = UnsafeMutablePointer<SWRT_IFoo>?
+    
+    public static var interfaceID: COMInterfaceID { SWRT_IFoo.iid }
+    
+    public static func toSwift(_ value: UnsafeMutablePointer<SWRT_IFoo>?) -> IFoo? {
+        guard let value else { return nil }
+        return IFooImport(addingRef: value)
+    }
+
+    public static func toABI(_ value: IFoo?) throws -> UnsafeMutablePointer<SWRT_IFoo>? {
+        guard let value else { return nil }
+        return try value._queryInterface(Self.self)
+    }
+}
+```
 
 ### COMExport Base Class
 
 What if we want to implement `IFooProtocol` in Swift and pass it to a COM method?
 
+This is a different problem. Now we have a Swift native object that we must turn into a COM-compatible unsafe pointer. To do so, we use one field of the class that is designed to look like a COM object, with a virtual table pointer and an unsafe pointer back to the embedding Swift class. The virtual tables are constant and have their implementations in terms of the owning object's protocol methods.
+
+For example:
+
+```swift
+class MyFoo: COMExport<IFooProjection>, IFooProtocol {
+    public func getName() throws -> String { "George" }
+}
+
+// COMExport has a field that looks like a COM object:
+// typedef struct SWRT_SwiftCOMObject {
+//     const void* virtualTable;
+//     void* swiftObject; // Will point back to MyFoo
+// } SWRT_SwiftCOMObject;
+
+enum IFooProjection {
+    private static var virtualTable: SWRT_IFoo_VirtualTable = .init(
+        QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
+        AddRef: { IUnknownVirtualTable.AddRef($0) },
+        Release: { IUnknownVirtualTable.Release($0) },
+        // _implement casts "this" to SWRT_SwiftCOMObject and resolves swiftObject to an IFoo for the closure
+        GetName: { this, value in _implement(this) { try $0.getName() } })
+}
+```
+
+### COM Aggregation
+
+COM also supports [aggregation](https://learn.microsoft.com/en-us/windows/win32/com/aggregation), an advanced scenario in which an object both exports a COM interface that it implements, but also delegates the implementation of other interfaces to a COM object that is implemented elsewhere.
+
 [To be written]
 
 ## WinRT Projections
+
+### Primitive types
+
+The Swift projection of most primitive WinRT types is trivial: the ABI-level Int32 type maps to the Swift Int32 type, etc. Strings are a little more complicated since their ABI representation is an HSTRING which has special lifetime semantics, but we can handle these easily with the ABIProjection machinery.
+
+### Enums
+
+[To be written]
+
+### Structs
+
+[To be written]
+
+### Interfaces
+
+[To be written]
+
+### Delegates
+
+The ABI representation of delegates is similar to a single-method interface, however delegates are IUnknown compliant without being IInspectable compliant. The Swift side of the story also has complexity because closures have no notion of identity, so we lose that in the projection.
+
+### Static classes
+
+[To be written]
+
+### Sealed classes
+
+[To be written]
+
+### Unsealed classes
 
 [To be written]
