@@ -56,7 +56,16 @@ extension SwiftSyntaxWriter {
         output.write(")")
     }
 
+    internal func writeAttributes(_ attributes: [SwiftAttribute]) {
+        for attribute in attributes {
+            output.write("@")
+            output.write(attribute.literal)
+            output.endLine(groupWithNext: true)
+        }
+    }
+
     internal func writeFuncHeader(
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
@@ -69,6 +78,7 @@ extension SwiftSyntaxWriter {
         returnType: SwiftType? = nil) {
 
         var output = output
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }

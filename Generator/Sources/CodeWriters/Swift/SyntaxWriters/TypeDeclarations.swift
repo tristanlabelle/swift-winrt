@@ -12,6 +12,7 @@ extension SwiftDeclarationWriter {
 
     public func writeClass(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         final: Bool = false,
         name: String,
@@ -21,8 +22,9 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
+        if let documentation { writeDocumentationComment(documentation) }
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         if final { output.write("final ") }
         output.write("class ")
@@ -36,6 +38,7 @@ extension SwiftDeclarationWriter {
 
     public func writeStruct(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParams: [String] = [],
@@ -43,8 +46,9 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
+        if let documentation { writeDocumentationComment(documentation) }
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         output.write("struct ")
         SwiftIdentifier.write(name, to: &output)
@@ -57,6 +61,7 @@ extension SwiftDeclarationWriter {
 
     public func writeEnum(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParams: [String] = [],
@@ -65,8 +70,9 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
+        if let documentation { writeDocumentationComment(documentation) }
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         output.write("enum ")
         SwiftIdentifier.write(name, to: &output)

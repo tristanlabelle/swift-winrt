@@ -175,6 +175,9 @@
     <ClInclude Include="Structs.h">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="SwiftAttributes.h">
+      <DependentUpon>SwiftAttributes.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="WeakReferencer.h">
       <DependentUpon>WeakReferencer.idl</DependentUpon>
     </ClInclude>
@@ -249,6 +252,9 @@
     <ClCompile Include="Structs.cpp">
       <DependentUpon>Structs.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="SwiftAttributes.cpp">
+      <DependentUpon>SwiftAttributes.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="WeakReferencer.cpp">
       <DependentUpon>WeakReferencer.idl</DependentUpon>
     </ClCompile>
@@ -276,6 +282,7 @@
     <Midl Include="ReturnArgument.idl" />
     <Midl Include="Strings.idl" />
     <Midl Include="Structs.idl" />
+    <Midl Include="SwiftAttributes.idl" />
     <Midl Include="WeakReferencer.idl" />
   </ItemGroup>
   <ItemGroup>

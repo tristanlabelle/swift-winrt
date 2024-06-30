@@ -37,8 +37,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
 
         for typeDefinition in assembly.typeDefinitions {
             guard typeDefinition.isPublic else { continue }
-            guard typeDefinition.namespace != "Windows.Foundation.Metadata" else { continue }
-            guard try !typeDefinition.hasAttribute(AttributeUsageAttribute.self) else { continue }
+            guard try !typeDefinition.hasAttribute(WindowsMetadata.AttributeUsageAttribute.self) else { continue }
             guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
             guard typeFilter.matches(typeDefinition.fullName) else { continue }
             try typeDiscoverer.add(typeDefinition)

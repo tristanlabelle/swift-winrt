@@ -72,6 +72,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             guard method.nameKind == .regular else { continue }
             try writer.writeFunc(
                 documentation: projection.getDocumentationComment(method),
+                attributes: SwiftProjection.getSwiftAttributes(method),
                 name: SwiftProjection.toMemberName(method),
                 typeParams: method.genericParams.map { $0.name },
                 params: method.params.map { try projection.toParameter($0) },

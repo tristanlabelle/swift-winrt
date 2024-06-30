@@ -72,6 +72,20 @@ extension SwiftProjection {
         return result
     }
 
+    public static func getSwiftAttributes(_ member: any Attributable) throws -> [SwiftAttribute] {
+        // We recognize any attribute called SwiftAttribute and expect it has a field called Literal,
+        // ideally that would be a positional argument, but IDL doesn't seem to have a syntax for that.
+        try member.attributes
+            .filter { try $0.type.name == "SwiftAttribute" }
+            .compactMap { attribute throws -> SwiftAttribute? in
+                let literalArgument = try attribute.namedArguments[0]
+                guard case .field(let literalField) = literalArgument.target,
+                    literalField.name == "Literal",
+                    case .constant(.string(let literalValue)) = literalArgument.value else { return nil }
+                return Optional(SwiftAttribute(literalValue))
+            }
+    }
+
     public static func toMemberName(_ member: Member) -> String {
         let name = member.name
         
