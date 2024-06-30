@@ -15,8 +15,8 @@ namespace WinRTComponent
         [Swift("available(swift 1)")]
         static void AvailableFromSwift1();
 
-        [Swift("inlinable")]
+        [Swift("available(swift 1)")]
         [Swift("discardableResult")]
-        static Int32 InlinableWithDiscardableResult();
+        static Int32 AvailableFromSwift1WithDiscardableResult();
     }
 }
