@@ -9,7 +9,7 @@ namespace winrt::WinRTComponent::implementation
 
         static void MainActor();
         static void AvailableFromSwift1();
-        static int32_t InlinableWithDiscardableResult();
+        static int32_t AvailableFromSwift1WithDiscardableResult();
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

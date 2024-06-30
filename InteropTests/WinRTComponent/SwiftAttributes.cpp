@@ -10,7 +10,7 @@ namespace winrt::WinRTComponent::implementation
     void SwiftAttributes::AvailableFromSwift1()
     {
     }
-    int32_t SwiftAttributes::InlinableWithDiscardableResult()
+    int32_t SwiftAttributes::AvailableFromSwift1WithDiscardableResult()
     {
         return 42;
     }
