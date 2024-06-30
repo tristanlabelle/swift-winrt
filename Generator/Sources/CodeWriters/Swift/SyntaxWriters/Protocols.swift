@@ -1,6 +1,7 @@
 extension SwiftSourceFileWriter {
     public func writeProtocol(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParams: [String] = [],
@@ -9,8 +10,9 @@ extension SwiftSourceFileWriter {
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
-        if let documentation = documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
+        if let documentation = documentation { writeDocumentationComment(documentation) }
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         output.write("protocol ")
         SwiftIdentifier.write(name, to: &output)
@@ -68,6 +70,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     public func writeFunc(
         documentation: SwiftDocumentationComment? = nil,
         isPropertySetter: Bool = false,
+        attributes: [SwiftAttribute] = [],
         static: Bool = false,
         mutating: Bool = false,
         name: String,
@@ -80,6 +83,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .withName(isPropertySetter ? "protocolProperty" : "protocolFunc"))
         writeFuncHeader(
+            attributes: attributes,
             visibility: .implicit,
             static: `static`,
             mutating: `mutating`,

@@ -89,6 +89,7 @@ extension SwiftDeclarationWriter {
 
     public func writeFunc(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         override: Bool = false,
@@ -104,6 +105,7 @@ extension SwiftDeclarationWriter {
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(grouping: .never)
         writeFuncHeader(
+            attributes: attributes,
             visibility: visibility,
             static: `static`,
             override: `override`,

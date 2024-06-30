@@ -1,0 +1,22 @@
+namespace WinRTComponent
+{
+    [attributeusage(target_runtimeclass, target_enum, target_struct, target_interface, target_delegate, target_property, target_method)]
+    [allowmultiple]
+    attribute SwiftAttribute
+    {
+        String Literal;
+    }
+
+    static runtimeclass SwiftAttributes
+    {
+        [Swift("MainActor")]
+        static void MainActor();
+
+        [Swift("available(swift 1)")]
+        static void AvailableFromSwift1();
+
+        [Swift("available(swift 1)")]
+        [Swift("discardableResult")]
+        static Int32 AvailableFromSwift1WithDiscardableResult();
+    }
+}

@@ -141,6 +141,7 @@ fileprivate func writeInterfaceMethodImplementation(
     let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             documentation: documentation ? projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition) : nil,
+            attributes: SwiftProjection.getSwiftAttributes(method),
             visibility: overridable ? .open : .public,
             static: `static`,
             name: SwiftProjection.toMemberName(method),
