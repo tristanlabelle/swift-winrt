@@ -49,7 +49,7 @@ extension SwiftProjection {
 
         public func addGenericInstantiation(_ type: BoundType) {
             precondition(!type.genericArgs.isEmpty && !type.isParameterized)
-            guard genericInstantiationsByDefinition[type.definition]?.contains(type.genericArgs) == false else { return }
+            guard genericInstantiationsByDefinition[type.definition]?.contains(type.genericArgs) != true else { return }
             genericInstantiationsByDefinition[type.definition, default: []].append(type.genericArgs)
         }
 
