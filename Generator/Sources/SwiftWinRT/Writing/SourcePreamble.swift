@@ -7,7 +7,6 @@ internal func writeGeneratedCodePreamble(to writer: SwiftSourceFileWriter) {
 }
 
 internal func writeModulePreamble(_ module: SwiftProjection.Module, importABI: Bool = true, to writer: SwiftSourceFileWriter) {
-    writer.writeImport(module: SupportModules.COM.moduleName)
     writer.writeImport(module: SupportModules.WinRT.moduleName)
 
     if importABI {

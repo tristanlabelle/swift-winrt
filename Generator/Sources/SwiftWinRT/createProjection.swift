@@ -31,7 +31,6 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
         let typeFilter = FilterSet(moduleConfig.types.map { $0.map { Filter(pattern: $0) } })
 
         for typeDefinition in assembly.typeDefinitions {
-            guard typeDefinition.isPublic else { continue }
             guard try !typeDefinition.hasAttribute(WindowsMetadata.AttributeUsageAttribute.self) else { continue }
             guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
             guard typeFilter.matches(typeDefinition.fullName) else { continue }
@@ -40,15 +39,15 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     // Sort discovered types in their respective modules
-    for typeDefinition in typeDiscoverer.definitions {
-        guard let module = projection.getModule(typeDefinition.assembly) else { continue }
-        module.addTypeDefinition(typeDefinition)
-    }
+    for (assembly, types) in typeDiscoverer.typesByAssembly {
+        guard let module = projection.getModule(assembly) else { continue }
 
-    for (closedGenericType, assemblies) in typeDiscoverer.closedGenericTypes {
-        for assembly in assemblies {
-            guard let module = projection.getModule(assembly) else { continue }
-            module.addClosedGenericType(closedGenericType)
+        for typeDefinition in types.definitions {
+            module.addTypeDefinition(typeDefinition)
+        }
+
+        for genericInstantiation in types.genericInstantiations {
+            module.addGenericInstantiation(genericInstantiation)
         }
     }
 

@@ -12,7 +12,7 @@ extension SwiftProjection {
         private var lazySortedTypeDefinitions = OrderedSet<TypeDefinition>()
         private var typeDefinitionsSorted = true
 
-        public private(set) var closedGenericTypesByDefinition = [TypeDefinition: [[TypeNode]]]()
+        public private(set) var genericInstantiationsByDefinition = [TypeDefinition: [[TypeNode]]]()
         private(set) var weakReferences: Set<Reference> = []
 
         internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
@@ -47,10 +47,10 @@ extension SwiftProjection {
             typeDefinitionsSorted = false
         }
 
-        public func addClosedGenericType(_ type: BoundType) {
+        public func addGenericInstantiation(_ type: BoundType) {
             precondition(!type.genericArgs.isEmpty && !type.isParameterized)
-            guard closedGenericTypesByDefinition[type.definition]?.contains(type.genericArgs) == false else { return }
-            closedGenericTypesByDefinition[type.definition, default: []].append(type.genericArgs)
+            guard genericInstantiationsByDefinition[type.definition]?.contains(type.genericArgs) == false else { return }
+            genericInstantiationsByDefinition[type.definition, default: []].append(type.genericArgs)
         }
 
         public func addReference(_ other: Module) {

@@ -6,15 +6,16 @@ import WindowsMetadata
 public struct WinRTTypeDiscoverer {
     private enum QueueEntry {
         case typeDefinition(TypeDefinition)
-        case closedGenericType(BoundType, instantiatingAssembly: Assembly)
+        case genericInstantiation(BoundType, assembly: Assembly)
+    }
+
+    public class AssemblyTypes {
+        public fileprivate(set) var definitions = Set<TypeDefinition>()
+        public fileprivate(set) var genericInstantiations = Set<BoundType>()
     }
 
     private var queue = Deque<QueueEntry>()
-    public private(set) var definitions = Set<TypeDefinition>()
-
-    // Closed generic types are owned by the assembly that provided the nongeneric type
-    // which started the generic instantiation chain.
-    public private(set) var closedGenericTypes = Dictionary<BoundType, [Assembly]>()
+    public private(set) var typesByAssembly = Dictionary<Assembly, AssemblyTypes>()
 
     public init() {}
 
@@ -32,7 +33,6 @@ public struct WinRTTypeDiscoverer {
         guard isWinRTAssembly(assembly) else { return }
 
         for typeDefinition in assembly.typeDefinitions {
-            guard typeDefinition.visibility == .public else { continue }
             guard namespace == nil || typeDefinition.namespace == namespace else { continue }
             enqueue(typeDefinition)
         }
@@ -45,9 +45,17 @@ public struct WinRTTypeDiscoverer {
         try drainQueue()
     }
 
+    private mutating func getAssemblyTypes(_ assembly: Assembly) -> AssemblyTypes {
+        if let assemblyTypes = typesByAssembly[assembly] { return assemblyTypes }
+        let assemblyTypes = AssemblyTypes()
+        typesByAssembly[assembly] = assemblyTypes
+        return assemblyTypes
+    }
+
     private mutating func enqueue(_ typeDefinition: TypeDefinition) {
         guard isWinRTAssembly(typeDefinition.assembly) else { return }
-        guard definitions.insert(typeDefinition).inserted else { return }
+        let assemblyTypes = getAssemblyTypes(typeDefinition.assembly)
+        guard assemblyTypes.definitions.insert(typeDefinition).inserted else { return }
         queue.append(.typeDefinition(typeDefinition))
     }
 
@@ -56,9 +64,9 @@ public struct WinRTTypeDiscoverer {
 
         if !type.genericArgs.isEmpty, let genericContext {
             let closedGenericType = type.bindGenericParams(typeArgs: genericContext)
-            guard closedGenericTypes[closedGenericType]?.contains(owningAssembly) == false else { return }
-            closedGenericTypes[closedGenericType, default: []].append(owningAssembly)
-            queue.append(.closedGenericType(closedGenericType, instantiatingAssembly: owningAssembly))
+            let assemblyTypes = getAssemblyTypes(owningAssembly)
+            guard assemblyTypes.genericInstantiations.insert(closedGenericType).inserted else { return }
+            queue.append(.genericInstantiation(closedGenericType, assembly: owningAssembly))
         }
     }
 
@@ -86,7 +94,7 @@ public struct WinRTTypeDiscoverer {
                         genericContext: typeDefinition.genericArity == 0 ? [] : nil,
                         owningAssembly: typeDefinition.assembly)
 
-                case let .closedGenericType(closedGenericType, instantiatingAssembly: instantiatingAssembly):
+                case let .genericInstantiation(closedGenericType, assembly: instantiatingAssembly):
                     try enqueueMembers(
                         closedGenericType.definition,
                         genericContext: closedGenericType.genericArgs,
