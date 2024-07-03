@@ -19,7 +19,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
 
         try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
 
-        for typeDefinition in module.typeDefinitions + Array(module.closedGenericTypesByDefinition.keys) {
+        for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
             guard try hasSwiftDefinition(typeDefinition) else { continue }
 
             let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
@@ -111,7 +111,7 @@ fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinit
         try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
     }
 
-    for genericArgs in module.closedGenericTypesByDefinition[typeDefinition] ?? [] {
+    for genericArgs in module.genericInstantiationsByDefinition[typeDefinition] ?? [] {
         let boundType = typeDefinition.bindType(genericArgs: genericArgs)
         writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
         try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
@@ -126,7 +126,7 @@ fileprivate func getABITypes(module: SwiftProjection.Module) throws -> [BoundTyp
         abiTypes.append(typeDefinition.bindType())
     }
 
-    for (typeDefinition, instantiations) in module.closedGenericTypesByDefinition {
+    for (typeDefinition, instantiations) in module.genericInstantiationsByDefinition {
         // IReference<T> is implemented generically in the support module.
         if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { continue }
         for genericArgs in instantiations {

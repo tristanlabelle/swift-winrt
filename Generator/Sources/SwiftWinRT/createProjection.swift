@@ -23,33 +23,32 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     // Gather types from assemblies
-    var typeDiscoverer = TypeDiscoverer(assemblyFilter: { $0.name != "mscorlib" })
-
+    var typeDiscoverer = WinRTTypeDiscoverer()
     for assembly in assemblyLoadContext.loadedAssembliesByName.values {
-        guard let module = projection.getModule(assembly) else { continue }
-
         print("Gathering types from \(assembly.name)...")
 
         let (_, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let typeFilter = FilterSet(moduleConfig.types.map { $0.map { Filter(pattern: $0) } })
 
-        typeDiscoverer.resetClosedGenericTypes()
-
         for typeDefinition in assembly.typeDefinitions {
-            guard typeDefinition.isPublic else { continue }
             guard try !typeDefinition.hasAttribute(WindowsMetadata.AttributeUsageAttribute.self) else { continue }
             guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
             guard typeFilter.matches(typeDefinition.fullName) else { continue }
             try typeDiscoverer.add(typeDefinition)
         }
-
-        for closedGenericType in typeDiscoverer.closedGenericTypes { module.addClosedGenericType(closedGenericType) }
     }
 
     // Sort discovered types in their respective modules
-    for typeDefinition in typeDiscoverer.definitions {
-        guard let module = projection.getModule(typeDefinition.assembly) else { continue }
-        module.addTypeDefinition(typeDefinition)
+    for (assembly, types) in typeDiscoverer.typesByAssembly {
+        guard let module = projection.getModule(assembly) else { continue }
+
+        for typeDefinition in types.definitions {
+            module.addTypeDefinition(typeDefinition)
+        }
+
+        for genericInstantiation in types.genericInstantiations {
+            module.addGenericInstantiation(genericInstantiation)
+        }
     }
 
     // Establish references between modules

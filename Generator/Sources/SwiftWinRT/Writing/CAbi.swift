@@ -96,7 +96,9 @@ fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [
     }
 
     // Add closed generic type instanciations
-    for (typeDefinition, instanciations) in module.closedGenericTypesByDefinition {
+    for (typeDefinition, instanciations) in module.genericInstantiationsByDefinition {
+        // IReference<T> is implemented generically in the support module.
+        if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { continue }
         for genericArgs in instanciations {
             let type = typeDefinition.bindType(genericArgs: genericArgs)
             let mangledName = try CAbi.mangleName(type: type)
