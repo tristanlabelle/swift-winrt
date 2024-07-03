@@ -35,6 +35,7 @@ let package = Package(
             ],
             path: "Sources/SwiftWinRT",
             resources: [
+                // Avoid the .swift extension or SPM will pick those up a source files.
                 .embedInCode("Extensions/WindowsFoundation_IAsyncAction_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IAsyncActionWithProgress_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IAsyncOperation_swift"),

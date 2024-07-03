@@ -2,13 +2,14 @@ import UWP_WindowsFoundation
 import UWP_WindowsStorageStreams
 import WindowsRuntime
 import WinRTComponent
+import XCTest
 
 class ByteBufferTests : XCTestCase {
     public func testConsumeMemoryBuffer() throws {
         let bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try ByteBuffers.arrayToMemoryBuffer(bytes)
         let memoryBufferReference = try memoryBuffer.createReference()
-        let roundtrippedBytes = Array(UnsafeBufferPointer(try memoryBufferReference.bytes, try memoryBuffer._length()))
+        let roundtrippedBytes = Array(UnsafeBufferPointer(try memoryBufferReference.bytes, try memoryBufferReference._capacity()))
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 
@@ -23,7 +24,7 @@ class ByteBufferTests : XCTestCase {
         var bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try MemoryBuffer(UInt32(bytes.count))
         let memoryBufferReference = try memoryBuffer.createReference()
-        let unsafeBuffer = UnsafeMutableBufferPointer(try memoryBufferReference.bytes, try memoryBuffer._length())
+        let unsafeBuffer = UnsafeMutableBufferPointer(try memoryBufferReference.bytes, try memoryBufferReference._capacity())
         unsafeBuffer.update(fromContentsOf: bytes)
         var roundtrippedBytes = try ByteBuffers.memoryBufferToArray(memoryBuffer)
         XCTAssertEqual(roundtrippedBytes, bytes)
