@@ -9,7 +9,7 @@ class ByteBufferTests : XCTestCase {
         let bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try ByteBuffers.arrayToMemoryBuffer(bytes)
         let memoryBufferReference = try memoryBuffer.createReference()
-        let roundtrippedBytes = Array(UnsafeBufferPointer(try memoryBufferReference.bytes, try memoryBufferReference._capacity()))
+        let roundtrippedBytes = try Array(UnsafeBufferPointer(start: memoryBufferReference.bytes, count: Int(memoryBufferReference._capacity())))
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 
@@ -24,7 +24,7 @@ class ByteBufferTests : XCTestCase {
         var bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try MemoryBuffer(UInt32(bytes.count))
         let memoryBufferReference = try memoryBuffer.createReference()
-        let unsafeBuffer = UnsafeMutableBufferPointer(try memoryBufferReference.bytes, try memoryBufferReference._capacity())
+        let unsafeBuffer = try UnsafeMutableBufferPointer(start: memoryBufferReference.bytes, count: Int(memoryBufferReference._capacity()))
         unsafeBuffer.update(fromContentsOf: bytes)
         var roundtrippedBytes = try ByteBuffers.memoryBufferToArray(memoryBuffer)
         XCTAssertEqual(roundtrippedBytes, bytes)
