@@ -41,17 +41,11 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
 }
 
-#if swift(>=6)
-extension SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
-#endif
-
-extension SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {}
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
     .init(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
 }
 
-extension COMInterop where Interface == SWRT_WindowsFoundation_IStringable {
+extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = PrimitiveProjection.String.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))

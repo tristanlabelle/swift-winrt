@@ -14,7 +14,6 @@ extension SupportModules.COM {
 
     public static var iunknownPointer: SwiftType { .chain(moduleName, "IUnknownPointer") }
     public static var comInterfaceID: SwiftType { .chain(moduleName, "COMInterfaceID") }
-    public static var comIUnknownStruct: SwiftType { .chain(moduleName, "COMIUnknownStruct") }
     public static var nullResult: SwiftType { .chain(moduleName, "NullResult") }
 
     public static var hresult: SwiftType { .chain(moduleName, "HResult") }
@@ -59,7 +58,6 @@ extension SupportModules.WinRT {
 
     public static var char16: SwiftType { .chain(moduleName, "Char16") }
 
-    public static var comIInspectableStruct: SwiftType { .chain(moduleName, "COMIInspectableStruct") }
     public static var eventRegistration: SwiftType { .chain(moduleName, "EventRegistration") }
     public static var eventRegistrationToken: SwiftType { .chain(moduleName, "EventRegistrationToken") }
     public static var iinspectable: SwiftType { .chain(moduleName, "IInspectable") }

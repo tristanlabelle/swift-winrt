@@ -93,18 +93,11 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
 }
 
-// Generated projections will declare this conformance
-// #if swift(>=6)
-// extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: @retroactive WindowsRuntime.COMIInspectableStruct {}
-// #else
-// extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}
-// #endif
-
-public func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
+internal func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
     .init(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
     internal func get_Type() throws -> WindowsFoundation_PropertyType {
         var abi_value: SWRT_WindowsFoundation_PropertyType = .init()
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.get_Type(this, &abi_value))

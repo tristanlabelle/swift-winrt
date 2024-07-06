@@ -373,12 +373,12 @@ fileprivate func writeSupportComposableInitializers(
         writer.writeStatement("super.init(_transferringRef: .init(OpaquePointer(pointer)))")
     }
 
-    // public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
+    // public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
     writer.writeInit(visibility: .public,
             override: true,
-            genericParams: [ "Interface" ],
+            genericParams: [ "ABIStruct" ],
             params: [ SwiftParam(name: "_compose", type: .bool),
-                        SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("Interface") ])) ],
+                        SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("ABIStruct") ])) ],
             throws: true) { writer in
         writer.writeStatement("try super.init(_compose: _compose, _factory: _factory)")
     }

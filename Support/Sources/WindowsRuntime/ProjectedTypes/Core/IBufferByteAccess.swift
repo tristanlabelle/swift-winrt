@@ -33,17 +33,11 @@ public enum IBufferByteAccessProjection: COMTwoWayProjection {
         Buffer: { this, value in _implement(this) { try _set(value, $0.buffer) } })
 }
 
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: @retroactive COMIUnknownStruct {}
-#else
-extension WindowsRuntime_ABI.SWRT_IBufferByteAccess: COMIUnknownStruct {}
-#endif
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IBufferByteAccess.Type) -> COMInterfaceID {
     .init(0x905A0FEF, 0xBC53, 0x11DF, 0x8C49, 0x001E4FC686DA)
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value: UnsafeMutablePointer<UInt8>? = nil
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.Buffer(this, &value))

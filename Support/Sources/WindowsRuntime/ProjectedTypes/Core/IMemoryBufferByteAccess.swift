@@ -38,17 +38,11 @@ public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
         } })
 }
 
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: @retroactive COMIUnknownStruct {}
-#else
-extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: COMIUnknownStruct {}
-#endif
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess.Type) -> COMInterfaceID {
     .init(0x5B0D3235, 0x4DBA, 0x4D44, 0x865E, 0x8F1D0E4FD04D)
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess {
     public func getBuffer() throws -> UnsafeMutableBufferPointer<UInt8>? {
         var value: UnsafeMutablePointer<UInt8>? = nil
         var capacity: UInt32 = 0

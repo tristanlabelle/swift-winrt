@@ -1,24 +1,23 @@
 import WindowsRuntime_ABI
 
 /// Holds a strong reference to a COM object, like a C++ smart pointer.
-// Should require COMIUnknownStruct but we run into compiler bugs.
-public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknownStruct */ {
-    public var pointer: UnsafeMutablePointer<Interface>
+public struct COMReference<ABIStruct>: ~Copyable {
+    public var pointer: UnsafeMutablePointer<ABIStruct>
 
-    public init(transferringRef pointer: UnsafeMutablePointer<Interface>) {
+    public init(transferringRef pointer: UnsafeMutablePointer<ABIStruct>) {
         self.pointer = pointer
     }
 
-    public init(addingRef pointer: UnsafeMutablePointer<Interface>) {
+    public init(addingRef pointer: UnsafeMutablePointer<ABIStruct>) {
         self.init(transferringRef: pointer)
         interop.addRef()
     }
 
-    public var interop: COMInterop<Interface> { .init(pointer) }
+    public var interop: COMInterop<ABIStruct> { .init(pointer) }
 
-    public func clone() -> COMReference<Interface> { .init(addingRef: pointer) }
+    public func clone() -> COMReference<ABIStruct> { .init(addingRef: pointer) }
 
-    public consuming func detach() -> UnsafeMutablePointer<Interface> {
+    public consuming func detach() -> UnsafeMutablePointer<ABIStruct> {
         let pointer = self.pointer
         discard self
         return pointer
@@ -28,12 +27,11 @@ public struct COMReference<Interface>: ~Copyable /* where Interface: COMIUnknown
         try interop.queryInterface(id)
     }
 
-    public func queryInterface<Other>(_ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> /* where Interface: COMIUnknownStruct */ {
+    public func queryInterface<Other>(_ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
         try interop.queryInterface(id, type: type)
     }
 
-    // Should require COMIUnknownStruct but we run into compiler bugs.
-    public consuming func cast<Other>(to type: Other.Type = Other.self) -> COMReference<Other> /* where Interface: COMIUnknownStruct */ {
+    public consuming func cast<Other>(to type: Other.Type = Other.self) -> COMReference<Other> {
         let pointer = self.pointer
         discard self
         return COMReference<Other>(transferringRef: pointer.withMemoryRebound(to: Other.self, capacity: 1) { $0 })

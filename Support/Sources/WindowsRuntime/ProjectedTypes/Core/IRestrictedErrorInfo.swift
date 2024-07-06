@@ -60,17 +60,11 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
         GetReference: { this, reference in _implement(this) { try _set(reference, BStrProjection.toABI($0.reference)) } })
 }
 
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: @retroactive COMIUnknownStruct {}
-#else
-extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: COMIUnknownStruct {}
-#endif
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo.Type) -> COMInterfaceID {
     .init(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {
     public func getErrorDetails(
             _ description: inout String?,
             _ error: inout HResult,
