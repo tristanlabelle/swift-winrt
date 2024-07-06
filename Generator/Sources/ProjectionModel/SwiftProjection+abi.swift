@@ -13,11 +13,11 @@ extension SwiftProjection {
             return try toABIType(defaultInterface.asBoundType)
         }
 
-        return .chain(abiModuleName, try CAbi.mangleName(type: type))
+        return .identifier(try CAbi.mangleName(type: type))
     }
 
     public func toABIVirtualTableType(_ type: BoundType) throws -> SwiftType {
         precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
-        return .chain(abiModuleName, try CAbi.mangleName(type: type) + CAbi.virtualTableSuffix)
+        return .identifier(try CAbi.mangleName(type: type) + CAbi.virtualTableSuffix)
     }
 }

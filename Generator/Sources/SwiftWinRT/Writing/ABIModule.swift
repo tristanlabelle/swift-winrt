@@ -4,11 +4,22 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeCAbiFile(module: SwiftProjection.Module, toPath path: String) throws {
+internal func writeABIModule(_ module: SwiftProjection.Module, toPath directoryPath: String) throws {
+    let includeDirectoryPath = "\(directoryPath)\\include"
+    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(includeDirectoryPath)\\Core.h", directoryCreation: .ancestors))
+    try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\ABI.h")
+    // FIXME: Support transitive references?
+    for referencedModule in module.references {
+        guard !referencedModule.isEmpty else { continue }
+        try writeABIFile(module: referencedModule, toPath: "\(includeDirectoryPath)\\\(referencedModule.name).h")
+    }
+}
+
+fileprivate func writeABIFile(module: SwiftProjection.Module, toPath path: String) throws {
     let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 
     // Write includes
-    cHeaderWriter.writeInclude(pathSpec: "_Core.h", kind: .doubleQuotes)
+    cHeaderWriter.writeInclude(pathSpec: "Core.h", kind: .doubleQuotes)
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
         cHeaderWriter.writeInclude(pathSpec: "\(referencedModule.name).h", kind: .doubleQuotes)

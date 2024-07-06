@@ -10,12 +10,9 @@ public class SwiftProjection {
 
     public private(set) var modulesByName = OrderedDictionary<String, Module>()
     internal var assembliesToModules = [Assembly: AssemblyEntry]()
-    public let abiModuleName: String
     public var referenceReturnNullability: ReferenceNullability { .explicit } 
 
-    public init(abiModuleName: String) {
-        self.abiModuleName = abiModuleName
-    }
+    public init() {}
 
     public func addModule(name: String, flattenNamespaces: Bool = false) -> Module {
         precondition(modulesByName[name] == nil)
