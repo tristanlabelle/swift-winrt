@@ -40,10 +40,13 @@ let package = Package(
                 .embedInCode("Extensions/WindowsFoundation_IAsyncActionWithProgress_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IAsyncOperation_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IAsyncOperationWithProgress_swift"),
+                .embedInCode("Extensions/WindowsFoundation_IMemoryBuffer_swift"),
                 .embedInCode("Extensions/WindowsFoundation_IMemoryBufferReference_swift"),
+                .embedInCode("Extensions/WindowsFoundation_MemoryBuffer_swift"),
                 .embedInCode("Extensions/WindowsFoundationCollections_IIterable_swift"),
                 .embedInCode("Extensions/WindowsFoundationCollections_IVector_swift"),
                 .embedInCode("Extensions/WindowsFoundationCollections_IVectorView_swift"),
+                .embedInCode("Extensions/WindowsStorageStreams_Buffer_swift"),
                 .embedInCode("Extensions/WindowsStorageStreams_IBuffer_swift")
             ],
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
