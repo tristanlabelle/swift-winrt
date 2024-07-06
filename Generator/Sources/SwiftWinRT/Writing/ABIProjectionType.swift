@@ -294,8 +294,10 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
     let projectionProtocol = type.definition is InterfaceDefinition
         ? SupportModules.WinRT.interfaceProjection : SupportModules.WinRT.delegateProjection
 
+    // Projections of generic instantiations are not owned by any specific module.
+    // Making them internal avoids clashes between redundant definitions across modules.
     try writer.writeEnum(
-            visibility: SwiftProjection.toVisibility(type.definition.visibility),
+            visibility: type.genericArgs.isEmpty ? SwiftProjection.toVisibility(type.definition.visibility) : .internal,
             name: projectionName,
             protocolConformances: [ projectionProtocol ]) { writer throws in
 

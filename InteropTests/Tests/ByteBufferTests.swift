@@ -9,31 +9,33 @@ class ByteBufferTests : XCTestCase {
         let bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try ByteBuffers.arrayToMemoryBuffer(bytes)
         let memoryBufferReference = try memoryBuffer.createReference()
-        let roundtrippedBytes = try Array(memoryBufferReference.bytes)
+        let roundtrippedBytes = try Array(XCTUnwrap(memoryBufferReference.bytes))
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 
     public func testConsumeStorageBuffer() throws {
-        var bytes: [UInt8] = [1, 2, 3]
-        var storageBuffer = try ByteBuffers.arrayToStorageBuffer(bytes)
-        let roundtrippedBytes = Array(UnsafeMutableBufferPointer(start: storageBuffer.bytes, count: Int(storageBuffer._length()))
+        let bytes: [UInt8] = [1, 2, 3]
+        let storageBuffer = try ByteBuffers.arrayToStorageBuffer(bytes)
+        let bufferPointer = try UnsafeMutableBufferPointer(start: storageBuffer.bytes, count: Int(storageBuffer._length()))
+        let roundtrippedBytes = Array(bufferPointer)
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 
     public func testProduceMemoryBuffer() throws {
-        var bytes: [UInt8] = [1, 2, 3]
+        let bytes: [UInt8] = [1, 2, 3]
         let memoryBuffer = try MemoryBuffer(UInt32(bytes.count))
-        try memoryBuffer.createReference().bytes.update(fromContentsOf: bytes)
-        var roundtrippedBytes = try ByteBuffers.memoryBufferToArray(memoryBuffer)
+        _ = try XCTUnwrap(XCTUnwrap(memoryBuffer.createReference()).bytes).update(fromContentsOf: bytes)
+        let roundtrippedBytes = try ByteBuffers.memoryBufferToArray(memoryBuffer)
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 
     public func testProduceStorageBuffer() throws {
-        var bytes: [UInt8] = [1, 2, 3]
+        let bytes: [UInt8] = [1, 2, 3]
         let buffer = try Buffer(UInt32(bytes.count))
-        try UnsafeMutableBufferPointer(start: buffer.bytes, count: Int(buffer._length()))
-            .update(fromContentsOf: bytes)
-        var roundtrippedBytes = try ByteBuffers.storageBufferToArray(buffer)
+        try buffer._length(UInt32(bytes.count))
+        let bufferPointer = try UnsafeMutableBufferPointer(start: buffer.bytes, count: Int(buffer._length()))
+        let _ = bufferPointer.update(fromContentsOf: bytes)
+        let roundtrippedBytes = try ByteBuffers.storageBufferToArray(buffer)
         XCTAssertEqual(roundtrippedBytes, bytes)
     }
 }

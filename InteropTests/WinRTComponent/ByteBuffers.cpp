@@ -26,6 +26,7 @@ namespace winrt::WinRTComponent::implementation
     {
         winrt::Windows::Storage::Streams::Buffer buffer(bytes.size());
         memcpy(buffer.data(), bytes.data(), bytes.size());
+        buffer.Length(bytes.size());
         return buffer;
     }
 }
