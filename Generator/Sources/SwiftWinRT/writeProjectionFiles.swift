@@ -29,30 +29,7 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, generateComman
                 let typeName = try projection.toTypeName(typeDefinition)
                 try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeName).swift")
 
-                let extensionFileBytes: [UInt8]?
-                switch typeDefinition.fullName {
-                    case "Windows.Foundation.IAsyncAction":
-                        extensionFileBytes = PackageResources.WindowsFoundation_IAsyncAction_swift
-                    case "Windows.Foundation.IAsyncActionWithProgress`1":
-                        extensionFileBytes = PackageResources.WindowsFoundation_IAsyncActionWithProgress_swift
-                    case "Windows.Foundation.IAsyncOperation`1":
-                        extensionFileBytes = PackageResources.WindowsFoundation_IAsyncOperation_swift
-                    case "Windows.Foundation.IAsyncOperationWithProgress`2":
-                        extensionFileBytes = PackageResources.WindowsFoundation_IAsyncOperationWithProgress_swift
-                    case "Windows.Foundation.IMemoryBufferReference":
-                        extensionFileBytes = PackageResources.WindowsFoundation_IMemoryBufferReference_swift
-                    case "Windows.Foundation.Collections.IIterable`1":
-                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IIterable_swift
-                    case "Windows.Foundation.Collections.IVector`1":
-                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IVector_swift
-                    case "Windows.Foundation.Collections.IVectorView`1":
-                        extensionFileBytes = PackageResources.WindowsFoundationCollections_IVectorView_swift
-                    case "Windows.Storage.Streams.IBuffer":
-                        extensionFileBytes = PackageResources.WindowsStorageStreams_IBuffer_swift
-                    default:
-                        extensionFileBytes = nil
-                }
-                if let extensionFileBytes {
+                if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
                     try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
                         "\(assemblyNamespaceDirectoryPath)\\\(typeName)+extras.swift",
                         isDirectory: false))
@@ -115,6 +92,37 @@ fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinit
         let boundType = typeDefinition.bindType(genericArgs: genericArgs)
         writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
         try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
+    }
+}
+
+fileprivate func getExtensionFileBytes(typeDefinition: TypeDefinition) throws -> [UInt8]? {
+    switch typeDefinition.fullName {
+        case "Windows.Foundation.IAsyncAction":
+            return PackageResources.WindowsFoundation_IAsyncAction_swift
+        case "Windows.Foundation.IAsyncActionWithProgress`1":
+            return PackageResources.WindowsFoundation_IAsyncActionWithProgress_swift
+        case "Windows.Foundation.IAsyncOperation`1":
+            return PackageResources.WindowsFoundation_IAsyncOperation_swift
+        case "Windows.Foundation.IAsyncOperationWithProgress`2":
+            return PackageResources.WindowsFoundation_IAsyncOperationWithProgress_swift
+        case "Windows.Foundation.IMemoryBuffer":
+            return PackageResources.WindowsFoundation_IMemoryBuffer_swift
+        case "Windows.Foundation.IMemoryBufferReference":
+            return PackageResources.WindowsFoundation_IMemoryBufferReference_swift
+        case "Windows.Foundation.MemoryBuffer":
+            return PackageResources.WindowsFoundation_MemoryBuffer_swift
+        case "Windows.Foundation.Collections.IIterable`1":
+            return PackageResources.WindowsFoundationCollections_IIterable_swift
+        case "Windows.Foundation.Collections.IVector`1":
+            return PackageResources.WindowsFoundationCollections_IVector_swift
+        case "Windows.Foundation.Collections.IVectorView`1":
+            return PackageResources.WindowsFoundationCollections_IVectorView_swift
+        case "Windows.Storage.Streams.Buffer":
+            return PackageResources.WindowsStorageStreams_Buffer_swift
+        case "Windows.Storage.Streams.IBuffer":
+            return PackageResources.WindowsStorageStreams_IBuffer_swift
+        default:
+            return nil
     }
 }
 
