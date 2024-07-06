@@ -19,12 +19,22 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProj
     writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): \(comStructProtocol) {}")
     writer.output.writeFullLine(grouping: group, "#endif")
 
-    try writer.writeExtension(type: abiSwiftType) { writer in
-        // static let iid: COMInterfaceID = COMInterfaceID(...)
-        writer.writeStoredProperty(visibility: visibility, static: true, declarator: .let, name: "iid",
-            initialValue: try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
+    // func uuidof(_: SWRT_IFoo.Type) -> COMInterfaceID
+    let abiSwiftMetatype: SwiftType
+    if case let .chain(chain) = abiSwiftType {
+        abiSwiftMetatype = .chain(chain.appending("Type"))
+    } else {
+        fatalError("Can't chain .Type to \(abiSwiftType)")
     }
 
+    try writer.writeFunc(
+            visibility: visibility, name: "uuidof",
+            params: [ .init(name: "_", type: abiSwiftMetatype) ],
+            returnType: SupportModules.COM.comInterfaceID) { writer in
+        writer.output.writeFullLine(try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
+    }
+
+    // extension COM.COMInterop where Interface == SWRT_IFoo
     try writer.writeExtension(type: SupportModules.COM.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
         let methodKind = try ABIMethodKind.forABITypeMethods(definition: abiType.definition)
         for method in abiType.definition.methods {

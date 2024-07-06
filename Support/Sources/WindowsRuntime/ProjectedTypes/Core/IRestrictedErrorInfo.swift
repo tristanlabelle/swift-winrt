@@ -14,7 +14,7 @@ public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IRestrictedErrorInfo
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -66,8 +66,8 @@ extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: @retroactive COMIUnknown
 extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo: COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {
-    public static let iid = COMInterfaceID(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo.Type) -> COMInterfaceID {
+    .init(0x82BA7092, 0x4C88, 0x427D, 0xA7BC, 0x16DD93FEB67E)
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo {

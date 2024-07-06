@@ -100,8 +100,8 @@ extension WindowsFoundation_IPropertyValueProtocol {
 // extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue: WindowsRuntime.COMIInspectableStruct {}
 // #endif
 
-extension WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
-    public static let iid = COMInterfaceID(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
+public func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
+    .init(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {

@@ -13,7 +13,7 @@ public enum IInspectableProjection: InterfaceProjection {
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
 
     public static var typeName: String { "IInspectable" }
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -43,8 +43,10 @@ public protocol COMIInspectableStruct: COMIUnknownStruct {}
 extension WindowsRuntime_ABI.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {
-    public static let iid = COMInterfaceID(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
+extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {}
+
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IInspectable.Type) -> COMInterfaceID {
+    .init(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }
 
 public typealias IInspectablePointer = IInspectableProjection.COMPointer

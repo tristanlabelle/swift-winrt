@@ -364,9 +364,9 @@ internal func writeReferenceTypeProjectionConformance(
     // public static var typeName: String { "..." }
     try writeTypeNameProperty(type: apiType, to: writer)
 
-    // public static var interfaceID: COM.COMInterfaceID { COMInterface.iid }
+    // public static var interfaceID: COM.COMInterfaceID { uuidof(COMInterface.self) }
     writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModules.COM.comInterfaceID) { writer in
-        writer.writeStatement("COMInterface.iid")
+        writer.writeStatement("uuidof(COMInterface.self)")
     }
 
     if apiType.definition is DelegateDefinition {
