@@ -4,7 +4,10 @@
             "assemblies": [
                 "Windows.*"
             ],
-            "types": []
+            "types": [
+                "Windows.Foundation.MemoryBuffer",
+                "Windows.Storage.Streams.Buffer"
+            ]
         },
         "WinRTComponent": {
             "assemblies": [

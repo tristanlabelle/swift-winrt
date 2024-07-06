@@ -34,6 +34,8 @@ Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT componen
 & $SwiftWinRT `
     --config "$PSScriptRoot\projection.json" `
     --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.FoundationContract\4.0.0.0\Windows.Foundation.FoundationContract.winmd" `
+    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.UniversalApiContract\15.0.0.0\Windows.Foundation.UniversalApiContract.winmd" `
+    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Networking.Connectivity.WwanContract\2.0.0.0\Windows.Networking.Connectivity.WwanContract.winmd" `
     --reference "$TestComponentDir\WinRTComponent.winmd" `
     --package `
     --support-package-location "../.." `

@@ -1,8 +1,10 @@
 import WindowsRuntime
 
 extension WindowsStorageStreams_IBufferProtocol {
-    var bytes: UnsafeMutablePointer<UInt8> {
-        let byteAccess = self._queryInterface(IBufferByteAccessProjection.self)
-        return try byteAccess.buffer
+    public var bytes: UnsafeMutablePointer<UInt8>? {
+        get throws {
+            let byteAccess = try self._queryInterface(IBufferByteAccessProjection.self)
+            return try byteAccess.interop.buffer()
+        }
     }
 }

@@ -115,6 +115,9 @@
     <ClInclude Include="Arrays.h">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="ByteBuffers.h">
+      <DependentUpon>ByteBuffers.idl</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Collections.h">
       <DependentUpon>Collections.idl</DependentUpon>
     </ClInclude>
@@ -192,6 +195,9 @@
     <ClCompile Include="Arrays.cpp">
       <DependentUpon>Arrays.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="ByteBuffers.cpp">
+      <DependentUpon>ByteBuffers.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="Collections.cpp">
       <DependentUpon>Collections.idl</DependentUpon>
     </ClCompile>
@@ -261,6 +267,7 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="Arrays.idl" />
+    <Midl Include="ByteBuffers.idl" />
     <Midl Include="Collections.idl" />
     <Midl Include="DateTimes.idl" />
     <Midl Include="Enums.idl" />
