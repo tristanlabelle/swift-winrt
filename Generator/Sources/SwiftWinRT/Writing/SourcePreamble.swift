@@ -10,7 +10,7 @@ internal func writeModulePreamble(_ module: SwiftProjection.Module, importABI: B
     writer.writeImport(module: SupportModules.WinRT.moduleName)
 
     if importABI {
-        writer.writeImport(module: module.projection.abiModuleName)
+        writer.writeImport(module: module.abiModuleName)
     }
 
     for referencedModule in module.references {

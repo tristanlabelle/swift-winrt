@@ -10,7 +10,7 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
         allReferences.insert("C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\\(sdk)\\Windows.winmd")
     }
 
-    let projection = SwiftProjection(abiModuleName: projectionConfig.abiModule)
+    let projection = SwiftProjection()
 
     // Preload assemblies and create modules
     for reference in allReferences {

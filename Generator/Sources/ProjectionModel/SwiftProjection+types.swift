@@ -179,7 +179,7 @@ extension SwiftProjection {
                     kind: .inert)
             case .guid:
                 return TypeProjection(
-                    abiType: .chain(abiModuleName, CAbi.guidName),
+                    abiType: .identifier(CAbi.guidName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
@@ -187,7 +187,7 @@ extension SwiftProjection {
                     kind: .inert)
             case .string:
                 return .init(
-                    abiType: .optional(wrapped: .chain(abiModuleName, CAbi.hstringName)),
+                    abiType: .optional(wrapped: .identifier(CAbi.hstringName)),
                     abiDefaultValue: .nil,
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
@@ -205,7 +205,7 @@ extension SwiftProjection {
 
             case "EventRegistrationToken":
                 return TypeProjection(
-                    abiType: .chain(abiModuleName, CAbi.eventRegistrationTokenName),
+                    abiType: .identifier(CAbi.eventRegistrationTokenName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.WinRT.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
@@ -214,7 +214,7 @@ extension SwiftProjection {
 
             case "HResult":
                 return TypeProjection(
-                    abiType: .chain(abiModuleName, CAbi.hresultName),
+                    abiType: .identifier(CAbi.hresultName),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.COM.hresult,
                     swiftDefaultValue: .defaultInitializer,
@@ -241,7 +241,7 @@ extension SwiftProjection {
         }
 
         return TypeProjection(
-            abiType: .optional(wrapped: .unsafeMutablePointer(to: .chain(abiModuleName, CAbi.ireferenceName))),
+            abiType: .optional(wrapped: .unsafeMutablePointer(to: .identifier(CAbi.ireferenceName))),
             abiDefaultValue: .nil,
             swiftType: .optional(wrapped: typeProjection.swiftType),
             swiftDefaultValue: .nil,

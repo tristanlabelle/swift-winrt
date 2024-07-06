@@ -7,17 +7,15 @@ import ProjectionModel
 import WindowsMetadata
 
 internal func writeProjectionFiles(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
-    let abiModuleDirectoryPath = "\(generateCommand.outputDirectoryPath)\\\(projection.abiModuleName)"
-    let abiModuleIncludeDirectoryPath = "\(abiModuleDirectoryPath)\\include"
-    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(abiModuleIncludeDirectoryPath)\\_Core.h", directoryCreation: .ancestors))
-
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
 
         let moduleRootPath = "\(generateCommand.outputDirectoryPath)\\\(module.name)"
-        let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
-        try writeCAbiFile(module: module, toPath: "\(abiModuleIncludeDirectoryPath)\\\(module.name).h")
+        try writeABIModule(module, toPath: "\(moduleRootPath)\\ABI")
+
+        // Write the assembly module and namespace modules
+        let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
 
         for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
             guard try hasSwiftDefinition(typeDefinition) else { continue }

@@ -220,7 +220,7 @@ fileprivate func writeClassInterfaceProperties(
     // Static properties
     if interfaces.hasDefaultFactory {
         try SecondaryInterfaces.writeDeclaration(
-            interfaceName: "IActivationFactory", abiStructType: .chain(projection.abiModuleName, CAbi.iactivationFactoryName),
+            interfaceName: "IActivationFactory", abiStructType: .identifier(CAbi.iactivationFactoryName),
             staticOf: classDefinition, projection: projection, to: writer)
     }
 

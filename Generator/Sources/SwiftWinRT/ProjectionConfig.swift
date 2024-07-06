@@ -1,12 +1,10 @@
 struct ProjectionConfig: Codable {
-    var abiModule: String = "CWinRT"
     var modules: Dictionary<String, Module> = [:]
 
     init() {}
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        abiModule = try container.decodeIfPresent(String.self, forKey: .abiModule) ?? abiModule
         modules = try container.decodeIfPresent(Dictionary<String, Module>.self, forKey: .modules) ?? modules
     }
 

@@ -6,6 +6,7 @@ extension SwiftProjection {
     public class Module {
         public unowned let projection: SwiftProjection
         public let name: String
+        public let abiModuleName: String
         public let flattenNamespaces: Bool
 
         // OrderedSets are not sorted. Sort it lazily for stable iteration.
@@ -18,6 +19,7 @@ extension SwiftProjection {
         internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
             self.projection = projection
             self.name = name
+            self.abiModuleName = name + "_ABI"
             self.flattenNamespaces = flattenNamespaces
         }
 
