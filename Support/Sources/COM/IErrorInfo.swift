@@ -13,7 +13,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IErrorInfo
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IErrorInfo
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -43,8 +43,8 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         GetHelpContext: { this, helpContext in _implement(this) { try _set(helpContext, $0.helpContext) } })
 }
 
-extension WindowsRuntime_ABI.SWRT_IErrorInfo: /* @retroactive */ COMIUnknownStruct {
-    public static let iid = COMInterfaceID(0x1CF2B120, 0x547D, 0x101B, 0x8E65, 0x08002B2BD119)
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IErrorInfo.Type) -> COMInterfaceID {
+    .init(0x1CF2B120, 0x547D, 0x101B, 0x8E65, 0x08002B2BD119)
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IErrorInfo {

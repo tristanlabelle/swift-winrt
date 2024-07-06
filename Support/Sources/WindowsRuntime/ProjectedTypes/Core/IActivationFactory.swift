@@ -11,7 +11,7 @@ public enum IActivationFactoryProjection: InterfaceProjection {
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
 
     public static var typeName: String { "IActivationFactory" }
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { fatalError("Not implemented: \(#function)") }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -34,8 +34,10 @@ public enum IActivationFactoryProjection: InterfaceProjection {
 extension SWRT_IActivationFactory: @retroactive COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {
-    public static let iid = COMInterfaceID(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
+extension WindowsRuntime_ABI.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {}
+
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IActivationFactory.Type) -> COMInterfaceID {
+    .init(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFactory {

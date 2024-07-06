@@ -254,9 +254,9 @@ fileprivate func writeClassOverrideSupport(
             params: [ .init(label: "_", name: "id", type: SupportModules.COM.comInterfaceID) ], throws: true,
             returnType: .optional(wrapped: SupportModules.COM.iunknownPointer)) { writer in
         for interface in interfaces {
-            // if id == SWRT_IFoo.iid {
+            // if id == uuidof(SWRT_IFoo.self) {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
-            try writer.writeBracedBlock("if id == \(abiSwiftType).iid") { writer in
+            try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 // if !_ifooOverrides_outer.isInitialized {
                 //     _ifooOverrides_outer = COMEmbedding(
                 //         swiftObject: self, virtualTable: &FooProjection.VirtualTables.ifooOverrides)

@@ -46,7 +46,7 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjectio
         public var _ipropertyValue: COMInterop<SWRT_WindowsFoundation_IPropertyValue> {
             get throws {
                 try _lazyIPropertyValue.getInterop {
-                    try _queryInterface(SWRT_WindowsFoundation_IPropertyValue.iid)
+                    try _queryInterface(uuidof(SWRT_WindowsFoundation_IPropertyValue.self))
                 }
             }
         }

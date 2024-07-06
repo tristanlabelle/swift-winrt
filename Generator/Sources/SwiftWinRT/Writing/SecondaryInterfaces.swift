@@ -25,7 +25,7 @@ internal enum SecondaryInterfaces {
             type: SupportModules.COM.comLazyReference(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
-        //     try _lazyIStringable.getInterop { try _queryInterface(SWRT_IStringable.iid).cast() }
+        //     try _lazyIStringable.getInterop { try _queryInterface(uuidof(SWRT_IStringable).self).cast() }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
         let abiInteropType: SwiftType = SupportModules.COM.comInterop(of: abiStructType)
@@ -43,12 +43,12 @@ internal enum SecondaryInterfaces {
                     } else {
                         writer.writeStatement("try \(SupportModules.WinRT.metaclassResolverGlobal).resolve("
                             + "runtimeClass: \"\(activatableId)\", "
-                            + "interfaceID: \(abiStructType).iid)")
+                            + "interfaceID: uuidof(\(abiStructType).self))")
                     }
                 }
                 else {
                     let qiMethodName = composable ? "_queryInnerInterface" : "_queryInterface"
-                    writer.writeStatement("try \(qiMethodName)(\(abiStructType).iid).cast()")
+                    writer.writeStatement("try \(qiMethodName)(uuidof(\(abiStructType).self)).cast()")
                 }
             }
         })

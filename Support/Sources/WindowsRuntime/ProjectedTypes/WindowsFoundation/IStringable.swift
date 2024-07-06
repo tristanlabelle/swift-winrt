@@ -14,7 +14,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias COMInterface = SWRT_WindowsFoundation_IStringable
 
     public static var typeName: String { "Windows.Foundation.IStringable" }
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -45,8 +45,10 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
 extension SWRT_WindowsFoundation_IStringable: @retroactive COMIUnknownStruct {}
 #endif
 
-extension SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {
-    public static let iid = COMInterfaceID(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
+extension SWRT_WindowsFoundation_IStringable: /* @retroactive */ COMIInspectableStruct {}
+
+public func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
+    .init(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
 }
 
 extension COMInterop where Interface == SWRT_WindowsFoundation_IStringable {

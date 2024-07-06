@@ -24,7 +24,7 @@ public enum IUnknownProjection: COMTwoWayProjection {
     public typealias SwiftObject = IUnknown
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IUnknown
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -43,8 +43,11 @@ public enum IUnknownProjection: COMTwoWayProjection {
         Release: { IUnknownVirtualTable.Release($0) })
 }
 
-extension WindowsRuntime_ABI.SWRT_IUnknown: /* @retroactive */ COMIUnknownStruct {
-    public static let iid = COMInterfaceID(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
+// Originally we extended SWRT_IUnknown to add a static let COMInterfaceID property,
+// however this breaks down when a second Swift module has its own copy of the SWRT_IUnknown
+// and references SWRT_IUnknown.iid. The Swift compiler then doesn't find the extension.
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IUnknown.Type) -> COMInterfaceID {
+    .init(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
 
 public typealias IUnknownPointer = IUnknownProjection.COMPointer

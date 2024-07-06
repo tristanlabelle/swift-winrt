@@ -7,7 +7,7 @@ public enum IAgileObjectProjection: COMProjection {
     public typealias SwiftObject = IUnknown // Avoid introducing an interface for IAgileObject since it is a marker interface.
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IAgileObject
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
         IUnknownProjection._wrap(reference.cast())
@@ -18,6 +18,6 @@ public enum IAgileObjectProjection: COMProjection {
     }
 }
 
-extension WindowsRuntime_ABI.SWRT_IAgileObject: /* @retroactive */ COMIUnknownStruct {
-    public static let iid = COMInterfaceID(0x94EA2B94, 0xE9CC, 0x49E0, 0xC0FF, 0xEE64CA8F5B90)
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IAgileObject.Type) -> COMInterfaceID {
+    .init(0x94EA2B94, 0xE9CC, 0x49E0, 0xC0FF, 0xEE64CA8F5B90)
 }

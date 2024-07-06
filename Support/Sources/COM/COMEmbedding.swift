@@ -48,7 +48,7 @@ public struct COMEmbedding /*: ~Copyable */ {
     }
 
     public static func test<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Bool {
-        do { _ = try COMInterop(this).queryInterface(WindowsRuntime_ABI.SWRT_SwiftCOMObject.iid) } catch { return false }
+        do { _ = try COMInterop(this).queryInterface(uuidof(WindowsRuntime_ABI.SWRT_SwiftCOMObject.self)) } catch { return false }
         return true
     }
 
@@ -92,8 +92,8 @@ public struct COMEmbedding /*: ~Copyable */ {
     }
 }
 
-extension WindowsRuntime_ABI.SWRT_SwiftCOMObject {
-    internal static var iid: COMInterfaceID { .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64) }
+internal func uuidof(_: WindowsRuntime_ABI.SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
+    .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64)
 }
 
 public enum IUnknownVirtualTable {
@@ -130,7 +130,7 @@ public enum IUnknownVirtualTable {
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
-            let reference = id == WindowsRuntime_ABI.SWRT_SwiftCOMObject.iid
+            let reference = id == uuidof(WindowsRuntime_ABI.SWRT_SwiftCOMObject.self)
                 ? IUnknownReference(addingRef: this)
                 : try (COMEmbedding.getEmbedderObjectOrCrash(this) as! IUnknown)._queryInterface(id)
             ppvObject.pointee = UnsafeMutableRawPointer(reference.detach())

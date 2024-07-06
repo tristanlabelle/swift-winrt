@@ -37,15 +37,15 @@ internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalProjec
     }
 }
 
-extension WindowsRuntime_ABI.SWRT_IMarshal {
-    static var iid: COMInterfaceID { COMInterfaceID(0x00000003, 0x0000, 0x0000, 0xC000, 0x000000000046) }
+internal func uuidof(_: WindowsRuntime_ABI.SWRT_IMarshal.Type) -> COMInterfaceID {
+    .init(0x00000003, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
 
 internal enum FreeThreadedMarshalProjection: COMTwoWayProjection {
     public typealias SwiftObject = FreeThreadedMarshal
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IMarshal
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {

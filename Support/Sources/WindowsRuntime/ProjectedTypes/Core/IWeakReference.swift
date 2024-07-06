@@ -9,7 +9,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
     public typealias SwiftObject = IWeakReference
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IWeakReference
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -46,8 +46,10 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
 extension WindowsRuntime_ABI.SWRT_IWeakReference: @retroactive COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IWeakReference: /* @retroactive */ COMIInspectableStruct {
-    public static let iid = COMInterfaceID(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
+extension WindowsRuntime_ABI.SWRT_IWeakReference: /* @retroactive */ COMIInspectableStruct {}
+
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReference.Type) -> COMInterfaceID {
+    .init(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IWeakReference {

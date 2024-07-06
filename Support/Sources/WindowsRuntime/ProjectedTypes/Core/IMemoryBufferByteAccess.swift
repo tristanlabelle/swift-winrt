@@ -11,7 +11,7 @@ public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
     public typealias SwiftObject = IMemoryBufferByteAccess
     public typealias COMInterface = WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess
 
-    public static var interfaceID: COMInterfaceID { COMInterface.iid }
+    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
@@ -44,8 +44,8 @@ extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: @retroactive COMIUnkn
 extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess: COMIUnknownStruct {}
 #endif
 
-extension WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess {
-    public static let iid = COMInterfaceID(0x5B0D3235, 0x4DBA, 0x4D44, 0x865E, 0x8F1D0E4FD04D)
+public func uuidof(_: WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess.Type) -> COMInterfaceID {
+    .init(0x5B0D3235, 0x4DBA, 0x4D44, 0x865E, 0x8F1D0E4FD04D)
 }
 
 extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess {
