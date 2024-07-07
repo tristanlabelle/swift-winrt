@@ -13,6 +13,8 @@ extension SupportModules.COM {
     public static var guid: SwiftType { .chain(moduleName, "GUID") }
 
     public static var iunknownPointer: SwiftType { .chain(moduleName, "IUnknownPointer") }
+    public static var iunknownReference: SwiftType { .chain(moduleName, "IUnknownReference") }
+    public static var iunknownReference_Optional: SwiftType { .chain(moduleName, "IUnknownReference", "Optional") }
     public static var comInterfaceID: SwiftType { .chain(moduleName, "COMInterfaceID") }
     public static var nullResult: SwiftType { .chain(moduleName, "NullResult") }
 
