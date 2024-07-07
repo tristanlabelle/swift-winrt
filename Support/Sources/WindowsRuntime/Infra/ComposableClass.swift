@@ -93,7 +93,7 @@ open class ComposableClass: IInspectableProtocol {
         return try _queryInnerInterface(id)
     }
 
-    open func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional { nil }
+    open func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional { .none }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
         // Workaround for 5.9 compiler bug when using inner.interop directly:

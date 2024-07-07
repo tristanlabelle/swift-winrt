@@ -272,7 +272,7 @@ fileprivate func writeClassOverrideSupport(
                 writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
             }
         }
-        writer.writeReturnStatement(value: "nil")
+        writer.writeReturnStatement(value: ".none")
     }
 }
 

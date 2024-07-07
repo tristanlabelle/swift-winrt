@@ -1,14 +1,12 @@
 extension COMReference {
     /// Smart pointer-like reference to a COM object or to nil.
     /// Essentially an Optional<ABIReference> without language support.
-    public struct Optional: ~Copyable, ExpressibleByNilLiteral {
+    public struct Optional: ~Copyable {
+        public static var none: Self { Self() }
+
         private var pointer: UnsafeMutablePointer<ABIStruct>?
 
         public init() {
-            self.pointer = nil
-        }
-
-        public init(nilLiteral: ()) {
             self.pointer = nil
         }
 
