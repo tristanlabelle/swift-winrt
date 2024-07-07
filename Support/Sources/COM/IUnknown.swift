@@ -11,7 +11,7 @@ extension IUnknownProtocol {
         (try _queryInterface(id) as IUnknownReference).cast(to: type)
     }
 
-    public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> COMReference<Projection.COMInterface> {
+    public func _queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.ABIReference {
         try _queryInterface(Projection.interfaceID)
     }
 
@@ -22,16 +22,16 @@ extension IUnknownProtocol {
 
 public enum IUnknownProjection: COMTwoWayProjection {
     public typealias SwiftObject = IUnknown
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IUnknown
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IUnknown
 
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 
@@ -50,5 +50,5 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IUnknown.Type) -> COMInterfaceID {
     .init(0x00000000, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
 
-public typealias IUnknownPointer = IUnknownProjection.COMPointer
-public typealias IUnknownReference = COMReference<IUnknownProjection.COMInterface>
+public typealias IUnknownPointer = IUnknownProjection.ABIPointer
+public typealias IUnknownReference = IUnknownProjection.ABIReference

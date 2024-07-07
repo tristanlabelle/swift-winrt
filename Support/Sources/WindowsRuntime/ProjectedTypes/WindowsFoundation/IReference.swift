@@ -23,17 +23,17 @@ import WindowsRuntime_ABI
 
 public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
-    public typealias COMInterface = SWRT_WindowsFoundation_IReference
+    public typealias ABIStruct = SWRT_WindowsFoundation_IReference
 
     public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }
     public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: consume reference)
     }
 
-    public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ value: SwiftObject) throws -> ABIReference {
         try Import.toCOM(value)
     }
 

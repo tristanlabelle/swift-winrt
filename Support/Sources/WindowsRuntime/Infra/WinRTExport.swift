@@ -7,8 +7,8 @@ open class WinRTPrimaryExport<Projection: InterfaceProjection>: COMPrimaryExport
     open class var implementIStringable: Bool { true }
     open class var implementIWeakReferenceSource: Bool { true }
 
-    public var inspectablePointer: IInspectableProjection.COMPointer {
-        unknownPointer.withMemoryRebound(to: IInspectableProjection.COMInterface.self, capacity: 1) { $0 }
+    public var inspectablePointer: IInspectableProjection.ABIPointer {
+        unknownPointer.withMemoryRebound(to: IInspectableProjection.ABIStruct.self, capacity: 1) { $0 }
     }
 
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {

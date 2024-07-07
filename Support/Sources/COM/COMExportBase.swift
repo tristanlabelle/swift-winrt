@@ -11,11 +11,11 @@ open class COMExportBase<Projection: COMTwoWayProjection>: IUnknownProtocol {
         comEmbedding.unknownPointer
     }
 
-    public var comPointer: Projection.COMPointer {
-        Projection.COMPointer(OpaquePointer(comEmbedding.unknownPointer))
+    public var comPointer: Projection.ABIPointer {
+        Projection.ABIPointer(OpaquePointer(comEmbedding.unknownPointer))
     }
 
-    public func toCOM() -> COMReference<Projection.COMInterface> { .init(addingRef: comPointer) }
+    public func toCOM() -> Projection.ABIReference { .init(addingRef: comPointer) }
 
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         fatalError("Not implemented. Derived class should have overriden this method.")

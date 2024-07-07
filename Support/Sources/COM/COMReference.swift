@@ -27,14 +27,16 @@ public struct COMReference<ABIStruct>: ~Copyable {
         try interop.queryInterface(id)
     }
 
-    public func queryInterface<Other>(_ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
+    public func queryInterface<OtherABIStruct>(
+            _ id: COMInterfaceID, type: OtherABIStruct.Type = OtherABIStruct.self) throws -> COMReference<OtherABIStruct> {
         try interop.queryInterface(id, type: type)
     }
 
-    public consuming func cast<Other>(to type: Other.Type = Other.self) -> COMReference<Other> {
+    public consuming func cast<OtherABIStruct>(
+            to type: OtherABIStruct.Type = OtherABIStruct.self) -> COMReference<OtherABIStruct> {
         let pointer = self.pointer
         discard self
-        return COMReference<Other>(transferringRef: pointer.withMemoryRebound(to: Other.self, capacity: 1) { $0 })
+        return COMReference<OtherABIStruct>(transferringRef: pointer.withMemoryRebound(to: OtherABIStruct.self, capacity: 1) { $0 })
     }
 
     deinit {

@@ -56,7 +56,7 @@ class ClassInheritanceTests : XCTestCase {
     public func testWithUpcasting() throws {
         struct UpcastingSwiftWrapperFactory: SwiftWrapperFactory {
             func create<Projection: COMProjection>(
-                    _ reference: consuming COMReference<Projection.COMInterface>,
+                    _ reference: consuming Projection.ABIReference,
                     projection: Projection.Type) -> Projection.SwiftObject {
                 // Try from the runtime type first, then fall back to the statically known projection
                 if let object: Projection.SwiftObject = fromRuntimeType(

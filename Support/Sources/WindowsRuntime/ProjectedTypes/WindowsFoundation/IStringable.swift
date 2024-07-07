@@ -11,17 +11,17 @@ import WindowsRuntime_ABI
 
 public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
-    public typealias COMInterface = SWRT_WindowsFoundation_IStringable
+    public typealias ABIStruct = SWRT_WindowsFoundation_IStringable
 
     public static var typeName: String { "Windows.Foundation.IStringable" }
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 

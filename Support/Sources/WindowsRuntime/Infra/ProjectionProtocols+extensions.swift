@@ -41,7 +41,7 @@ extension ReferenceTypeProjection {
     }
 
     public static func _getter<Value>(
-            _ this: COMPointer?,
+            _ this: ABIPointer?,
             _ value: UnsafeMutablePointer<Value>?,
             _ code: (SwiftObject) throws -> Value) -> SWRT_HResult {
         _implement(this) {
@@ -65,7 +65,7 @@ extension ComposableClassProjection {
         return swiftWrapperFactory.create(reference, projection: Self.self)
     }
 
-    public static func _unwrap(_ pointer: COMPointer) -> SwiftObject? {
+    public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? {
         COMEmbedding.getImplementation(pointer, type: SwiftObject.self)
     }
 

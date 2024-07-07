@@ -8,17 +8,17 @@ public protocol IActivationFactoryProtocol: IInspectableProtocol {
 
 public enum IActivationFactoryProjection: InterfaceProjection {
     public typealias SwiftObject = IActivationFactory
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IActivationFactory
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IActivationFactory
 
     public static var typeName: String { "IActivationFactory" }
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { fatalError("Not implemented: \(#function)") }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 
@@ -43,13 +43,13 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IActivationFacto
     }
 
     // TODO: Move elsewhere to keep COMInterop only for bridging.
-    public func activateInstance<Projection: WinRTProjection & COMProjection>(projection: Projection.Type) throws -> Projection.COMPointer {
+    public func activateInstance<Projection: WinRTProjection & COMProjection>(projection: Projection.Type) throws -> Projection.ABIPointer {
         var inspectable = IInspectableProjection.abiDefaultValue
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.ActivateInstance(this, &inspectable))
         defer { IInspectableProjection.release(&inspectable) }
         guard let inspectable else { throw COM.HResult.Error.noInterface }
-        return try COMInterop<IInspectableProjection.COMInterface>(inspectable)
-            .queryInterface(projection.interfaceID, type: Projection.COMInterface.self)
+        return try COMInterop<IInspectableProjection.ABIStruct>(inspectable)
+            .queryInterface(projection.interfaceID, type: Projection.ABIStruct.self)
             .detach()
     }
 }

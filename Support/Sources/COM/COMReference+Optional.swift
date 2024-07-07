@@ -1,6 +1,6 @@
 extension COMReference {
     /// Smart pointer-like reference to a COM object or to nil.
-    /// Essentially an Optional<COMReference<ABIStruct>> without language support.
+    /// Essentially an Optional<ABIReference> without language support.
     public struct Optional: ~Copyable {
         private var pointer: UnsafeMutablePointer<ABIStruct>?
 

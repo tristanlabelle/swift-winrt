@@ -7,16 +7,16 @@ public protocol IWeakReferenceProtocol: IUnknownProtocol {
 
 public enum IWeakReferenceProjection: COMTwoWayProjection {
     public typealias SwiftObject = IWeakReference
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IWeakReference
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IWeakReference
 
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 
