@@ -35,16 +35,6 @@ public enum IInspectableProjection: InterfaceProjection {
         GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) })
 }
 
-/// Identifies COM interface structs as deriving from IInspectable.
-/// Do not use for dynamic casting because conformances will be @retroactive.
-public protocol COMIInspectableStruct: COMIUnknownStruct {}
-
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IInspectable: @retroactive COMIUnknownStruct {}
-#endif
-
-extension WindowsRuntime_ABI.SWRT_IInspectable: /* @retroactive */ COMIInspectableStruct {}
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IInspectable.Type) -> COMInterfaceID {
     .init(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }
@@ -52,8 +42,7 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IInspectable.Type) -> COMInterface
 public typealias IInspectablePointer = IInspectableProjection.COMPointer
 public typealias IInspectableReference = COMReference<IInspectableProjection.COMInterface>
 
-// Ideally this would be "where Interface: COMIInspectableStruct", but we run into compiler bugs
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IInspectable {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getIids() throws -> [COMInterfaceID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))

@@ -42,17 +42,11 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         } })
 }
 
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IWeakReference: @retroactive COMIUnknownStruct {}
-#endif
-
-extension WindowsRuntime_ABI.SWRT_IWeakReference: /* @retroactive */ COMIInspectableStruct {}
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReference.Type) -> COMInterfaceID {
     .init(0x00000037, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IWeakReference {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReference {
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
         var iid = GUIDProjection.toABI(iid)
         var objectReference = IInspectableProjection.abiDefaultValue

@@ -30,17 +30,11 @@ public enum IActivationFactoryProjection: InterfaceProjection {
     }
 }
 
-#if swift(>=6)
-extension SWRT_IActivationFactory: @retroactive COMIUnknownStruct {}
-#endif
-
-extension WindowsRuntime_ABI.SWRT_IActivationFactory: /* @retroactive */ COMIInspectableStruct {}
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IActivationFactory.Type) -> COMInterfaceID {
     .init(0x00000035, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IActivationFactory {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IActivationFactory {
     // Activation factory methods are special-cased to return the pointer.
     public func activateInstance() throws -> IInspectablePointer? {
         var instance = IInspectableProjection.abiDefaultValue

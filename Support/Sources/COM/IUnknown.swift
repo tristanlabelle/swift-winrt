@@ -6,8 +6,8 @@ public protocol IUnknownProtocol: AnyObject {
 }
 
 extension IUnknownProtocol {
-    public func _queryInterface<Interface /* COMIUnknownStruct */>(
-            _ id: COMInterfaceID, type: Interface.Type = Interface.self) throws -> COMReference<Interface> {
+    public func _queryInterface<ABIStruct>(
+            _ id: COMInterfaceID, type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
         (try _queryInterface(id) as IUnknownReference).cast(to: type)
     }
 

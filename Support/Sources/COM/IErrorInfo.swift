@@ -47,7 +47,7 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IErrorInfo.Type) -> COMInterfaceID
     .init(0x1CF2B120, 0x547D, 0x101B, 0x8E65, 0x08002B2BD119)
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IErrorInfo {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IErrorInfo {
     public func getGuid() throws -> GUID {
         var value = GUIDProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetGUID(this, &value))

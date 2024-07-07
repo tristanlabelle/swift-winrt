@@ -2,8 +2,8 @@ import COM
 import WindowsRuntime_ABI
 
 public enum IInspectableVirtualTable {
-    public static func GetIids<Interface>(
-            _ this: UnsafeMutablePointer<Interface>?,
+    public static func GetIids<ABIStruct>(
+            _ this: UnsafeMutablePointer<ABIStruct>?,
             _ count: UnsafeMutablePointer<UInt32>?,
             _ iids: UnsafeMutablePointer<UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_Guid>?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let count, let iids else { return HResult.invalidArg.value }
@@ -18,8 +18,8 @@ public enum IInspectableVirtualTable {
         }
     }
 
-    public static func GetRuntimeClassName<Interface>(
-            _ this: UnsafeMutablePointer<Interface>?,
+    public static func GetRuntimeClassName<ABIStruct>(
+            _ this: UnsafeMutablePointer<ABIStruct>?,
             _ className: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_HString?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let className else { return HResult.invalidArg.value }
         className.pointee = nil
@@ -29,8 +29,8 @@ public enum IInspectableVirtualTable {
         }
     }
 
-    public static func GetTrustLevel<Interface>(
-            _ this: UnsafeMutablePointer<Interface>?,
+    public static func GetTrustLevel<ABIStruct>(
+            _ this: UnsafeMutablePointer<ABIStruct>?,
             _ trustLevel: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_TrustLevel>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let trustLevel else { return HResult.invalidArg.value }
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable

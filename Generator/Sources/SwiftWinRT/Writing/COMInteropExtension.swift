@@ -9,16 +9,6 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProj
     let abiSwiftType = try projection.toABIType(abiType)
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
-    // Mark the COM interface struct as conforming to IUnknown (delegates) or IInspectable (interfaces)
-    // @retroactive is only supported starting in Swift 6 and above.
-    let group = writer.output.allocateVerticalGrouping()
-    let comStructProtocol = abiType.definition is InterfaceDefinition ? SupportModules.WinRT.comIInspectableStruct : SupportModules.COM.comIUnknownStruct
-    writer.output.writeFullLine(grouping: group, "#if swift(>=6)")
-    writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): @retroactive \(comStructProtocol) {}")
-    writer.output.writeFullLine(grouping: group, "#else")
-    writer.output.writeFullLine(grouping: group, "extension \(abiSwiftType): \(comStructProtocol) {}")
-    writer.output.writeFullLine(grouping: group, "#endif")
-
     // func uuidof(_: SWRT_IFoo.Type) -> COMInterfaceID
     let abiSwiftMetatype: SwiftType
     if case let .chain(chain) = abiSwiftType {
@@ -34,8 +24,8 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProj
         writer.output.writeFullLine(try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
     }
 
-    // extension COM.COMInterop where Interface == SWRT_IFoo
-    try writer.writeExtension(type: SupportModules.COM.comInterop, whereClauses: [ "Interface == \(abiSwiftType)" ]) { writer in
+    // extension COM.COMInterop where ABIStruct == SWRT_IFoo
+    try writer.writeExtension(type: SupportModules.COM.comInterop, whereClauses: [ "ABIStruct == \(abiSwiftType)" ]) { writer in
         let methodKind = try ABIMethodKind.forABITypeMethods(definition: abiType.definition)
         for method in abiType.definition.methods {
             // For delegates, only expose the Invoke method

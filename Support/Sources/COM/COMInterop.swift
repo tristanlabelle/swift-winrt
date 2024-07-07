@@ -1,28 +1,16 @@
 import WindowsRuntime_ABI
 
-/// Extends COM IUnknown-derived struct definitions with an interface ID.
-/// All conformances will be @retroactive, so this shouldn't be used for dynamic casts.
-public protocol COMIUnknownStruct {
-    // Conceptually, we should have this member:
-    // static var iid: COMInterfaceID { get }
-    //
-    // However this won't work because generic specializations don't belong
-    // to any single module, so we'd run into retroactive conformance issues,
-    // where multiple modules are defining the iid.
-}
-
 /// Wraps a COM interface pointer and exposes projected versions of its methods.
 /// This struct is extended with methods for each COM interface it wraps.
-// Should require COMIUnknownStruct but we run into compiler bugs.
-public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
-    public let this: UnsafeMutablePointer<Interface>
+public struct COMInterop<ABIStruct> {
+    public let this: UnsafeMutablePointer<ABIStruct>
 
-    public init(_ pointer: UnsafeMutablePointer<Interface>) {
+    public init(_ pointer: UnsafeMutablePointer<ABIStruct>) {
         self.this = pointer
     }
 
     public init<Other>(casting pointer: UnsafeMutablePointer<Other>) {
-        self.init(pointer.withMemoryRebound(to: Interface.self, capacity: 1) { $0 })
+        self.init(pointer.withMemoryRebound(to: ABIStruct.self, capacity: 1) { $0 })
     }
 
     public init<Other>(casting other: COMInterop<Other>) {
@@ -56,7 +44,7 @@ public struct COMInterop<Interface> /* where Interface: COMIUnknownStruct */ {
         return COMReference(transferringRef: pointer)
     }
 
-    public func queryInterface<Other /* COMIUnknownStruct */>(
+    public func queryInterface<Other>(
             _ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
         (try queryInterface(id) as IUnknownReference).cast(to: type)
     }

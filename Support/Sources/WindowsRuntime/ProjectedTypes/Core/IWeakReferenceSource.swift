@@ -33,17 +33,11 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceProjection.toABI($0.getWeakReference())) } })
 }
 
-#if swift(>=6)
-extension WindowsRuntime_ABI.SWRT_IWeakReferenceSource: @retroactive COMIUnknownStruct {}
-#endif
-
-extension WindowsRuntime_ABI.SWRT_IWeakReferenceSource: /* @retroactive */ COMIInspectableStruct {}
-
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReferenceSource.Type) -> COMInterfaceID {
     .init(0x00000038, 0x0000, 0x0000, 0xC000, 0x000000000046);
 }
 
-extension COMInterop where Interface == WindowsRuntime_ABI.SWRT_IWeakReferenceSource {
+extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetWeakReference(this, &value))

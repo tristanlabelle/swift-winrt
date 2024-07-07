@@ -90,13 +90,7 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReference_VirtualTable =  
         return HResult.catch { try reference._getABIValue(value) }.value
     })
 
-#if swift(>=6)
-extension SWRT_WindowsFoundation_IReference: @retroactive WindowsRuntime.COMIInspectableStruct {}
-#else
-extension SWRT_WindowsFoundation_IReference: WindowsRuntime.COMIInspectableStruct {}
-#endif
-
-extension COMInterop where Interface == SWRT_WindowsFoundation_IReference {
+extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IReference {
     public func get_Value(_ value: UnsafeMutableRawPointer) throws {
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.get_Value(this, value))
     }

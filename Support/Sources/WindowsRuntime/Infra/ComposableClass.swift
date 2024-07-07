@@ -24,14 +24,14 @@ open class ComposableClass: IInspectableProtocol {
         outer = .uninitialized
     }
 
-    public typealias ComposableFactory<Interface> = (
+    public typealias ComposableFactory<ABIStruct> = (
         _ outer: IInspectablePointer?,
-        _ inner: inout IInspectablePointer?) throws -> COMReference<Interface>
+        _ inner: inout IInspectablePointer?) throws -> COMReference<ABIStruct>
 
     /// Initializer for instances created in Swift
     /// - Parameter _compose: Whether to create a composed object that supports method overrides in Swift.
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
-    public init<Interface>(_compose: Bool, _factory: ComposableFactory<Interface>) throws {
+    public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
         if _compose {
             // Workaround Swift initialization rules:
             // - Factory needs an initialized outer pointer pointing to self

@@ -12,8 +12,8 @@ public protocol MetaclassResolver {
 }
 
 extension MetaclassResolver {
-    public mutating func resolve<Interface>(runtimeClass: String, interfaceID: COMInterfaceID,
-            type: Interface.Type = Interface.self) throws -> COMReference<Interface> {
+    public mutating func resolve<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
+            type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
         try resolve(runtimeClass: runtimeClass).queryInterface(interfaceID)
     }
 }
@@ -29,8 +29,8 @@ public struct SystemMetaclassResolver: MetaclassResolver {
         try Self.getActivationFactory(runtimeClass: runtimeClass, interfaceID: IInspectableProjection.interfaceID)
     }
 
-    public static func getActivationFactory<Interface>(runtimeClass: String, interfaceID: COMInterfaceID,
-            type: Interface.Type = Interface.self) throws -> COMReference<Interface> {
+    public static func getActivationFactory<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
+            type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
         var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
         defer { PrimitiveProjection.String.release(&activatableId) }
 
@@ -39,7 +39,7 @@ public struct SystemMetaclassResolver: MetaclassResolver {
         try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
         guard let rawPointer else { throw HResult.Error.noInterface }
 
-        let pointer = rawPointer.bindMemory(to: Interface.self, capacity: 1)
+        let pointer = rawPointer.bindMemory(to: ABIStruct.self, capacity: 1)
         return COM.COMReference(transferringRef: pointer)
     }
 }

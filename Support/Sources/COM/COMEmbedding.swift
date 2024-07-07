@@ -41,31 +41,31 @@ public struct COMEmbedding /*: ~Copyable */ {
 
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: unknownPointer) }
 
-    fileprivate static func toUnmanagedUnsafe<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Unmanaged<AnyObject> {
+    fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
         }
     }
 
-    public static func test<Interface>(_ this: UnsafeMutablePointer<Interface>) -> Bool {
+    public static func test<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Bool {
         do { _ = try COMInterop(this).queryInterface(uuidof(WindowsRuntime_ABI.SWRT_SwiftCOMObject.self)) } catch { return false }
         return true
     }
 
     /// Gets the Swift object that embeds a given COM interface, 
     /// assuming that it is an embedded COM interface, and otherwise crashes.
-    public static func getEmbedderObjectOrCrash<Interface>(_ this: UnsafeMutablePointer<Interface>) -> AnyObject {
+    public static func getEmbedderObjectOrCrash<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject {
         toUnmanagedUnsafe(this).takeUnretainedValue()
     }
 
-    public static func getEmbedderObject<Interface>(_ this: UnsafeMutablePointer<Interface>) -> AnyObject? {
+    public static func getEmbedderObject<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject? {
         test(this) ? getEmbedderObjectOrCrash(this) : nil
     }
 
     /// Gets the Swift object that provides the implementation for the given COM interface,
     /// assuming that it is an embedded COM interface, and otherwise crashes.
-    public static func getImplementationOrCrash<Interface, Implementation>(
-            _ this: UnsafeMutablePointer<Interface>, type: Implementation.Type = Implementation.self) -> Implementation {
+    public static func getImplementationOrCrash<ABIStruct, Implementation>(
+            _ this: UnsafeMutablePointer<ABIStruct>, type: Implementation.Type = Implementation.self) -> Implementation {
         let embedderObject = toUnmanagedUnsafe(this).takeUnretainedValue()
         // Typical case: the embedder provides the implementation
         if let implementation = embedderObject as? Implementation { return implementation }
@@ -77,8 +77,8 @@ public struct COMEmbedding /*: ~Copyable */ {
         fatalError("COM object does not provide the expected implementation")
     }
 
-    public static func getImplementation<Interface, Implementation>(
-            _ this: UnsafeMutablePointer<Interface>, type: Implementation.Type = Implementation.self) -> Implementation? {
+    public static func getImplementation<ABIStruct, Implementation>(
+            _ this: UnsafeMutablePointer<ABIStruct>, type: Implementation.Type = Implementation.self) -> Implementation? {
         guard test(this) else { return nil }
         let embedderObject = toUnmanagedUnsafe(this).takeUnretainedValue()
         // Typical case: the embedder provides the implementation
@@ -97,7 +97,7 @@ internal func uuidof(_: WindowsRuntime_ABI.SWRT_SwiftCOMObject.Type) -> COMInter
 }
 
 public enum IUnknownVirtualTable {
-    public static func AddRef<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+    public static func AddRef<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>?) -> UInt32 {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return 0
@@ -108,7 +108,7 @@ public enum IUnknownVirtualTable {
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
     }
 
-    public static func Release<Interface>(_ this: UnsafeMutablePointer<Interface>?) -> UInt32 {
+    public static func Release<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>?) -> UInt32 {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return 0
@@ -120,8 +120,8 @@ public enum IUnknownVirtualTable {
         return UInt32(oldRetainCount - 1)
     }
 
-    public static func QueryInterface<Interface>(
-            _ this: UnsafeMutablePointer<Interface>?,
+    public static func QueryInterface<ABIStruct>(
+            _ this: UnsafeMutablePointer<ABIStruct>?,
             _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
             _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let iid, let ppvObject else { return HResult.invalidArg.value }
