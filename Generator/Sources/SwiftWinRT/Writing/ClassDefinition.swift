@@ -206,11 +206,15 @@ fileprivate func writeClassInterfaceProperties(
         projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
     // Instance properties, initializers and deinit
     if kind.isComposable, let defaultInterface = interfaces.default {
-        try SecondaryInterfaces.writeDeclaration(defaultInterface, composable: kind.isComposable, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(
+            defaultInterface, static: false, composable: kind.isComposable,
+            projection: projection, to: writer)
     }
 
     for secondaryInterface in interfaces.secondary {
-        try SecondaryInterfaces.writeDeclaration(secondaryInterface.interface, composable: kind.isComposable, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(
+            secondaryInterface.interface, static: false, composable: kind.isComposable,
+            projection: projection, to: writer)
     }
 
     if kind.isComposable, let defaultInterface = interfaces.default {
@@ -218,20 +222,15 @@ fileprivate func writeClassInterfaceProperties(
     }
 
     // Static properties
-    if interfaces.hasDefaultFactory {
-        try SecondaryInterfaces.writeDeclaration(
-            interfaceName: "IActivationFactory", abiStructType: .identifier(CAbi.iactivationFactoryName),
-            staticOf: classDefinition, projection: projection, to: writer)
-    }
+    try SecondaryInterfaces.writeActivationFactoryDeclaration(
+        classDefinition: classDefinition, projection: projection, to: writer)
 
     for factoryInterface in interfaces.factories {
-        try SecondaryInterfaces.writeDeclaration(
-            factoryInterface.bind(), staticOf: classDefinition, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(factoryInterface.bind(), static: true, projection: projection, to: writer)
     }
 
     for staticInterface in interfaces.static {
-        try SecondaryInterfaces.writeDeclaration(
-            staticInterface.bind(), staticOf: classDefinition, projection: projection, to: writer)
+        try SecondaryInterfaces.writeDeclaration(staticInterface.bind(), static: true, projection: projection, to: writer)
     }
 }
 
