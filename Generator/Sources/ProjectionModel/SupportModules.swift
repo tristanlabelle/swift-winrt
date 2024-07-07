@@ -35,13 +35,13 @@ extension SupportModules.COM {
         .chain([ .init(moduleName), .init("COMReference", genericArgs: [type]) ])
     }
 
-    public static var comLazyReference: SwiftType { .chain(moduleName, "COMLazyReference") }
-    public static func comLazyReference(to type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("COMLazyReference", genericArgs: [type]) ])
+    public static var comReference_Optional: SwiftType { .chain(moduleName, "COMReference.Optional") }
+    public static func comReference_Optional(to type: SwiftType) -> SwiftType {
+        .chain([ .init(moduleName), .init("COMReference", genericArgs: [type]), .init("Optional") ])
     }
 
-    public static var comLazyReference_getInterop: String { "getInterop" }
-    public static var comLazyReference_getPointer: String { "getPointer" }
+    public static var comReference_Optional_lazyInitInterop: String { "lazyInitInterop" }
+    public static var comReference_Optional_lazyInitPointer: String { "lazyInitPointer" }
 
     public static var comInterop: SwiftType { .chain(moduleName, "COMInterop") }
     public static func comInterop(of type: SwiftType) -> SwiftType {

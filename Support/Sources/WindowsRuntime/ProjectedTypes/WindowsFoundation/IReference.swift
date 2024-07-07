@@ -42,10 +42,10 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjectio
             WindowsFoundation_IReferenceProtocol {
         public typealias T = TProjection.SwiftValue
 
-        private var _lazyIPropertyValue: COMLazyReference<SWRT_WindowsFoundation_IPropertyValue> = .init()
+        private var _lazyIPropertyValue: COMReference<SWRT_WindowsFoundation_IPropertyValue>.Optional = .init()
         public var _ipropertyValue: COMInterop<SWRT_WindowsFoundation_IPropertyValue> {
             get throws {
-                try _lazyIPropertyValue.getInterop {
+                try _lazyIPropertyValue.lazyInitInterop {
                     try _queryInterface(uuidof(SWRT_WindowsFoundation_IPropertyValue.self))
                 }
             }
