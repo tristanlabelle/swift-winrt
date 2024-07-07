@@ -1,0 +1,9 @@
+namespace WinRTComponent
+{
+    // Only use this type once, as part of a custom activation factory resolution test,
+    // since activation factory resolution only happens once and is then cached.
+    static runtimeclass ForCustomActivationFactoryResolution
+    {
+        static void Method();
+    }
+}

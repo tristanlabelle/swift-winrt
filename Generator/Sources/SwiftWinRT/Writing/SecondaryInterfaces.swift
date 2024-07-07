@@ -6,22 +6,14 @@ import WindowsMetadata
 
 internal enum SecondaryInterfaces {
     internal static func writeDeclaration(
-            _ interface: BoundInterface, staticOf: ClassDefinition? = nil, composable: Bool = false,
+            _ interface: BoundInterface, static: Bool, composable: Bool = false,
             projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-        try writeDeclaration(
-            interfaceName: projection.toTypeName(interface.definition, namespaced: false),
-            abiStructType: projection.toABIType(interface.asBoundType),
-            staticOf: staticOf, composable: composable,
-            projection: projection, to: writer)
-    }
-
-    internal static func writeDeclaration(
-            interfaceName: String, abiStructType: SwiftType, staticOf: ClassDefinition? = nil, composable: Bool = false,
-            projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
+        let abiStructType = try projection.toABIType(interface.asBoundType)
 
         // private [static] var _lazyIStringable: COM.COMLazyReference<SWRT_WindowsFoundation_IStringable> = .init()
         let storedPropertyName = getStoredPropertyName(interfaceName)
-        writer.writeStoredProperty(visibility: .private, static: staticOf != nil, declarator: .var, name: storedPropertyName,
+        writer.writeStoredProperty(visibility: .private, static: `static`, declarator: .var, name: storedPropertyName,
             type: SupportModules.COM.comLazyReference(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
@@ -29,27 +21,41 @@ internal enum SecondaryInterfaces {
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
         let abiInteropType: SwiftType = SupportModules.COM.comInterop(of: abiStructType)
-        try writer.writeComputedProperty(
-                visibility: .internal, static: staticOf != nil, name: computedPropertyName,
+        writer.writeComputedProperty(
+                visibility: .internal, static: `static`, name: computedPropertyName,
                 type: abiInteropType, throws: true, get: { writer in
+            writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comLazyReference_getInterop)") { writer in
+                let queryInterface: String
+                if `static` {
+                    queryInterface = "\(activationFactoryPropertyName).queryInterface"
+                } else if composable {
+                    queryInterface = "_queryInnerInterface"
+                } else {
+                    queryInterface = "_queryInterface"
+                }
+                writer.writeStatement("try \(queryInterface)(uuidof(\(abiStructType).self)).cast()")
+            }
+        })
+    }
+
+    internal static let activationFactoryPropertyName = "_iactivationFactory"
+
+    internal static func writeActivationFactoryDeclaration(
+            classDefinition: ClassDefinition, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        let storedPropertyName = "_lazyIActivationFactory"
+        let abiStructType = SwiftType.identifier("SWRT_IActivationFactory")
+
+        writer.writeStoredProperty(
+            visibility: .private, static: true, declarator: .var, name: storedPropertyName,
+            type: SupportModules.COM.comLazyReference(to: abiStructType),
+            initialValue: ".init()")
+         try writer.writeComputedProperty(
+                visibility: .private, static: true, name: activationFactoryPropertyName,
+                type: SupportModules.COM.comInterop(of: abiStructType), throws: true, get: { writer in
             try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comLazyReference_getInterop)") { writer in
-                if let staticOf {
-                    let activatableId = try WinRTTypeName.from(type: staticOf.bindType()).description
-                    if interfaceName == "IActivationFactory" {
-                        // Workaround a compiler bug where the compiler doesn't see the SWRT_IActivationFactory extension.
-                        writer.writeStatement("try \(SupportModules.WinRT.metaclassResolverGlobal).resolve("
-                            + "runtimeClass: \"\(activatableId)\", "
-                            + "interfaceID: \(SupportModules.WinRT.iactivationFactoryProjection).interfaceID)")
-                    } else {
-                        writer.writeStatement("try \(SupportModules.WinRT.metaclassResolverGlobal).resolve("
-                            + "runtimeClass: \"\(activatableId)\", "
-                            + "interfaceID: uuidof(\(abiStructType).self))")
-                    }
-                }
-                else {
-                    let qiMethodName = composable ? "_queryInnerInterface" : "_queryInterface"
-                    writer.writeStatement("try \(qiMethodName)(uuidof(\(abiStructType).self)).cast()")
-                }
+                let activatableId = try WinRTTypeName.from(type: classDefinition.bindType()).description
+                writer.writeStatement("try \(SupportModules.WinRT.activationFactoryResolverGlobal)"
+                    + ".resolve(runtimeClass: \"\(activatableId)\")")
             }
         })
     }

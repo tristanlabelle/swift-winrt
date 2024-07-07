@@ -57,7 +57,7 @@ internal func writeCOMImportClass(
                 }
 
                 for secondaryInterface in secondaryInterfaces {
-                    try SecondaryInterfaces.writeDeclaration(secondaryInterface, projection: projection, to: writer)
+                    try SecondaryInterfaces.writeDeclaration(secondaryInterface, static: false, projection: projection, to: writer)
                 }
             }
         }

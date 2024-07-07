@@ -95,7 +95,7 @@ extension SupportModules.WinRT {
 
     public static var iactivationFactoryProjection: SwiftType { .chain(moduleName, "IActivationFactoryProjection") }
 
-    public static var metaclassResolverGlobal: String { "\(moduleName).metaclassResolver" }
+    public static var activationFactoryResolverGlobal: String { "\(moduleName).activationFactoryResolver" }
     public static var swiftWrapperFactoryGlobal: String { "\(moduleName).swiftWrapperFactory" }
 }
 

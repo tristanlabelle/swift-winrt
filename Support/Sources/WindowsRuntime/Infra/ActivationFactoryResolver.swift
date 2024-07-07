@@ -2,34 +2,25 @@ import WindowsRuntime_ABI
 import WinSDK
 import class Foundation.NSLock
 
-/// Resolves the metaclass object (aka activation factory) for runtime classes from their name.
-///
-/// WinRT doesn't have a formal metaclass concept, but the usage and API shape for activation factories
-/// matches the metaclass concept: an object that exposes the class's static methods.
-/// Activation factory is a misnomer because some classes are composable or static.
-public protocol MetaclassResolver {
-    mutating func resolve(runtimeClass: String) throws -> IInspectableReference
+/// Resolves the activation factory for runtime classes from their name,
+/// aka the COM object that implements the default constructor and
+/// can be QI'd for other factory and static interfaces.
+public protocol ActivationFactoryResolver {
+    mutating func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface>
 }
 
-extension MetaclassResolver {
-    public mutating func resolve<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
-            type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
-        try resolve(runtimeClass: runtimeClass).queryInterface(interfaceID)
-    }
-}
+public var activationFactoryResolver: any ActivationFactoryResolver = SystemActivationFactoryResolver()
 
-public var metaclassResolver: any MetaclassResolver = SystemMetaclassResolver()
-
-/// The metaclass resolver provided by the system, delegating to RoGetActivationFactory.
+/// The activation factory resolver provided by the system, delegating to RoGetActivationFactory.
 /// This resolves system classes in the "Windows." namespaces and classes listed in the application manifest.
-public struct SystemMetaclassResolver: MetaclassResolver {
+public struct SystemActivationFactoryResolver: ActivationFactoryResolver {
     public init() {}
 
-    public func resolve(runtimeClass: String) throws -> IInspectableReference {
-        try Self.getActivationFactory(runtimeClass: runtimeClass, interfaceID: IInspectableProjection.interfaceID)
+    public func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
+        try Self.resolve(runtimeClass: runtimeClass, interfaceID: IActivationFactoryProjection.interfaceID)
     }
 
-    public static func getActivationFactory<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
+    public static func resolve<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
             type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
         var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
         defer { PrimitiveProjection.String.release(&activatableId) }
@@ -44,12 +35,13 @@ public struct SystemMetaclassResolver: MetaclassResolver {
     }
 }
 
-/// A metaclass resolver which uses exported functions from a WinRT component dll to resolve metaclasses.
-public final class DllMetaclassResolver: MetaclassResolver {
+/// An activation factory resolver which uses the DllGetActivationFactory exported function
+// from a WinRT component dll to resolve activation factories.
+public final class DllActivationFactoryResolver: ActivationFactoryResolver {
     private let libraryNameToLoad: String?
     private let lock = NSLock()
     private var libraryHandle: WinSDK.HMODULE?
-    private var cachedGetActivationFactoryFunc: WindowsRuntime_ABI.SWRT_DllGetActivationFactory?
+    private var cachedFunction: WindowsRuntime_ABI.SWRT_DllGetActivationFactory?
 
     public init(name: String) {
         self.libraryNameToLoad = name
@@ -67,9 +59,9 @@ public final class DllMetaclassResolver: MetaclassResolver {
         }
     }
 
-    private var getActivationFactoryFunc: WindowsRuntime_ABI.SWRT_DllGetActivationFactory {
+    private var function: WindowsRuntime_ABI.SWRT_DllGetActivationFactory {
         get throws {
-            if let cachedGetActivationFactoryFunc { return cachedGetActivationFactoryFunc }
+            if let cachedFunction { return cachedFunction }
 
             lock.lock()
             defer { lock.unlock() }
@@ -86,23 +78,19 @@ public final class DllMetaclassResolver: MetaclassResolver {
             }
 
             let funcPointer = unsafeBitCast(rawFuncPointer, to: WindowsRuntime_ABI.SWRT_DllGetActivationFactory.self)
-            self.cachedGetActivationFactoryFunc = funcPointer
+            self.cachedFunction = funcPointer
             return funcPointer
         }
     }
 
-    public func getActivationFactory(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
+    public func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
         var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
         defer { PrimitiveProjection.String.release(&activatableId) }
 
         var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
-        try WinRTError.throwIfFailed(getActivationFactoryFunc(activatableId, &factoryPointer))
+        try WinRTError.throwIfFailed(function(activatableId, &factoryPointer))
         guard let factoryPointer else { throw HResult.Error.noInterface }
 
         return COM.COMReference(transferringRef: factoryPointer)
-    }
-
-    public func resolve(runtimeClass: String) throws -> IInspectableReference {
-        try getActivationFactory(runtimeClass: runtimeClass).cast() // IActivationFactory isa IInspectable
     }
 }
