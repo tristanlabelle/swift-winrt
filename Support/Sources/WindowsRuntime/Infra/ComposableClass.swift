@@ -79,8 +79,8 @@ open class ComposableClass: IInspectableProtocol {
             }
 
             // Check for overrides.
-            if let overrides = try _queryOverridesInterfacePointer(id) {
-                return .init(addingRef: overrides)
+            if let overrides = try _queryOverridesInterface(id).finalDetach() {
+                return .init(transferringRef: overrides)
             }
 
             // Check for additional implemented interfaces.
@@ -93,7 +93,7 @@ open class ComposableClass: IInspectableProtocol {
         return try _queryInnerInterface(id)
     }
 
-    open func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? { nil }
+    open func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional { .none }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
         // Workaround for 5.9 compiler bug when using inner.interop directly:

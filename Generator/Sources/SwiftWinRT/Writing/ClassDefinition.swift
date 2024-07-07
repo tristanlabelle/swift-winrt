@@ -247,11 +247,11 @@ fileprivate func writeClassOverrideSupport(
             type: SupportModules.COM.comEmbedding, initialValue: ".uninitialized")
     }
 
-    // public override func _queryOverridesInterfacePointer(_ id: COM.COMInterfaceID) throws -> COM.IUnknownPointer? {
+    // public override func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional {
     try writer.writeFunc(
-            visibility: .public, override: true, name: "_queryOverridesInterfacePointer",
+            visibility: .public, override: true, name: "_queryOverridesInterface",
             params: [ .init(label: "_", name: "id", type: SupportModules.COM.comInterfaceID) ], throws: true,
-            returnType: .optional(wrapped: SupportModules.COM.iunknownPointer)) { writer in
+            returnType: SupportModules.COM.iunknownReference_Optional) { writer in
         for interface in interfaces {
             // if id == uuidof(SWRT_IFoo.self) {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
@@ -268,11 +268,11 @@ fileprivate func writeClassOverrideSupport(
                         + "virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
                 }
 
-                // return _iminimalUnsealedClassOverridesOuter.unknownPointer.addingRef()
-                writer.writeReturnStatement(value: "\(outerPropertyName).toCOM().detach()")
+                // return .init(_iminimalUnsealedClassOverrides_outer.toCOM())
+                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
             }
         }
-        writer.writeReturnStatement(value: "nil")
+        writer.writeReturnStatement(value: ".none")
     }
 }
 

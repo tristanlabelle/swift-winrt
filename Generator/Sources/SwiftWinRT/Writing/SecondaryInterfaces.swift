@@ -11,10 +11,10 @@ internal enum SecondaryInterfaces {
         let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
         let abiStructType = try projection.toABIType(interface.asBoundType)
 
-        // private [static] var _lazyIStringable: COM.COMReference<SWRT_WindowsFoundation_IStringable>.Optional = .init()
+        // private [static] var _lazyIStringable: COM.COMReference<SWRT_WindowsFoundation_IStringable>.Optional = .none
         let storedPropertyName = getStoredPropertyName(interfaceName)
         writer.writeStoredProperty(visibility: .private, static: `static`, declarator: .var, name: storedPropertyName,
-            type: SupportModules.COM.comReference_Optional(to: abiStructType), initialValue: ".init()")
+            type: SupportModules.COM.comReference_Optional(to: abiStructType), initialValue: ".none")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
         //     try _lazyIStringable.lazyInitInterop { try _queryInterface(uuidof(SWRT_IStringable).self).cast() }
