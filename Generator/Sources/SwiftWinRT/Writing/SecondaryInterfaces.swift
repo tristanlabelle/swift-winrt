@@ -11,20 +11,20 @@ internal enum SecondaryInterfaces {
         let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
         let abiStructType = try projection.toABIType(interface.asBoundType)
 
-        // private [static] var _lazyIStringable: COM.COMLazyReference<SWRT_WindowsFoundation_IStringable> = .init()
+        // private [static] var _lazyIStringable: COM.COMReference<SWRT_WindowsFoundation_IStringable>.Optional = .init()
         let storedPropertyName = getStoredPropertyName(interfaceName)
         writer.writeStoredProperty(visibility: .private, static: `static`, declarator: .var, name: storedPropertyName,
-            type: SupportModules.COM.comLazyReference(to: abiStructType), initialValue: ".init()")
+            type: SupportModules.COM.comReference_Optional(to: abiStructType), initialValue: ".init()")
 
         // private [static] var _istringable: COM.COMInterop<SWRT_WindowsFoundation_IStringable> { get throws {
-        //     try _lazyIStringable.getInterop { try _queryInterface(uuidof(SWRT_IStringable).self).cast() }
+        //     try _lazyIStringable.lazyInitInterop { try _queryInterface(uuidof(SWRT_IStringable).self).cast() }
         // } }
         let computedPropertyName = getPropertyName(interfaceName: interfaceName)
         let abiInteropType: SwiftType = SupportModules.COM.comInterop(of: abiStructType)
         writer.writeComputedProperty(
                 visibility: .internal, static: `static`, name: computedPropertyName,
                 type: abiInteropType, throws: true, get: { writer in
-            writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comLazyReference_getInterop)") { writer in
+            writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comReference_Optional_lazyInitInterop)") { writer in
                 let queryInterface: String
                 if `static` {
                     queryInterface = "\(activationFactoryPropertyName).queryInterface"
@@ -47,12 +47,12 @@ internal enum SecondaryInterfaces {
 
         writer.writeStoredProperty(
             visibility: .private, static: true, declarator: .var, name: storedPropertyName,
-            type: SupportModules.COM.comLazyReference(to: abiStructType),
+            type: SupportModules.COM.comReference_Optional(to: abiStructType),
             initialValue: ".init()")
          try writer.writeComputedProperty(
                 visibility: .private, static: true, name: activationFactoryPropertyName,
                 type: SupportModules.COM.comInterop(of: abiStructType), throws: true, get: { writer in
-            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comLazyReference_getInterop)") { writer in
+            try writer.writeBracedBlock("try \(storedPropertyName).\(SupportModules.COM.comReference_Optional_lazyInitInterop)") { writer in
                 let activatableId = try WinRTTypeName.from(type: classDefinition.bindType()).description
                 writer.writeStatement("try \(SupportModules.WinRT.activationFactoryResolverGlobal)"
                     + ".resolve(runtimeClass: \"\(activatableId)\")")
