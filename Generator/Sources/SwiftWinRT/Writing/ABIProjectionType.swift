@@ -358,15 +358,15 @@ internal func writeReferenceTypeProjectionConformance(
         to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
         target: try projection.toType(apiType.asNode).unwrapOptional())
-    writer.writeTypeAlias(visibility: .public, name: "COMInterface",
+    writer.writeTypeAlias(visibility: .public, name: "ABIStruct",
         target: try projection.toABIType(abiType))
 
     // public static var typeName: String { "..." }
     try writeTypeNameProperty(type: apiType, to: writer)
 
-    // public static var interfaceID: COM.COMInterfaceID { uuidof(COMInterface.self) }
+    // public static var interfaceID: COM.COMInterfaceID { uuidof(ABIStruct.self) }
     writer.writeComputedProperty(visibility: .public, static: true, name: "interfaceID", type: SupportModules.COM.comInterfaceID) { writer in
-        writer.writeStatement("uuidof(COMInterface.self)")
+        writer.writeStatement("uuidof(ABIStruct.self)")
     }
 
     if apiType.definition is DelegateDefinition {
@@ -375,11 +375,11 @@ internal func writeReferenceTypeProjectionConformance(
         try writeIReferenceIDProperty(boxableType: apiType, to: writer)
     }
 
-    let comReferenceType = SupportModules.COM.comReference(to: .identifier("COMInterface"))
+    let abiReferenceType = SwiftType.identifier("ABIReference")
 
     try writer.writeFunc(
             visibility: .public, static: true, name: "_wrap",
-            params: [ .init(label: "_", name: "reference", consuming: true, type: comReferenceType) ],
+            params: [ .init(label: "_", name: "reference", consuming: true, type: abiReferenceType) ],
             returnType: .identifier("SwiftObject")) { writer in
         try wrapImpl(&writer, "reference")
     }
@@ -388,7 +388,7 @@ internal func writeReferenceTypeProjectionConformance(
         try writer.writeFunc(
                 visibility: .public, static: true, name: "toCOM",
                 params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
-                throws: true, returnType: comReferenceType) { writer in
+                throws: true, returnType: abiReferenceType) { writer in
             try toCOMImpl(&writer, "object")
         }
     }

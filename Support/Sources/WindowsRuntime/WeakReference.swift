@@ -20,7 +20,7 @@ public final class WeakReference<Projection: ReferenceTypeProjection> {
         var iid = GUIDProjection.toABI(Projection.interfaceID)
         try WinRTError.throwIfFailed(weakReference.pointer.pointee.VirtualTable.pointee.Resolve(
             weakReference.pointer, &iid, &inspectableTarget))
-        var target = Projection.COMPointer(OpaquePointer(inspectableTarget))
+        var target = Projection.ABIPointer(OpaquePointer(inspectableTarget))
         return Projection.toSwift(consuming: &target)
     }
 }

@@ -6,7 +6,7 @@ import class Foundation.NSLock
 /// aka the COM object that implements the default constructor and
 /// can be QI'd for other factory and static interfaces.
 public protocol ActivationFactoryResolver {
-    mutating func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface>
+    mutating func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference
 }
 
 public var activationFactoryResolver: any ActivationFactoryResolver = SystemActivationFactoryResolver()
@@ -16,7 +16,7 @@ public var activationFactoryResolver: any ActivationFactoryResolver = SystemActi
 public struct SystemActivationFactoryResolver: ActivationFactoryResolver {
     public init() {}
 
-    public func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
+    public func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference {
         try Self.resolve(runtimeClass: runtimeClass, interfaceID: IActivationFactoryProjection.interfaceID)
     }
 
@@ -83,7 +83,7 @@ public final class DllActivationFactoryResolver: ActivationFactoryResolver {
         }
     }
 
-    public func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.COMInterface> {
+    public func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference {
         var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
         defer { PrimitiveProjection.String.release(&activatableId) }
 

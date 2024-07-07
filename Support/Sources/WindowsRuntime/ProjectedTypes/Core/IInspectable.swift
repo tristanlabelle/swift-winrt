@@ -10,17 +10,17 @@ public protocol IInspectableProtocol: IUnknownProtocol {
 
 public enum IInspectableProjection: InterfaceProjection {
     public typealias SwiftObject = IInspectable
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IInspectable
 
     public static var typeName: String { "IInspectable" }
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 
@@ -39,8 +39,8 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IInspectable.Type) -> COMInterface
     .init(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }
 
-public typealias IInspectablePointer = IInspectableProjection.COMPointer
-public typealias IInspectableReference = COMReference<IInspectableProjection.COMInterface>
+public typealias IInspectablePointer = IInspectableProjection.ABIPointer
+public typealias IInspectableReference = IInspectableProjection.ABIReference
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getIids() throws -> [COMInterfaceID] {

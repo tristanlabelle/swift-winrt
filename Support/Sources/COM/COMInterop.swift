@@ -44,8 +44,8 @@ public struct COMInterop<ABIStruct> {
         return COMReference(transferringRef: pointer)
     }
 
-    public func queryInterface<Other>(
-            _ id: COMInterfaceID, type: Other.Type = Other.self) throws -> COMReference<Other> {
+    public func queryInterface<OtherABIStruct>(
+            _ id: COMInterfaceID, type: OtherABIStruct.Type = OtherABIStruct.self) throws -> COMReference<OtherABIStruct> {
         (try queryInterface(id) as IUnknownReference).cast(to: type)
     }
 }

@@ -6,17 +6,17 @@ internal typealias IInspectable2 = any IInspectable2Protocol
 
 internal enum IInspectable2Projection: InterfaceProjection {
     public typealias SwiftObject = IInspectable2
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IInspectable
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IInspectable
 
     public static var typeName: String { "IInspectable2" }
     public static let interfaceID = COMInterfaceID(0xB6706A54, 0xCC67, 0x4090, 0x822D, 0xE165C8E36C11)
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         try Import.toCOM(object)
     }
 

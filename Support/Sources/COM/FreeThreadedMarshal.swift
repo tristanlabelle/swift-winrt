@@ -43,16 +43,16 @@ internal func uuidof(_: WindowsRuntime_ABI.SWRT_IMarshal.Type) -> COMInterfaceID
 
 internal enum FreeThreadedMarshalProjection: COMTwoWayProjection {
     public typealias SwiftObject = FreeThreadedMarshal
-    public typealias COMInterface = WindowsRuntime_ABI.SWRT_IMarshal
+    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IMarshal
 
-    public static var interfaceID: COMInterfaceID { uuidof(COMInterface.self) }
+    public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
-    public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+    public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         fatalError("Not implemented")
     }
 
-    public static func toCOM(_ object: SwiftObject) throws -> COMReference<COMInterface> {
+    public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         fatalError("Not implemented")
     }
 

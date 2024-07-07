@@ -18,13 +18,13 @@ public enum IReferenceUnboxingProjection {
 
     public enum Of<Projection: BoxableProjection>: WinRTProjection, COMProjection {
         public typealias SwiftObject = Projection.SwiftValue
-        public typealias COMInterface = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
+        public typealias ABIStruct = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
 
         public static var typeName: Swift.String { "Windows.Foundation.IReference`1<\(Projection.typeName)>" }
         public static var interfaceID: COMInterfaceID { Projection.ireferenceID }
 
         // Value types have no identity, so there's no sense unwrapping them.
-        public static func _wrap(_ reference: consuming COMReference<COMInterface>) -> SwiftObject {
+        public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
             var abiValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
                 _ = try! HResult.throwIfFailed(reference.pointer.pointee.VirtualTable.pointee.get_Value(
@@ -33,7 +33,7 @@ public enum IReferenceUnboxingProjection {
             return Projection.toSwift(consuming: &abiValue)
         }
 
-        public static func toCOM(_ value: SwiftObject) throws -> COMReference<COMInterface> {
+        public static func toCOM(_ value: SwiftObject) throws -> ABIReference {
             try Projection.box(value)._queryInterface(interfaceID)
         }
     }
