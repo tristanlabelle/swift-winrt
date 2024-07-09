@@ -1,5 +1,5 @@
 extension SwiftPackage {
-    public func write<Stream>(version: String = "5.8", to output: Stream) where Stream: AnyObject & TextOutputStream {
+    public func write<Stream>(version: String, to output: Stream) where Stream: AnyObject & TextOutputStream {
         let writer = IndentedTextOutputStream(inner: output)
 
         writer.writeFullLine(grouping: .never, "// swift-tools-version: \(version)")
