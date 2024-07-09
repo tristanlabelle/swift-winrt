@@ -362,14 +362,13 @@ fileprivate func writeActivatableInitializers(
 
 fileprivate func writeSupportComposableInitializers(
         defaultInterface: BoundInterface, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public init(_transferringRef pointer: UnsafeMutablePointer<CWinRTComponent.SWRT_IFoo>) {
-    //     super.init(_transferringRef: .init(OpaquePointer(pointer))
+    // public init(_wrapping inner: COMReference<CWinRTComponent.SWRT_IFoo>) {
+    //     super.init(_wrapping: inner.cast())
     // }
-    // Should use a COMReference<> but this runs into compiler bugs.
-    let pointerType: SwiftType = .unsafeMutablePointer(to: try projection.toABIType(defaultInterface.asBoundType))
-    let param = SwiftParam(label: "_transferringRef", name: "pointer", type: pointerType)
+    let comReferenceType: SwiftType = SupportModules.COM.comReference(to: try projection.toABIType(defaultInterface.asBoundType))
+    let param = SwiftParam(label: "_wrapping", name: "inner", consuming: true, type: comReferenceType)
     writer.writeInit(visibility: .public, params: [param]) { writer in
-        writer.writeStatement("super.init(_transferringRef: .init(OpaquePointer(pointer)))")
+        writer.writeStatement("super.init(_wrapping: inner.cast()) // Transitively casts down to IInspectable")
     }
 
     // public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
