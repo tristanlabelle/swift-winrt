@@ -71,5 +71,5 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
 
     package.products.append(.library(name: "Projection", targets: productTargets))
 
-    package.write(to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    package.write(version: "5.10", to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 }
