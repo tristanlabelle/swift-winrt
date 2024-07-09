@@ -2,16 +2,18 @@
 
 ![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test.yml/badge.svg?branch=main)
 
-A Swift projection for WinRT APIs, written in pure Swift, for consuming modern Windows Runtime APIs, the Windows Application SDK, WinUI and arbitrary WinRT components, or producing your own.
+A Swift projection for WinRT APIs, written in pure Swift, for consuming modern Windows Runtime APIs, the Windows App SDK, WinUI and arbitrary WinRT components.
 
-Swift/WinRT consists in:
+Swift/WinRT includes:
 
 - A code generator for Swift definitions of WinRT APIs described in `.winmd` files, based on the [swift-dotnetmetadata](https://github.com/tristanlabelle/swift-dotnetmetadata) project.
 - Support libraries for projecting COM and WinRT types, and invoking related core platform APIs such as `RoInitialize`.
 
 For examples of using projections, refer to [interop tests](InteropTests/Tests).
 
-This project is a pure Swift rewrite of [its namesake from The Browser Company](https://github.com/thebrowsercompany/swift-winrt).
+The codebase uses features up to Swift 5.9, but requires Swift 5.10 because the 5.9 compiler crashes with more advanced uses of non-copyable types.
+
+This project was inspired by its C++ namesake at [thebrowsercompany/swift-winrt](https://github.com/thebrowsercompany/swift-winrt).
 
 ## Feature set
 
