@@ -253,17 +253,12 @@ fileprivate func writeClassProjectionType(
             visibility: SwiftProjection.toVisibility(classDefinition.visibility),
             name: projectionTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
-        let composable = try classDefinition.hasAttribute(ComposableAttribute.self)
 
         try writeReferenceTypeProjectionConformance(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
             wrapImpl: { writer, paramName in
-                if composable {
-                    writer.writeStatement("\(typeName)(_transferringRef: \(paramName).detach())")
-                } else {
-                    writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
-                }
+                writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
             },
             projection: projection,
             to: writer)
