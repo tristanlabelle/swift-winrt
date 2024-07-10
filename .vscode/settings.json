@@ -1,0 +1,5 @@
+{
+    "swift.autoGenerateLaunchConfigurations": false,
+    "C_Cpp.autoAddFileAssociations": false,
+    "cmake.automaticReconfigure": true
+}
