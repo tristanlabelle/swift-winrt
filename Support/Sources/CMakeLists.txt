@@ -1,0 +1,3 @@
+add_subdirectory(WindowsRuntime_ABI)
+add_subdirectory(COM)
+add_subdirectory(WindowsRuntime)

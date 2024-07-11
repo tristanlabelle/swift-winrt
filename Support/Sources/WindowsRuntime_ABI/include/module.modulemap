@@ -1,0 +1,23 @@
+module WindowsRuntime_ABI {
+    header "SWRT/activation.h"
+    header "SWRT/BaseTsd.h"
+    header "SWRT/combaseapi.h"
+    header "SWRT/eventtoken.h"
+    header "SWRT/guiddef.h"
+    header "SWRT/inspectable.h"
+    header "SWRT/memorybuffer.h"
+    header "SWRT/oaidl.h"
+    header "SWRT/objidl.h"
+    header "SWRT/oleauto.h"
+    header "SWRT/restrictederrorinfo.h"
+    header "SWRT/roapi.h"
+    header "SWRT/robuffer.h"
+    header "SWRT/roerrorapi.h"
+    header "SWRT/SwiftCOMObject.h"
+    header "SWRT/unknwn.h"
+    header "SWRT/weakreference.h"
+    header "SWRT/windows.foundation.h"
+    header "SWRT/winrt.h"
+    header "SWRT/winstring.h"
+    export *
+}

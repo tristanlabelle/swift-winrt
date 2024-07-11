@@ -1,0 +1,41 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Support Module (SPM)",
+			"type": "swift",
+			"args": [
+				"build",
+				"--build-tests",
+				"-Xlinker",
+				"-debug:dwarf"
+			],
+			"cwd": ".",
+			"disableTaskQueue": true,
+			"problemMatcher": [
+				"$swiftc"
+			],
+			"presentation": {
+				"clear": true,
+				"revealProblems": "onProblem"
+			}
+		},
+		{
+			"label": "Build All (CMake)",
+			"type": "cmake",
+			"command": "build",
+			"preset": "${command:cmake.activeBuildPresetName}",
+			"problemMatcher": [ "$swiftc" ],
+			"presentation": {
+				"clear": true,
+				"revealProblems": "onProblem"
+			}
+		},
+		{
+			"label": "Configure (CMake)",
+			"type": "cmake",
+			"command": "configure",
+			"preset": "${command:cmake.activeConfigurePresetName}",
+		}
+	]
+}
