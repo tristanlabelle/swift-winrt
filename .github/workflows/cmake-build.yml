@@ -32,4 +32,4 @@ jobs:
 
     - name: CMake Build
       shell: pwsh
-      run: cmake --preset debug --build
+      run: cmake --build --preset debug
