@@ -4,10 +4,10 @@
 #include <uchar.h>
 #include "SWRT/BaseTsd.h"
 
-struct SWRT_HString_ { void* dummy; };
+struct SWRT_HString_ {};
 typedef struct SWRT_HString_* SWRT_HString;
 
-struct SWRT_HStringBuffer_ { void* dummy; };
+struct SWRT_HStringBuffer_ {};
 typedef struct SWRT_HStringBuffer_* SWRT_HStringBuffer;
 
 SWRT_HResult SWRT_WindowsCreateString(const char16_t* sourceString, uint32_t length, SWRT_HString* string);
