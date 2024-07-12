@@ -266,31 +266,82 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="Arrays.idl" />
-    <Midl Include="ByteBuffers.idl" />
-    <Midl Include="Collections.idl" />
-    <Midl Include="DateTimes.idl" />
-    <Midl Include="Enums.idl" />
-    <Midl Include="Errors.idl" />
-    <Midl Include="ForCustomActivationFactoryResolution.idl" />
-    <Midl Include="Events.idl" />
-    <Midl Include="InspectableBoxing.idl" />
-    <Midl Include="InterfaceCasting.idl" />
-    <Midl Include="Int32Wrapper.idl" />
-    <Midl Include="ManualAsyncOperation.idl" />
-    <Midl Include="MinimalTypes.idl" />
-    <Midl Include="MinimalUnsealedClasses.idl" />
-    <Midl Include="NullValues.idl" />
-    <Midl Include="Numbers.idl" />
-    <Midl Include="ObjectReferencer.idl" />
-    <Midl Include="OutputArgument.idl" />
-    <Midl Include="OverloadedSum.idl" />
-    <Midl Include="ReferenceBoxing.idl" />
-    <Midl Include="ReturnArgument.idl" />
-    <Midl Include="Strings.idl" />
-    <Midl Include="Structs.idl" />
-    <Midl Include="SwiftAttributes.idl" />
-    <Midl Include="WeakReferencer.idl" />
+    <Midl Include="All.idl" />
+    <Midl Include="Arrays.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ByteBuffers.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Collections.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="DateTimes.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Enums.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Errors.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ForCustomActivationFactoryResolution.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Events.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="InspectableBoxing.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="InterfaceCasting.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Int32Wrapper.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ManualAsyncOperation.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="MinimalTypes.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="MinimalUnsealedClasses.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="NullValues.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Numbers.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ObjectReferencer.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="OutputArgument.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="OverloadedSum.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ReferenceBoxing.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="ReturnArgument.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Strings.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="Structs.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="SwiftAttributes.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="WeakReferencer.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
