@@ -266,31 +266,32 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="Arrays.idl" />
-    <Midl Include="ByteBuffers.idl" />
-    <Midl Include="Collections.idl" />
-    <Midl Include="DateTimes.idl" />
-    <Midl Include="Enums.idl" />
-    <Midl Include="Errors.idl" />
-    <Midl Include="ForCustomActivationFactoryResolution.idl" />
-    <Midl Include="Events.idl" />
-    <Midl Include="InspectableBoxing.idl" />
-    <Midl Include="InterfaceCasting.idl" />
-    <Midl Include="Int32Wrapper.idl" />
-    <Midl Include="ManualAsyncOperation.idl" />
-    <Midl Include="MinimalTypes.idl" />
-    <Midl Include="MinimalUnsealedClasses.idl" />
-    <Midl Include="NullValues.idl" />
-    <Midl Include="Numbers.idl" />
-    <Midl Include="ObjectReferencer.idl" />
-    <Midl Include="OutputArgument.idl" />
-    <Midl Include="OverloadedSum.idl" />
-    <Midl Include="ReferenceBoxing.idl" />
-    <Midl Include="ReturnArgument.idl" />
-    <Midl Include="Strings.idl" />
-    <Midl Include="Structs.idl" />
-    <Midl Include="SwiftAttributes.idl" />
-    <Midl Include="WeakReferencer.idl" />
+    <Midl Include="All.idl" />
+    <None Include="Arrays.idl" />
+    <None Include="ByteBuffers.idl" />
+    <None Include="Collections.idl" />
+    <None Include="DateTimes.idl" />
+    <None Include="Enums.idl" />
+    <None Include="Errors.idl" />
+    <None Include="ForCustomActivationFactoryResolution.idl" />
+    <None Include="Events.idl" />
+    <None Include="InspectableBoxing.idl" />
+    <None Include="InterfaceCasting.idl" />
+    <None Include="Int32Wrapper.idl" />
+    <None Include="ManualAsyncOperation.idl" />
+    <None Include="MinimalTypes.idl" />
+    <None Include="MinimalUnsealedClasses.idl" />
+    <None Include="NullValues.idl" />
+    <None Include="Numbers.idl" />
+    <None Include="ObjectReferencer.idl" />
+    <None Include="OutputArgument.idl" />
+    <None Include="OverloadedSum.idl" />
+    <None Include="ReferenceBoxing.idl" />
+    <None Include="ReturnArgument.idl" />
+    <None Include="Strings.idl" />
+    <None Include="Structs.idl" />
+    <None Include="SwiftAttributes.idl" />
+    <None Include="WeakReferencer.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
