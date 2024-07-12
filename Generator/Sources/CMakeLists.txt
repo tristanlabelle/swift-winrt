@@ -1,0 +1,3 @@
+add_subdirectory(CodeWriters)
+add_subdirectory(ProjectionModel)
+add_subdirectory(SwiftWinRT)

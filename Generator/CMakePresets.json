@@ -1,0 +1,28 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 21,
+      "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "debug",
+        "displayName": "Debug",
+        "generator": "Ninja",
+        "binaryDir": "${sourceDir}/build/debug",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+          "CMAKE_C_COMPILER": "clang-cl",
+          "CMAKE_Swift_FLAGS": "-sdk $env{SDKROOT}"
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "debug",
+        "displayName": "Debug",
+        "configurePreset": "debug"
+      }
+    ]
+  }

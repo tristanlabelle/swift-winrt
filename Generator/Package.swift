@@ -16,7 +16,8 @@ let package = Package(
     targets: [
         .target(
             name: "CodeWriters",
-            path: "Sources/CodeWriters"),
+            path: "Sources/CodeWriters",
+            exclude: [ "CMakeLists.txt" ]),
         .target(
             name: "ProjectionModel",
             dependencies: [
@@ -24,7 +25,8 @@ let package = Package(
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
             ],
-            path: "Sources/ProjectionModel"),
+            path: "Sources/ProjectionModel",
+            exclude: [ "CMakeLists.txt" ]),
         .executableTarget(
             name: "SwiftWinRT",
             dependencies: [
@@ -34,6 +36,7 @@ let package = Package(
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
             ],
             path: "Sources/SwiftWinRT",
+            exclude: [ "CMakeLists.txt" ],
             resources: [
                 // Avoid the .swift extension or SPM will pick those up a source files.
                 .embedInCode("Extensions/WindowsFoundation_IAsyncAction_swift"),
