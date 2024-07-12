@@ -1,4 +1,4 @@
-import "MinimalTypes.idl";
+#include "MinimalTypes.idl"
 
 namespace WinRTComponent
 {
