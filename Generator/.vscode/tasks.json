@@ -1,0 +1,63 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Debug (SPM)",
+			"type": "swift",
+			"args": [
+				"build",
+				"--build-tests",
+				"-Xlinker",
+				"-debug:dwarf"
+			],
+			"disableTaskQueue": true,
+			"problemMatcher": [
+				"$swiftc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"clear": true,
+				"revealProblems": "onProblem"
+			}
+		},
+		{
+			"label": "Build Release (SPM)",
+			"type": "swift",
+			"args": [
+				"build",
+				"-c",
+				"release"
+			],
+			"disableTaskQueue": true,
+			"problemMatcher": [
+				"$swiftc"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"clear": true,
+				"revealProblems": "onProblem"
+			}
+		},
+		{
+			"label": "Build Debug (CMake)",
+			"type": "cmake",
+			"command": "build",
+			"preset": "${command:cmake.activeBuildPresetName}",
+			"problemMatcher": [
+				"$swiftc"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"clear": true,
+				"revealProblems": "onProblem"
+			}
+		}
+	]
+}

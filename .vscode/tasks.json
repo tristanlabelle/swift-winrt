@@ -26,6 +26,9 @@
 			"command": "build",
 			"preset": "${command:cmake.activeBuildPresetName}",
 			"problemMatcher": [ "$swiftc" ],
+			"group": {
+				"kind": "build"
+			},
 			"presentation": {
 				"clear": true,
 				"revealProblems": "onProblem"

@@ -1,4 +1,7 @@
 {
+    "cmake.automaticReconfigure": true,
+    "cmake.configureOnOpen": true,
+    "cmake.useCMakePresets": "always",
     "swift.autoGenerateLaunchConfigurations": false,
     "search.exclude": {
         "**/.build/**": true
