@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Test (SPM)
 
 on:
   pull_request:
@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  support-module:
+  support:
+    name: Support Module
     runs-on: windows-2022
     timeout-minutes: 10
 
@@ -35,6 +36,7 @@ jobs:
       run: swift test --verbose --skip-build
 
   generator-and-interoptests:
+    name: Generator and InteropTests
     runs-on: windows-2022
     timeout-minutes: 15
 
