@@ -1,6 +1,6 @@
 # Swift/WinRT
 
-![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test.yml/badge.svg?branch=main)
+![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test-spm.yml/badge.svg?branch=main)
 
 A Swift projection for WinRT APIs, written in pure Swift, for consuming modern Windows Runtime APIs, the Windows App SDK, WinUI and arbitrary WinRT components.
 
