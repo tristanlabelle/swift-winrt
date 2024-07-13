@@ -6,11 +6,11 @@ import Foundation
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeProjectionFiles(_ projection: SwiftProjection, generateCommand: GenerateCommand) throws {
+internal func writeProjectionFiles(_ projection: SwiftProjection, commandLineArguments: CommandLineArguments) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
 
-        let moduleRootPath = "\(generateCommand.outputDirectoryPath)\\\(module.name)"
+        let moduleRootPath = "\(commandLineArguments.outputDirectoryPath)\\\(module.name)"
 
         try writeABIModule(module, toPath: "\(moduleRootPath)\\ABI")
 
