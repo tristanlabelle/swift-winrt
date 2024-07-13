@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 /// Wraps a COM interface pointer and exposes projected versions of its methods.
 /// This struct is extended with methods for each COM interface it wraps.
@@ -17,8 +17,8 @@ public struct COMInterop<ABIStruct> {
         self.init(casting: other.this)
     }
 
-    private var unknown: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_IUnknown>{
-        this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1) { $0 }
+    private var unknown: UnsafeMutablePointer<COM_ABI.SWRT_IUnknown>{
+        this.withMemoryRebound(to: COM_ABI.SWRT_IUnknown.self, capacity: 1) { $0 }
     }
 
     @discardableResult
@@ -40,7 +40,7 @@ public struct COMInterop<ABIStruct> {
             throw HResult.Error.noInterface
         }
 
-        let pointer = rawPointer.bindMemory(to: WindowsRuntime_ABI.SWRT_IUnknown.self, capacity: 1)
+        let pointer = rawPointer.bindMemory(to: COM_ABI.SWRT_IUnknown.self, capacity: 1)
         return COMReference(transferringRef: pointer)
     }
 

@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {
@@ -18,7 +18,7 @@ public struct COMEmbedding /*: ~Copyable */ {
     // Instead, it is initialized in two steps: first to an invalid value, and then to a valid value.
     public static var uninitialized: COMEmbedding { .init() }
 
-    private var comObject: WindowsRuntime_ABI.SWRT_SwiftCOMObject
+    private var comObject: COM_ABI.SWRT_SwiftCOMObject
 
     private init() {
         comObject = .init()
@@ -42,13 +42,13 @@ public struct COMEmbedding /*: ~Copyable */ {
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: unknownPointer) }
 
     fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
-        this.withMemoryRebound(to: WindowsRuntime_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
+        this.withMemoryRebound(to: COM_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
         }
     }
 
     public static func test<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Bool {
-        do { _ = try COMInterop(this).queryInterface(uuidof(WindowsRuntime_ABI.SWRT_SwiftCOMObject.self)) } catch { return false }
+        do { _ = try COMInterop(this).queryInterface(uuidof(COM_ABI.SWRT_SwiftCOMObject.self)) } catch { return false }
         return true
     }
 
@@ -92,7 +92,7 @@ public struct COMEmbedding /*: ~Copyable */ {
     }
 }
 
-internal func uuidof(_: WindowsRuntime_ABI.SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
+internal func uuidof(_: COM_ABI.SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
     .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64)
 }
 
@@ -122,15 +122,15 @@ public enum IUnknownVirtualTable {
 
     public static func QueryInterface<ABIStruct>(
             _ this: UnsafeMutablePointer<ABIStruct>?,
-            _ iid: UnsafePointer<WindowsRuntime_ABI.SWRT_Guid>?,
-            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> WindowsRuntime_ABI.SWRT_HResult {
+            _ iid: UnsafePointer<COM_ABI.SWRT_Guid>?,
+            _ ppvObject: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) -> COM_ABI.SWRT_HResult {
         guard let this, let iid, let ppvObject else { return HResult.invalidArg.value }
         ppvObject.pointee = nil
 
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
-            let reference = id == uuidof(WindowsRuntime_ABI.SWRT_SwiftCOMObject.self)
+            let reference = id == uuidof(COM_ABI.SWRT_SwiftCOMObject.self)
                 ? IUnknownReference(addingRef: this)
                 : try (COMEmbedding.getEmbedderObjectOrCrash(this) as! IUnknown)._queryInterface(id)
             ppvObject.pointee = UnsafeMutableRawPointer(reference.detach())

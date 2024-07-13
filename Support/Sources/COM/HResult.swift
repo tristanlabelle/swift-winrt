@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 public struct HResult: Hashable, Codable, CustomStringConvertible, Sendable {
     public typealias Value = Int32

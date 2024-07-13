@@ -15,13 +15,16 @@
 			"problemMatcher": [
 				"$swiftc"
 			],
+			"group": {
+				"kind": "build"
+			},
 			"presentation": {
 				"clear": true,
 				"revealProblems": "onProblem"
 			}
 		},
 		{
-			"label": "Build All (CMake)",
+			"label": "Build Support Module (CMake)",
 			"type": "cmake",
 			"command": "build",
 			"preset": "${command:cmake.activeBuildPresetName}",

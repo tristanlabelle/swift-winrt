@@ -9,10 +9,17 @@ public final class WeakReference<Projection: ReferenceTypeProjection> {
         guard let targetInspectable = target as? IInspectable else { throw HResult.Error.invalidArg }
         let source = try targetInspectable._queryInterface(
             uuidof(SWRT_IWeakReferenceSource.self), type: SWRT_IWeakReferenceSource.self)
+        self.weakReference = .init(transferringRef: try Self.getWeakReference(source.pointer))
+    }
+
+    // Workaround compiler crash when this code is inlined
+    private static func getWeakReference(
+            _ source: UnsafeMutablePointer<SWRT_IWeakReferenceSource>)
+            throws -> UnsafeMutablePointer<SWRT_IWeakReference> {
         var weakReference: UnsafeMutablePointer<SWRT_IWeakReference>?
-        try WinRTError.throwIfFailed(source.pointer.pointee.VirtualTable.pointee.GetWeakReference(source.pointer, &weakReference))
-        guard let weakReference else { throw HResult.Error.fail }
-        self.weakReference = .init(transferringRef: weakReference)
+        try WinRTError.throwIfFailed(source.pointee.VirtualTable.pointee.GetWeakReference(source, &weakReference))
+        if let weakReference { return weakReference }
+        throw HResult.Error.fail
     }
 
     public func resolve() throws -> Projection.SwiftObject? {
