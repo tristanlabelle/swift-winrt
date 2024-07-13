@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 public typealias COMInterfaceID = GUID
 

@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 // Base class for COM objects projected into Swift.
 open class COMImport<Projection: COMProjection>: IUnknownProtocol {

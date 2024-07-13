@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 public typealias IErrorInfo = any IErrorInfoProtocol
 public protocol IErrorInfoProtocol: IUnknownProtocol {
@@ -11,7 +11,7 @@ public protocol IErrorInfoProtocol: IUnknownProtocol {
 
 public enum IErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IErrorInfo
-    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IErrorInfo
+    public typealias ABIStruct = COM_ABI.SWRT_IErrorInfo
 
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
@@ -32,7 +32,7 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         public var helpContext: UInt32 { get throws { try _interop.getHelpContext() } }
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IErrorInfo_VirtualTable = .init(
+    private static var virtualTable: COM_ABI.SWRT_IErrorInfo_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
@@ -43,11 +43,11 @@ public enum IErrorInfoProjection: COMTwoWayProjection {
         GetHelpContext: { this, helpContext in _implement(this) { try _set(helpContext, $0.helpContext) } })
 }
 
-public func uuidof(_: WindowsRuntime_ABI.SWRT_IErrorInfo.Type) -> COMInterfaceID {
+public func uuidof(_: COM_ABI.SWRT_IErrorInfo.Type) -> COMInterfaceID {
     .init(0x1CF2B120, 0x547D, 0x101B, 0x8E65, 0x08002B2BD119)
 }
 
-extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IErrorInfo {
+extension COMInterop where ABIStruct == COM_ABI.SWRT_IErrorInfo {
     public func getGuid() throws -> GUID {
         var value = GUIDProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetGUID(this, &value))

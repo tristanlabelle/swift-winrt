@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 /// Holds a strong reference to a COM object, like a C++ smart pointer.
 public struct COMReference<ABIStruct>: ~Copyable {

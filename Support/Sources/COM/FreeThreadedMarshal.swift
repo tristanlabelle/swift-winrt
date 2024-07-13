@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalProjection> {
     private let marshaler: COMReference<SWRT_IMarshal>
@@ -37,13 +37,13 @@ internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalProjec
     }
 }
 
-internal func uuidof(_: WindowsRuntime_ABI.SWRT_IMarshal.Type) -> COMInterfaceID {
+internal func uuidof(_: COM_ABI.SWRT_IMarshal.Type) -> COMInterfaceID {
     .init(0x00000003, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
 
 internal enum FreeThreadedMarshalProjection: COMTwoWayProjection {
     public typealias SwiftObject = FreeThreadedMarshal
-    public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IMarshal
+    public typealias ABIStruct = COM_ABI.SWRT_IMarshal
 
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
@@ -56,7 +56,7 @@ internal enum FreeThreadedMarshalProjection: COMTwoWayProjection {
         fatalError("Not implemented")
     }
 
-    private static var virtualTable: WindowsRuntime_ABI.SWRT_IMarshal_VirtualTable = .init(
+    private static var virtualTable: COM_ABI.SWRT_IMarshal_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },

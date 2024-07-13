@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM_ABI
 
 /// Protocol for strongly-typed two-way COM interface projections into and from Swift.
 public protocol COMTwoWayProjection: COMProjection {
@@ -11,7 +11,7 @@ extension COMTwoWayProjection {
     }
 
     /// Helper for implementing virtual tables
-    public static func _implement(_ this: ABIPointer?, _ body: (SwiftObject) throws -> Void) -> WindowsRuntime_ABI.SWRT_HResult {
+    public static func _implement(_ this: ABIPointer?, _ body: (SwiftObject) throws -> Void) -> COM_ABI.SWRT_HResult {
         guard let this else {
             assertionFailure("COM this pointer was null")
             return HResult.pointer.value

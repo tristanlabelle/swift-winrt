@@ -10,16 +10,24 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "WindowsRuntime_ABI",
-            path: "Support/Sources/WindowsRuntime_ABI"),
+            name: "COM_ABI",
+            path: "Support/Sources/COM_ABI",
+            exclude: ["CMakeLists.txt"]),
         .target(
             name: "COM",
-            dependencies: ["WindowsRuntime_ABI"],
-            path: "Support/Sources/COM"),
+            dependencies: ["COM_ABI"],
+            path: "Support/Sources/COM",
+            exclude: ["CMakeLists.txt"]),
+        .target(
+            name: "WindowsRuntime_ABI",
+            dependencies: ["COM_ABI"],
+            path: "Support/Sources/WindowsRuntime_ABI",
+            exclude: ["CMakeLists.txt"]),
         .target(
             name: "WindowsRuntime",
             dependencies: ["WindowsRuntime_ABI", "COM"],
-            path: "Support/Sources/WindowsRuntime"),
+            path: "Support/Sources/WindowsRuntime",
+            exclude: ["CMakeLists.txt"]),
         .testTarget(
             name: "Tests",
             dependencies: ["COM", "WindowsRuntime"],
