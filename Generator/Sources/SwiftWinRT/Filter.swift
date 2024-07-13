@@ -40,6 +40,8 @@ internal struct FilterSet {
         self.filters = filters
     }
 
+    public var matchesNothing: Bool { filters?.count == 0 }
+
     public func matches(_ value: String) -> Bool {
         guard let filters else { return true }
         return filters.contains { $0.matches(value) }

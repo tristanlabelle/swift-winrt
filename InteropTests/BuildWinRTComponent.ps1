@@ -31,14 +31,13 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to build WinRT component" }
 $TestComponentDir = "$TestComponentProjectDir\bin\$MSBuildConfiguration\x64\WinRTComponent"
 
 Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
+$WindowsSDKVersion = $env:WindowsSDKVersion -replace "\\",""
 & $SwiftWinRT `
     --config "$PSScriptRoot\projection.json" `
-    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.FoundationContract\4.0.0.0\Windows.Foundation.FoundationContract.winmd" `
-    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Foundation.UniversalApiContract\15.0.0.0\Windows.Foundation.UniversalApiContract.winmd" `
-    --reference "$env:WindowsSdkDir\References\${env:WindowsSDKVersion}Windows.Networking.Connectivity.WwanContract\2.0.0.0\Windows.Networking.Connectivity.WwanContract.winmd" `
+    --winsdk $WindowsSDKVersion `
     --reference "$TestComponentDir\WinRTComponent.winmd" `
-    --package `
-    --support-package-location "../.." `
+    --spm `
+    --support "..\.." `
     --out "$PSScriptRoot\Generated" `
     --out-manifest "$PSScriptRoot\Generated\WinRTComponent.manifest"
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }

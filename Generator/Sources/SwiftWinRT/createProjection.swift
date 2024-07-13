@@ -1,21 +1,23 @@
 import DotNetMetadata
 import DotNetXMLDocs
 import Foundation
+import OrderedCollections
 import ProjectionModel
 import WindowsMetadata
 
-internal func createProjection(generateCommand: GenerateCommand, projectionConfig: ProjectionConfig, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {
-    var allReferences = Set(generateCommand.references)
-    if let sdk = generateCommand.windowsSdkVersion {
-        allReferences.insert("C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\\(sdk)\\Windows.winmd")
+internal func createProjection(commandLineArguments: CommandLineArguments, projectionConfig: ProjectionConfig, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {
+    var winMDFilePaths = OrderedSet(commandLineArguments.references)
+    if let windowsSdkVersion = commandLineArguments.windowsSdkVersion {
+        winMDFilePaths.formUnion(try getWindowsSdkWinMDPaths(sdkVersion: windowsSdkVersion))
     }
 
     let projection = SwiftProjection()
 
     // Preload assemblies and create modules
-    for reference in allReferences {
-        print("Loading assembly \(reference)...")
-        let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: reference, into: assemblyLoadContext)
+    for filePath in winMDFilePaths.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+        print("Loading assembly \(filePath.lastPathComponent)...")
+
+        let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: filePath, into: assemblyLoadContext)
         let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let module = projection.modulesByName[moduleName] 
             ?? projection.addModule(name: moduleName, flattenNamespaces: moduleConfig.flattenNamespaces)
@@ -24,11 +26,14 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
 
     // Gather types from assemblies
     var typeDiscoverer = WinRTTypeDiscoverer()
-    for assembly in assemblyLoadContext.loadedAssembliesByName.values {
-        print("Gathering types from \(assembly.name)...")
+    for (assemblyName, assembly) in assemblyLoadContext.loadedAssembliesByName.sorted(by: { $0.key < $1.key }) {
+        guard assemblyName != "mscorlib" else { continue }
+
+        print("Gathering types from \(assemblyName)...")
 
         let (_, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let typeFilter = FilterSet(moduleConfig.types.map { $0.map { Filter(pattern: $0) } })
+        guard !typeFilter.matchesNothing else { continue }
 
         for typeDefinition in assembly.typeDefinitions {
             guard try !typeDefinition.hasAttribute(WindowsMetadata.AttributeUsageAttribute.self) else { continue }
@@ -65,6 +70,38 @@ internal func createProjection(generateCommand: GenerateCommand, projectionConfi
     }
 
     return projection
+}
+
+fileprivate func getWindowsSdkWinMDPaths(sdkVersion: String) throws -> [String] {
+    let programFilesX86Path = ProcessInfo.processInfo.environment["ProgramFiles(x86)"]
+        ?? (ProcessInfo.processInfo.environment["SystemDrive"].map { "\($0)\\Program Files (x86)" })
+        ?? "C:\\Program Files (x86)"
+    let windowsKits10Path = "\(programFilesX86Path)\\Windows Kits\\10"
+    let sdkReferencesPath = "\(windowsKits10Path)\\References\\\(sdkVersion)"
+
+    var winmdPaths = [String]()
+    if let enumerator = FileManager.default.enumerator(atPath: sdkReferencesPath) {
+        for case let path as String in enumerator {
+            if path.hasSuffix(".winmd") {
+                winmdPaths.append("\(sdkReferencesPath)\\\(path)")
+            }
+        }
+    }
+    else {
+        let windowsWinMDPath = "\(windowsKits10Path)\\UnionMetadata\\\(sdkVersion)\\Windows.winmd"
+        if FileManager.default.fileExists(atPath: windowsWinMDPath) {
+            winmdPaths.append(windowsWinMDPath)
+        }
+    }
+
+    if winmdPaths.isEmpty {
+        enum WindowsSDKError: Error {
+            case notFound(version: String)
+        }
+        throw WindowsSDKError.notFound(version: sdkVersion)
+    }
+
+    return winmdPaths
 }
 
 fileprivate func loadAssemblyAndDocumentation(

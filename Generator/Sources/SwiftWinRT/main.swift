@@ -6,11 +6,11 @@ import Foundation
 // global main.swift variables to be referred to before their initialization.
 do {
     // Parse command line arguments
-    let generateCommand = GenerateCommand.parseOrExit()
+    let commandLineArguments = CommandLineArguments.parseOrExit()
 
     // Load the projection config file, if any
     let projectionConfig: ProjectionConfig
-    if let configFilePath = generateCommand.configFilePath {
+    if let configFilePath = commandLineArguments.configFilePath {
         let jsonData = try Data(contentsOf: URL(fileURLWithPath: configFilePath))
         projectionConfig = try JSONDecoder().decode(ProjectionConfig.self, from: jsonData)
     }
@@ -25,19 +25,19 @@ do {
     _ = try context.load(path: mscorlibPath)
 
     let projection = try createProjection(
-        generateCommand: generateCommand,
+        commandLineArguments: commandLineArguments,
         projectionConfig: projectionConfig,
         assemblyLoadContext: context)
-    try writeProjectionFiles(projection, generateCommand: generateCommand)
+    try writeProjectionFiles(projection, commandLineArguments: commandLineArguments)
 
-    if generateCommand.package {
+    if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
             projection,
-            supportPackageLocation: generateCommand.supportPackageLocation,
-            toPath: "\(generateCommand.outputDirectoryPath)\\Package.swift")
+            supportPackageLocation: commandLineArguments.supportPackageLocation,
+            toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")
     }
 
-    if let exeManifestPath = generateCommand.exeManifestPath {
+    if let exeManifestPath = commandLineArguments.exeManifestPath {
         try writeExeManifestFile(projectionConfig: projectionConfig, projection: projection, toPath: exeManifestPath)
     }
 }
