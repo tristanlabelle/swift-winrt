@@ -5,5 +5,12 @@ FetchContent_Declare(
     SOURCE_SUBDIR "don't use cmakelists")
 FetchContent_MakeAvailable(swift-collections)
 
-file(GLOB_RECURSE SOURCES ${swift-collections_SOURCE_DIR}/Sources/*.swift)
+file(GLOB_RECURSE SOURCES ${swift-collections_SOURCE_DIR}/Sources/DequeModule/*.swift)
+add_library(DequeModule STATIC ${SOURCES})
+
+file(GLOB_RECURSE SOURCES ${swift-collections_SOURCE_DIR}/Sources/OrderedCollections/*.swift)
+add_library(OrderedCollections STATIC ${SOURCES})
+
+file(GLOB_RECURSE SOURCES ${swift-collections_SOURCE_DIR}/Sources/Collections/*.swift)
 add_library(Collections STATIC ${SOURCES})
+target_link_libraries(Collections PRIVATE DequeModule OrderedCollections)
