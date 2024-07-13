@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Test (SPM)
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  support-module:
+  support:
     runs-on: windows-2022
     timeout-minutes: 10
 
