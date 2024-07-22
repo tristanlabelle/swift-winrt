@@ -1,25 +1,10 @@
 name: Release
 
 on:
-  release:
-    types:
-      - published
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Version number
-        required: true
-        type: string
-      publish:
-        description: Publish to NuGet
-        required: false
-        default: false
-        type: boolean
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .github/workflows/release-publish.yml
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
 jobs:
   build-and-publish:
@@ -49,22 +34,39 @@ jobs:
       shell: pwsh
       run: cmake --build --preset release
 
+    - name: Compute Version
+      id: version
+      shell: pwsh
+      run: |
+        $TagName = "${{ github.event.push.tag_name }}"
+        if ($TagName.StartsWith("v")) { $SemVer = $TagName.Substring(1) }
+        else {
+          $CommitHash = "${{ github.sha }}".Substring(0, 7)
+          $SemVer = "0.0.0-$CommitHash"
+        }
+        echo "::set-output semver=$SemVer"
+
     - name: Create NuGet Package
       working-directory: Generator
       shell: pwsh
       run: |
-        $Version = "${{ github.event.release.tag_name && inputs.version }}"
-        if ($Version.StartsWith("v")) { $Version = $Version.Substring(1) }
         & .\Create-NuGetPackage.ps1 `
           -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
-          -Version $Version `
-          -OutputPath "${{ github.workspace }}\SwiftWinRT.nupkg"
+           -Version "${{ steps.version.outputs.semver }}" `
+          -OutputPath $OutputPath
+        (Get-FileHash $OutputPath).Hash | Out-File -FilePath $OutputPath.sha256
 
-    - name: Add Release Asset
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v2
-      with:
-        files: SwiftWinRT.nupkg
-        token: ${{ secrets.GITHUB_TOKEN }}
-        release: ${{ github.event.release.id }}
-        body: SwiftWinRT NuGet package
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Create Release
+        $TagName = "${{ github.event.push.tag_name }}"
+        $SemVer = "${{ steps.version.outputs.semver }}"
+        $RepositoryUrl = "${{ github.repository }}"
+        $PrereleaseArg = if ($ReleaseName.Contains("-")) { @("--prerelease") } else { @() }
+        & gh release create $TagName --repo $RepositoryUrl --title $SemVer --generate-notes @PrereleaseArg
+        & gh release upload $TagName SwiftWinRT.nupkg --repo $RepositoryUrl
+        & gh release upload $TagName SwiftWinRT.nupkg.sha256 --repo $RepositoryUrl
