@@ -50,14 +50,15 @@ jobs:
       run: cmake --build --preset release
 
     - name: Create NuGet Package
+      working-directory: Generator
       shell: pwsh
       run: |
         $Version = "${{ github.event.release.tag_name && inputs.version }}"
         if ($Version.StartsWith("v")) { $Version = $Version.Substring(1) }
-        & Generator\Create-NuGetPackage.ps1 `
+        & .\Create-NuGetPackage.ps1 `
           -NativeExe "build\release\bin\SwiftWinRT.exe" `
           -Version $Version `
-          -OutputPath "SwiftWinRT.nupkg"
+          -OutputPath "${{ github.workspace }}\SwiftWinRT.nupkg"
 
     - name: Add Release Asset
       if: github.event_name == 'release'
