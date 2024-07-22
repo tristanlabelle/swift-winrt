@@ -56,7 +56,7 @@ jobs:
         $Version = "${{ github.event.release.tag_name && inputs.version }}"
         if ($Version.StartsWith("v")) { $Version = $Version.Substring(1) }
         & .\Create-NuGetPackage.ps1 `
-          -NativeExe "build\release\bin\SwiftWinRT.exe" `
+          -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
           -Version $Version `
           -OutputPath "${{ github.workspace }}\SwiftWinRT.nupkg"
 
