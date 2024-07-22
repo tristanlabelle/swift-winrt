@@ -16,6 +16,17 @@
           "CMAKE_C_COMPILER": "clang-cl",
           "CMAKE_Swift_FLAGS": "-sdk $env{SDKROOT}"
         }
+      },
+      {
+        "name": "release",
+        "displayName": "Release",
+        "generator": "Ninja",
+        "binaryDir": "${sourceDir}/build/release",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Release",
+          "CMAKE_C_COMPILER": "clang-cl",
+          "CMAKE_Swift_FLAGS": "-sdk $env{SDKROOT}"
+        }
       }
     ],
     "buildPresets": [
@@ -23,6 +34,11 @@
         "name": "debug",
         "displayName": "Debug",
         "configurePreset": "debug"
+      },
+      {
+        "name": "release",
+        "displayName": "Release",
+        "configurePreset": "release"
       }
     ]
   }
