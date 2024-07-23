@@ -1,4 +1,4 @@
-name: Build & Test (SPM)
+name: Build & Test
 
 on:
   pull_request:
@@ -10,22 +10,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  support:
-    name: Support Module
+  support-spm:
+    name: Support Module (SPM)
     runs-on: windows-2022
     timeout-minutes: 10
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Setup Visual Studio Development Environment
-      uses: compnerd/gha-setup-vsdevenv@main
-
-    - name: Install Swift
-      uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
-      with:
-        branch: swift-5.10.1-release
-        tag: 5.10.1-RELEASE
+    - uses: ./.github/actions/setup-swift
     
     - name: Build support module
       shell: pwsh
@@ -35,22 +27,14 @@ jobs:
       shell: pwsh
       run: swift test --verbose --skip-build
 
-  generator-and-interoptests:
-    name: Generator and InteropTests
+  generator-and-interoptests-spm:
+    name: Generator and InteropTests (SPM)
     runs-on: windows-2022
     timeout-minutes: 15
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Setup Visual Studio Development Environment
-      uses: compnerd/gha-setup-vsdevenv@main
-
-    - name: Install Swift
-      uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
-      with:
-        branch: swift-5.10.1-release
-        tag: 5.10.1-RELEASE
+    - uses: ./.github/actions/setup-swift
 
     - name: Build code generator
       working-directory: Generator
@@ -76,3 +60,39 @@ jobs:
       working-directory: InteropTests
       shell: pwsh
       run: swift test --verbose --skip-build
+
+  support-cmake:
+    name: Support Module (CMake)
+    runs-on: windows-2022
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-swift
+
+    - name: CMake Configure
+      shell: pwsh
+      run: cmake --preset debug
+
+    - name: CMake Build
+      shell: pwsh
+      run: cmake --build --preset debug
+
+  generator-cmake:
+    name: Generator (CMake)
+    runs-on: windows-2022
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup-swift
+
+    - name: CMake Configure
+      working-directory: Generator
+      shell: pwsh
+      run: cmake --preset debug
+
+    - name: CMake Build
+      working-directory: Generator
+      shell: pwsh
+      run: cmake --build --preset debug

@@ -14,25 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Setup Visual Studio Development Environment
-      uses: compnerd/gha-setup-vsdevenv@main
-
-    - name: Install Swift
-      uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
-      with:
-        branch: swift-5.10.1-release
-        tag: 5.10.1-RELEASE
-
-    - name: CMake Configure
-      working-directory: Generator
-      shell: pwsh
-      run: cmake --preset release
-
-    - name: CMake Build
-      working-directory: Generator
-      shell: pwsh
-      run: cmake --build --preset release
+    - uses: ./.github/actions/setup-swift
 
     - name: Compute Version
       id: version
@@ -46,10 +28,21 @@ jobs:
         }
         echo "::set-output semver=$SemVer"
 
+    - name: CMake Configure
+      working-directory: Generator
+      shell: pwsh
+      run: cmake --preset release
+
+    - name: CMake Build
+      working-directory: Generator
+      shell: pwsh
+      run: cmake --build --preset release
+
     - name: Create NuGet Package
       working-directory: Generator
       shell: pwsh
       run: |
+        $OutputPath = "${{ github.workspace }}/SwiftWinRT.nupkg"
         & .\Create-NuGetPackage.ps1 `
           -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
            -Version "${{ steps.version.outputs.semver }}" `
