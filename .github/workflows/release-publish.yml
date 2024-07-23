@@ -20,7 +20,7 @@ jobs:
       id: version
       shell: pwsh
       run: |
-        $TagName = "${{ github.event.push.tag_name }}"
+        $TagName = "${{ github.ref_name }}"
         if ($TagName.StartsWith("v")) { $SemVer = $TagName.Substring(1) }
         else {
           $CommitHash = "${{ github.sha }}".Substring(0, 7)
@@ -47,7 +47,7 @@ jobs:
           -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
            -Version "${{ steps.version.outputs.semver }}" `
           -OutputPath $OutputPath
-        (Get-FileHash $OutputPath).Hash | Out-File -FilePath $OutputPath.sha256
+        (Get-FileHash $OutputPath).Hash | Out-File -FilePath "$OutputPath.sha256"
 
     - name: Create GitHub Release
       if: github.event_name == 'push'
@@ -56,7 +56,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Create Release
-        $TagName = "${{ github.event.push.tag_name }}"
+        $TagName = "${{ github.ref_name }}"
         $SemVer = "${{ steps.version.outputs.semver }}"
         $RepositoryUrl = "${{ github.repository }}"
         $PrereleaseArg = if ($SemVer.StartsWith("0.") -or $SemVer.Contains("-")) { @("--prerelease") } else { @() }
