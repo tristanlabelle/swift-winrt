@@ -45,7 +45,7 @@ jobs:
       working-directory: Generator
       shell: pwsh
       run: |
-        $OutputPath = "${{ github.workspace }}/SwiftWinRT.nupkg"
+        $OutputPath = "${{ github.workspace }}\SwiftWinRT.nupkg"
         & .\Create-NuGetPackage.ps1 `
           -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
            -Version "${{ steps.version.outputs.semver }}" `
@@ -62,7 +62,8 @@ jobs:
         $TagName = "${{ github.ref_name }}"
         $SemVer = "${{ steps.version.outputs.semver }}"
         $RepositoryUrl = "${{ github.repository }}"
-        $PrereleaseArg = if ($SemVer.StartsWith("0.") -or $SemVer.Contains("-")) { @("--prerelease") } else { @() }
-        & gh release create $TagName --repo $RepositoryUrl --title $SemVer --generate-notes @PrereleaseArg
+        $ExtraArgs = @()
+        if ($SemVer.StartsWith("0.") -or $SemVer.Contains("-")) { $ExtraArgs += "--prerelease" }
+        & gh release create $TagName --repo $RepositoryUrl --title $SemVer --generate-notes @ExtraArgs
         & gh release upload $TagName SwiftWinRT.nupkg --repo $RepositoryUrl
         & gh release upload $TagName SwiftWinRT.nupkg.sha256 --repo $RepositoryUrl
