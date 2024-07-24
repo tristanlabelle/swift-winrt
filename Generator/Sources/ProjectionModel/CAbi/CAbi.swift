@@ -70,7 +70,6 @@ public enum CAbi {
         }
     }
 
-    public static var moduleSuffix: String { "_ABI" }
     public static var namespacingPrefix: String { "SWRT_" }
     public static var hresultName: String { namespacingPrefix + "HResult" }
     public static var guidName: String { namespacingPrefix + "Guid" }

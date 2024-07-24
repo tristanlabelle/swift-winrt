@@ -6,7 +6,21 @@ import struct Foundation.URL
 
 func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, toPath path: String) {
     var package = SwiftPackage(name: "Projection")
-    package.dependencies.append(getSupportPackageDependency(location: supportPackageLocation))
+
+    if supportPackageLocation.starts(with: "https://") {
+        if let separatorIndex = supportPackageLocation.lastIndex(of: ":"),
+                let lastSlashIndex = supportPackageLocation.lastIndex(of: "/"),
+                separatorIndex > lastSlashIndex {
+            let url = String(supportPackageLocation[..<separatorIndex])
+            let branch = String(supportPackageLocation[supportPackageLocation.index(after: separatorIndex)...])
+            package.dependencies.append(.package(url: url, branch: branch))
+        }
+        else {
+            fatalError("Unexpected support package location format: \(supportPackageLocation)")
+        }
+    } else {
+        package.dependencies.append(.package(path: supportPackageLocation))
+    }
 
     var productTargets = [String]()
 
@@ -14,9 +28,9 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
         guard !module.isEmpty else { continue }
 
         // ABI module
-        var abiModuleTarget = SwiftPackage.Target(name: module.abiModuleName, path: "\(module.name)/ABI")
-        abiModuleTarget.dependencies.append(.product(name: "WindowsRuntime_ABI", package: "swift-winrt"))
-        package.targets.append(abiModuleTarget)
+        package.targets.append(.target(
+            name: module.abiModuleName,
+            path: "\(module.name)/ABI"))
 
         // Assembly module
         var assemblyModuleTarget = SwiftPackage.Target(name: module.name)
@@ -58,21 +72,4 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
     package.products.append(.library(name: "Projection", targets: productTargets))
 
     package.write(version: "5.10", to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-}
-
-fileprivate func getSupportPackageDependency(location: String) -> SwiftPackage.Dependency {
-    if location.starts(with: "https://") {
-        if let separatorIndex = location.lastIndex(of: ":"),
-                let lastSlashIndex = location.lastIndex(of: "/"),
-                separatorIndex > lastSlashIndex {
-            let url = String(location[..<separatorIndex])
-            let branch = String(location[location.index(after: separatorIndex)...])
-            return .package(url: url, branch: branch)
-        }
-        else {
-            fatalError("Unexpected support package location format: \(location)")
-        }
-    } else {
-        return .package(path: location)
-    }
 }
