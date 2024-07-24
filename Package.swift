@@ -33,7 +33,7 @@ let package = Package(
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "WindowsRuntime",
-            dependencies: ["WindowsRuntime_ABI", "InternalABI"],
+            dependencies: ["COM", "WindowsRuntime_ABI", "InternalABI"],
             path: "Support/Sources/WindowsRuntime",
             exclude: ["CMakeLists.txt"]),
         .testTarget(
