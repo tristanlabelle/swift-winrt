@@ -1,4 +1,4 @@
-#include "COM.h"
+#include "SWRT/COM.h"
 
 #include "windows/activation.h"
 #include "windows/eventtoken.h"
@@ -9,5 +9,4 @@
 #include "windows/robuffer.h"
 #include "windows/roerrorapi.h"
 #include "windows/weakreference.h"
-#include "windows/winrt.h"
 #include "windows/winstring.h"

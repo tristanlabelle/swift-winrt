@@ -1,15 +1,3 @@
-module COM_ABI {
-    header "SWRT/COM.h"
-    header "SWRT/windows/BaseTsd.h"
-    header "SWRT/windows/combaseapi.h"
-    header "SWRT/windows/guiddef.h"
-    header "SWRT/windows/oaidl.h"
-    header "SWRT/windows/objidl.h"
-    header "SWRT/windows/oleauto.h"
-    header "SWRT/windows/unknwn.h"
-    export *
-}
-
 module WindowsRuntime_ABI {
     header "SWRT/WindowsRuntime.h"
     header "SWRT/windows/activation.h"
@@ -21,7 +9,6 @@ module WindowsRuntime_ABI {
     header "SWRT/windows/robuffer.h"
     header "SWRT/windows/roerrorapi.h"
     header "SWRT/windows/weakreference.h"
-    header "SWRT/windows/winrt.h"
     header "SWRT/windows/winstring.h"
     export *
 }

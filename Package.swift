@@ -6,29 +6,34 @@ let package = Package(
     products: [
         .library(
             name: "WindowsRuntime_ABI",
-            targets: ["ExportedABI"]),
+            targets: ["COM_ABI", "WindowsRuntime_ABI"]),
         .library(
             name: "WindowsRuntime",
             targets: ["COM", "WindowsRuntime"]),
     ],
     targets: [
         .target(
-            name: "ExportedABI",
-            path: "Support/Sources/ExportedABI",
+            name: "COM_ABI",
+            path: "Support/Sources/COM_ABI",
+            exclude: ["CMakeLists.txt"]),
+        .target(
+            name: "WindowsRuntime_ABI",
+            dependencies: ["COM_ABI"],
+            path: "Support/Sources/WindowsRuntime_ABI",
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "InternalABI",
-            dependencies: ["ExportedABI"],
+            dependencies: ["COM_ABI", "WindowsRuntime_ABI"],
             path: "Support/Sources/InternalABI",
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "COM",
-            dependencies: ["ExportedABI", "InternalABI"],
+            dependencies: ["COM_ABI", "InternalABI"],
             path: "Support/Sources/COM",
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "WindowsRuntime",
-            dependencies: ["ExportedABI", "InternalABI"],
+            dependencies: ["WindowsRuntime_ABI", "InternalABI"],
             path: "Support/Sources/WindowsRuntime",
             exclude: ["CMakeLists.txt"]),
         .testTarget(

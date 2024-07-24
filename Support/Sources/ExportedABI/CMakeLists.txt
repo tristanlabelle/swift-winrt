@@ -1,2 +1,0 @@
-add_library(WindowsRuntime_ABI INTERFACE)
-target_include_directories(WindowsRuntime_ABI INTERFACE include)
