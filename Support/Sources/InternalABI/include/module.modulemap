@@ -1,0 +1,9 @@
+module SWRT_SwiftCOMObject {
+    header "SwiftCOMObject.h"
+    export *
+}
+
+module SWRT_WindowsFoundation {
+    header "SWRT/windows/windows.foundation.h"
+    export *
+}

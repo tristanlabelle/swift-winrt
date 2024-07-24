@@ -1,4 +1,5 @@
 import COM_ABI
+import SWRT_SwiftCOMObject
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {
@@ -18,7 +19,7 @@ public struct COMEmbedding /*: ~Copyable */ {
     // Instead, it is initialized in two steps: first to an invalid value, and then to a valid value.
     public static var uninitialized: COMEmbedding { .init() }
 
-    private var comObject: COM_ABI.SWRT_SwiftCOMObject
+    private var comObject: SWRT_SwiftCOMObject
 
     private init() {
         comObject = .init()
@@ -42,13 +43,13 @@ public struct COMEmbedding /*: ~Copyable */ {
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: unknownPointer) }
 
     fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
-        this.withMemoryRebound(to: COM_ABI.SWRT_SwiftCOMObject.self, capacity: 1) {
+        this.withMemoryRebound(to: SWRT_SwiftCOMObject.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
         }
     }
 
     public static func test<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Bool {
-        do { _ = try COMInterop(this).queryInterface(uuidof(COM_ABI.SWRT_SwiftCOMObject.self)) } catch { return false }
+        do { _ = try COMInterop(this).queryInterface(uuidof(SWRT_SwiftCOMObject.self)) } catch { return false }
         return true
     }
 
@@ -92,7 +93,7 @@ public struct COMEmbedding /*: ~Copyable */ {
     }
 }
 
-internal func uuidof(_: COM_ABI.SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
+internal func uuidof(_: SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
     .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64)
 }
 
@@ -130,7 +131,7 @@ public enum IUnknownVirtualTable {
         return HResult.catchValue {
             let id = GUIDProjection.toSwift(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
-            let reference = id == uuidof(COM_ABI.SWRT_SwiftCOMObject.self)
+            let reference = id == uuidof(SWRT_SwiftCOMObject.self)
                 ? IUnknownReference(addingRef: this)
                 : try (COMEmbedding.getEmbedderObjectOrCrash(this) as! IUnknown)._queryInterface(id)
             ppvObject.pointee = UnsafeMutableRawPointer(reference.detach())

@@ -1,4 +1,4 @@
-add_subdirectory(COM_ABI)
+add_subdirectory(ExportedABI)
+add_subdirectory(InternalABI)
 add_subdirectory(COM)
-add_subdirectory(WindowsRuntime_ABI)
 add_subdirectory(WindowsRuntime)

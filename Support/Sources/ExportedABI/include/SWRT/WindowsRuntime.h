@@ -1,0 +1,13 @@
+#include "COM.h"
+
+#include "windows/activation.h"
+#include "windows/eventtoken.h"
+#include "windows/inspectable.h"
+#include "windows/memorybuffer.h"
+#include "windows/restrictederrorinfo.h"
+#include "windows/roapi.h"
+#include "windows/robuffer.h"
+#include "windows/roerrorapi.h"
+#include "windows/weakreference.h"
+#include "windows/winrt.h"
+#include "windows/winstring.h"

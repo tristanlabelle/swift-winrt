@@ -91,7 +91,7 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
 }
 
-import WindowsFoundation_ABI
+import SWRT_WindowsFoundation
 
 internal func uuidof(_: SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
     .init(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)

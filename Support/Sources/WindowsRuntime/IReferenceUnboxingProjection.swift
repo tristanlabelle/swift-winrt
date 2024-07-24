@@ -1,5 +1,6 @@
 import COM
 import WindowsRuntime_ABI
+import SWRT_WindowsFoundation
 
 public enum IReferenceUnboxingProjection {
     public typealias Boolean = Of<PrimitiveProjection.Boolean>
@@ -18,7 +19,7 @@ public enum IReferenceUnboxingProjection {
 
     public enum Of<Projection: BoxableProjection>: WinRTProjection, COMProjection {
         public typealias SwiftObject = Projection.SwiftValue
-        public typealias ABIStruct = WindowsRuntime_ABI.SWRT_WindowsFoundation_IReference
+        public typealias ABIStruct = SWRT_WindowsFoundation_IReference
 
         public static var typeName: Swift.String { "Windows.Foundation.IReference`1<\(Projection.typeName)>" }
         public static var interfaceID: COMInterfaceID { Projection.ireferenceID }
