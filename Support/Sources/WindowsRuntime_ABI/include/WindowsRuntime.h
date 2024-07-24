@@ -1,0 +1,7 @@
+#include "SWRT/BaseTsd.h"
+#include "SWRT/guiddef.h"
+#include "SWRT/unknwn.h"
+#include "SWRT/activation.h"
+#include "SWRT/eventtoken.h"
+#include "SWRT/inspectable.h"
+#include "SWRT/winstring.h"

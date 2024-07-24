@@ -19,7 +19,7 @@ extension SwiftProjection {
         internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
             self.projection = projection
             self.name = name
-            self.abiModuleName = name + "_ABI"
+            self.abiModuleName = name + CAbi.moduleSuffix
             self.flattenNamespaces = flattenNamespaces
         }
 

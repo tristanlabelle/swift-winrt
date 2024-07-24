@@ -1,0 +1,4 @@
+module WindowsRuntime_ABI {
+    header "SWRT/windows.foundation.h"
+    export *
+}

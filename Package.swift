@@ -5,6 +5,9 @@ let package = Package(
     name: "SwiftWinRT",
     products: [
         .library(
+            name: "WindowsRuntime_ABI",
+            targets: ["COM_ABI", "WindowsRuntime_ABI"]),
+        .library(
             name: "WindowsRuntime",
             targets: ["COM", "WindowsRuntime"]),
     ],
@@ -24,8 +27,13 @@ let package = Package(
             path: "Support/Sources/WindowsRuntime_ABI",
             exclude: ["CMakeLists.txt"]),
         .target(
+            name: "WindowsFoundation_ABI",
+            dependencies: ["COM_ABI", "WindowsRuntime_ABI"],
+            path: "Support/Sources/WindowsFoundation_ABI",
+            exclude: ["CMakeLists.txt"]),
+        .target(
             name: "WindowsRuntime",
-            dependencies: ["WindowsRuntime_ABI", "COM"],
+            dependencies: ["COM", "WindowsRuntime_ABI", "WindowsFoundation_ABI"],
             path: "Support/Sources/WindowsRuntime",
             exclude: ["CMakeLists.txt"]),
         .testTarget(

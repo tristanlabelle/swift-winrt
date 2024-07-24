@@ -33,7 +33,7 @@ extension WindowsFoundation_DateTime {
     }
 }
 
-import WindowsRuntime_ABI
+import Foundation_ABI
 
 extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIInertProjection {
     public typealias SwiftValue = Self

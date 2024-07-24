@@ -17,7 +17,7 @@ public struct WindowsFoundation_Size: Hashable, Codable, Sendable {
     }
 }
 
-import WindowsRuntime_ABI
+import WindowsFoundation_ABI
 
 extension WindowsFoundation_Size: WindowsRuntime.StructProjection, COM.ABIInertProjection {
     public typealias SwiftValue = Self

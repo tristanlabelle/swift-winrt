@@ -7,7 +7,7 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
-import WindowsRuntime_ABI
+import WindowsFoundation_ABI
 
 public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable

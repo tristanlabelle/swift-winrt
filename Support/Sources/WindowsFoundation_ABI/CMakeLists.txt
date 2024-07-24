@@ -1,0 +1,3 @@
+add_library(WindowsFoundation_ABI INTERFACE)
+target_include_directories(WindowsFoundation_ABI PUBLIC include)
+target_link_libraries(WindowsFoundation_ABI PUBLIC COM_ABI WindowsRuntime_ABI)

@@ -49,7 +49,7 @@ extension WindowsFoundation_TimeSpan {
 }
 
 // Projection
-import WindowsRuntime_ABI
+import WindowsFoundation_ABI
 
 /// Projects a Windows.Foundation.TimeSpan into a Swift.Duration value.
 extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
