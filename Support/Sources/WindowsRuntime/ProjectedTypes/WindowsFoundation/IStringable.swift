@@ -7,7 +7,7 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
     func toString() throws -> String
 }
 
-import WindowsRuntime_ABI
+import SWRT_WindowsFoundation
 
 public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IStringable
@@ -41,7 +41,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
 }
 
-public func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
+public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
     .init(0x96369F54, 0x8EB6, 0x48F0, 0xABCE, 0xC1B211E627C3);
 }
 

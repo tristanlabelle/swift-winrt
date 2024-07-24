@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SWRT/unknwn.h"
-#include "SWRT/winstring.h"
+#include "SWRT/windows/unknwn.h"
+#include "SWRT/windows/winstring.h"
 
 // TrustLevel
 typedef int32_t SWRT_TrustLevel;

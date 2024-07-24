@@ -19,7 +19,7 @@ extension WindowsFoundation_IReferenceProtocol {
     var value: T { try! _value() }
 }
 
-import WindowsRuntime_ABI
+import SWRT_WindowsFoundation
 
 public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SWRT/guiddef.h"
-#include "SWRT/BaseTsd.h"
+#include "SWRT/windows/guiddef.h"
+#include "SWRT/windows/BaseTsd.h"
 
 // IUnknown
 typedef struct SWRT_IUnknown {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SWRT/guiddef.h"
-#include "SWRT/oleauto.h"
-#include "SWRT/unknwn.h"
+#include "SWRT/windows/guiddef.h"
+#include "SWRT/windows/oleauto.h"
+#include "SWRT/windows/unknwn.h"
 
 // IAgileObject
 typedef struct SWRT_IAgileObject {

@@ -27,7 +27,7 @@ public struct WindowsFoundation_Rect: Hashable, Codable, Sendable {
     }
 }
 
-import WindowsRuntime_ABI
+import SWRT_WindowsFoundation
 
 extension WindowsFoundation_Rect: WindowsRuntime.StructProjection, COM.ABIInertProjection {
     public typealias SwiftValue = Self

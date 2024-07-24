@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/unknwn.h"
+#include "SWRT/windows/unknwn.h"
 
 typedef struct SWRT_IBufferByteAccess SWRT_IBufferByteAccess;
 

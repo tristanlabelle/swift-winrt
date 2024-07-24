@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include "SWRT/restrictederrorinfo.h"
-#include "SWRT/winstring.h"
+#include "SWRT/windows/restrictederrorinfo.h"
+#include "SWRT/windows/winstring.h"
 
 SWRT_HResult SWRT_GetRestrictedErrorInfo(SWRT_IRestrictedErrorInfo** ppRestrictedErrorInfo);
 void SWRT_RoClearError();

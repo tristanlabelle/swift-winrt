@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SWRT/oleauto.h"
-#include "SWRT/unknwn.h"
+#include "SWRT/windows/oleauto.h"
+#include "SWRT/windows/unknwn.h"
 
 typedef struct SWRT_IErrorInfo {
     struct SWRT_IErrorInfo_VirtualTable* VirtualTable;

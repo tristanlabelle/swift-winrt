@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/inspectable.h"
+#include "SWRT/windows/inspectable.h"
 
 // IActivationFactory
 typedef struct SWRT_IActivationFactory {

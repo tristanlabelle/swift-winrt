@@ -1,5 +1,3 @@
-import WindowsRuntime_ABI
-
 /// Represents a value in a property store. You can't implement this interface, see Remarks.
 public typealias WindowsFoundation_IPropertyValue = any WindowsFoundation_IPropertyValueProtocol
 
@@ -93,11 +91,13 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
 }
 
-internal func uuidof(_: WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
+import SWRT_WindowsFoundation
+
+internal func uuidof(_: SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterfaceID {
     .init(0x4BD682DD, 0x7554, 0x40E9, 0x9A9B, 0x82654EDE7E62)
 }
 
-extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_WindowsFoundation_IPropertyValue {
+extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IPropertyValue {
     internal func get_Type() throws -> WindowsFoundation_PropertyType {
         var abi_value: SWRT_WindowsFoundation_PropertyType = .init()
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.get_Type(this, &abi_value))

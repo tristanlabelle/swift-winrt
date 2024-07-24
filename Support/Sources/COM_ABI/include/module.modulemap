@@ -1,11 +1,11 @@
 module COM_ABI {
-    header "SwiftCOMObject.h"
-    header "SWRT/BaseTsd.h"
-    header "SWRT/combaseapi.h"
-    header "SWRT/guiddef.h"
-    header "SWRT/oaidl.h"
-    header "SWRT/objidl.h"
-    header "SWRT/oleauto.h"
-    header "SWRT/unknwn.h"
+    header "SWRT/COM.h"
+    header "SWRT/windows/BaseTsd.h"
+    header "SWRT/windows/combaseapi.h"
+    header "SWRT/windows/guiddef.h"
+    header "SWRT/windows/oaidl.h"
+    header "SWRT/windows/objidl.h"
+    header "SWRT/windows/oleauto.h"
+    header "SWRT/windows/unknwn.h"
     export *
 }

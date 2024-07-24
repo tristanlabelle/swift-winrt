@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <uchar.h>
-#include "SWRT/BaseTsd.h"
+#include "SWRT/windows/BaseTsd.h"
 
 struct SWRT_HString_ {};
 typedef struct SWRT_HString_* SWRT_HString;
