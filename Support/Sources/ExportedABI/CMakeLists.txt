@@ -1,3 +1,2 @@
-file(GLOB SOURCES *.c)
-add_library(SWRT_Core INTERFACE)
-target_include_directories(SWRT_Core PUBLIC include)
+add_library(WindowsRuntime_ABI INTERFACE)
+target_include_directories(WindowsRuntime_ABI INTERFACE include)
