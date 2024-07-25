@@ -1,23 +1,10 @@
 name: Release & Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      git_ref:
-        description: 'Git ref'
-        type: string
-        required: false
-        default: 'main'
-      semver:
-        description: 'Semantic Version (empty defaults to 0.0.0-commit)'
-        type: string
-        required: false
-        default: ''
-      publish_nuget:
-        description: 'Publish NuGet package'
-        type: boolean
-        required: false
-        default: false
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
 jobs:
   build-and-publish:
@@ -26,30 +13,23 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents:
-        write # Create tag and release
+        write # Create release
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.inputs.git_ref }}
+    - uses: ./.github/actions/setup-swift
 
     - name: Compute Version
-      id: context
+      id: version
       shell: pwsh
       run: |
-        $SemVer = "${{ github.event.inputs.semver }}"
-        if ($SemVer -eq "") {
-          $Commit = & git rev-parse --short=8 | Out-String
-          $SemVer = "0.0.0-$Commit"
+        $TagName = "${{ github.ref_name }}"
+        if ($TagName.StartsWith("v")) { $SemVer = $TagName.Substring(1) }
+        else {
+          $CommitHash = "${{ github.sha }}".Substring(0, 7)
+          $SemVer = "0.0.0-$CommitHash"
         }
-        if (-not $SemVer -match "^v\d+\.\d+\.\d+(-\w+)?$") {
-          throw "Unexpected SemVer format: $SemVer"
-        }
-
-        Write-Output "::set-output name=tag::v$SemVer"
-        Write-Output "::set-output name=semver::$SemVer"
-
-    - uses: ./.github/actions/setup-swift
+        echo "::set-output name=semver::$SemVer"
 
     - name: CMake Configure
       working-directory: Generator
@@ -68,15 +48,9 @@ jobs:
         $OutputPath = "${{ github.workspace }}\SwiftWinRT.nupkg"
         & .\Create-NuGetPackage.ps1 `
           -NativeExe "build\release\Sources\SwiftWinRT\SwiftWinRT.exe" `
-           -Version "${{ steps.context.outputs.semver }}" `
+           -Version "${{ steps.version.outputs.semver }}" `
           -OutputPath $OutputPath
         (Get-FileHash $OutputPath).Hash | Out-File -FilePath "$OutputPath.sha256"
-
-    - name: Create Git Tag
-      shell: pwsh
-      run: |
-        & git tag "${{ steps.context.outputs.tag }}"
-        & git push origin "${{ steps.context.outputs.tag }}"
 
     - name: Create GitHub Release
       if: github.event_name == 'push'
@@ -85,8 +59,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Create Release
-        $SemVer = "${{ steps.context.outputs.semver }}"
-        $TagName = "${{ steps.context.outputs.tag }}"
+        $TagName = "${{ github.ref_name }}"
+        $SemVer = "${{ steps.version.outputs.semver }}"
         $RepositoryUrl = "${{ github.repository }}"
         $ExtraArgs = @()
         if ($SemVer.StartsWith("0.") -or $SemVer.Contains("-")) { $ExtraArgs += "--prerelease" }
