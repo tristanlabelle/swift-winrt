@@ -42,7 +42,7 @@ jobs:
           $Commit = & git rev-parse --short=8 | Out-String
           $SemVer = "0.0.0-$Commit"
         }
-        if (-not $SemVer -matches "^v\d+\.\d+\.\d+(-\w+)?$") {
+        if (-not $SemVer -match "^v\d+\.\d+\.\d+(-\w+)?$") {
           throw "Unexpected SemVer format: $SemVer"
         }
 
