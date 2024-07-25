@@ -9,7 +9,7 @@ on:
         required: false
         default: 'main'
       semver:
-        description: 'Semantic Version (empty defaults to 0.0.0-commit)'
+        description: 'Semantic Version (defaults to 0.0.0-commit)'
         type: string
         required: false
         default: ''
