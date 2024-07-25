@@ -1,0 +1,45 @@
+name: Create Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref'
+        type: string
+        required: false
+        default: 'main'
+      semver:
+        description: 'Semantic Version (defaults to 0.0.0-commit)'
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  create-tag:
+    name: Create Tag
+    runs-on: windows-2022
+    timeout-minutes: 5
+    permissions:
+      contents:
+        write # Create tag and release
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.git_ref }}
+
+    - name: Create Tag
+      shell: pwsh
+      run: |
+        $SemVer = "${{ github.event.inputs.semver }}"
+        if ($SemVer -eq "") {
+          $ShortCommit = & git rev-parse --short=8 "${{ github.event.inputs.git_ref }}" | Out-String
+          $SemVer = "0.0.0-$ShortCommit"
+        }
+        if (-not $SemVer -match "^v\d+\.\d+\.\d+(-\w+)?$") {
+          throw "Unexpected SemVer format: $SemVer"
+        }
+
+        $Tag = "v$SemVer"
+        & git tag $Tag
+        & git push origin $Tag
