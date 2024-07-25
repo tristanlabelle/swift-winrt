@@ -33,7 +33,7 @@ jobs:
       run: |
         $SemVer = "${{ github.event.inputs.semver }}"
         if ($SemVer -eq "") {
-          $ShortCommit = & git rev-parse --short=8 "${{ github.event.inputs.git_ref }}" | Out-String
+          $ShortCommit = (& git rev-parse --short=8 "${{ github.event.inputs.git_ref }}" | Out-String).Trim()
           $SemVer = "0.0.0-$ShortCommit"
         }
         if (-not $SemVer -match "^v\d+\.\d+\.\d+(-\w+)?$") {
