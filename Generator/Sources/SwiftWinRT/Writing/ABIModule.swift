@@ -6,7 +6,6 @@ import WindowsMetadata
 
 internal func writeABIModule(_ module: SwiftProjection.Module, toPath directoryPath: String) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
-    CAbi.writeCoreHeader(to: FileTextOutputStream(path: "\(includeDirectoryPath)\\Core.h", directoryCreation: .ancestors))
     try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\ABI.h")
     // FIXME: Support transitive references?
     for referencedModule in module.references {
@@ -19,7 +18,8 @@ fileprivate func writeABIFile(module: SwiftProjection.Module, toPath path: Strin
     let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 
     // Write includes
-    cHeaderWriter.writeInclude(pathSpec: "Core.h", kind: .doubleQuotes)
+    cHeaderWriter.writeInclude(pathSpec: "SWRT/WindowsRuntime.h", kind: .doubleQuotes)
+
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
         cHeaderWriter.writeInclude(pathSpec: "\(referencedModule.name).h", kind: .doubleQuotes)
