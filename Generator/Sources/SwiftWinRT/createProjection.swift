@@ -17,7 +17,9 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
     for filePath in winMDFilePaths.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
         print("Loading assembly \(filePath.lastPathComponent)...")
 
-        let (assembly, assemblyDocumentation) = try loadAssemblyAndDocumentation(path: filePath, into: assemblyLoadContext)
+        let assembly = try assemblyLoadContext.load(path: filePath)
+        let assemblyDocumentation = commandLineArguments.noDocs ? nil
+            : try tryLoadDocumentation(assemblyPath: filePath, locales: commandLineArguments.locales)
         let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let module = projection.modulesByName[moduleName] 
             ?? projection.addModule(name: moduleName, flattenNamespaces: moduleConfig.flattenNamespaces)
@@ -104,27 +106,26 @@ fileprivate func getWindowsSdkWinMDPaths(sdkVersion: String) throws -> [String] 
     return winmdPaths
 }
 
-fileprivate func loadAssemblyAndDocumentation(
-        path: String, languageCode: String? = "en",
-        into context: AssemblyLoadContext) throws -> (assembly: Assembly, docs: AssemblyDocumentation?) {
-    let assembly = try context.load(path: path)
-    var docs: AssemblyDocumentation? = nil
-    if let lastPathSeparator = path.lastIndex(where: { $0 == "\\" || $0 == "/" }) {
-        let assemblyDirectoryPath = String(path[..<lastPathSeparator])
-        let assemblyFileName = String(path[path.index(after: lastPathSeparator)...])
-        if let extensionDot = assemblyFileName.lastIndex(of: ".") {
-            let assemblyFileNameWithoutExtension = String(assemblyFileName[..<extensionDot])
-            let sideBySideDocsPath = "\(assemblyDirectoryPath)\\\(assemblyFileNameWithoutExtension).xml"
-            if FileManager.default.fileExists(atPath: sideBySideDocsPath) {
-                docs = try AssemblyDocumentation(readingFileAtPath: sideBySideDocsPath)
-            }
-            else if let languageCode {
-                let languageNestedDocsPath = "\(assemblyDirectoryPath)\\\(languageCode)\\\(assemblyFileNameWithoutExtension).xml"
-                if FileManager.default.fileExists(atPath: languageNestedDocsPath) {
-                    docs = try AssemblyDocumentation(readingFileAtPath: languageNestedDocsPath)
-                }
-            }
+fileprivate func tryLoadDocumentation(assemblyPath: String, locales: [String]) throws -> AssemblyDocumentation? {
+    let lastPathSeparator = assemblyPath.lastIndex(where: { $0 == "\\" || $0 == "/" })
+
+    let assemblyDirectoryPath = lastPathSeparator == nil ? "." : String(assemblyPath[..<lastPathSeparator!])
+    let assemblyFileName = lastPathSeparator == nil ? assemblyPath : String(assemblyPath[assemblyPath.index(after: lastPathSeparator!)...])
+
+    guard let extensionDot = assemblyFileName.lastIndex(of: ".") else { return nil }
+    let assemblyFileNameWithoutExtension = String(assemblyFileName[..<extensionDot])
+
+    for locale in locales {
+        let languageNestedDocsPath = "\(assemblyDirectoryPath)\\\(locale)\\\(assemblyFileNameWithoutExtension).xml"
+        if FileManager.default.fileExists(atPath: languageNestedDocsPath) {
+            return try AssemblyDocumentation(readingFileAtPath: languageNestedDocsPath)
         }
     }
-    return (assembly, docs)
+
+    let sideBySideDocsPath = "\(assemblyDirectoryPath)\\\(assemblyFileNameWithoutExtension).xml"
+    if FileManager.default.fileExists(atPath: sideBySideDocsPath) {
+        return try AssemblyDocumentation(readingFileAtPath: sideBySideDocsPath)
+    }
+
+    return nil
 }
