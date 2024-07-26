@@ -10,3 +10,4 @@
 #include "windows/roerrorapi.h"
 #include "windows/weakreference.h"
 #include "windows/winstring.h"
+#include "windows/windows.foundation.ireference.h"
