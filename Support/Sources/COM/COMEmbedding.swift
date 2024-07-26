@@ -10,10 +10,7 @@ public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {
 /// Declare as a stored property of a Swift object to embed a COM object representation which shares its reference count.
 /// This allows the embedder object to be referenced both in Swift and in COM.
 /// A Swift object can have multiple COM embeddings if it implements multiple COM interfaces.
-public struct COMEmbedding /*: ~Copyable */ {
-    // Should be ~Copyable, but this causes a Swift 5.9 compiler bug on Windows for some uses:
-    // "error: copy of noncopyable typed value"
-
+public struct COMEmbedding: ~Copyable {
     // This type must refer to the embedder that creates it,
     // so it cannot be initialized in one go because "self" isn't available yet.
     // Instead, it is initialized in two steps: first to an invalid value, and then to a valid value.
