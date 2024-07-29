@@ -28,6 +28,17 @@ public enum IInspectableBoxing {
         try Projection.box(value)
     }
 
+    public static func box(_ value: [Bool]) throws -> IInspectable { try PrimitiveProjection.Boolean.boxArray(value) }
+    public static func box(_ value: [UInt8]) throws -> IInspectable { try PrimitiveProjection.UInt8.boxArray(value) }
+    public static func box(_ value: [Int16]) throws -> IInspectable { try PrimitiveProjection.Int16.boxArray(value) }
+    public static func box(_ value: [UInt16]) throws -> IInspectable { try PrimitiveProjection.UInt16.boxArray(value) }
+    public static func box(_ value: [Int32]) throws -> IInspectable { try PrimitiveProjection.Int32.boxArray(value) }
+    public static func box(_ value: [UInt32]) throws -> IInspectable { try PrimitiveProjection.UInt32.boxArray(value) }
+    public static func box(_ value: [Int64]) throws -> IInspectable { try PrimitiveProjection.Int64.boxArray(value) }
+    public static func box(_ value: [UInt64]) throws -> IInspectable { try PrimitiveProjection.UInt64.boxArray(value) }
+    public static func box(_ value: [Float]) throws -> IInspectable { try PrimitiveProjection.Single.boxArray(value) }
+    public static func box(_ value: [Double]) throws -> IInspectable { try PrimitiveProjection.Double.boxArray(value) }
+
     public static func unboxBoolean(_ inspectable: IInspectable) -> Bool? {
         PrimitiveProjection.Boolean.unbox(inspectable)
     }
