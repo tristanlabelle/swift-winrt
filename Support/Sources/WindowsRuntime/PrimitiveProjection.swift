@@ -9,6 +9,9 @@ public enum PrimitiveProjection {
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createBoolean(value))
         }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createBooleanArray(value))
+        }
     }
 
     public enum UInt8: BoxableProjection, ABIIdentityProjection {
@@ -17,6 +20,9 @@ public enum PrimitiveProjection {
         public static var abiDefaultValue: Swift.UInt8 { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createUInt8(value))
+        }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createUInt8Array(value))
         }
     }
 
@@ -27,6 +33,9 @@ public enum PrimitiveProjection {
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createInt16(value))
         }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createInt16Array(value))
+        }
     }
 
     public enum UInt16: BoxableProjection, ABIIdentityProjection {
@@ -35,6 +44,9 @@ public enum PrimitiveProjection {
         public static var abiDefaultValue: Swift.UInt16 { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createUInt16(value))
+        }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createUInt16Array(value))
         }
     }
 
@@ -45,6 +57,9 @@ public enum PrimitiveProjection {
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createInt32(value))
         }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createInt32Array(value))
+        }
     }
 
     public enum UInt32: BoxableProjection, ABIIdentityProjection {
@@ -53,6 +68,9 @@ public enum PrimitiveProjection {
         public static var abiDefaultValue: Swift.UInt32 { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createUInt32(value))
+        }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createUInt32Array(value))
         }
     }
 
@@ -63,6 +81,9 @@ public enum PrimitiveProjection {
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createInt64(value))
         }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createInt64Array(value))
+        }
     }
 
     public enum UInt64: BoxableProjection, ABIIdentityProjection {
@@ -71,6 +92,9 @@ public enum PrimitiveProjection {
         public static var abiDefaultValue: Swift.UInt64 { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createUInt64(value))
+        }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createUInt64Array(value))
         }
     }
 
@@ -81,6 +105,9 @@ public enum PrimitiveProjection {
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createSingle(value))
         }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createSingleArray(value))
+        }
     }
 
     public enum Double: BoxableProjection, ABIIdentityProjection {
@@ -89,6 +116,9 @@ public enum PrimitiveProjection {
         public static var abiDefaultValue: CDouble { 0 }
         public static func box(_ value: SwiftValue) throws -> IInspectable {
             try IInspectableProjection.toSwift(PropertyValueStatics.createDouble(value))
+        }
+        public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+            try IInspectableProjection.toSwift(PropertyValueStatics.createDoubleArray(value))
         }
     }
 

@@ -11,7 +11,9 @@ public protocol WinRTProjection: ABIProjection {
 /// which includes value types and delegates.
 public protocol BoxableProjection: WinRTProjection {
     static var ireferenceID: COMInterfaceID { get }
+    static var ireferenceArrayID: COMInterfaceID { get }
     static func box(_ value: SwiftValue) throws -> IInspectable
+    static func boxArray(_ value: [SwiftValue]) throws -> IInspectable
 }
 
 /// Marker protocol for projections of WinRT value types into Swift.
