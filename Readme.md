@@ -1,6 +1,6 @@
 # Swift/WinRT
 
-![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test-spm.yml/badge.svg?branch=main)
+![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test.yml/badge.svg?branch=main)
 
 A Swift projection for WinRT APIs, written in pure Swift, for consuming modern Windows Runtime APIs, the Windows App SDK, WinUI and arbitrary WinRT components.
 
@@ -14,6 +14,29 @@ For examples of using projections, refer to [interop tests](InteropTests/Tests).
 The codebase uses features up to Swift 5.9, but requires Swift 5.10 because the 5.9 compiler crashes with more advanced uses of non-copyable types.
 
 This project was inspired by its C++ namesake at [thebrowsercompany/swift-winrt](https://github.com/thebrowsercompany/swift-winrt).
+
+## Using in your project
+
+### With CMake
+
+Setup your project's build to:
+
+1. Download the latest NuGet package from this repo's [Releases](https://github.com/tristanlabelle/swift-winrt/releases). Eventually those will be pushed to `nuget.org`.
+2. Invoke the `SwiftWinRT.exe` located in the NuGet package, specifying:
+   - The Windows SDK and WinMD files to be projected.
+   - A `projection.json` file to describe the modules to generate, which assemblies should contribute to each of them, and which types to include. Refer to [this example](https://github.com/tristanlabelle/swift-winrt/blob/main/InteropTests/projection.json).
+   - An output directory path.
+3. Reference and build the support module under the `swift` subdirectory of the NuGet package.
+4. Reference and build the generated code modules. For each module specified in `projection.json`, there should be an assembly module (with projected types), an ABI module (with C code) and any number of namespace modules (with type aliases for convenience).
+
+### With the Swift Package Manager (SPM)
+
+SPM cannot integrate arbitrary build steps needed for fully integrating Swift/WinRT code generation in your build. Alternatives:
+
+- Create a pre-build script for the code generation step.
+- Pregenerate your projections in a repository and reference it as a normal dependency.
+
+When invoking `SwiftWinRT.exe`, specify to generate a `Package.swift` file that references the `swift` subdirectory of the NuGet package as the support module location, or reference it from this repository.
 
 ## Feature set
 
