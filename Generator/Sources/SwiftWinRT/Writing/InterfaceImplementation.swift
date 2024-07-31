@@ -113,7 +113,7 @@ fileprivate func writeInterfaceEventImplementation(
                 thisPointer: thisPointer, projection: projection, to: output)
             output.endLine()
 
-            writer.writeReturnStatement(value: "\(eventRegistrationType)(token: _token, remover: \(name))")
+            writer.writeReturnStatement(value: "\(eventRegistrationType)(source: self, token: _token, remover: { this, token in try (this as! Self).\(name)(removing: token) })")
         }
     }
 

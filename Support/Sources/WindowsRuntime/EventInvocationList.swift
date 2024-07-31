@@ -27,12 +27,16 @@ public struct EventInvocationList<Delegate>: ~Copyable {
             let token = EventRegistrationToken(nextTokenValue)
             handlers.append((handler, token: token))
             nextTokenValue += 1
-            return EventRegistration(token: token, remover: self.remove)
+            return EventRegistration(source: self, token: token, remover: Self.remove)
         }
 
         public func remove(_ token: WindowsRuntime.EventRegistrationToken) throws {
             guard let index = handlers.firstIndex(where: { $0.token == token }) else { throw HResult.Error.invalidArg }
             handlers.remove(at: index)
+        }
+
+        private static func remove(_ source: AnyObject, _ token: EventRegistrationToken) throws {
+            try (source as! Implementation).remove(token)
         }
 
         public func invoke(_ invoker: (Delegate) throws -> Void) rethrows {
