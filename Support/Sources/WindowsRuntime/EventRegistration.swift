@@ -1,9 +1,14 @@
+/// Represents a registration of an event handler with an event source and supports removing the registration.
 public struct EventRegistration {
+    // We store and pass in the event source object so removal closures do not need to capture context, avoiding allocations.
     public typealias Remover = (_ source: AnyObject, _ token: EventRegistrationToken) throws -> Void
 
-    public private(set) var source: AnyObject
+    /// The object that is the source of the event.
+    private var source: AnyObject
+    /// The token that represents the event registration.
     public private(set) var token: EventRegistrationToken
-    public private(set) var remover: Remover
+    /// The closure that removes the event registration.
+    private var remover: Remover
 
     public init(source: AnyObject, token: EventRegistrationToken, remover: @escaping Remover) {
         self.source = source
@@ -12,8 +17,8 @@ public struct EventRegistration {
     }
 
     public mutating func detachToken() -> EventRegistrationToken {
-        defer { token = .none }
         remover = Self.nullRemover
+        defer { token = .none }
         return token
     }
 
