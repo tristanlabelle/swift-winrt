@@ -150,4 +150,106 @@ internal enum PropertyValueStatics {
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
+
+    public static func createUInt8Array(_ value: [UInt8]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt8Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createInt16Array(_ value: [Int16]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt16Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createUInt16Array(_ value: [UInt16]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt16Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createInt32Array(_ value: [Int32]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt32Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createUInt32Array(_ value: [UInt32]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt32Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createInt64Array(_ value: [Int64]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt64Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createUInt64Array(_ value: [UInt64]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt64Array(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createSingleArray(_ value: [Float]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateSingleArray(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createDoubleArray(_ value: [Double]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateDoubleArray(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    // TODO: Char16Array
+
+    public static func createBooleanArray(_ value: [Bool]) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateBooleanArray(
+                this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
 }

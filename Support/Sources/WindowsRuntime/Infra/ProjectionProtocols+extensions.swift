@@ -2,8 +2,16 @@ import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
 extension BoxableProjection {
+    public static var ireferenceArrayID: COMInterfaceID {
+        fatalError("Not implemented: Interface ID for IReferenceArray<\(SwiftValue.self)>")
+    }
+
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         ReferenceBox<Self>(value)
+    }
+
+    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+        fatalError("Not implemented: Boxing arrays of \(SwiftValue.self)")
     }
 
     public static func isBox(_ inspectable: IInspectable) -> Bool {
@@ -23,6 +31,27 @@ extension BoxableProjection {
                 _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.VirtualTable.pointee.get_Value(ireference.pointer, abiValuePointer))
             }
             return toSwift(consuming: &abiValue)
+        }
+        catch {
+            return nil
+        }
+    }
+
+    public static func unboxArray(_ inspectable: IInspectable) -> [SwiftValue]? {
+        do {
+            let ireferenceArray = try inspectable._queryInterface(ireferenceArrayID, type: SWRT_WindowsFoundation_IReferenceArray.self)
+
+            var abiCount: UInt32 = 0
+            var abiPointer: UnsafeMutableRawPointer? = nil
+            _ = try WinRTError.throwIfFailed(ireferenceArray.pointer.pointee.VirtualTable.pointee.get_Value(
+                ireferenceArray.pointer, &abiCount, &abiPointer))
+            guard let abiPointer else {
+                assert(abiCount == 0)
+                return []
+            }
+
+            var comArray = COMArray<ABIValue>(pointer: abiPointer.assumingMemoryBound(to: ABIValue.self), count: abiCount)
+            return ArrayProjection<Self>.toSwift(consuming: &comArray)
         }
         catch {
             return nil
