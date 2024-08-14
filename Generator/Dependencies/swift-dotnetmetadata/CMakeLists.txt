@@ -1,17 +1,17 @@
 FetchContent_Declare(
     swift-dotnetmetadata
     GIT_REPOSITORY https://github.com/tristanlabelle/swift-dotnetmetadata.git
-    GIT_TAG 4e01ac1e61fbc293ebfd01139e840453b3714a8a
+    GIT_TAG 9dd4ea6b10a5e5c4a5fc503564a229522b896b44
     SOURCE_SUBDIR "don't use cmakelists")
 FetchContent_MakeAvailable(swift-dotnetmetadata)
 
-file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/CInterop/*.c)
-add_library(CInterop STATIC ${SOURCES})
-target_include_directories(CInterop PUBLIC ${swift-dotnetmetadata_SOURCE_DIR}/Sources/CInterop/include)
+file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetMetadataCInterop/*.c)
+add_library(DotNetMetadataCInterop STATIC ${SOURCES})
+target_include_directories(DotNetMetadataCInterop PUBLIC ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetMetadataCInterop/include)
 
 file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetMetadataFormat/*.swift)
 add_library(DotNetMetadataFormat STATIC ${SOURCES})
-target_link_libraries(DotNetMetadataFormat PUBLIC CInterop)
+target_link_libraries(DotNetMetadataFormat PUBLIC DotNetMetadataCInterop)
 
 file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetMetadata/*.swift)
 add_library(DotNetMetadata STATIC ${SOURCES})
