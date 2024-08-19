@@ -6,60 +6,125 @@ import Foundation
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeProjectionFiles(_ projection: SwiftProjection, commandLineArguments: CommandLineArguments) throws {
+internal func writeProjectionFiles(_ projection: SwiftProjection, directoryPath: String, generateCMakeLists: Bool) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
+        try writeModuleFiles(module,
+            directoryPath: "\(directoryPath)\\\(module.name)",
+            generateCMakeLists: generateCMakeLists)
+    }
 
-        let moduleRootPath = "\(commandLineArguments.outputDirectoryPath)\\\(module.name)"
-
-        try writeABIModule(module, toPath: "\(moduleRootPath)\\ABI")
-
-        // Write the assembly module and namespace modules
-        let assemblyModuleDirectoryPath = "\(moduleRootPath)\\Assembly"
-
-        for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
-            guard try hasSwiftDefinition(typeDefinition) else { continue }
-
-            let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
-            let assemblyNamespaceDirectoryPath = "\(assemblyModuleDirectoryPath)\\\(compactNamespace)"
-
-            if module.hasTypeDefinition(typeDefinition) {
-                let typeName = try projection.toTypeName(typeDefinition)
-                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeName).swift")
-
-                if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
-                    try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
-                        "\(assemblyNamespaceDirectoryPath)\\\(typeName)+extras.swift",
-                        isDirectory: false))
-                }
-            }
-
-            if (typeDefinition as? ClassDefinition)?.isStatic != true,
-                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
-                let typeName = try projection.toTypeName(typeDefinition)
-                try writeABIProjectionConformanceFile(typeDefinition, module: module,
-                    toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeName)+Projection.swift")
-            }
+    if generateCMakeLists {
+        let writer = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\CMakeLists.txt",
+            directoryCreation: .ancestors))
+        for module in projection.modulesByName.values {
+            guard !module.isEmpty else { continue }
+            writer.writeAddSubdirectory(module.name)
         }
+    }
+}
 
-        for abiType in try getABITypes(module: module) {
-            guard let namespace = abiType.definition.namespace else { continue }
-            let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
-            let mangledName = try CAbi.mangleName(type: abiType)
-            try writeCOMInteropExtensionFile(abiType: abiType, module: module,
-                toPath: "\(assemblyModuleDirectoryPath)\\\(compactNamespace)\\COMInterop\\\(mangledName).swift")
-        }
+fileprivate func writeModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+    try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", generateCMakeLists: generateCMakeLists)
+    try writeAssemblyModuleFiles(module, directoryPath: "\(directoryPath)\\Assembly", generateCMakeLists: generateCMakeLists)
+    if !module.flattenNamespaces {
+        try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", generateCMakeLists: generateCMakeLists)
+    }
 
+    if generateCMakeLists {
+        let writer = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\CMakeLists.txt",
+            directoryCreation: .ancestors))
+        writer.writeAddSubdirectory("ABI")
+        writer.writeAddSubdirectory("Assembly")
         if !module.flattenNamespaces {
-            let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
-            for (namespace, typeDefinitions) in typeDefinitionsByNamespace {
-                let typeDefinitions = try typeDefinitions.filter(hasSwiftDefinition)
-                guard !typeDefinitions.isEmpty else { continue }
+            writer.writeAddSubdirectory("Namespaces")
+        }
+    }
+}
 
-                let compactNamespace = SwiftProjection.toCompactNamespace(namespace!)
-                let namespaceAliasesPath = "\(moduleRootPath)\\Namespaces\\\(compactNamespace)\\Aliases.swift"
-                try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
+fileprivate func writeAssemblyModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+    var cmakeSources: [String] = []
+    for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
+        guard try hasSwiftDefinition(typeDefinition) else { continue }
+
+        let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
+        let assemblyNamespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
+
+        if module.hasTypeDefinition(typeDefinition) {
+            let typeName = try module.projection.toTypeName(typeDefinition)
+            cmakeSources.append("\(compactNamespace)/\(typeName).swift")
+            try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeName).swift")
+
+            if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
+                cmakeSources.append("\(compactNamespace)/\(typeName)+extras.swift")
+                try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
+                    "\(assemblyNamespaceDirectoryPath)\\\(typeName)+extras.swift",
+                    isDirectory: false))
             }
+        }
+
+        if (typeDefinition as? ClassDefinition)?.isStatic != true,
+            !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
+            let typeName = try module.projection.toTypeName(typeDefinition)
+            cmakeSources.append("\(compactNamespace)/Projections/\(typeName)+Projection.swift")
+            try writeABIProjectionConformanceFile(typeDefinition, module: module,
+                toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeName)+Projection.swift")
+        }
+    }
+
+    for abiType in try getABITypes(module: module) {
+        guard let namespace = abiType.definition.namespace else { continue }
+        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let mangledName = try CAbi.mangleName(type: abiType)
+        cmakeSources.append("\(compactNamespace)/COMInterop/\(mangledName).swift")
+        try writeCOMInteropExtensionFile(abiType: abiType, module: module,
+            toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(mangledName).swift")
+    }
+
+    if generateCMakeLists {
+        let writer = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\CMakeLists.txt",
+            directoryCreation: .ancestors))
+        cmakeSources.sort()
+        writer.writeAddLibrary(module.name, .static, cmakeSources)
+        writer.writeTargetLinkLibraries(
+            module.name, .public,
+            [ SupportModules.WinRT.moduleName, module.abiModuleName ] + module.references.map { $0.name })
+    }
+}
+
+fileprivate func writeNamespaceModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+    let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
+
+    var compactNamespaces: [String] = [] 
+    for (namespace, typeDefinitions) in typeDefinitionsByNamespace {
+        let typeDefinitions = try typeDefinitions.filter(hasSwiftDefinition)
+        guard !typeDefinitions.isEmpty else { continue }
+        guard let namespace else { continue }
+
+        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        compactNamespaces.append(compactNamespace)
+        let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
+        try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
+
+        if generateCMakeLists {
+            let writer = CMakeListsWriter(output: FileTextOutputStream(
+                path: "\(directoryPath)\\\(compactNamespace)\\CMakeLists.txt",
+                directoryCreation: .ancestors))
+            let namespaceModuleName = module.getNamespaceModuleName(namespace: namespace)
+            writer.writeAddLibrary(namespaceModuleName, .static, ["Aliases.swift"])
+            writer.writeTargetLinkLibraries(namespaceModuleName, .public, [module.name])
+        }
+    }
+
+    if generateCMakeLists, !compactNamespaces.isEmpty {
+        let writer = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\CMakeLists.txt",
+            directoryCreation: .ancestors))
+        for compactNamespace in compactNamespaces {
+            writer.writeAddSubdirectory(compactNamespace)
         }
     }
 }

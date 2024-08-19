@@ -4,13 +4,23 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeABIModule(_ module: SwiftProjection.Module, toPath directoryPath: String) throws {
+internal func writeABIModule(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
+
     try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\ABI.h")
     // FIXME: Support transitive references?
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
         try writeABIFile(module: referencedModule, toPath: "\(includeDirectoryPath)\\\(referencedModule.name).h")
+    }
+
+    if generateCMakeLists {
+        let cmakeListsWriter = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\CMakeLists.txt", directoryCreation: .ancestors))
+        cmakeListsWriter.writeAddLibrary(module.abiModuleName, .interface)
+        cmakeListsWriter.writeTargetIncludeDirectories(module.abiModuleName, .public, ["include"])
+        cmakeListsWriter.writeTargetLinkLibraries(module.abiModuleName, .public,
+            [ SupportModules.WinRT.abiModuleName ] + module.references.map { $0.abiModuleName })
     }
 }
 

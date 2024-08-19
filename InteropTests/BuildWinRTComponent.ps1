@@ -37,6 +37,7 @@ $WindowsSDKVersion = $env:WindowsSDKVersion -replace "\\",""
     --winsdk $WindowsSDKVersion `
     --reference "$TestComponentDir\WinRTComponent.winmd" `
     --spm `
+    --cmakelists `
     --support "..\.." `
     --out "$PSScriptRoot\Generated" `
     --out-manifest "$PSScriptRoot\Generated\WinRTComponent.manifest"

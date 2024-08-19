@@ -9,6 +9,7 @@ public enum SupportModules {
 
 extension SupportModules.COM {
     public static var moduleName: String { "COM" }
+    public static var abiModuleName: String { "COM_ABI" }
 
     public static var guid: SwiftType { .chain(moduleName, "GUID") }
 
@@ -57,6 +58,7 @@ extension SupportModules.COM {
 
 extension SupportModules.WinRT {
     public static var moduleName: String { "WindowsRuntime" }
+    public static var abiModuleName: String { "WindowsRuntime_ABI" }
 
     public static var char16: SwiftType { .chain(moduleName, "Char16") }
 
