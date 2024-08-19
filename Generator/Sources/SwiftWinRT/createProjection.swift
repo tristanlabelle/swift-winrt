@@ -75,35 +75,26 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
 }
 
 fileprivate func getWindowsSdkWinMDPaths(sdkVersion: String) throws -> [String] {
-    let programFilesX86Path = ProcessInfo.processInfo.environment["ProgramFiles(x86)"]
-        ?? (ProcessInfo.processInfo.environment["SystemDrive"].map { "\($0)\\Program Files (x86)" })
-        ?? "C:\\Program Files (x86)"
-    let windowsKits10Path = "\(programFilesX86Path)\\Windows Kits\\10"
-    let sdkReferencesPath = "\(windowsKits10Path)\\References\\\(sdkVersion)"
-
-    var winmdPaths = [String]()
-    if let enumerator = FileManager.default.enumerator(atPath: sdkReferencesPath) {
-        for case let path as String in enumerator {
-            if path.hasSuffix(".winmd") {
-                winmdPaths.append("\(sdkReferencesPath)\\\(path)")
-            }
-        }
-    }
-    else {
-        let windowsWinMDPath = "\(windowsKits10Path)\\UnionMetadata\\\(sdkVersion)\\Windows.winmd"
-        if FileManager.default.fileExists(atPath: windowsWinMDPath) {
-            winmdPaths.append(windowsWinMDPath)
-        }
-    }
-
-    if winmdPaths.isEmpty {
+    let sdkVersion = try FourPartVersion(parsing: sdkVersion)
+    guard let windowsKit = try WindowsKit.getInstalled().first(where: { $0.version == sdkVersion }) else {
         enum WindowsSDKError: Error {
             case notFound(version: String)
         }
-        throw WindowsSDKError.notFound(version: sdkVersion)
+        throw WindowsSDKError.notFound(version: sdkVersion.description)
     }
 
-    return winmdPaths
+    let applicationPlatform = try windowsKit.readApplicationPlatform()
+    var apiContracts = applicationPlatform.apiContracts
+
+    if let desktopExtension = windowsKit.extensions.first(where: { $0.name == "WindowsDesktop" }) {
+        for extensionApiContract in try desktopExtension.readManifest().apiContracts {
+            apiContracts[extensionApiContract.key] = extensionApiContract.value
+        }
+    }
+
+    return apiContracts.map {
+        windowsKit.getAPIContractPath(name: $0.key, version: $0.value)
+    }
 }
 
 fileprivate func tryLoadDocumentation(assemblyPath: String, locales: [String]) throws -> AssemblyDocumentation? {
