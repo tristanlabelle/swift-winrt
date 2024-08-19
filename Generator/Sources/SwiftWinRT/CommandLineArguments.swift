@@ -30,6 +30,9 @@ struct CommandLineArguments: ParsableCommand {
 
     @Option(name: .customLong("support"), help: .init("The directory path or url:branch or url@revision of the support package to use.", valueName: "dir-or-url"))
     var supportPackageLocation: String = "https://github.com/tristanlabelle/swift-winrt.git:main"
+    
+    @Flag(name: .customLong("cmakelists"), help: "Generate a CMakeLists.txt files for building with CMake.")
+    var generateCMakeLists: Bool = false
 
     @Option(name: .customLong("out-manifest"), help: .init("Path to generate an embeddable exe manifest file to.", valueName: "file"))
     var exeManifestPath: String? = nil

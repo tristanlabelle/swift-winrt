@@ -28,7 +28,9 @@ do {
         commandLineArguments: commandLineArguments,
         projectionConfig: projectionConfig,
         assemblyLoadContext: context)
-    try writeProjectionFiles(projection, commandLineArguments: commandLineArguments)
+    try writeProjectionFiles(projection,
+        directoryPath: commandLineArguments.outputDirectoryPath,
+        generateCMakeLists: commandLineArguments.generateCMakeLists)
 
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
