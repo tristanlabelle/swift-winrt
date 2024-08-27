@@ -2,6 +2,7 @@ import COM
 import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
+/// Provides projections from IReference? to T? for boxable T's like primitive types, values types and delegates.
 public enum IReferenceUnboxingProjection {
     public typealias Boolean = Of<PrimitiveProjection.Boolean>
     public typealias UInt8 = Of<PrimitiveProjection.UInt8>
@@ -28,8 +29,7 @@ public enum IReferenceUnboxingProjection {
         public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
             var abiValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                _ = try! HResult.throwIfFailed(reference.pointer.pointee.VirtualTable.pointee.get_Value(
-                    reference.pointer, abiValuePointer))
+                try! reference.interop.get_Value(abiValuePointer)
             }
             return Projection.toSwift(consuming: &abiValue)
         }

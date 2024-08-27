@@ -241,7 +241,18 @@ internal enum PropertyValueStatics {
         return COMReference(transferringRef: propertyValue)
     }
 
-    // TODO: Char16Array
+    public static func createChar16Array(_ value: [Char16]) throws -> COMReference<SWRT_IInspectable> {
+        assert(MemoryLayout<Char16>.size == 2)
+        var propertyValue: IInspectablePointer? = nil
+        try value.withUnsafeBufferPointer { bufferPointer in
+            try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateChar16Array(this,
+                UInt32(bufferPointer.count),
+                UnsafeMutablePointer(mutating: UnsafePointer(UnsafeRawPointer(bufferPointer.baseAddress))),
+                &propertyValue))
+        }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
 
     public static func createBooleanArray(_ value: [Bool]) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
@@ -249,6 +260,24 @@ internal enum PropertyValueStatics {
             try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateBooleanArray(
                 this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: bufferPointer.baseAddress), &propertyValue))
         }
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createStringArray(_ value: [String]) throws -> COMReference<SWRT_IInspectable> {
+        var value_abi = try ArrayProjection<PrimitiveProjection.String>.toABI(value)
+        defer { ArrayProjection<PrimitiveProjection.String>.release(&value_abi) }
+        var propertyValue: IInspectablePointer? = nil
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateStringArray(this, value_abi.count, value_abi.pointer, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    public static func createGuidArray(_ value: [GUID]) throws -> COMReference<SWRT_IInspectable> {
+        var value_abi = try ArrayProjection<PrimitiveProjection.Guid>.toABI(value)
+        defer { ArrayProjection<PrimitiveProjection.Guid>.release(&value_abi) }
+        var propertyValue: IInspectablePointer? = nil
+        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateGuidArray(this, value_abi.count, value_abi.pointer, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
