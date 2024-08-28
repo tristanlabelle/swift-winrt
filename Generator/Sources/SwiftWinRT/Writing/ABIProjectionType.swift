@@ -233,7 +233,7 @@ fileprivate func writeIReferenceIDProperties(boxableType: BoundType, to writer: 
         boxableType: boxableType, to: writer)
     // public static var ireferenceArrayID: COM.COMInterfaceID { UUID(...) }
     try writeIReferenceIDProperty(
-        propertyName: "ireferenceArrayID", parameterizedID: UUID(uuidString: "4a33fe03-e8b9-5346-a124-5449913eca57")!,
+        propertyName: "ireferenceArrayID", parameterizedID: UUID(uuidString: "61c17707-2d65-11e0-9ae8-d48564015472")!,
         boxableType: boxableType, to: writer)
 }
 
