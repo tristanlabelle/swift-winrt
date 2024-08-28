@@ -29,7 +29,9 @@ public enum IReferenceUnboxingProjection {
         public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
             var abiValue = Projection.abiDefaultValue
             withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                try! reference.interop.get_Value(abiValuePointer)
+                // TODO: use try! reference.interop.get_Value(abiValuePointer)
+                _ = try! HResult.throwIfFailed(reference.pointer.pointee.VirtualTable.pointee.get_Value(
+                    reference.pointer, abiValuePointer))
             }
             return Projection.toSwift(consuming: &abiValue)
         }
