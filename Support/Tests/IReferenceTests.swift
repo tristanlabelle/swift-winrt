@@ -18,11 +18,18 @@ internal final class IReferenceTests: XCTestCase {
     }
 
     func testCreateNumeric() throws {
+        print("1")
         XCTAssertNil(try IReferenceUnboxingProjection.Int32.toABI(nil))
+        print("2")
         XCTAssertNil(IReferenceUnboxingProjection.Int32.toSwift(nil))
 
+        print("3")
         var boxed = try IReferenceUnboxingProjection.Int32.toABI(42)
-        defer { IReferenceUnboxingProjection.Int32.release(&boxed) }
+        defer {
+            print("5")
+            IReferenceUnboxingProjection.Int32.release(&boxed)
+        }
+        print("4")
         XCTAssertEqual(IReferenceUnboxingProjection.Int32.toSwift(boxed), 42)
     }
 }
