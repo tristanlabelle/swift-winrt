@@ -1,22 +1,7 @@
 import XCTest
 import WindowsRuntime
 
-internal final class IInspectableBoxingTests: XCTestCase {
-    private static var winRTInitialization: Result<WinRTInitialization, any Error>! = nil
-
-    override class func setUp() {
-        winRTInitialization = Result { try WinRTInitialization(multithreaded: false) }
-    }
-
-    override func setUpWithError() throws {
-        _ = try XCTUnwrap(Self.winRTInitialization).get()
-        try super.setUpWithError()
-    }
-
-    override class func tearDown() {
-        winRTInitialization = nil
-    }
-
+internal final class IInspectableBoxingTests: WinRTTestCase {
     func testMismatchedUnboxing() throws {
         let inspectable = try IInspectableBoxing.box(true)
         XCTAssertThrowsError(try IInspectableBoxing.unboxInt32(inspectable))
