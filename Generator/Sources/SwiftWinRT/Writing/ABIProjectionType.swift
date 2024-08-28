@@ -34,7 +34,8 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
 
             // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-            try writeIReferenceIDProperty(boxableType: enumDefinition.bindType(), to: writer)
+            // public static var ireferenceArrayID: COM.COMInterfaceID { .init(...) }
+            try writeIReferenceIDProperties(boxableType: enumDefinition.bindType(), to: writer)
         }
         return
     }
@@ -110,7 +111,8 @@ fileprivate func writeStructProjectionExtension(
         try writeTypeNameProperty(type: structDefinition.bindType(), to: writer)
 
         // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-        try writeIReferenceIDProperty(boxableType: structDefinition.bindType(), to: writer)
+        // public static var ireferenceArrayID: COM.COMInterfaceID { .init(...) }
+        try writeIReferenceIDProperties(boxableType: structDefinition.bindType(), to: writer)
 
         // public static var abiDefaultValue: ABIValue { .init() }
         writer.writeComputedProperty(
@@ -224,13 +226,21 @@ fileprivate func writeStructSwiftToABIInitializerParam(
     }
 }
 
-fileprivate func writeIReferenceIDProperty(boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
-    let ireferenceParameterizedInterfaceID = UUID(uuidString: "61c17706-2d65-11e0-9ae8-d48564015472")!
-
+fileprivate func writeIReferenceIDProperties(boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
     // public static var ireferenceID: COM.COMInterfaceID { UUID(...) }
-    try writer.writeComputedProperty(visibility: .public, static: true, name: "ireferenceID", type: SupportModules.COM.comInterfaceID) { writer in
+    try writeIReferenceIDProperty(
+        propertyName: "ireferenceID", parameterizedID: UUID(uuidString: "61c17706-2d65-11e0-9ae8-d48564015472")!,
+        boxableType: boxableType, to: writer)
+    // public static var ireferenceArrayID: COM.COMInterfaceID { UUID(...) }
+    try writeIReferenceIDProperty(
+        propertyName: "ireferenceArrayID", parameterizedID: UUID(uuidString: "61c17707-2d65-11e0-9ae8-d48564015472")!,
+        boxableType: boxableType, to: writer)
+}
+
+fileprivate func writeIReferenceIDProperty(propertyName: String, parameterizedID: UUID, boxableType: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
+    try writer.writeComputedProperty(visibility: .public, static: true, name: propertyName, type: SupportModules.COM.comInterfaceID) { writer in
         let typeSignature = try WinRTTypeSignature.interface(
-            id: ireferenceParameterizedInterfaceID,
+            id: parameterizedID,
             args: [ WinRTTypeSignature(boxableType) ])
         writer.writeStatement(try toIIDExpression(typeSignature.parameterizedID))
     }
@@ -367,7 +377,8 @@ internal func writeReferenceTypeProjectionConformance(
     if apiType.definition is DelegateDefinition {
         // Delegates can be boxed to IReference<T>
         // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-        try writeIReferenceIDProperty(boxableType: apiType, to: writer)
+        // public static var ireferenceArrayID: COM.COMInterfaceID { .init(...) }
+        try writeIReferenceIDProperties(boxableType: apiType, to: writer)
     }
 
     let abiReferenceType = SwiftType.identifier("ABIReference")

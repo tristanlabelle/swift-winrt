@@ -6,6 +6,10 @@ extension BoxableProjection {
         ReferenceBox<Self>(value)
     }
 
+    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+        ReferenceArrayBox<Self>(value)
+    }
+
     public static func isBox(_ inspectable: IInspectable) -> Bool {
         do {
             _ = try inspectable._queryInterface(ireferenceID)
@@ -15,18 +19,38 @@ extension BoxableProjection {
         }
     }
 
-    public static func unbox(_ inspectable: IInspectable) -> SwiftValue? {
+    public static func isArrayBox(_ inspectable: IInspectable) -> Bool {
         do {
-            let ireference = try inspectable._queryInterface(ireferenceID, type: SWRT_WindowsFoundation_IReference.self)
-            var abiValue = abiDefaultValue
-            try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.VirtualTable.pointee.get_Value(ireference.pointer, abiValuePointer))
-            }
-            return toSwift(consuming: &abiValue)
+            _ = try inspectable._queryInterface(ireferenceArrayID)
+            return true
+        } catch {
+            return false
         }
-        catch {
-            return nil
+    }
+
+    public static func unbox(_ inspectable: IInspectable) throws -> SwiftValue {
+        let ireference = try inspectable._queryInterface(ireferenceID, type: SWRT_WindowsFoundation_IReference.self)
+        var abiValue = abiDefaultValue
+        try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
+            _ = try WinRTError.throwIfFailed(ireference.pointer.pointee.VirtualTable.pointee.get_Value(ireference.pointer, abiValuePointer))
         }
+        return toSwift(consuming: &abiValue)
+    }
+
+    public static func unboxArray(_ inspectable: IInspectable) throws -> [SwiftValue] {
+        let ireferenceArray = try inspectable._queryInterface(ireferenceArrayID, type: SWRT_WindowsFoundation_IReferenceArray.self)
+
+        var abiCount: UInt32 = 0
+        var abiPointer: UnsafeMutableRawPointer? = nil
+        _ = try WinRTError.throwIfFailed(ireferenceArray.pointer.pointee.VirtualTable.pointee.get_Value(
+            ireferenceArray.pointer, &abiCount, &abiPointer))
+        guard let abiPointer else {
+            assert(abiCount == 0)
+            return []
+        }
+
+        var comArray = COMArray<ABIValue>(pointer: abiPointer.assumingMemoryBound(to: ABIValue.self), count: abiCount)
+        return ArrayProjection<Self>.toSwift(consuming: &comArray)
     }
 }
 

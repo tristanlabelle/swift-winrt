@@ -61,6 +61,10 @@ extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
         COMInterfaceID(0x604D0C4C, 0x91DE, 0x5C2A, 0x935F, 0x362F13EAF800)
     }
 
+    public static var ireferenceArrayID: COM.COMInterfaceID {
+        COMInterfaceID(0xAD73197D, 0x2CFA, 0x57A6, 0x8993, 0x9FAC40FEB791)
+    }
+
     public static var abiDefaultValue: ABIValue { .init() }
 
     public static func toSwift(_ value: ABIValue) -> SwiftValue {
@@ -73,5 +77,9 @@ extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
 
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         try IInspectableProjection.toSwift(PropertyValueStatics.createTimeSpan(value))
+    }
+
+    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+        try IInspectableProjection.toSwift(PropertyValueStatics.createTimeSpanArray(value))
     }
 }

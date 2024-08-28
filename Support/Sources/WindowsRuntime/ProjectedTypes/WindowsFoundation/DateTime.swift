@@ -45,6 +45,10 @@ extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIIn
         COMInterfaceID(0x5541D8A7, 0x497C, 0x5AA4, 0x86FC, 0x7713ADBF2A2C)
     }
 
+    public static var ireferenceArrayID: COM.COMInterfaceID {
+        COMInterfaceID(0x1B8E9594, 0x588E, 0x5A07, 0x9E65, 0x0731A4C9A2DB)
+    }
+
     public static var abiDefaultValue: ABIValue { .init() }
 
     public static func toSwift(_ value: ABIValue) -> SwiftValue {
@@ -57,5 +61,9 @@ extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIIn
 
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         try IInspectableProjection.toSwift(PropertyValueStatics.createDateTime(value))
+    }
+
+    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+        try IInspectableProjection.toSwift(PropertyValueStatics.createDateTimeArray(value))
     }
 }

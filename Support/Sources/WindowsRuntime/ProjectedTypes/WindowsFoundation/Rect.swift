@@ -39,6 +39,10 @@ extension WindowsFoundation_Rect: WindowsRuntime.StructProjection, COM.ABIInertP
         COMInterfaceID(0x80423F11, 0x054F, 0x5EAC, 0xAFD3, 0x63B6CE15E77B)
     }
 
+    public static var ireferenceArrayID: COM.COMInterfaceID {
+        COMInterfaceID(0x8A444256, 0xD661, 0x5E9A, 0xA72B, 0xD8F1D7962D0C)
+    }
+
     public static var abiDefaultValue: ABIValue { .init() }
 
     public static func toSwift(_ value: ABIValue) -> SwiftValue {
@@ -51,5 +55,9 @@ extension WindowsFoundation_Rect: WindowsRuntime.StructProjection, COM.ABIInertP
 
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         try IInspectableProjection.toSwift(PropertyValueStatics.createRect(value))
+    }
+
+    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
+        try IInspectableProjection.toSwift(PropertyValueStatics.createRectArray(value))
     }
 }

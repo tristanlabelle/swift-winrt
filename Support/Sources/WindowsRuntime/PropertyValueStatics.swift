@@ -16,137 +16,244 @@ internal enum PropertyValueStatics {
         }
     }
 
+    private static var virtualTable: UnsafeMutablePointer<SWRT_WindowsFoundation_IPropertyValueStatics_VirtualTable> {
+        get throws { try this.pointee.VirtualTable }
+    }
+
     public static func createUInt8(_ value: UInt8) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt8(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateUInt8)
     }
 
     public static func createInt16(_ value: Int16) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt16(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateInt16)
     }
 
     public static func createUInt16(_ value: UInt16) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt16(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateUInt16)
     }
 
     public static func createInt32(_ value: Int32) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt32(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateInt32)
     }
 
     public static func createUInt32(_ value: UInt32) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt32(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateUInt32)
     }
 
     public static func createInt64(_ value: Int64) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateInt64(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateInt64)
     }
 
     public static func createUInt64(_ value: UInt64) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateUInt64(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateUInt64)
     }
 
     public static func createSingle(_ value: Float) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateSingle(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateSingle)
     }
 
     public static func createDouble(_ value: Double) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateDouble(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateDouble)
     }
 
     public static func createChar16(_ value: Char16) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        let value = PrimitiveProjection.Char16.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateChar16(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: PrimitiveProjection.Char16.self, factory: virtualTable.pointee.CreateChar16)
     }
 
     public static func createBoolean(_ value: Bool) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateBoolean(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, factory: virtualTable.pointee.CreateBoolean)
     }
 
     public static func createString(_ value: String) throws -> COMReference<SWRT_IInspectable> {
-        var value_abi = try PrimitiveProjection.String.toABI(value)
-        defer { PrimitiveProjection.String.release(&value_abi) }
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateString(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: PrimitiveProjection.String.self, factory: virtualTable.pointee.CreateString)
     }
 
     public static func createGuid(_ value: GUID) throws -> COMReference<SWRT_IInspectable> {
-        let value_abi = COM.GUIDProjection.toABI(value)
-        var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateGuid(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: PrimitiveProjection.Guid.self, factory: virtualTable.pointee.CreateGuid)
     }
 
     public static func createDateTime(_ value: WindowsFoundation_DateTime) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        let value_abi = WindowsFoundation_DateTime.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateDateTime(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: WindowsFoundation_DateTime.self, factory: virtualTable.pointee.CreateDateTime)
     }
 
     public static func createTimeSpan(_ value: WindowsFoundation_TimeSpan) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        let value_abi = WindowsFoundation_TimeSpan.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateTimeSpan(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: WindowsFoundation_TimeSpan.self, factory: virtualTable.pointee.CreateTimeSpan)
     }
 
     public static func createPoint(_ value: WindowsFoundation_Point) throws -> COMReference<SWRT_IInspectable> {
-        var propertyValue: IInspectablePointer? = nil
-        let value_abi = WindowsFoundation_Point.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreatePoint(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
-        return COMReference(transferringRef: propertyValue)
+        try create(value, projection: WindowsFoundation_Point.self, factory: virtualTable.pointee.CreatePoint)
     }
 
     public static func createSize(_ value: WindowsFoundation_Size) throws -> COMReference<SWRT_IInspectable> {
+        try create(value, projection: WindowsFoundation_Size.self, factory: virtualTable.pointee.CreateSize)
+    }
+
+    public static func createRect(_ value: WindowsFoundation_Rect) throws -> COMReference<SWRT_IInspectable> {
+        try create(value, projection: WindowsFoundation_Rect.self, factory: virtualTable.pointee.CreateRect)
+    }
+
+    public static func createUInt8Array(_ value: [UInt8]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.UInt8.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateUInt8Array)
+    }
+
+    public static func createInt16Array(_ value: [Int16]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Int16.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateInt16Array)
+    }
+
+    public static func createUInt16Array(_ value: [UInt16]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.UInt16.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateUInt16Array)
+    }
+
+    public static func createInt32Array(_ value: [Int32]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Int32.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateInt32Array)
+    }
+
+    public static func createUInt32Array(_ value: [UInt32]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.UInt32.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateUInt32Array)
+    }
+
+    public static func createInt64Array(_ value: [Int64]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Int64.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateInt64Array)
+    }
+
+    public static func createUInt64Array(_ value: [UInt64]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.UInt64.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateUInt64Array)
+    }
+
+    public static func createSingleArray(_ value: [Float]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Single.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateSingleArray)
+    }
+
+    public static func createDoubleArray(_ value: [Double]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Double.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateDoubleArray)
+    }
+
+    public static func createChar16Array(_ value: [Char16]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Char16.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateChar16Array)
+    }
+
+    public static func createBooleanArray(_ value: [Bool]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Boolean.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateBooleanArray)
+    }
+
+    public static func createStringArray(_ value: [String]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.String.self, inertProjection: false,
+            factory: virtualTable.pointee.CreateStringArray)
+    }
+
+    public static func createGuidArray(_ value: [GUID]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: PrimitiveProjection.Guid.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateGuidArray)
+    }
+
+    public static func createDateTimeArray(_ value: [WindowsFoundation_DateTime]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: WindowsFoundation_DateTime.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateDateTimeArray)
+    }
+
+    public static func createTimeSpanArray(_ value: [WindowsFoundation_TimeSpan]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: WindowsFoundation_TimeSpan.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateTimeSpanArray)
+    }
+
+    public static func createPointArray(_ value: [WindowsFoundation_Point]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: WindowsFoundation_Point.self, inertProjection: true,
+            factory: virtualTable.pointee.CreatePointArray)
+    }
+
+    public static func createSizeArray(_ value: [WindowsFoundation_Size]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: WindowsFoundation_Size.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateSizeArray)
+    }
+
+    public static func createRectArray(_ value: [WindowsFoundation_Rect]) throws -> COMReference<SWRT_IInspectable> {
+        try createArray(
+            value, projection: WindowsFoundation_Rect.self, inertProjection: true,
+            factory: virtualTable.pointee.CreateRectArray)
+    }
+
+    // An IPropertyValueStatics.Create*** function type
+    private typealias SingleValueFactory<ABIValue> = (
+        _ this: UnsafeMutablePointer<SWRT_WindowsFoundation_IPropertyValueStatics>?,
+        _ value: ABIValue,
+        _ propertyValue: UnsafeMutablePointer<IInspectablePointer?>?)
+        -> SWRT_HResult
+
+    private static func create<ABIValue>(_ value: ABIValue, factory: SingleValueFactory<ABIValue>) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
-        let value_abi = WindowsFoundation_Size.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateSize(this, value_abi, &propertyValue))
+        try WinRTError.throwIfFailed(factory(this, value, &propertyValue))
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
-    public static func createRect(_ value: WindowsFoundation_Rect) throws -> COMReference<SWRT_IInspectable> {
+    private static func create<Projection: ABIProjection>(
+            _ value: Projection.SwiftValue,
+            projection: Projection.Type,
+            factory: SingleValueFactory<Projection.ABIValue>) throws -> COMReference<SWRT_IInspectable> {
+        var value_abi = try projection.toABI(value)
+        defer { projection.release(&value_abi) }
         var propertyValue: IInspectablePointer? = nil
-        let value_abi = WindowsFoundation_Rect.toABI(value)
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.CreateRect(this, value_abi, &propertyValue))
+        try WinRTError.throwIfFailed(factory(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw HResult.Error.pointer }
+        return COMReference(transferringRef: propertyValue)
+    }
+
+    // An IPropertyValueStatics.Create***Array function type
+    private typealias ArrayFactory<ABIValue> = (
+        _ this: UnsafeMutablePointer<SWRT_WindowsFoundation_IPropertyValueStatics>?,
+        _ length: UInt32,
+        _ pointer: UnsafeMutablePointer<ABIValue>?,
+        _ propertyValue: UnsafeMutablePointer<IInspectablePointer?>?)
+        -> SWRT_HResult
+
+    private static func createArray<Projection: ABIProjection>(
+            _ value: [Projection.SwiftValue],
+            projection: Projection.Type,
+            inertProjection: Bool,
+            factory: ArrayFactory<Projection.ABIValue>) throws -> COMReference<SWRT_IInspectable> {
+        var propertyValue: IInspectablePointer? = nil
+
+        // Attempt to use the provided array in-place
+        if inertProjection, MemoryLayout<Projection.SwiftValue>.size == MemoryLayout<Projection.ABIValue>.size {
+            try value.withUnsafeBufferPointer { bufferPointer in
+                let abiPointer = bufferPointer.baseAddress.map { UnsafePointer<Projection.ABIValue>(OpaquePointer($0)) }
+                try WinRTError.throwIfFailed(factory(this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: abiPointer), &propertyValue))
+            }
+        }
+        else {
+            var value_abi = try ArrayProjection<Projection>.toABI(value)
+            defer { ArrayProjection<Projection>.release(&value_abi) }
+            try WinRTError.throwIfFailed(factory(this, value_abi.count, value_abi.pointer, &propertyValue))
+        }
+
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
