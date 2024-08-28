@@ -138,6 +138,6 @@ extension WindowsFoundation_PropertyType: WindowsRuntime.EnumProjection {
     }
 
     public static var ireferenceArrayID: COM.COMInterfaceID {
-        fatalError()
+        COMInterfaceID(0x98EC8AA6, 0x118D, 0x5FC5, 0xB263, 0x3AABFBEE504D)
     }
 }

@@ -62,7 +62,7 @@ extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
     }
 
     public static var ireferenceArrayID: COM.COMInterfaceID {
-        fatalError()
+        COMInterfaceID(0xAD73197D, 0x2CFA, 0x57A6, 0x8993, 0x9FAC40FEB791)
     }
 
     public static var abiDefaultValue: ABIValue { .init() }

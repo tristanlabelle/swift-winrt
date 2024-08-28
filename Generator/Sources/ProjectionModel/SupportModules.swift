@@ -121,6 +121,7 @@ extension SupportModules.WinRT {
             "HResult": .special,
             "IPropertyValue": .definitionOnly,
             "IReference`1": .definitionAndProjection,
+            "IReferenceArray`1": .definitionAndProjection,
             "IStringable": .definitionAndProjection,
             "Point": .definitionAndProjection,
             "PropertyType": .definitionAndProjection,

@@ -46,7 +46,7 @@ extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIIn
     }
 
     public static var ireferenceArrayID: COM.COMInterfaceID {
-        fatalError()
+        COMInterfaceID(0x1B8E9594, 0x588E, 0x5A07, 0x9E65, 0x0731A4C9A2DB)
     }
 
     public static var abiDefaultValue: ABIValue { .init() }

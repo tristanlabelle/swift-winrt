@@ -30,7 +30,7 @@ extension WindowsFoundation_Point: WindowsRuntime.StructProjection, COM.ABIInert
     }
 
     public static var ireferenceArrayID: COM.COMInterfaceID {
-        fatalError()
+        COMInterfaceID(0x39313214, 0x5C7D, 0x599D, 0xAE5A, 0x17D9D6492258)
     }
 
     public static var abiDefaultValue: ABIValue { .init() }
