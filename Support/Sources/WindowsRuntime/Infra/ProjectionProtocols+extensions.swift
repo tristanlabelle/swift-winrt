@@ -2,6 +2,8 @@ import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
 extension BoxableProjection {
+    public typealias IReferenceToOptional = IReferenceToOptionalProjection<Self>
+
     public static func box(_ value: SwiftValue) throws -> IInspectable {
         ReferenceBox<Self>(value)
     }
