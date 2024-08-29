@@ -259,4 +259,22 @@ internal enum PropertyValueStatics {
         guard let propertyValue else { throw HResult.Error.pointer }
         return COMReference(transferringRef: propertyValue)
     }
+
+    internal static func createIReference<Projection: IReferenceableProjection>(
+            _ value: Projection.SwiftValue,
+            projection: Projection.Type,
+            factory: (Projection.SwiftValue) throws -> COMReference<SWRT_IInspectable>)
+            throws -> WindowsFoundation_IReference<Projection.SwiftValue> {
+        try WindowsFoundation_IReferenceProjection<Projection>.toSwift(
+            factory(value).queryInterface(Projection.ireferenceID, type: SWRT_WindowsFoundation_IReference.self))
+    }
+
+    internal static func createIReferenceArray<Projection: IReferenceableProjection>(
+            _ value: [Projection.SwiftValue],
+            projection: Projection.Type,
+            factory: ([Projection.SwiftValue]) throws -> COMReference<SWRT_IInspectable>)
+            throws -> WindowsFoundation_IReferenceArray<Projection.SwiftValue> {
+        try WindowsFoundation_IReferenceArrayProjection<Projection>.toSwift(
+            factory(value).queryInterface(Projection.ireferenceArrayID, type: SWRT_WindowsFoundation_IReferenceArray.self))
+    }
 }

@@ -21,7 +21,7 @@ extension WindowsFoundation_IReferenceArrayProtocol {
 
 import SWRT_WindowsFoundation
 
-public enum WindowsFoundation_IReferenceArrayProjection<TProjection: BoxableProjection>: InterfaceProjection {
+public enum WindowsFoundation_IReferenceArrayProjection<TProjection: IReferenceableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReferenceArray<TProjection.SwiftValue>
 
     // Our ABI-level IReferenceArray<T> definition is nongeneric, see IReference<T> for why.

@@ -2,39 +2,39 @@ import WindowsRuntime
 import WinRTComponent
 import XCTest
 
+extension IInspectableProtocol {
+    fileprivate func unbox<Projection: IReferenceableProjection>(_ projection: Projection.Type) throws -> Projection.SwiftValue {
+        let ireference = try self.queryInterface(WindowsFoundation_IReferenceProjection<Projection>.self)
+        return try ireference._value()
+    }
+}
+
 class InspectableBoxingTests: WinRTTestCase {
-    typealias CppBoxing = WinRTComponent.InspectableBoxing
-    typealias SwiftBoxing = WindowsRuntime.IInspectableBoxing
-
-    func testRoundTripOfPrimitiveWithIdentityProjection() throws {
+    func testInertPrimitiveRoundTrip() throws {
         let original = Int32(42)
-        XCTAssertEqual(try SwiftBoxing.unboxInt32(SwiftBoxing.box(original)), original)
-        XCTAssertEqual(try SwiftBoxing.unboxInt32(CppBoxing.boxInt32(original)), original)
-        XCTAssertEqual(try CppBoxing.unboxInt32(SwiftBoxing.box(original)), original)
+        XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(PrimitiveProjection.Int32.self), original)
+        XCTAssertEqual(try InspectableBoxing.unboxInt32(createIReference(original)), original)
     }
 
-    func testRoundTripOfPrimitiveWithAllocatingProjection() throws {
+    func testAllocatingPrimitiveRoundTrip() throws {
         let original = "Hello"
-        XCTAssertEqual(try SwiftBoxing.unboxString(SwiftBoxing.box(original)), original)
-        XCTAssertEqual(try SwiftBoxing.unboxString(CppBoxing.boxString(original)), original)
-        XCTAssertEqual(try CppBoxing.unboxString(SwiftBoxing.box(original)), original)
+        XCTAssertEqual(try InspectableBoxing.boxString(original).unbox(PrimitiveProjection.String.self), original)
+        XCTAssertEqual(try InspectableBoxing.unboxString(createIReference(original)), original)
     }
 
-    func testRoundTripOfEnum() throws {
+    func testEnumRoundTrip() throws {
         let original = MinimalEnum.one
-        XCTAssertEqual(try SwiftBoxing.unbox(SwiftBoxing.box(original), projection: MinimalEnum.self), original)
-        XCTAssertEqual(try SwiftBoxing.unbox(CppBoxing.boxMinimalEnum(original), projection: MinimalEnum.self), original)
-        XCTAssertEqual(try CppBoxing.unboxMinimalEnum(SwiftBoxing.box(original)), original)
+        XCTAssertEqual(try InspectableBoxing.boxMinimalEnum(original).unbox(MinimalEnum.self), original)
+        XCTAssertEqual(try InspectableBoxing.unboxMinimalEnum(createIReference(original)), original)
     }
 
-    func testRoundTripOfStruct() throws {
+    func testStructRoundTrip() throws {
         let original = MinimalStruct(field: 42)
-        XCTAssertEqual(try SwiftBoxing.unbox(SwiftBoxing.box(original), projection: MinimalStruct.self), original)
-        XCTAssertEqual(try SwiftBoxing.unbox(CppBoxing.boxMinimalStruct(original), projection: MinimalStruct.self), original)
-        XCTAssertEqual(try CppBoxing.unboxMinimalStruct(SwiftBoxing.box(original)), original)
+        XCTAssertEqual(try InspectableBoxing.boxMinimalStruct(original).unbox(MinimalStruct.self), original)
+        XCTAssertEqual(try InspectableBoxing.unboxMinimalStruct(createIReference(original)), original)
     }
 
-    func testRoundTripOfDelegate() throws {
+    func testDelegateRoundTrip() throws {
         func assertRoundTrip(roundtrip: (@escaping MinimalDelegate) throws -> MinimalDelegate) throws {
             var invoked = false
             let original: MinimalDelegate = { invoked = true }
@@ -45,18 +45,18 @@ class InspectableBoxingTests: WinRTTestCase {
         }
 
         try assertRoundTrip {
-            let boxed = try SwiftBoxing.box($0, projection: MinimalDelegateProjection.self)
-            return try XCTUnwrap(SwiftBoxing.unbox(boxed, projection: MinimalDelegateProjection.self))
+            let ireference = try createIReference($0, projection: MinimalDelegateProjection.self)
+            return try XCTUnwrap(ireference._value())
         }
 
         try assertRoundTrip {
-            let boxed = try CppBoxing.boxMinimalDelegate($0)
-            return try XCTUnwrap(SwiftBoxing.unbox(boxed, projection: MinimalDelegateProjection.self))
+            let iinspectable = try InspectableBoxing.boxMinimalDelegate($0)
+            return try XCTUnwrap(iinspectable.unbox(MinimalDelegateProjection.self))
         }
 
         try assertRoundTrip {
-            let boxed = try SwiftBoxing.box($0, projection: MinimalDelegateProjection.self)
-            return try CppBoxing.unboxMinimalDelegate(boxed)
+            let ireference = try createIReference($0, projection: MinimalDelegateProjection.self)
+            return try InspectableBoxing.unboxMinimalDelegate(ireference)
         }
     }
 }
