@@ -38,7 +38,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         GetIids: { IInspectableVirtualTable.GetIids($0, $1, $2) },
         GetRuntimeClassName: { IInspectableVirtualTable.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
-        ToString: { this, value in _implement(this) { try _set(value, PrimitiveProjection.String.toABI($0.toString())) } })
+        ToString: { this, value in _implement(this) { try _set(value, StringProjection.toABI($0.toString())) } })
 }
 
 public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
@@ -47,8 +47,8 @@ public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID
 
 extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
-        var value = PrimitiveProjection.String.abiDefaultValue
+        var value = StringProjection.abiDefaultValue
         try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))
-        return PrimitiveProjection.String.toSwift(consuming: &value)
+        return StringProjection.toSwift(consuming: &value)
     }
 }

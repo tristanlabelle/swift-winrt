@@ -25,7 +25,7 @@ public enum IInspectableVirtualTable {
         className.pointee = nil
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return HResult.catchValue {
-            className.pointee = try PrimitiveProjection.String.toABI(object.getRuntimeClassName())
+            className.pointee = try StringProjection.toABI(object.getRuntimeClassName())
         }
     }
 

@@ -59,7 +59,7 @@ internal enum PropertyValueStatics {
     }
 
     public static func createChar16(_ value: Char16) throws -> COMReference<SWRT_IInspectable> {
-        try create(value, projection: PrimitiveProjection.Char16.self, factory: virtualTable.pointee.CreateChar16)
+        try create(value, projection: Char16Projection.self, factory: virtualTable.pointee.CreateChar16)
     }
 
     public static func createBoolean(_ value: Bool) throws -> COMReference<SWRT_IInspectable> {
@@ -67,11 +67,11 @@ internal enum PropertyValueStatics {
     }
 
     public static func createString(_ value: String) throws -> COMReference<SWRT_IInspectable> {
-        try create(value, projection: PrimitiveProjection.String.self, factory: virtualTable.pointee.CreateString)
+        try create(value, projection: StringProjection.self, factory: virtualTable.pointee.CreateString)
     }
 
     public static func createGuid(_ value: GUID) throws -> COMReference<SWRT_IInspectable> {
-        try create(value, projection: PrimitiveProjection.Guid.self, factory: virtualTable.pointee.CreateGuid)
+        try create(value, projection: GuidProjection.self, factory: virtualTable.pointee.CreateGuid)
     }
 
     public static func createDateTime(_ value: WindowsFoundation_DateTime) throws -> COMReference<SWRT_IInspectable> {
@@ -96,79 +96,79 @@ internal enum PropertyValueStatics {
 
     public static func createUInt8Array(_ value: [UInt8]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.UInt8.self, inertProjection: true,
+            value, projection: UInt8Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateUInt8Array)
     }
 
     public static func createInt16Array(_ value: [Int16]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Int16.self, inertProjection: true,
+            value, projection: Int16Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateInt16Array)
     }
 
     public static func createUInt16Array(_ value: [UInt16]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.UInt16.self, inertProjection: true,
+            value, projection: UInt16Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateUInt16Array)
     }
 
     public static func createInt32Array(_ value: [Int32]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Int32.self, inertProjection: true,
+            value, projection: Int32Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateInt32Array)
     }
 
     public static func createUInt32Array(_ value: [UInt32]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.UInt32.self, inertProjection: true,
+            value, projection: UInt32Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateUInt32Array)
     }
 
     public static func createInt64Array(_ value: [Int64]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Int64.self, inertProjection: true,
+            value, projection: Int64Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateInt64Array)
     }
 
     public static func createUInt64Array(_ value: [UInt64]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.UInt64.self, inertProjection: true,
+            value, projection: UInt64Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateUInt64Array)
     }
 
     public static func createSingleArray(_ value: [Float]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Single.self, inertProjection: true,
+            value, projection: SingleProjection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateSingleArray)
     }
 
     public static func createDoubleArray(_ value: [Double]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Double.self, inertProjection: true,
+            value, projection: DoubleProjection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateDoubleArray)
     }
 
     public static func createChar16Array(_ value: [Char16]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Char16.self, inertProjection: true,
+            value, projection: Char16Projection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateChar16Array)
     }
 
     public static func createBooleanArray(_ value: [Bool]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Boolean.self, inertProjection: true,
+            value, projection: BooleanProjection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateBooleanArray)
     }
 
     public static func createStringArray(_ value: [String]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.String.self, inertProjection: false,
+            value, projection: StringProjection.self, inertProjection: false,
             factory: virtualTable.pointee.CreateStringArray)
     }
 
     public static func createGuidArray(_ value: [GUID]) throws -> COMReference<SWRT_IInspectable> {
         try createArray(
-            value, projection: PrimitiveProjection.Guid.self, inertProjection: true,
+            value, projection: GuidProjection.self, inertProjection: true,
             factory: virtualTable.pointee.CreateGuidArray)
     }
 
