@@ -1,0 +1,1 @@
+Provides the infrastructure for COM and Windows Runtime projections, which generated code depends on.

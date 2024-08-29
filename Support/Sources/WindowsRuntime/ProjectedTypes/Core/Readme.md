@@ -1,0 +1,1 @@
+Defines core WinRT types which only have definitions in C++ headers, not in Windows Metadata files.

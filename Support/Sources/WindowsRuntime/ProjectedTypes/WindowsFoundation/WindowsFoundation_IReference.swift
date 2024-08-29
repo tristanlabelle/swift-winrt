@@ -1,4 +1,8 @@
 /// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
+///
+/// This interface has two uses in WinRT:
+/// - Boxing primitives, value types and delegates to IInspectable.
+/// - Providing a representation for nullable primitives, value types and delegates (since reference types can be null).
 public typealias WindowsFoundation_IReference<T> = any WindowsFoundation_IReferenceProtocol<T>
 
 /// Allows nongeneric uses of the IReference protocol.
