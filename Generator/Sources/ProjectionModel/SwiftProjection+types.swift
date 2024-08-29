@@ -231,10 +231,10 @@ extension SwiftProjection {
         let projectionType: SwiftType
         if type.definition.namespace == "System",
                 let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
-            projectionType = SupportModules.WinRT.ireferenceUnboxingProjection(of: primitiveType)
+            projectionType = SupportModules.WinRT.ireferenceToOptionalProjection(of: primitiveType)
         }
         else if type.definition is EnumDefinition || type.definition is StructDefinition || type.definition is DelegateDefinition {
-            projectionType = SupportModules.WinRT.ireferenceUnboxingProjection(of: typeProjection.projectionType)
+            projectionType = SupportModules.WinRT.ireferenceToOptionalProjection(of: typeProjection.projectionType)
         }
         else {
             return nil

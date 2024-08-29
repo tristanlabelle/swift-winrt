@@ -89,12 +89,12 @@ extension SupportModules.WinRT {
         .chain([ .init(moduleName), .init("PrimitiveProjection"), .init(type.name) ])
     }
 
-    public static func ireferenceUnboxingProjection(of type: WinRTPrimitiveType) -> SwiftType {
-        .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init(type.name) ])
+    public static func ireferenceToOptionalProjection(of type: WinRTPrimitiveType) -> SwiftType {
+        .chain([ .init(moduleName), .init("PrimitiveProjection"), .init(type.name), .init("IReferenceToOptional") ])
     }
 
-    public static func ireferenceUnboxingProjection(of projectionType: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("IReferenceUnboxingProjection"), .init("Of", genericArgs: [ projectionType ]) ])
+    public static func ireferenceToOptionalProjection(of projectionType: SwiftType) -> SwiftType {
+        .chain([ .init(moduleName), .init("IReferenceToOptionalProjection", genericArgs: [ projectionType ]) ])
     }
 
     public static var iactivationFactoryProjection: SwiftType { .chain(moduleName, "IActivationFactoryProjection") }
