@@ -20,6 +20,10 @@ public struct WinRTError: COMError, CustomStringConvertible {
     public static func throwIfFailed(_ hresult: WindowsRuntime_ABI.SWRT_HResult) throws {
         let hresult = HResultProjection.toSwift(hresult)
         guard let error = WinRTError(hresult: hresult, captureErrorInfo: true) else { return }
+        if let swiftErrorInfo = error.errorInfo as? SwiftRestrictedErrorInfo, swiftErrorInfo.hresult == hresult {
+            // This was originally a Swift error, throw it as such.
+            throw swiftErrorInfo.error
+        }
         throw error
     }
 
@@ -29,12 +33,27 @@ public struct WinRTError: COMError, CustomStringConvertible {
             return HResult.ok.value
         }
         catch let error {
-            let hresult = (error as? COMError)?.hresult ?? HResult.fail
-            var message = (try? StringProjection.toABI(error.localizedDescription)) ?? nil
+            let errorInfo = SwiftRestrictedErrorInfo(error: error)
+            let hresult = errorInfo.hresult.value
+            var message = (try? StringProjection.toABI(errorInfo.message)) ?? nil
             defer { StringProjection.release(&message) }
-            WindowsRuntime_ABI.SWRT_RoOriginateError(hresult.value, message)
-            return hresult.value
+            var iunknown = try? IUnknownProjection.toABI(errorInfo)
+            defer { IUnknownProjection.release(&iunknown) }
+            WindowsRuntime_ABI.SWRT_RoOriginateLanguageException(hresult, message, iunknown)
+            return hresult
         }
+    }
+
+    public static func clear() {
+        WindowsRuntime_ABI.SWRT_RoClearError()
+    }
+
+    public static func captureErrorContext(hresult: HResult) throws {
+        try HResult.throwIfFailed(SWRT_RoCaptureErrorContext(hresult.value))
+    }
+
+    public static func failFastWithErrorContext(hresult: HResult) throws {
+        SWRT_RoFailFastWithErrorContext(hresult.value)
     }
 
     public static func getRestrictedErrorInfo() throws -> IRestrictedErrorInfo? {
