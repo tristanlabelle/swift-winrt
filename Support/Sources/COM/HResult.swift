@@ -1,5 +1,6 @@
 import COM_ABI
 
+/// Represents a COM HRESULT value in Swift.
 public struct HResult: Hashable, Codable, CustomStringConvertible, Sendable {
     public typealias Value = Int32
     public typealias UnsignedValue = UInt32

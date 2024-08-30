@@ -1,4 +1,6 @@
-/// Base for classes that implement and provide identity for COM interfaces.
+/// Base for Swift classes that implement one or more COM interfaces and owns the COM object identity,
+/// meaning that they own the object returned when using QueryInterface for IUnknown.
+/// The generic Projection parameter determines the virtual table of the identity object.
 open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Projection> {
     open class var implements: [COMImplements] { [] }
     open class var implementIAgileObject: Bool { true }

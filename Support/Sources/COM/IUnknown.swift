@@ -1,7 +1,17 @@
 import COM_ABI
 
+/// Represents an arbitrary COM object in Swift.
 public typealias IUnknown = any IUnknownProtocol
+
+/// Base protocol for the COM IUnknown interface in Swift.
+/// Provides QueryInterface but leaves out AddRef/Release to be handled by the projection.
 public protocol IUnknownProtocol: AnyObject {
+    /// Gets an ABI-level reference to the COM interface implementing a given interface ID,
+    /// or throws a COMError with E_NOINTERFACE.
+    ///
+    /// Note: We can't implement a stronger contract using a COMProjection generic type here
+    /// because it supports implementations of QueryInterface calls coming from COM,
+    /// which do not have the static type of the interface to be retrieved. 
     func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference
 }
 
@@ -15,14 +25,17 @@ extension IUnknownProtocol {
         try _queryInterface(Projection.interfaceID)
     }
 
+    /// Queries this object for an additional COM interface described by the given projection.
+    /// On failure, throws a COMError with an HResult of E_NOINTERFACE.
     public func queryInterface<Projection: COMProjection>(_: Projection.Type) throws -> Projection.SwiftObject {
         Projection.toSwift(try self._queryInterface(Projection.self))
     }
 }
 
+/// Projects C(++) IUnknown-based COM objects into Swift.
 public enum IUnknownProjection: COMTwoWayProjection {
-    public typealias SwiftObject = IUnknown
     public typealias ABIStruct = COM_ABI.SWRT_IUnknown
+    public typealias SwiftObject = IUnknown
 
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }

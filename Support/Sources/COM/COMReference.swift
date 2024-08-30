@@ -1,6 +1,6 @@
 import COM_ABI
 
-/// Holds a strong reference to a COM object, like a C++ smart pointer.
+/// Holds a strong reference to a COM object, releasing it when deinitialized, like a C++ smart pointer.
 public struct COMReference<ABIStruct>: ~Copyable {
     public var pointer: UnsafeMutablePointer<ABIStruct>
 

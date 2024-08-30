@@ -1,3 +1,5 @@
+/// Provides derived classes with a COM-compatible representation,
+/// such that they can be passed to C(++) APIs accepting COM interfaces.
 /// Convenience base class for COMPrimaryExport and COMSecondaryExport.
 open class COMExportBase<Projection: COMTwoWayProjection>: IUnknownProtocol {
     private var comEmbedding: COMEmbedding

@@ -1,3 +1,5 @@
+/// Supports converting an async callback pattern into a form compatible with Swift's await.
+/// Used to support `IAsyncAction.get`/`IAsyncOperation.get`.
 public actor AsyncAwaiter {
     private enum State {
         case unsignaled
@@ -9,7 +11,7 @@ public actor AsyncAwaiter {
 
     public init() {}
 
-    /// Block until the signal() has been called.
+    /// Block until `signal()` has been called.
     public func wait() async {
         switch state {
             case .signaled: return
@@ -19,7 +21,7 @@ public actor AsyncAwaiter {
         }
     }
 
-    /// Unblocks any current or future wait() calls.
+    /// Unblocks any current or future `wait()` calls.
     public func signal() async {
         switch state {
             case .unsignaled: state = .signaled

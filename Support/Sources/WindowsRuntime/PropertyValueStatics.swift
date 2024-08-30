@@ -2,6 +2,8 @@ import COM
 import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
+/// Exposes static factory methods from `Windows.Foundation.PropertyValue`,
+/// which are used to box primitive types and known `Windows.Foundation` structs to `IReference<T>`/`IInspectable`.
 internal enum PropertyValueStatics {
     private static let iid = COMInterfaceID(0x629BDBC8, 0xD932, 0x4FF4, 0x96B9, 0x8D96C5C1E858)
     private static var lazyReference: COM.COMReference<SWRT_WindowsFoundation_IPropertyValueStatics>.Optional = .none
