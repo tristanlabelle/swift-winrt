@@ -3,7 +3,7 @@ import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
 /// Provides projections from IReference? to T? for boxable T's like primitive types, values types and delegates.
-public enum IReferenceToOptionalProjection<Projection: BoxableProjection>: WinRTProjection, COMProjection {
+public enum IReferenceToOptionalProjection<Projection: IReferenceableProjection>: WinRTProjection, COMProjection {
     public typealias SwiftObject = Projection.SwiftValue
     public typealias ABIStruct = SWRT_WindowsFoundation_IReference
 
@@ -20,6 +20,6 @@ public enum IReferenceToOptionalProjection<Projection: BoxableProjection>: WinRT
     }
 
     public static func toCOM(_ value: SwiftObject) throws -> ABIReference {
-        try Projection.box(value)._queryInterface(interfaceID)
+        try Projection.createIReference(value)._queryInterface(interfaceID)
     }
 }

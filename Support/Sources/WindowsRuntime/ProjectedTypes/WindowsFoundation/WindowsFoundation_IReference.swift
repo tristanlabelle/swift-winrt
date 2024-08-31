@@ -25,7 +25,7 @@ extension WindowsFoundation_IReferenceProtocol {
 
 import SWRT_WindowsFoundation
 
-public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjection>: InterfaceProjection {
+public enum WindowsFoundation_IReferenceProjection<TProjection: IReferenceableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
 
     // Our ABI-level IReference<T> definition is nongeneric.

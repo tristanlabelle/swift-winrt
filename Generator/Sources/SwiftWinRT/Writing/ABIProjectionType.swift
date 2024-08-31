@@ -94,7 +94,7 @@ fileprivate func writeStructProjectionExtension(
         protocolConformances.append(SupportModules.COM.abiInertProjection)
     }
 
-    // extension <struct>: BoxableProjection[, ABIInertProjection]
+    // extension <struct>: IReferenceableProjection[, ABIInertProjection]
     try writer.writeExtension(
             type: .identifier(projection.toTypeName(structDefinition)),
             protocolConformances: protocolConformances) { writer in

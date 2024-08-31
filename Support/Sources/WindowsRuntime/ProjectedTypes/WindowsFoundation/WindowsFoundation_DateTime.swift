@@ -59,11 +59,11 @@ extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIIn
         .init(UniversalTime: value.universalTime)
     }
 
-    public static func box(_ value: SwiftValue) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createDateTime(value))
+    public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
+        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createDateTime)
     }
 
-    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createDateTimeArray(value))
+    public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
+        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createDateTimeArray)
     }
 }

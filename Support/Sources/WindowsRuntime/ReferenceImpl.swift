@@ -1,7 +1,7 @@
 import WindowsRuntime_ABI
 
 /// Implements IReference<T> for any boxable T not provided by the UWP PropertyValue class (value types and delegates).
-internal class ReferenceBox<TProjection: BoxableProjection>
+internal class ReferenceImpl<TProjection: IReferenceableProjection>
         : WinRTPrimaryExport<WindowsFoundation_IReferenceProjection<TProjection>>,
         WindowsFoundation_IReferenceProtocol {
     public typealias T = TProjection.SwiftValue

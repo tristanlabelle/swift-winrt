@@ -75,11 +75,11 @@ extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
         .init(Duration: value.duration)
     }
 
-    public static func box(_ value: SwiftValue) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createTimeSpan(value))
+    public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
+        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createTimeSpan)
     }
 
-    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createTimeSpanArray(value))
+    public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
+        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createTimeSpanArray)
     }
 }

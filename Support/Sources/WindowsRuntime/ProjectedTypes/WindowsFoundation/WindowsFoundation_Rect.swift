@@ -53,11 +53,11 @@ extension WindowsFoundation_Rect: WindowsRuntime.StructProjection, COM.ABIInertP
         .init(X: value.x, Y: value.y, Width: value.width, Height: value.height)
     }
 
-    public static func box(_ value: SwiftValue) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createRect(value))
+    public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
+        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createRect)
     }
 
-    public static func boxArray(_ value: [SwiftValue]) throws -> IInspectable {
-        try IInspectableProjection.toSwift(PropertyValueStatics.createRectArray(value))
+    public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
+        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createRectArray)
     }
 }
