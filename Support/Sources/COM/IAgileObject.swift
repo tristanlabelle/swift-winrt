@@ -1,7 +1,8 @@
 import COM_ABI
 
-/// Projection for the IAgileObject interface.
-/// This is a marker interface which we automatically implement for all COM projections,
+/// Projection for the IAgileObject COM interface, which marks an object as supporting agile marshaling.
+/// IAgileObject is a marker interface with no methods over IUnknown's, so it does not need its own virtual table.
+/// This means we can piggyback on the IUnknown virtual table to transparently implement IAgileObject,
 /// so we don't need to expose a protocol type for it or a two-way projection.
 public enum IAgileObjectProjection: COMProjection {
     public typealias SwiftObject = IUnknown // Avoid introducing an interface for IAgileObject since it is a marker interface.

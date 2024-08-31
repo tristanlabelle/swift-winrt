@@ -27,6 +27,11 @@ import SWRT_WindowsFoundation
 
 public enum WindowsFoundation_IReferenceProjection<TProjection: BoxableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
+
+    // Our ABI-level IReference<T> definition is nongeneric.
+    // We can do this because the pointer in get_Value(T*) has the same ABI representation for all T's.
+    // This allows us to avoid generating ABI code and projections for each IReference<T>,
+    // and hence centralize the logic for dealing with this type in the support module.
     public typealias ABIStruct = SWRT_WindowsFoundation_IReference
 
     public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }

@@ -1,6 +1,7 @@
 import COM_ABI
 
-/// Protocol for strongly-typed two-way COM interface projections into and from Swift.
+/// Protocol for COM interfaces projected into Swift both for consuming COM objects
+/// and for implementing the interface from Swift.
 public protocol COMTwoWayProjection: COMProjection {
     static var virtualTablePointer: UnsafeRawPointer { get }
 }

@@ -23,6 +23,8 @@ import SWRT_WindowsFoundation
 
 public enum WindowsFoundation_IReferenceArrayProjection<TProjection: BoxableProjection>: InterfaceProjection {
     public typealias SwiftObject = WindowsFoundation_IReferenceArray<TProjection.SwiftValue>
+
+    // Our ABI-level IReferenceArray<T> definition is nongeneric, see IReference<T> for why.
     public typealias ABIStruct = SWRT_WindowsFoundation_IReferenceArray
 
     public static var typeName: String { fatalError("Windows.Foundation.IReferenceArray`1<\(TProjection.typeName)>") }

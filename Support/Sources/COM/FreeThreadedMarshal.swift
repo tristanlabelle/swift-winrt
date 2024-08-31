@@ -1,5 +1,6 @@
 import COM_ABI
 
+/// Provides an implementation of IMarshal based on the COM free-threaded marshaler.
 internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalProjection> {
     private let marshaler: COMReference<SWRT_IMarshal>
 
