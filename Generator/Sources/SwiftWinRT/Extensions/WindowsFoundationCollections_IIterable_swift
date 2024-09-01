@@ -37,7 +37,7 @@ internal class SequenceIterator<I: IteratorProtocol>: WinRTPrimaryExport<IInspec
     func _hasCurrent() throws -> Bool { current != nil }
 
     func _current() throws -> T {
-        guard let current else { throw HResult.Error.illegalMethodCall }
+        guard let current else { throw COMError.illegalMethodCall }
         return current
     }
 
@@ -47,6 +47,6 @@ internal class SequenceIterator<I: IteratorProtocol>: WinRTPrimaryExport<IInspec
     }
 
     func getMany(_ items: [I.Element]) throws -> UInt32 {
-        throw HResult.Error.notImpl // TODO(#31): Implement out arrays
+        throw COMError.notImpl // TODO(#31): Implement out arrays
     }
 }

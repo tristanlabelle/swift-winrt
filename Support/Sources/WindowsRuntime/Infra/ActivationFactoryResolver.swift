@@ -27,8 +27,8 @@ public struct SystemActivationFactoryResolver: ActivationFactoryResolver {
 
         var iid = GUIDProjection.toABI(interfaceID)
         var rawPointer: UnsafeMutableRawPointer?
-        try WinRTError.throwIfFailed(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
-        guard let rawPointer else { throw HResult.Error.noInterface }
+        try WinRTError.fromABI(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
+        guard let rawPointer else { throw COMError.noInterface }
 
         let pointer = rawPointer.bindMemory(to: ABIStruct.self, capacity: 1)
         return COM.COMReference(transferringRef: pointer)
@@ -70,11 +70,11 @@ public final class DllActivationFactoryResolver: ActivationFactoryResolver {
                 libraryNameToLoad.withCString(encodedAs: UTF16.self) { name in
                     libraryHandle = WinSDK.LoadLibraryW(name)
                 }
-                guard libraryHandle != nil else { throw HResult.Error.fail }
+                guard libraryHandle != nil else { throw COMError.fail }
             }
 
             guard let rawFuncPointer = WinSDK.GetProcAddress(libraryHandle, "DllGetActivationFactory") else {
-                throw HResult.Error.fail
+                throw COMError.fail
             }
 
             let funcPointer = unsafeBitCast(rawFuncPointer, to: WindowsRuntime_ABI.SWRT_DllGetActivationFactory.self)
@@ -88,8 +88,8 @@ public final class DllActivationFactoryResolver: ActivationFactoryResolver {
         defer { StringProjection.release(&activatableId) }
 
         var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
-        try WinRTError.throwIfFailed(function(activatableId, &factoryPointer))
-        guard let factoryPointer else { throw HResult.Error.noInterface }
+        try WinRTError.fromABI(function(activatableId, &factoryPointer))
+        guard let factoryPointer else { throw COMError.noInterface }
 
         return COM.COMReference(transferringRef: factoryPointer)
     }

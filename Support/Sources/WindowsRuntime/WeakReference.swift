@@ -6,7 +6,7 @@ public final class WeakReference<Projection: ReferenceTypeProjection> {
     private var weakReference: COMReference<SWRT_IWeakReference>
 
     public init(_ target: Projection.SwiftObject) throws {
-        guard let targetInspectable = target as? IInspectable else { throw HResult.Error.invalidArg }
+        guard let targetInspectable = target as? IInspectable else { throw COMError.invalidArg }
         let source = try targetInspectable._queryInterface(
             uuidof(SWRT_IWeakReferenceSource.self), type: SWRT_IWeakReferenceSource.self)
         self.weakReference = .init(transferringRef: try Self.getWeakReference(source.pointer))
@@ -17,15 +17,15 @@ public final class WeakReference<Projection: ReferenceTypeProjection> {
             _ source: UnsafeMutablePointer<SWRT_IWeakReferenceSource>)
             throws -> UnsafeMutablePointer<SWRT_IWeakReference> {
         var weakReference: UnsafeMutablePointer<SWRT_IWeakReference>?
-        try WinRTError.throwIfFailed(source.pointee.VirtualTable.pointee.GetWeakReference(source, &weakReference))
+        try WinRTError.fromABI(source.pointee.VirtualTable.pointee.GetWeakReference(source, &weakReference))
         if let weakReference { return weakReference }
-        throw HResult.Error.fail
+        throw COMError.fail
     }
 
     public func resolve() throws -> Projection.SwiftObject? {
         var inspectableTarget: UnsafeMutablePointer<SWRT_IInspectable>? = nil
         var iid = GUIDProjection.toABI(Projection.interfaceID)
-        try WinRTError.throwIfFailed(weakReference.pointer.pointee.VirtualTable.pointee.Resolve(
+        try WinRTError.fromABI(weakReference.pointer.pointee.VirtualTable.pointee.Resolve(
             weakReference.pointer, &iid, &inspectableTarget))
         var target = Projection.ABIPointer(OpaquePointer(inspectableTarget))
         return Projection.toSwift(consuming: &target)

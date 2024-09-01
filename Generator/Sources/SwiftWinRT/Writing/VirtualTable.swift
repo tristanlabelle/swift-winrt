@@ -78,10 +78,10 @@ fileprivate func writeVirtualTableFunc(
     // Ensure non-optional by reference params are non-null pointers
     for param in params {
         guard case .reference(in: _, out: _, optional: false) = param.passBy else { continue }
-        output.writeFullLine("guard let \(param.name) else { throw COM.HResult.Error.pointer }")
+        output.writeFullLine("guard let \(param.name) else { throw COM.COMError.pointer }")
     }
     if let returnParam {
-        output.writeFullLine("guard let \(returnParam.name) else { throw COM.HResult.Error.pointer }")
+        output.writeFullLine("guard let \(returnParam.name) else { throw COM.COMError.pointer }")
     }
 
     // Declare the Swift representation of params

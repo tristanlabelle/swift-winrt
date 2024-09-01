@@ -31,7 +31,7 @@ public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
         GetBuffer: { this, value, capacity in _implement(this) { this in
-            guard let value, let capacity else { throw HResult.Error.pointer }
+            guard let value, let capacity else { throw COMError.pointer }
             let buffer = try this.buffer
             value.pointee = buffer.baseAddress
             capacity.pointee = UInt32(buffer.count)
@@ -46,7 +46,7 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IMemoryBufferByt
     public func getBuffer() throws -> UnsafeMutableBufferPointer<UInt8>? {
         var value: UnsafeMutablePointer<UInt8>? = nil
         var capacity: UInt32 = 0
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetBuffer(this, &value, &capacity))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetBuffer(this, &value, &capacity))
         return UnsafeMutableBufferPointer(start: value, count: Int(capacity))
     }
 }

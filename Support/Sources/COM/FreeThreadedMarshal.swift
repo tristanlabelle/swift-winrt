@@ -6,34 +6,34 @@ internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalProjec
 
     public init(_ identity: IUnknown) throws {
         var marshalerUnknown: IUnknownPointer? = nil
-        try HResult.throwIfFailed(SWRT_CoCreateFreeThreadedMarshaler(/* pUnkOuter: */ nil, &marshalerUnknown))
-        guard let marshalerUnknown else { throw HResult.Error.noInterface }
+        try COMError.fromABI(SWRT_CoCreateFreeThreadedMarshaler(/* pUnkOuter: */ nil, &marshalerUnknown))
+        guard let marshalerUnknown else { throw COMError.noInterface }
         self.marshaler = COMReference(transferringRef: marshalerUnknown).cast()
         super.init(identity: identity)
     }
 
     func getUnmarshalClass(_ riid: UnsafeMutablePointer<SWRT_Guid>?, _ pv: UnsafeMutableRawPointer?, _ dwDestContext: UInt32, _ pvDestContext: UnsafeMutableRawPointer?, _ mshlflags: UInt32, _ pCid: UnsafeMutablePointer<SWRT_Guid>?) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.GetUnmarshalClass(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.GetUnmarshalClass(
             marshaler.pointer, riid, pv, dwDestContext, pvDestContext, mshlflags, pCid))
     }
     func getMarshalSizeMax(_ riid: UnsafeMutablePointer<SWRT_Guid>?, _ pv: UnsafeMutableRawPointer?, _ dwDestContext: UInt32, _ pvDestContext: UnsafeMutableRawPointer?, _ mshlflags: UInt32, _ pSize: UnsafeMutablePointer<UInt32>?) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.GetMarshalSizeMax(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.GetMarshalSizeMax(
             marshaler.pointer, riid, pv, dwDestContext, pvDestContext, mshlflags, pSize))
     }
     func marshalInterface(_ pStm: OpaquePointer?, _ riid: UnsafeMutablePointer<SWRT_Guid>?, _ pv: UnsafeMutableRawPointer?, _ dwDestContext: UInt32, _ pvDestContext: UnsafeMutableRawPointer?, _ mshlflags: UInt32) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.MarshalInterface(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.MarshalInterface(
             marshaler.pointer, pStm, riid, pv, dwDestContext, pvDestContext, mshlflags))
     }
     func unmarshalInterface(_ pStm: OpaquePointer?, _ riid: UnsafeMutablePointer<SWRT_Guid>?, _ pv: UnsafeMutablePointer<UnsafeMutableRawPointer?>?) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.UnmarshalInterface(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.UnmarshalInterface(
             marshaler.pointer, pStm, riid, pv))
     }
     func releaseMarshalData(_ pStm: OpaquePointer?) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.ReleaseMarshalData(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.ReleaseMarshalData(
             marshaler.pointer, pStm))
     }
     func disconnectObject(_ dwReserved: UInt32) throws {
-        try HResult.throwIfFailed(marshaler.pointer.pointee.VirtualTable.pointee.DisconnectObject(
+        try COMError.fromABI(marshaler.pointer.pointee.VirtualTable.pointee.DisconnectObject(
             marshaler.pointer, dwReserved))
     }
 }

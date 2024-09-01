@@ -34,10 +34,10 @@ public struct COMInterop<ABIStruct> {
     public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         var iid = GUIDProjection.toABI(id)
         var rawPointer: UnsafeMutableRawPointer? = nil
-        try HResult.throwIfFailed(unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
+        try COMError.fromABI(unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
         guard let rawPointer else {
             assertionFailure("QueryInterface succeeded but returned a null pointer")
-            throw HResult.Error.noInterface
+            throw COMError.noInterface
         }
 
         let pointer = rawPointer.bindMemory(to: COM_ABI.SWRT_IUnknown.self, capacity: 1)

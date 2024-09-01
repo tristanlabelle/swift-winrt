@@ -40,7 +40,7 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IBufferByteAccess.Type) -> COMInte
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IBufferByteAccess {
     public func buffer() throws -> UnsafeMutablePointer<UInt8>? {
         var value: UnsafeMutablePointer<UInt8>? = nil
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.Buffer(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.Buffer(this, &value))
         return value
     }
 }

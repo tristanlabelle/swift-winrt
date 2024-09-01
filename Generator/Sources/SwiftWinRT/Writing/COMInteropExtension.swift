@@ -151,7 +151,7 @@ fileprivate func writeSwiftToABICall(
     }
 
     func writeCall() throws {
-        writer.writeStatement("try WinRTError.throwIfFailed("
+        writer.writeStatement("try WinRTError.fromABI("
             + "this.pointee.VirtualTable.pointee.\(abiMethodName)("
             + "\(abiArgs.joined(separator: ", "))))")
     }
@@ -181,7 +181,7 @@ fileprivate func writeSwiftToABICall(
     let returnValue: String
     switch returnTypeProjection.kind {
         case .identity where returnCOMReference:
-            writer.writeStatement("guard let \(returnParam.name) else { throw HResult.Error.pointer }")
+            writer.writeStatement("guard let \(returnParam.name) else { throw COMError.pointer }")
             returnValue = "\(SupportModules.COM.comReference)(transferringRef: \(returnParam.name))"
         case .identity where !returnCOMReference:
             returnValue = returnParam.name

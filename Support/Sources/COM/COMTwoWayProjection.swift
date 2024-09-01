@@ -12,20 +12,16 @@ extension COMTwoWayProjection {
     }
 
     /// Helper for implementing virtual tables
-    public static func _implement(_ this: ABIPointer?, _ body: (SwiftObject) throws -> Void) -> COM_ABI.SWRT_HResult {
-        guard let this else {
-            assertionFailure("COM this pointer was null")
-            return HResult.pointer.value
-        }
-
+    public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> COM_ABI.SWRT_HResult {
+        guard let this else { return COMError.toABI(hresult: HResult.pointer, description: "COM 'this' pointer was null") }
         let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
-        return HResult.catchValue { try body(implementation) }
+        return COMError.toABI { try body(implementation) }
     }
 
     public static func _set<Value>(
             _ pointer: UnsafeMutablePointer<Value>?,
             _ value: @autoclosure () throws -> Value) throws {
-        guard let pointer else { throw HResult.Error.pointer }
+        guard let pointer else { throw COMError.pointer }
         pointer.pointee = try value()
     }
 }

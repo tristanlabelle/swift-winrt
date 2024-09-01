@@ -50,3 +50,7 @@ SWRT_HResult SWRT_RoSetErrorReportingFlags(uint32_t flags) {
 SWRT_HResult SWRT_RoTransformError(SWRT_HResult oldError, SWRT_HResult newError, SWRT_HString message) {
     return (SWRT_HResult)RoTransformError((HRESULT)oldError, (HRESULT)newError, (HSTRING)message);
 }
+
+SWRT_HResult SWRT_SetRestrictedErrorInfo(SWRT_IRestrictedErrorInfo* pRestrictedErrorInfo) {
+    return (SWRT_HResult)SetRestrictedErrorInfo((IRestrictedErrorInfo*)pRestrictedErrorInfo);
+}

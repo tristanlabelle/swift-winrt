@@ -1,27 +1,24 @@
 import COM
 
 // Wraps a Swift Error object into an `IRestrictedErrorInfo` to preserve it across WinRT boundaries.
-internal final class SwiftRestrictedErrorInfo: COMPrimaryExport<IRestrictedErrorInfoProjection>,
-        IRestrictedErrorInfoProtocol, IErrorInfoProtocol {
-    override class var implements: [COMImplements] { [
-        .init(IErrorInfoProjection.self)
+public class SwiftRestrictedErrorInfo: SwiftErrorInfo, IRestrictedErrorInfoProtocol {
+    public override class var implements: [COMImplements] { [
+        .init(IRestrictedErrorInfoProjection.self)
     ] }
 
-    public let error: any Error
-
-    public init(error: any Error) {
-        self.error = error
+    public override init(error: Error) {
+        super.init(error: error)
     }
 
-    public var hresult: HResult { (self.error as? COMError)?.hresult ?? HResult.fail }
-    public var message: String { String(describing: error) }
+    public func originate(captureContext: Bool) {
+        WinRTError.originate(hresult: hresult, message: description, restrictedErrorInfo: self)
+        if captureContext { try? WinRTError.captureContext(hresult: hresult) }
+    }
 
-    // IErrorInfo
-    public var guid: GUID { get throws { throw HResult.Error.fail } }
-    public var source: String? { get throws { throw HResult.Error.fail } }
-    public var description: String? { self.message }
-    public var helpFile: String? { get throws { throw HResult.Error.fail } }
-    public var helpContext: UInt32 { get throws { throw HResult.Error.fail } }
+    public override func toABI(setErrorInfo: Bool = true) -> HResult.Value {
+        if setErrorInfo { try? WinRTError.setRestrictedErrorInfo(self) }
+        return hresult.value
+    }
 
     // IRestrictedErrorInfo
     public func getErrorDetails(
@@ -35,5 +32,5 @@ internal final class SwiftRestrictedErrorInfo: COMPrimaryExport<IRestrictedError
         capabilitySid = nil
     }
 
-    public var reference: String? { get throws { throw HResult.Error.fail } }
+    public var reference: String? { get throws { throw COMError.fail } }
 }

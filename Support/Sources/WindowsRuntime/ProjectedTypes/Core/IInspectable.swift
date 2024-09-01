@@ -45,20 +45,20 @@ public typealias IInspectableReference = IInspectableProjection.ABIReference
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getIids() throws -> [COMInterfaceID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))
+        try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
         return ArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
+        try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
         return StringProjection.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
         var trustLevel: WindowsRuntime_ABI.SWRT_TrustLevel = 0
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetTrustLevel(this, &trustLevel))
+        try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetTrustLevel(this, &trustLevel))
         return TrustLevel.toSwift(trustLevel)
     }
 }

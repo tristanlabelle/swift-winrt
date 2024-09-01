@@ -211,8 +211,8 @@ internal enum PropertyValueStatics {
 
     private static func create<ABIValue>(_ value: ABIValue, factory: SingleValueFactory<ABIValue>) throws -> COMReference<SWRT_IInspectable> {
         var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(factory(this, value, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
+        try WinRTError.fromABI(factory(this, value, &propertyValue))
+        guard let propertyValue else { throw COMError.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
@@ -223,8 +223,8 @@ internal enum PropertyValueStatics {
         var value_abi = try projection.toABI(value)
         defer { projection.release(&value_abi) }
         var propertyValue: IInspectablePointer? = nil
-        try WinRTError.throwIfFailed(factory(this, value_abi, &propertyValue))
-        guard let propertyValue else { throw HResult.Error.pointer }
+        try WinRTError.fromABI(factory(this, value_abi, &propertyValue))
+        guard let propertyValue else { throw COMError.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 
@@ -247,16 +247,16 @@ internal enum PropertyValueStatics {
         if inertProjection, MemoryLayout<Projection.SwiftValue>.size == MemoryLayout<Projection.ABIValue>.size {
             try value.withUnsafeBufferPointer { bufferPointer in
                 let abiPointer = bufferPointer.baseAddress.map { UnsafePointer<Projection.ABIValue>(OpaquePointer($0)) }
-                try WinRTError.throwIfFailed(factory(this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: abiPointer), &propertyValue))
+                try WinRTError.fromABI(factory(this, UInt32(bufferPointer.count), UnsafeMutablePointer(mutating: abiPointer), &propertyValue))
             }
         }
         else {
             var value_abi = try ArrayProjection<Projection>.toABI(value)
             defer { ArrayProjection<Projection>.release(&value_abi) }
-            try WinRTError.throwIfFailed(factory(this, value_abi.count, value_abi.pointer, &propertyValue))
+            try WinRTError.fromABI(factory(this, value_abi.count, value_abi.pointer, &propertyValue))
         }
 
-        guard let propertyValue else { throw HResult.Error.pointer }
+        guard let propertyValue else { throw COMError.pointer }
         return COMReference(transferringRef: propertyValue)
     }
 

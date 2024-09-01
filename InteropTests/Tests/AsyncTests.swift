@@ -21,7 +21,7 @@ class AsyncTests : XCTestCase {
             let _ = try await asyncOperation.get()
             XCTFail("Expected an exception to be thrown")
         }
-        catch let error as COMError {
+        catch let error as COMErrorProtocol {
             XCTAssertEqual(error.hresult, HResult.outOfMemory)
         }
     }
@@ -43,7 +43,7 @@ class AsyncTests : XCTestCase {
             let _ = try await asyncOperation.get()
             XCTFail("Expected an exception to be thrown")
         }
-        catch let error as COMError {
+        catch let error as COMErrorProtocol {
             XCTAssertEqual(try asyncOperation._status(), .error)
             XCTAssertEqual(error.hresult, HResult.outOfMemory)
         }
@@ -56,7 +56,7 @@ class AsyncTests : XCTestCase {
             let _ = try await asyncOperation.get()
             XCTFail("Expected an exception to be thrown")
         }
-        catch let error as COMError {
+        catch let error as COMErrorProtocol {
             XCTAssertEqual(try asyncOperation._status(), .started)
             XCTAssertEqual(error.hresult, HResult.illegalMethodCall)
         }

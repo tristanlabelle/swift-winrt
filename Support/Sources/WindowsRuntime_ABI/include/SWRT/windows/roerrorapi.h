@@ -25,3 +25,4 @@ bool SWRT_RoOriginateLanguageException(SWRT_HResult error, SWRT_HString message,
 SWRT_HResult SWRT_RoReportUnhandledError(SWRT_IRestrictedErrorInfo* pRestrictedErrorInfo);
 SWRT_HResult SWRT_RoSetErrorReportingFlags(uint32_t flags);
 SWRT_HResult SWRT_RoTransformError(SWRT_HResult oldError, SWRT_HResult newError, SWRT_HString message);
+SWRT_HResult SWRT_SetRestrictedErrorInfo(SWRT_IRestrictedErrorInfo* pRestrictedErrorInfo);
