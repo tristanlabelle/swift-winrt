@@ -3,11 +3,11 @@ import WindowsRuntime
 
 internal final class IReferenceToOptionalTests: WinRTTestCase {
     func testCreateNumeric() throws {
-        XCTAssertNil(try PrimitiveProjection.Int32.IReferenceToOptional.toABI(nil))
-        XCTAssertNil(PrimitiveProjection.Int32.IReferenceToOptional.toSwift(nil))
+        XCTAssertNil(try Int32Projection.IReferenceToOptional.toABI(nil))
+        XCTAssertNil(Int32Projection.IReferenceToOptional.toSwift(nil))
 
-        var boxed = try PrimitiveProjection.Int32.IReferenceToOptional.toABI(42)
-        defer { PrimitiveProjection.Int32.IReferenceToOptional.release(&boxed) }
-        XCTAssertEqual(PrimitiveProjection.Int32.IReferenceToOptional.toSwift(boxed), 42)
+        var boxed = try Int32Projection.IReferenceToOptional.toABI(42)
+        defer { Int32Projection.IReferenceToOptional.release(&boxed) }
+        XCTAssertEqual(Int32Projection.IReferenceToOptional.toSwift(boxed), 42)
     }
 }
