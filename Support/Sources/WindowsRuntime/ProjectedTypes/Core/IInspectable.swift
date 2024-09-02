@@ -53,7 +53,7 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
         try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
-        return PrimitiveProjection.String.toSwift(consuming: &runtimeClassName)
+        return StringProjection.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {

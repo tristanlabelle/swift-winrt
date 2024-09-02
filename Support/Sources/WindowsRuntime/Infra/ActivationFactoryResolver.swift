@@ -22,8 +22,8 @@ public struct SystemActivationFactoryResolver: ActivationFactoryResolver {
 
     public static func resolve<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
             type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
-        var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
-        defer { PrimitiveProjection.String.release(&activatableId) }
+        var activatableId = try StringProjection.toABI(runtimeClass)
+        defer { StringProjection.release(&activatableId) }
 
         var iid = GUIDProjection.toABI(interfaceID)
         var rawPointer: UnsafeMutableRawPointer?
@@ -84,8 +84,8 @@ public final class DllActivationFactoryResolver: ActivationFactoryResolver {
     }
 
     public func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference {
-        var activatableId = try PrimitiveProjection.String.toABI(runtimeClass)
-        defer { PrimitiveProjection.String.release(&activatableId) }
+        var activatableId = try StringProjection.toABI(runtimeClass)
+        defer { StringProjection.release(&activatableId) }
 
         var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
         try WinRTError.throwIfFailed(function(activatableId, &factoryPointer))

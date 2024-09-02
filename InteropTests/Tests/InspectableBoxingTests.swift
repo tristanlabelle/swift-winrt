@@ -12,13 +12,13 @@ extension IInspectableProtocol {
 class InspectableBoxingTests: WinRTTestCase {
     func testInertPrimitiveRoundTrip() throws {
         let original = Int32(42)
-        XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(PrimitiveProjection.Int32.self), original)
+        XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(Int32Projection.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxInt32(createIReference(original)), original)
     }
 
     func testAllocatingPrimitiveRoundTrip() throws {
         let original = "Hello"
-        XCTAssertEqual(try InspectableBoxing.boxString(original).unbox(PrimitiveProjection.String.self), original)
+        XCTAssertEqual(try InspectableBoxing.boxString(original).unbox(StringProjection.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxString(createIReference(original)), original)
     }
 
