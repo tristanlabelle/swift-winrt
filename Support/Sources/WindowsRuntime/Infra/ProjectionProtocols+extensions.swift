@@ -13,7 +13,7 @@ extension IReferenceableProjection {
     }
 }
 
-extension ReferenceProjection {
+extension ReferenceTypeProjection {
     // Shadow COMTwoWayProjection methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }

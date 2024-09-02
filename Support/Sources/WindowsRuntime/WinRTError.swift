@@ -80,7 +80,7 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     public static func originate(hresult: HResult, message: String?, restrictedErrorInfo: IRestrictedErrorInfo?) -> Bool {
         guard let restrictedErrorInfo else { return originate(hresult: hresult, message: message) }
 
-        var message = message == nil ? nil : try? PrimitiveProjection.String.toABI(message!)
+        var message = message == nil ? nil : try? StringProjection.toABI(message!)
         defer { StringProjection.release(&message) }
         var iunknown = try? IUnknownProjection.toABI(restrictedErrorInfo)
         defer { IUnknownProjection.release(&iunknown) }
