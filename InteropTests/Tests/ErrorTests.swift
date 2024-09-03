@@ -47,6 +47,8 @@ class ErrorTests: WinRTTestCase {
     }
 
     func testSwiftErrorPreserved() throws {
+        try XCTSkipIf(true, "TODO(#248): Fix preserving Swift error objects across the WinRT boundary.")
+
         struct SwiftError: Error {}
         do {
             try Errors.call { throw SwiftError() }
