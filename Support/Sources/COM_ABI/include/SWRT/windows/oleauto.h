@@ -4,6 +4,7 @@
 #include "SWRT/windows/wtypes.h"
 #include "SWRT/windows/oaidl.h"
 
+SWRT_HResult SWRT_CreateErrorInfo(SWRT_ICreateErrorInfo ** pperrinfo);
 SWRT_HResult SWRT_GetErrorInfo(uint32_t dwReserved, SWRT_IErrorInfo** pperrinfo);
 SWRT_HResult SWRT_SetErrorInfo(uint32_t dwReserved, SWRT_IErrorInfo* perrinfo);
 SWRT_BStr SWRT_SysAllocString(const char16_t* strIn);

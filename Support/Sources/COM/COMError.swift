@@ -38,7 +38,7 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public init(hresult: HResult, description: String?) {
-        self.init(hresult: hresult, errorInfo: description.map { DescriptiveErrorInfo(description: $0) })
+        self.init(hresult: hresult, errorInfo: description.flatMap { try? createErrorInfo(description: $0) })
     }
 
     public var description: String {
@@ -84,8 +84,7 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
 
     public static func toABI(hresult: HResult, description: String? = nil) -> HResult.Value {
         guard hresult.isFailure else { return hresult.value }
-        try? Self.setErrorInfo(description.map { DescriptiveErrorInfo(description: $0) })
-        return hresult.value
+        return Self(hresult: hresult, description: description).toABI()
     }
 
     public static func getErrorInfo() throws -> IErrorInfo? {
@@ -99,17 +98,5 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
         var errorInfo = try IErrorInfoProjection.toABI(errorInfo)
         defer { IErrorInfoProjection.release(&errorInfo) }
         try fromABI(captureErrorInfo: false, COM_ABI.SWRT_SetErrorInfo(/* dwReserved: */ 0, errorInfo))
-    }
-
-    private final class DescriptiveErrorInfo: COMPrimaryExport<IErrorInfoProjection>, IErrorInfoProtocol {
-        private let _description: String
-        public init(description: String) { self._description = description }
-
-        // IErrorInfo
-        public var guid: GUID { get throws { throw COMError.fail } }
-        public var source: String? { get throws { throw COMError.fail } }
-        public var description: String? { self._description }
-        public var helpFile: String? { get throws { throw COMError.fail } }
-        public var helpContext: UInt32 { get throws { throw COMError.fail } }
     }
 }
