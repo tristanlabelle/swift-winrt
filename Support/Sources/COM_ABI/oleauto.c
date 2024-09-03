@@ -3,6 +3,10 @@
 #include <Windows.h>
 #include <oleauto.h>
 
+SWRT_HResult SWRT_CreateErrorInfo(SWRT_ICreateErrorInfo ** pperrinfo) {
+    return (SWRT_HResult)CreateErrorInfo((ICreateErrorInfo**)pperrinfo);
+}
+
 SWRT_HResult SWRT_GetErrorInfo(uint32_t dwReserved, SWRT_IErrorInfo** pperrinfo) {
     return (SWRT_HResult)GetErrorInfo(dwReserved, (IErrorInfo**)pperrinfo);
 }
