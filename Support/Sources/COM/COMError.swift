@@ -20,36 +20,25 @@ extension COMErrorProtocol {
 
 /// Captures a failure from a COM API invocation (HRESULT + optional IErrorInfo).
 public struct COMError: COMErrorProtocol, CustomStringConvertible {
-    public static let fail = Self(failed: HResult.fail, captureErrorInfo: false)
-    public static let illegalMethodCall = Self(failed: HResult.illegalMethodCall, captureErrorInfo: false)
-    public static let invalidArg = Self(failed: HResult.invalidArg, captureErrorInfo: false)
-    public static let notImpl = Self(failed: HResult.notImpl, captureErrorInfo: false)
-    public static let noInterface = Self(failed: HResult.noInterface, captureErrorInfo: false)
-    public static let pointer = Self(failed: HResult.pointer, captureErrorInfo: false)
-    public static let outOfMemory = Self(failed: HResult.outOfMemory, captureErrorInfo: false)
+    public static let fail = Self(hresult: HResult.fail)
+    public static let illegalMethodCall = Self(hresult: HResult.illegalMethodCall)
+    public static let invalidArg = Self(hresult: HResult.invalidArg)
+    public static let notImpl = Self(hresult: HResult.notImpl)
+    public static let noInterface = Self(hresult: HResult.noInterface)
+    public static let pointer = Self(hresult: HResult.pointer)
+    public static let outOfMemory = Self(hresult: HResult.outOfMemory)
 
     public let hresult: HResult // Invariant: isFailure
     public let errorInfo: IErrorInfo?
 
-    private init(failed hresult: HResult, captureErrorInfo: Bool) {
+    public init(hresult: HResult, errorInfo: IErrorInfo? = nil) {
         assert(hresult.isFailure)
-        self.hresult = hresult
-        self.errorInfo = try? Self.getErrorInfo() 
-    }
-
-    public init?(hresult: HResult, errorInfo: IErrorInfo?) {
-        guard hresult.isFailure else { return nil }
         self.hresult = hresult
         self.errorInfo = errorInfo
     }
 
-    public init?(hresult: HResult, captureErrorInfo: Bool) {
-        guard hresult.isFailure else { return nil }
-        self.init(failed: hresult, captureErrorInfo: captureErrorInfo)
-    }
-
-    public init?(hresult: HResult.Value, captureErrorInfo: Bool) {
-        self.init(hresult: HResult(hresult), captureErrorInfo: captureErrorInfo)
+    public init(hresult: HResult, description: String?) {
+        self.init(hresult: hresult, errorInfo: description.map { DescriptiveErrorInfo(description: $0) })
     }
 
     public var description: String {
@@ -66,8 +55,16 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
     @discardableResult
     public static func fromABI(captureErrorInfo: Bool = true, _ hresult: HResult.Value) throws -> HResult {
         let hresult = HResult(hresult)
-        if let comError = COMError(hresult: hresult, captureErrorInfo: captureErrorInfo) { throw comError }
-        return hresult
+        guard hresult.isFailure else { return hresult }
+        guard captureErrorInfo else { throw COMError(hresult: hresult) }
+
+        let errorInfo = try? Self.getErrorInfo()
+        if let swiftErrorInfo = errorInfo as? SwiftErrorInfo, swiftErrorInfo.hresult == hresult {
+            // This was originally a Swift error, throw it as such.
+            throw swiftErrorInfo.error
+        }
+
+        throw COMError(hresult: hresult, errorInfo: errorInfo)
     }
 
     /// Catches any thrown errors from a provided closure, converting it to an HRESULT and optionally setting the COM thread error info state.
@@ -94,23 +91,14 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
     public static func getErrorInfo() throws -> IErrorInfo? {
         var errorInfo: UnsafeMutablePointer<SWRT_IErrorInfo>?
         defer { IErrorInfoProjection.release(&errorInfo) }
-
-        let getErrorInfoHResult = COM_ABI.SWRT_GetErrorInfo(/* dwReserved: */ 0, &errorInfo)
-
-        // GetErrorInfo failed, so don't call it again
-        if let error = COMError(hresult: getErrorInfoHResult, captureErrorInfo: false) { throw error }
-
+        try fromABI(captureErrorInfo: false, COM_ABI.SWRT_GetErrorInfo(/* dwReserved: */ 0, &errorInfo))
         return IErrorInfoProjection.toSwift(consuming: &errorInfo)
     }
 
     public static func setErrorInfo(_ errorInfo: IErrorInfo?) throws {
         var errorInfo = try IErrorInfoProjection.toABI(errorInfo)
         defer { IErrorInfoProjection.release(&errorInfo) }
-
-        let setErrorInfoHResult = COM_ABI.SWRT_SetErrorInfo(/* dwReserved: */ 0, errorInfo)
-
-        // SetErrorInfo failed, so don't call GetErrorInfo
-        if let error = COMError(hresult: setErrorInfoHResult, captureErrorInfo: false) { throw error }
+        try fromABI(captureErrorInfo: false, COM_ABI.SWRT_SetErrorInfo(/* dwReserved: */ 0, errorInfo))
     }
 
     private final class DescriptiveErrorInfo: COMPrimaryExport<IErrorInfoProjection>, IErrorInfoProtocol {
