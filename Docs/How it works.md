@@ -90,7 +90,7 @@ extension COMInterop when T == SWRT_IFoo {
     func getName() throws -> String {
         var name: BSTR? = nil
         defer { BStrProjection.release(&name) }
-        try HResult.throwIfFailed(pointer.pointee.vtable.pointee.GetName(pointer, &name))
+        try COMError.fromABI(pointer.pointee.vtable.pointee.GetName(pointer, &name))
         return BStrProjection.toSwift(name)
     }
 }

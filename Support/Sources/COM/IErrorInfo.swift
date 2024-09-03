@@ -50,31 +50,31 @@ public func uuidof(_: COM_ABI.SWRT_IErrorInfo.Type) -> COMInterfaceID {
 extension COMInterop where ABIStruct == COM_ABI.SWRT_IErrorInfo {
     public func getGuid() throws -> GUID {
         var value = GUIDProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetGUID(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetGUID(this, &value))
         return GUIDProjection.toSwift(value)
     }
 
     public func getSource() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetSource(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetSource(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getDescription() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetDescription(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetDescription(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpFile() throws ->  String? {
         var value = BStrProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetHelpFile(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetHelpFile(this, &value))
         return BStrProjection.toSwift(consuming: &value)
     }
 
     public func getHelpContext() throws ->  UInt32 {
         var value = UInt32()
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetHelpContext(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetHelpContext(this, &value))
         return value
     }
 }

@@ -24,7 +24,7 @@ open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Proj
                 if let interface = Self.implements.first(where: { $0.id == id }) {
                     return interface.createCOM(identity: self)
                 }
-                throw HResult.Error.noInterface
+                throw COMError.noInterface
         }
     }
 }

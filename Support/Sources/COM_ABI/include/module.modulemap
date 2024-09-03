@@ -7,5 +7,6 @@ module COM_ABI {
     header "SWRT/windows/objidl.h"
     header "SWRT/windows/oleauto.h"
     header "SWRT/windows/unknwn.h"
+    header "SWRT/windows/wtypes.h"
     export *
 }

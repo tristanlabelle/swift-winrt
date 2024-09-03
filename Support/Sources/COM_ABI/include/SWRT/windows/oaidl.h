@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/oleauto.h"
+#include "SWRT/windows/wtypes.h"
 #include "SWRT/windows/unknwn.h"
 
 typedef struct SWRT_IErrorInfo {

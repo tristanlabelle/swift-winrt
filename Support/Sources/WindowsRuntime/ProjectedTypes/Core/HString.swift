@@ -13,7 +13,7 @@ public struct HString: ~Copyable {
 
     public init(duplicating abi: WindowsRuntime_ABI.SWRT_HString?) throws {
         var duplicated: WindowsRuntime_ABI.SWRT_HString?
-        try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsDuplicateString(abi, &duplicated))
+        try COMError.fromABI(WindowsRuntime_ABI.SWRT_WindowsDuplicateString(abi, &duplicated))
         self.init(transferring: duplicated)
     }
 
@@ -26,12 +26,12 @@ public struct HString: ~Copyable {
         var buffer: WindowsRuntime_ABI.SWRT_HStringBuffer? = nil
         var pointer: UnsafeMutablePointer<UInt16>? = nil
         let codeUnitCount = value.utf16.count
-        try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsPreallocateStringBuffer(UInt32(codeUnitCount), &pointer, &buffer))
-        guard let pointer else { throw HResult.Error.pointer }
+        try COMError.fromABI(WindowsRuntime_ABI.SWRT_WindowsPreallocateStringBuffer(UInt32(codeUnitCount), &pointer, &buffer))
+        guard let pointer else { throw COMError.pointer }
         _ = UnsafeMutableBufferPointer(start: pointer, count: codeUnitCount).initialize(from: value.utf16)
 
         var abi: WindowsRuntime_ABI.SWRT_HString?
-        do { try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsPromoteStringBuffer(buffer, &abi)) }
+        do { try COMError.fromABI(WindowsRuntime_ABI.SWRT_WindowsPromoteStringBuffer(buffer, &abi)) }
         catch {
             WindowsRuntime_ABI.SWRT_WindowsDeleteStringBuffer(buffer)
             throw error
@@ -51,7 +51,7 @@ public struct HString: ~Copyable {
 
     public func duplicate() throws -> Self {
         var duplicated: WindowsRuntime_ABI.SWRT_HString?
-        try HResult.throwIfFailed(WindowsRuntime_ABI.SWRT_WindowsDuplicateString(abi, &duplicated))
+        try COMError.fromABI(WindowsRuntime_ABI.SWRT_WindowsDuplicateString(abi, &duplicated))
         return .init(transferring: duplicated)
     }
 

@@ -6,11 +6,11 @@ public enum IInspectableVirtualTable {
             _ this: UnsafeMutablePointer<ABIStruct>?,
             _ count: UnsafeMutablePointer<UInt32>?,
             _ iids: UnsafeMutablePointer<UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_Guid>?>?) -> WindowsRuntime_ABI.SWRT_HResult {
-        guard let this, let count, let iids else { return HResult.invalidArg.value }
+        guard let this, let count, let iids else { return WinRTError.toABI(hresult: HResult.invalidArg) }
         count.pointee = 0
         iids.pointee = nil
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
-        return HResult.catchValue {
+        return WinRTError.toABI {
             let idsArray = try object.getIids()
             let comArray = try ArrayProjection<GUIDProjection>.toABI(idsArray)
             count.pointee = comArray.count
@@ -21,10 +21,10 @@ public enum IInspectableVirtualTable {
     public static func GetRuntimeClassName<ABIStruct>(
             _ this: UnsafeMutablePointer<ABIStruct>?,
             _ className: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_HString?>?) -> WindowsRuntime_ABI.SWRT_HResult {
-        guard let this, let className else { return HResult.invalidArg.value }
+        guard let this, let className else { return WinRTError.toABI(hresult: HResult.invalidArg) }
         className.pointee = nil
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
-        return HResult.catchValue {
+        return WinRTError.toABI {
             className.pointee = try StringProjection.toABI(object.getRuntimeClassName())
         }
     }
@@ -32,9 +32,9 @@ public enum IInspectableVirtualTable {
     public static func GetTrustLevel<ABIStruct>(
             _ this: UnsafeMutablePointer<ABIStruct>?,
             _ trustLevel: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_TrustLevel>?) -> WindowsRuntime_ABI.SWRT_HResult {
-        guard let this, let trustLevel else { return HResult.invalidArg.value }
+        guard let this, let trustLevel else { return WinRTError.toABI(hresult: HResult.invalidArg) }
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
-        return HResult.catchValue {
+        return WinRTError.toABI {
             trustLevel.pointee = try TrustLevel.toABI(object.getTrustLevel())
         }
     }

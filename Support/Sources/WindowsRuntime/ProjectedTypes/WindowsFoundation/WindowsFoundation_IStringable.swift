@@ -48,7 +48,7 @@ public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID
 extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = StringProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.ToString(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.ToString(this, &value))
         return StringProjection.toSwift(consuming: &value)
     }
 }

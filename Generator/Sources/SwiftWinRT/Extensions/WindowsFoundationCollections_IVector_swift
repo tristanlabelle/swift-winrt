@@ -74,7 +74,7 @@ public class ArrayVector<T>: WinRTPrimaryExport<IInspectableProjection>,
     }
 
     public func getMany(_ startIndex: UInt32, _ items: [T]) throws -> UInt32 {
-        throw HResult.Error.notImpl // TODO(#31): Implement out arrays
+        throw COMError.notImpl // TODO(#31): Implement out arrays
     }
 
     public func replaceAll(_ items: [T]) throws {

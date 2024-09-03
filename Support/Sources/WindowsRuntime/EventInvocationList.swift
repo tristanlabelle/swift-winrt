@@ -5,13 +5,13 @@ public struct EventInvocationList<Delegate>: ~Copyable {
     public init() {}
 
     public mutating func add(_ handler: Delegate?) throws -> EventRegistration {
-        guard let handler else { throw HResult.Error.pointer }
+        guard let handler else { throw COMError.pointer }
         if implementation == nil { implementation = Implementation() }
         return try implementation!.add(handler)
     }
 
     public mutating func remove(_ token: WindowsRuntime.EventRegistrationToken) throws {
-        guard let implementation else { throw HResult.Error.invalidArg }
+        guard let implementation else { throw COMError.invalidArg }
         try implementation.remove(token)
     }
 
@@ -31,7 +31,7 @@ public struct EventInvocationList<Delegate>: ~Copyable {
         }
 
         public func remove(_ token: WindowsRuntime.EventRegistrationToken) throws {
-            guard let index = handlers.firstIndex(where: { $0.token == token }) else { throw HResult.Error.invalidArg }
+            guard let index = handlers.firstIndex(where: { $0.token == token }) else { throw COMError.invalidArg }
             handlers.remove(at: index)
         }
 

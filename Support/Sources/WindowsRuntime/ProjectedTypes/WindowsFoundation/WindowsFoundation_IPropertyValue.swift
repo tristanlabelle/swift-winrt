@@ -52,43 +52,43 @@ extension WindowsFoundation_IPropertyValueProtocol {
     public var type: WindowsFoundation_PropertyType { try! _type() }
     public var isNumericScalar: Bool { try! _isNumericScalar() }
 
-    public func getUInt8() throws -> UInt8 { throw HResult.Error.notImpl }
-    public func getInt16() throws -> Int16 { throw HResult.Error.notImpl }
-    public func getUInt16() throws -> UInt16 { throw HResult.Error.notImpl }
-    public func getInt32() throws -> Int32 { throw HResult.Error.notImpl }
-    public func getUInt32() throws -> UInt32 { throw HResult.Error.notImpl }
-    public func getInt64() throws -> Int64 { throw HResult.Error.notImpl }
-    public func getUInt64() throws -> UInt64 { throw HResult.Error.notImpl }
-    public func getSingle() throws -> Float { throw HResult.Error.notImpl }
-    public func getDouble() throws -> Double { throw HResult.Error.notImpl }
-    public func getChar16() throws -> Char16 { throw HResult.Error.notImpl }
-    public func getBoolean() throws -> Bool { throw HResult.Error.notImpl }
-    public func getString() throws -> String { throw HResult.Error.notImpl }
-    public func getGuid() throws -> GUID { throw HResult.Error.notImpl }
-    public func getDateTime() throws -> WindowsFoundation_DateTime { throw HResult.Error.notImpl }
-    public func getTimeSpan() throws -> WindowsFoundation_TimeSpan { throw HResult.Error.notImpl }
-    public func getPoint() throws -> WindowsFoundation_Point { throw HResult.Error.notImpl }
-    public func getSize() throws -> WindowsFoundation_Size { throw HResult.Error.notImpl }
-    public func getRect() throws -> WindowsFoundation_Rect { throw HResult.Error.notImpl }
-    public func getUInt8Array(_ value: inout [UInt8]) throws { throw HResult.Error.notImpl }
-    public func getInt16Array(_ value: inout [Int16]) throws { throw HResult.Error.notImpl }
-    public func getUInt16Array(_ value: inout [UInt16]) throws { throw HResult.Error.notImpl }
-    public func getInt32Array(_ value: inout [Int32]) throws { throw HResult.Error.notImpl }
-    public func getUInt32Array(_ value: inout [UInt32]) throws { throw HResult.Error.notImpl }
-    public func getInt64Array(_ value: inout [Int64]) throws { throw HResult.Error.notImpl }
-    public func getUInt64Array(_ value: inout [UInt64]) throws { throw HResult.Error.notImpl }
-    public func getSingleArray(_ value: inout [Float]) throws { throw HResult.Error.notImpl }
-    public func getDoubleArray(_ value: inout [Double]) throws { throw HResult.Error.notImpl }
-    public func getChar16Array(_ value: inout [Char16]) throws { throw HResult.Error.notImpl }
-    public func getBooleanArray(_ value: inout [Bool]) throws { throw HResult.Error.notImpl }
-    public func getStringArray(_ value: inout [String]) throws { throw HResult.Error.notImpl }
-    public func getInspectableArray(_ value: inout [IInspectable?]) throws { throw HResult.Error.notImpl }
-    public func getGuidArray(_ value: inout [GUID]) throws { throw HResult.Error.notImpl }
-    public func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws { throw HResult.Error.notImpl }
-    public func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws { throw HResult.Error.notImpl }
-    public func getPointArray(_ value: inout [WindowsFoundation_Point]) throws { throw HResult.Error.notImpl }
-    public func getSizeArray(_ value: inout [WindowsFoundation_Size]) throws { throw HResult.Error.notImpl }
-    public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw HResult.Error.notImpl }
+    public func getUInt8() throws -> UInt8 { throw COMError.notImpl }
+    public func getInt16() throws -> Int16 { throw COMError.notImpl }
+    public func getUInt16() throws -> UInt16 { throw COMError.notImpl }
+    public func getInt32() throws -> Int32 { throw COMError.notImpl }
+    public func getUInt32() throws -> UInt32 { throw COMError.notImpl }
+    public func getInt64() throws -> Int64 { throw COMError.notImpl }
+    public func getUInt64() throws -> UInt64 { throw COMError.notImpl }
+    public func getSingle() throws -> Float { throw COMError.notImpl }
+    public func getDouble() throws -> Double { throw COMError.notImpl }
+    public func getChar16() throws -> Char16 { throw COMError.notImpl }
+    public func getBoolean() throws -> Bool { throw COMError.notImpl }
+    public func getString() throws -> String { throw COMError.notImpl }
+    public func getGuid() throws -> GUID { throw COMError.notImpl }
+    public func getDateTime() throws -> WindowsFoundation_DateTime { throw COMError.notImpl }
+    public func getTimeSpan() throws -> WindowsFoundation_TimeSpan { throw COMError.notImpl }
+    public func getPoint() throws -> WindowsFoundation_Point { throw COMError.notImpl }
+    public func getSize() throws -> WindowsFoundation_Size { throw COMError.notImpl }
+    public func getRect() throws -> WindowsFoundation_Rect { throw COMError.notImpl }
+    public func getUInt8Array(_ value: inout [UInt8]) throws { throw COMError.notImpl }
+    public func getInt16Array(_ value: inout [Int16]) throws { throw COMError.notImpl }
+    public func getUInt16Array(_ value: inout [UInt16]) throws { throw COMError.notImpl }
+    public func getInt32Array(_ value: inout [Int32]) throws { throw COMError.notImpl }
+    public func getUInt32Array(_ value: inout [UInt32]) throws { throw COMError.notImpl }
+    public func getInt64Array(_ value: inout [Int64]) throws { throw COMError.notImpl }
+    public func getUInt64Array(_ value: inout [UInt64]) throws { throw COMError.notImpl }
+    public func getSingleArray(_ value: inout [Float]) throws { throw COMError.notImpl }
+    public func getDoubleArray(_ value: inout [Double]) throws { throw COMError.notImpl }
+    public func getChar16Array(_ value: inout [Char16]) throws { throw COMError.notImpl }
+    public func getBooleanArray(_ value: inout [Bool]) throws { throw COMError.notImpl }
+    public func getStringArray(_ value: inout [String]) throws { throw COMError.notImpl }
+    public func getInspectableArray(_ value: inout [IInspectable?]) throws { throw COMError.notImpl }
+    public func getGuidArray(_ value: inout [GUID]) throws { throw COMError.notImpl }
+    public func getDateTimeArray(_ value: inout [WindowsFoundation_DateTime]) throws { throw COMError.notImpl }
+    public func getTimeSpanArray(_ value: inout [WindowsFoundation_TimeSpan]) throws { throw COMError.notImpl }
+    public func getPointArray(_ value: inout [WindowsFoundation_Point]) throws { throw COMError.notImpl }
+    public func getSizeArray(_ value: inout [WindowsFoundation_Size]) throws { throw COMError.notImpl }
+    public func getRectArray(_ value: inout [WindowsFoundation_Rect]) throws { throw COMError.notImpl }
 }
 
 import SWRT_WindowsFoundation
@@ -100,13 +100,13 @@ internal func uuidof(_: SWRT_WindowsFoundation_IPropertyValue.Type) -> COMInterf
 extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IPropertyValue {
     internal func get_Type() throws -> WindowsFoundation_PropertyType {
         var abi_value: SWRT_WindowsFoundation_PropertyType = .init()
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.get_Type(this, &abi_value))
+        try WinRTError.fromABI(this.pointee.VirtualTable.pointee.get_Type(this, &abi_value))
         fatalError("Not implemented")
     }
 
     internal func get_IsNumericScalar() throws -> Bool {
         var abi_value: CBool = false
-        try WinRTError.throwIfFailed(this.pointee.VirtualTable.pointee.get_IsNumericScalar(this, &abi_value))
+        try WinRTError.fromABI(this.pointee.VirtualTable.pointee.get_IsNumericScalar(this, &abi_value))
         return abi_value
     }
 }

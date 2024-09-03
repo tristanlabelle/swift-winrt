@@ -43,7 +43,7 @@ open class ComposableClass: IInspectableProtocol {
             // The composed object is useful only when not providing an outer object.
             var inner: IInspectablePointer? = nil
             _ = try _factory(IInspectablePointer(OpaquePointer(outer.unknownPointer)), &inner)
-            guard let inner else { throw HResult.Error.fail }
+            guard let inner else { throw COMError.fail }
             self.innerWithRef = inner
         }
         else {

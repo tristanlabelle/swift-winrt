@@ -40,7 +40,7 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReferenceSource.Type) -> COMI
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.GetWeakReference(this, &value))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.GetWeakReference(this, &value))
         return IWeakReferenceProjection.toSwift(consuming: &value)
     }
 }

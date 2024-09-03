@@ -31,7 +31,7 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
         Resolve: { this, iid, objectReference in _implement(this) {
-            guard let iid, let objectReference else { throw HResult.Error.pointer }
+            guard let iid, let objectReference else { throw COMError.pointer }
             objectReference.pointee = nil
             var inspectable = try IInspectableProjection.toABI($0.resolve())
             defer { IInspectableProjection.release(&inspectable) }
@@ -50,7 +50,7 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReference {
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
         var iid = GUIDProjection.toABI(iid)
         var objectReference = IInspectableProjection.abiDefaultValue
-        try HResult.throwIfFailed(this.pointee.VirtualTable.pointee.Resolve(this, &iid, &objectReference))
+        try COMError.fromABI(this.pointee.VirtualTable.pointee.Resolve(this, &iid, &objectReference))
         return IInspectableProjection.toSwift(consuming: &objectReference)
     }
 }

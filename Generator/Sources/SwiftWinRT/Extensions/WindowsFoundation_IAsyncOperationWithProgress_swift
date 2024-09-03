@@ -5,7 +5,7 @@ extension WindowsFoundation_IAsyncOperationWithProgressProtocol {
     public func get() async throws -> TResult {
         if try _status() == .started {
             // We can't await if the completed handler is already set
-            guard try COM.NullResult.catch(_completed()) == nil else { throw COM.HResult.Error.illegalMethodCall }
+            guard try COM.NullResult.catch(_completed()) == nil else { throw COM.COMError.illegalMethodCall }
             let awaiter = WindowsRuntime.AsyncAwaiter()
             try _completed({ _, _ in _Concurrency.Task { await awaiter.signal() } })
             await awaiter.wait()

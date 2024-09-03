@@ -9,7 +9,7 @@ class ErrorTests: WinRTTestCase {
         do {
             try Errors.failWith(hresult, "")
             XCTFail("Expected an error")
-        } catch let error as COMError {
+        } catch let error as COMErrorProtocol {
             XCTAssertEqual(error.hresult, hresult)
         }
     }
@@ -31,14 +31,29 @@ class ErrorTests: WinRTTestCase {
     }
 
     func testThrowWithHResult() throws {
-        let hresult = HResult(unsigned: 0xCAFEBABE)
-        let error = try XCTUnwrap(HResult.Error(hresult: hresult))
-        XCTAssertEqual(
-            try Errors.catchHResult { throw error },
-            hresult)
+        struct TestError: ErrorWithHResult {
+            public var hresult: HResult { .init(unsigned: 0xCAFEBABE) }
+        }
+        let error = TestError()
+        XCTAssertEqual(try Errors.catchHResult { throw error }, error.hresult)
     }
 
     func testThrowWithMessage() throws {
-        throw XCTSkip("Not implemented: RoOriginateError")
+        struct TestError: Error, CustomStringConvertible {
+            public var description: String { "test" }
+        }
+        let error = TestError()
+        XCTAssertEqual(try Errors.catchMessage { throw error }, error.description)
+    }
+
+    func testSwiftErrorPreserved() throws {
+        try XCTSkipIf(true, "TODO(#248): Fix preserving Swift error objects across the WinRT boundary.")
+
+        struct SwiftError: Error {}
+        do {
+            try Errors.call { throw SwiftError() }
+            XCTFail("Expected an error")
+        }
+        catch _ as SwiftError {} // Success
     }
 }
