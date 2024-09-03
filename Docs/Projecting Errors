@@ -1,0 +1,33 @@
+# Projecting Errors
+
+This document explains how COM, WinRT and Swift errors interoperate.
+
+## The COM error model
+
+The COM and WinRT error models are similar: functions report errors by returning a failure HRESULT value and optionally setting the COM thread-local error info object (`IErrorInfo` for COM, `IRestrictedErrorInfo` for WinRT). WinRT additionally has means of "originating" the error to a debugger and capturing the error context (CPU context).
+
+For the consumer of a COM API, the intended usage when a function returns a failure HRESULT is to call `GetErrorInfo` to get and clear the current thread's `IErrorInfo` object. This must be done immediately upon seeing the failure HRESULT as any other COM calls could override the error info object. 
+
+For WinRT APIs, the COM way described above works, but it is better to call `GetRestrictedErrorInfo` to get (and clear) the richer `IRestrictedErrorInfo` object which provides the full "restricted" error description.
+
+## Swift projection
+
+In Swift, we want to lift the COM error model into Swift errors (thrown objects conforming to the `Error`) protocol. We also want to preserve Swift-native errors thrown within COM callbacks such that they can cross into COM and back into Swift unchanged (i.e. catchable using `catch _ as MySwiftError`).
+
+### COM-Originating Errors
+
+We define a `COMError` object conforming to the `Error` protocol so that we can throw it using normal language semantics. This object holds the failure HRESULT value as well as an optional `IErrorInfo` providing additional error information, thus encapsulating the full COM error model.
+
+When a COM function is called from Swift and returns a failure HRESULT, we immediately call `GetErrorInfo`, then create and throw a `COMError`.
+
+When Swift is returning to a COM caller with a thrown error, we catch the `COMError`, call `SetErrorInfo` to restore the thread-local error info and return the HRESULT.
+
+### Swift-Native Errors
+
+If Swift can return to a COM caller with a thrown error, that error could be an arbitrary Swift-native error and not be a `COMError`. In this case, we instantiate a custom implementation of `IErrorInfo` that wraps the Swift error, set it as the COM thread-local error info and figure out an HRESULT value to return (usually `E_FAIL`).
+
+If such a failure HRESULT bubbles through COM layers and back into Swift, we retrieve the `IErrorInfo` object, inspect it to see if it is our custom implementation, and if so throw the wrapped Swift error instead of a generic `COMError`.
+
+### WinRT
+
+Most of the details above apply to WinRT errors, except that we replace the custom `IErrorInfo` object with a vanilla `IRestrictedErrorInfo` object created by `RoOriginateLanguageException` to which we can specify an `IUnknown` that wraps the Swift error and which we can later retrieve via the `ILanguageExceptionErrorInfo` interface.
