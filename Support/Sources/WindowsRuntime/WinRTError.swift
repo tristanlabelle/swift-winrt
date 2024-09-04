@@ -66,7 +66,7 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
 
         // Otherwise, originate a new error
         let hresult = (error as? ErrorWithHResult)?.hresult ?? HResult.fail
-        if Self.originate(hresult: hresult, message: String(describing: error), languageException: LanguageException(error: error)) {
+        if originate && Self.originate(hresult: hresult, message: String(describing: error), languageException: LanguageException(error: error)) {
             if captureContext { try? Self.captureContext(hresult: hresult) }
         }
 
