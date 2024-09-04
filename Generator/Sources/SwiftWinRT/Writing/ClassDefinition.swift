@@ -32,6 +32,11 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
             protocolConformances.append(.identifier(try projection.toProtocolName(interfaceDefinition)))
         }
 
+        if (try? classDefinition.findAttribute(MarshalingBehaviorAttribute.self))?.type == .agile {
+            // SwiftType cannot represent attributed types, so abuse the type name string.
+            protocolConformances.append(.identifier("@unchecked Sendable"))
+        }
+
         try writer.writeClass(
                 documentation: projection.getDocumentationComment(classDefinition),
                 visibility: SwiftProjection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
