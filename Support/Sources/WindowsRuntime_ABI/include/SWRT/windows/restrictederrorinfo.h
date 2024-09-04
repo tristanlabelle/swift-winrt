@@ -14,6 +14,20 @@ struct SWRT_ILanguageExceptionErrorInfo_VirtualTable {
     SWRT_HResult (__stdcall *GetLanguageException)(SWRT_ILanguageExceptionErrorInfo* _this, SWRT_IUnknown** languageException);
 };
 
+typedef struct SWRT_ILanguageExceptionErrorInfo2 {
+    struct SWRT_ILanguageExceptionErrorInfo2_VirtualTable* VirtualTable;
+} SWRT_ILanguageExceptionErrorInfo2;
+
+struct SWRT_ILanguageExceptionErrorInfo2_VirtualTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_ILanguageExceptionErrorInfo2* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_ILanguageExceptionErrorInfo2* _this);
+    uint32_t (__stdcall *Release)(SWRT_ILanguageExceptionErrorInfo2* _this);
+    SWRT_HResult (__stdcall *GetLanguageException)(SWRT_ILanguageExceptionErrorInfo2* _this, SWRT_IUnknown** languageException);
+    SWRT_HResult (__stdcall *GetPreviousLanguageExceptionErrorInfo)(SWRT_ILanguageExceptionErrorInfo2* _this, SWRT_ILanguageExceptionErrorInfo2** previousLanguageExceptionErrorInfo);
+    SWRT_HResult (__stdcall *CapturePropagationContext)(SWRT_ILanguageExceptionErrorInfo2* _this, SWRT_IUnknown* languageException);
+    SWRT_HResult (__stdcall *GetPropagationContextHead)(SWRT_ILanguageExceptionErrorInfo2* _this, SWRT_ILanguageExceptionErrorInfo2** propagatedLanguageExceptionErrorInfoHead);
+};
+
 typedef struct SWRT_IRestrictedErrorInfo {
     struct SWRT_IRestrictedErrorInfo_VirtualTable* VirtualTable;
 } SWRT_IRestrictedErrorInfo;

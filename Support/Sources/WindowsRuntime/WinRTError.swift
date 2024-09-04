@@ -39,13 +39,34 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     public static func fromABI(captureErrorInfo: Bool = true, _ hresult: WindowsRuntime_ABI.SWRT_HResult) throws -> HResult {
         let hresult = HResult(hresult)
         guard hresult.isFailure else { return hresult }
+
+        // Check for an associated IRestrictedErrorInfo
         guard captureErrorInfo, let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult) else {
             throw WinRTError(hresult: hresult)
         }
 
-        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self),
-                let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException {
-            throw languageException.error
+        // Ensure we didn't get a stale IRestrictedErrorInfo
+        var description: String? = nil
+        var error: HResult = .ok
+        var restrictedDescription: String? = nil
+        var capabilitySid: String? = nil
+        try? restrictedErrorInfo.getErrorDetails(
+            description: &description, error: &error,
+            restrictedDescription: &restrictedDescription, capabilitySid: &capabilitySid)
+        guard error == hresult else { throw WinRTError(hresult: hresult) }
+
+        // Append to the propagation context, if available.
+        // See https://learn.microsoft.com/en-us/windows/win32/api/restrictederrorinfo/nf-restrictederrorinfo-ilanguageexceptionerrorinfo2-capturepropagationcontext
+        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self) {
+            let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException
+
+            if let languageExceptionErrorInfo2 = try? languageExceptionErrorInfo.queryInterface(ILanguageExceptionErrorInfo2Projection.self) {
+                try languageExceptionErrorInfo2.capturePropagationContext(nil) // No new language exception to provide
+            }
+
+            if let languageException {
+                throw languageException.error
+            }
         }
 
         throw WinRTError(hresult: hresult, errorInfo: restrictedErrorInfo)
