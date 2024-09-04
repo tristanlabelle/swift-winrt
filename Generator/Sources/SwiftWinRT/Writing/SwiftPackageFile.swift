@@ -4,7 +4,7 @@ import DotNetMetadata
 import ProjectionModel
 import struct Foundation.URL
 
-func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, toPath path: String) {
+func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, excludeCMakeLists: Bool, toPath path: String) {
     var package = SwiftPackage(name: "Projection")
     package.dependencies.append(getSupportPackageDependency(location: supportPackageLocation))
 
@@ -52,6 +52,13 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
                 package.targets.append(namespaceModuleTarget)
                 productTargets.append(namespaceModuleTarget.name)
             }
+        }
+    }
+
+    if excludeCMakeLists {
+        // Assume every target has a root CMakeLists.txt file
+        for targetIndex in package.targets.indices {
+            package.targets[targetIndex].exclude.append("CMakeLists.txt")
         }
     }
 

@@ -53,17 +53,19 @@ public struct SwiftPackage {
         public var name: String
         public var dependencies: [Dependency] = []
         public var path: String?
+        public var exclude: [String] = []
         public var cUnsafeFlags: [String]
 
-        public init(name: String, dependencies: [Dependency] = [], path: String? = nil, cUnsafeFlags: [String] = []) {
+        public init(name: String, dependencies: [Dependency] = [], path: String? = nil, exclude: [String] = [], cUnsafeFlags: [String] = []) {
             self.name = name
             self.dependencies = dependencies
             self.path = path
+            self.exclude = exclude
             self.cUnsafeFlags = cUnsafeFlags
         }
 
-        public static func target(name: String, dependencies: [Dependency] = [], path: String? = nil, cUnsafeFlags: [String] = []) -> Target {
-            .init(name: name, dependencies: dependencies, path: path, cUnsafeFlags: cUnsafeFlags)
+        public static func target(name: String, dependencies: [Dependency] = [], path: String? = nil, exclude: [String] = [], cUnsafeFlags: [String] = []) -> Target {
+            .init(name: name, dependencies: dependencies, path: path, exclude: exclude, cUnsafeFlags: cUnsafeFlags)
         }
 
         public enum Dependency: ExpressibleByStringLiteral {

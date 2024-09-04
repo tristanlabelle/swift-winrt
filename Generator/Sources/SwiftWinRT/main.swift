@@ -36,6 +36,7 @@ do {
         writeSwiftPackageFile(
             projection,
             supportPackageLocation: commandLineArguments.supportPackageLocation,
+            excludeCMakeLists: commandLineArguments.generateCMakeLists,
             toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")
     }
 

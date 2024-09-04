@@ -35,7 +35,11 @@ let package = Package(
             name: "WindowsRuntime",
             dependencies: ["COM", "WindowsRuntime_ABI", "InternalABI"],
             path: "Support/Sources/WindowsRuntime",
-            exclude: ["CMakeLists.txt", "Readme.md"]),
+            exclude: [
+                "CMakeLists.txt",
+                "ProjectedTypes/Core/Readme.md",
+                "ProjectedTypes/WindowsFoundation/Readme.md",
+            ]),
         .testTarget(
             name: "Tests",
             dependencies: ["COM", "WindowsRuntime"],

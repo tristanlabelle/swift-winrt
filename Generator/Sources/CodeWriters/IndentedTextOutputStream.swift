@@ -138,6 +138,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         grouping: VerticalGrouping? = nil,
         header: String? = nil,
         footer: String? = nil,
+        endFooterLine: Bool = true,
         body: () throws -> Void) rethrows {
 
         if let grouping {
@@ -164,7 +165,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         if let footer {
             // Force the footer to be grouped with the line above
             self.lineGrouping = nil
-            write(footer, endLine: true)
+            write(footer, endLine: endFooterLine)
         }
 
         self.lineGrouping = grouping
