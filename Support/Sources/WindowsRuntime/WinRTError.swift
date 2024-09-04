@@ -15,7 +15,8 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public init(hresult: HResult, message: String?) {
-        self.init(hresult: hresult, errorInfo: message.map { MessageRestrictedErrorInfo(hresult: hresult, message: $0) })
+        let errorInfo = message.flatMap { try? Self.createRestrictedErrorInfo(hresult: hresult, message: $0) }
+        self.init(hresult: hresult, errorInfo: errorInfo)
     }
 
     public var errorInfo: IErrorInfo? {
@@ -41,9 +42,12 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         guard captureErrorInfo else { throw WinRTError(hresult: hresult) }
 
         let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult)
-        if let swiftErrorInfo = restrictedErrorInfo as? SwiftRestrictedErrorInfo, swiftErrorInfo.hresult == hresult {
-            // This was originally a Swift error, throw it as such.
-            throw swiftErrorInfo.error
+        guard let restrictedErrorInfo else { throw WinRTError(hresult: hresult) }
+
+        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self) {
+            if let languageException = try? languageExceptionErrorInfo.getLanguageException() as? LanguageException {
+                throw languageException.error
+            }
         }
 
         throw WinRTError(hresult: hresult, errorInfo: restrictedErrorInfo)
@@ -61,15 +65,19 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         if let comError = error as? any COMErrorProtocol { return comError.toABI() }
 
         // Otherwise, originate a new error
-        let restrictedErrorInfo = SwiftRestrictedErrorInfo(error: error)
-        if originate { restrictedErrorInfo.originate(captureContext: captureContext) }
-        return restrictedErrorInfo.hresult.value
+        let hresult = (error as? ErrorWithHResult)?.hresult ?? HResult.fail
+        if Self.originate(hresult: hresult, message: String(describing: error), languageException: LanguageException(error: error)) {
+            if captureContext { try? Self.captureContext(hresult: hresult) }
+        }
+
+        return hresult.value
     }
 
     public static func toABI(hresult: HResult, message: String? = nil, captureContext: Bool = true) -> HResult.Value {
         guard hresult.isFailure else { return hresult.value }
-        Self.originate(hresult: hresult, message: message)
-        if captureContext { try? Self.captureContext(hresult: hresult) }
+        if Self.originate(hresult: hresult, message: message) {
+            if captureContext { try? Self.captureContext(hresult: hresult) }
+        }
         return hresult.value
     }
 
@@ -81,12 +89,12 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     }
 
     @discardableResult
-    public static func originate(hresult: HResult, message: String?, restrictedErrorInfo: IRestrictedErrorInfo?) -> Bool {
-        guard let restrictedErrorInfo else { return originate(hresult: hresult, message: message) }
+    public static func originate(hresult: HResult, message: String?, languageException: IUnknown?) -> Bool {
+        guard let languageException else { return originate(hresult: hresult, message: message) }
 
         var message = message == nil ? nil : try? StringProjection.toABI(message!)
         defer { StringProjection.release(&message) }
-        var iunknown = try? IUnknownProjection.toABI(restrictedErrorInfo)
+        var iunknown = try? IUnknownProjection.toABI(languageException)
         defer { IUnknownProjection.release(&iunknown) }
         return WindowsRuntime_ABI.SWRT_RoOriginateLanguageException(hresult.value, message, iunknown)
     }
@@ -101,6 +109,15 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
 
     public static func failFastWithContext(hresult: HResult) throws {
         SWRT_RoFailFastWithErrorContext(hresult.value)
+    }
+
+    public static func createRestrictedErrorInfo(hresult: HResult, message: String?, languageException: IUnknown?) throws -> IRestrictedErrorInfo {
+        // Ro*** APIs expect an IRestrictedErrorInfo created from Ro*** APIs, we can't implement our own.
+        // The only way we have to create one is RoOriginate***, which overwrites the current error info.
+        // So we need to artificially preserve it.
+        let previousErrorInfo = try? COMError.getErrorInfo()
+        defer { try? COMError.setErrorInfo(previousErrorInfo) }
+        return try NullResult.unwrap(Self.originate(hresult: hresult, message: message) ? try? Self.getRestrictedErrorInfo() : nil)
     }
 
     public static func getRestrictedErrorInfo() throws -> IRestrictedErrorInfo? {
@@ -121,41 +138,5 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         var abiValue = try IRestrictedErrorInfoProjection.toABI(value)
         defer { IRestrictedErrorInfoProjection.release(&abiValue) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_SetRestrictedErrorInfo(abiValue))
-    }
-
-    private final class MessageRestrictedErrorInfo: COMPrimaryExport<IRestrictedErrorInfoProjection>,
-            IRestrictedErrorInfoProtocol, IErrorInfoProtocol {
-        public override class var implements: [COMImplements] { [
-            .init(IErrorInfoProjection.self)
-        ] }
-
-        public let hresult: HResult
-        public let message: String
-
-        public init(hresult: HResult, message: String) {
-            self.hresult = hresult
-            self.message = message
-        }
-
-        // IErrorInfo
-        public var guid: GUID { get throws { throw COMError.fail } }
-        public var source: String? { get throws { throw COMError.fail } }
-        public var description: String? { self.message }
-        public var helpFile: String? { get throws { throw COMError.fail } }
-        public var helpContext: UInt32 { get throws { throw COMError.fail } }
-
-        // IRestrictedErrorInfo
-        public func getErrorDetails(
-                description: inout String?,
-                error: inout HResult,
-                restrictedDescription: inout String?,
-                capabilitySid: inout String?) throws {
-            description = self.message
-            error = self.hresult
-            restrictedDescription = self.message
-            capabilitySid = nil
-        }
-
-        public var reference: String? { get throws { throw COMError.fail } }
     }
 }
