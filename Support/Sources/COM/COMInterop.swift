@@ -34,8 +34,7 @@ public struct COMInterop<ABIStruct> {
     public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         var iid = GUIDProjection.toABI(id)
         var rawPointer: UnsafeMutableRawPointer? = nil
-        // Avoid calling GetErrorInfo since RoOriginateError causes QueryInterface calls
-        try COMError.fromABI(captureErrorInfo: false, unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
+        try COMError.fromABI(unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
         guard let rawPointer else {
             assertionFailure("QueryInterface succeeded but returned a null pointer")
             throw COMError.noInterface

@@ -125,9 +125,7 @@ public enum IUnknownVirtualTable {
         guard let this, let iid, let ppvObject else { return COMError.toABI(hresult: HResult.invalidArg) }
         ppvObject.pointee = nil
 
-        // Avoid setting the error info upon failure since QueryInterface is called
-        // by RoOriginateError, which is trying to set the error info itself.
-        return COMError.toABI(setErrorInfo: false) {
+        return COMError.toABI {
             let id = GUIDProjection.toSwift(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
             let reference = id == uuidof(SWRT_SwiftCOMObject.self)
