@@ -11,37 +11,34 @@ extension SwiftPackage {
             // products:
             if !products.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "products: [") {
+                writer.writeIndentedBlock(header: "products: [", footer: "]", endFooterLine: false) {
                     for (index, product) in products.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         product.write(to: writer)
                     }
                 }
-                writer.write("]")
             }
 
             // dependencies:
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "dependencies: [") {
+                writer.writeIndentedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
                     }
                 }
-                writer.write("]")
             }
 
             // targets:
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "targets: [") {
+                writer.writeIndentedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         target.write(to: writer)
                     }
                 }
-                writer.write("]")
             }
         }
     }
@@ -49,26 +46,24 @@ extension SwiftPackage {
 
 extension SwiftPackage.Product {
     fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".library(") {
+        writer.writeIndentedBlock(header: ".library(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "targets: [") {
+                writer.writeIndentedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         writer.write("\"\(escapeStringLiteral(target))\"")
                     }
                 }
-                writer.write("]")
             }
         }
-        writer.write(")")
     }
 }
 
 extension SwiftPackage.Dependency {
     fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".package(") {
+        writer.writeIndentedBlock(header: ".package(", footer: ")", endFooterLine: false) {
             switch self {
                 case .fileSystem(let name, let path):
                     if let name { writer.write("name: \"\(name)\",", endLine: true) }
@@ -78,24 +73,22 @@ extension SwiftPackage.Dependency {
                     writer.write("branch: \"\(escapeStringLiteral(branch))\"")
             }
         }
-        writer.write(")")
     }
 }
 
 extension SwiftPackage.Target {
     fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".target(") {
+        writer.writeIndentedBlock(header: ".target(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "dependencies: [") {
+                writer.writeIndentedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
                     }
                 }
-                writer.write("]")
             }
 
             if let path {
@@ -103,10 +96,22 @@ extension SwiftPackage.Target {
                 writer.write("path: \"\(escapeStringLiteral(path))\"")
             }
 
+            if !exclude.isEmpty {
+                writer.write(",", endLine: true)
+                writer.writeIndentedBlock(header: "exclude: [", footer: "]", endFooterLine: false) {
+                    for (index, path) in exclude.enumerated() {
+                        if index > 0 { writer.write(", ", endLine: true) }
+                            writer.write("\"")
+                            writer.write(path.replacingOccurrences(of: "\\", with: "\\\\"))
+                            writer.write("\"")
+                    }
+                }
+            }
+
             if !cUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "cSettings: [") {
-                    writer.writeIndentedBlock(header: ".unsafeFlags([") {
+                writer.writeIndentedBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "]", endFooterLine: false) {
                         for (index, flag) in cUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -114,12 +119,9 @@ extension SwiftPackage.Target {
                             writer.write("\"")
                         }
                     }
-                    writer.write("])")
                 }
-                writer.write("]")
             }
         }
-        writer.write(")")
     }
 }
 
