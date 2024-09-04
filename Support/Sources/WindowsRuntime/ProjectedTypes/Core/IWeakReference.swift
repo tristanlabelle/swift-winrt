@@ -1,9 +1,11 @@
-import WindowsRuntime_ABI
+import COM
 
 public typealias IWeakReference = any IWeakReferenceProtocol
 public protocol IWeakReferenceProtocol: IUnknownProtocol {
     func resolve() throws -> IInspectable?
 }
+
+import WindowsRuntime_ABI
 
 public enum IWeakReferenceProjection: COMTwoWayProjection {
     public typealias SwiftObject = IWeakReference

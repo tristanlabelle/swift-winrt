@@ -45,7 +45,7 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         guard let restrictedErrorInfo else { throw WinRTError(hresult: hresult) }
 
         if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self) {
-            if let languageException = try? languageExceptionErrorInfo.getLanguageException() as? LanguageException {
+            if let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException {
                 throw languageException.error
             }
         }
@@ -111,7 +111,7 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         SWRT_RoFailFastWithErrorContext(hresult.value)
     }
 
-    public static func createRestrictedErrorInfo(hresult: HResult, message: String?, languageException: IUnknown?) throws -> IRestrictedErrorInfo {
+    public static func createRestrictedErrorInfo(hresult: HResult, message: String?, languageException: IUnknown? = nil) throws -> IRestrictedErrorInfo {
         // Ro*** APIs expect an IRestrictedErrorInfo created from Ro*** APIs, we can't implement our own.
         // The only way we have to create one is RoOriginate***, which overwrites the current error info.
         // So we need to artificially preserve it.

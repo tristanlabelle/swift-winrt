@@ -1,9 +1,11 @@
-import WindowsRuntime_ABI
+import COM
 
 public typealias ILanguageExceptionErrorInfo = any ILanguageExceptionErrorInfoProtocol
 public protocol ILanguageExceptionErrorInfoProtocol: IUnknownProtocol {
     var languageException: IUnknown { get throws }
 }
+
+import WindowsRuntime_ABI
 
 public enum ILanguageExceptionErrorInfoProjection: COMTwoWayProjection {
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo
@@ -30,18 +32,19 @@ public enum ILanguageExceptionErrorInfoProjection: COMTwoWayProjection {
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
-        GetLanguageException: { this, languageException in _implement(this) {
-            TODO;
+        GetLanguageException: { this, languageException in _implement(this) { this in
+            guard let languageException else { throw COMError.fail }
+            languageException.pointee = try IUnknownProjection.toABI(this.languageException)
         } })
 }
 
 public func uuidof(_: WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo.Type) -> COMInterfaceID {
-    .init(TODO)
+    .init(0x04a2dbf3, 0xdf83, 0x116c, 0x0946, 0x0812abf6e07d)
 }
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo {
-    public func getLanguageException() throws -> IUnkown {
-        var result: IUnknownProjection.abiDefaultValue
+    public func getLanguageException() throws -> IUnknown {
+        var result: IUnknownPointer? = nil // IUnknownProjection.abiDefaultValue (compiler bug?)
         defer { IUnknownProjection.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetLanguageException(this, &result))
         return try NullResult.unwrap(IUnknownProjection.toSwift(consuming: &result))

@@ -1,4 +1,4 @@
-import WindowsRuntime_ABI
+import COM
 
 public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
@@ -9,6 +9,8 @@ public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
         capabilitySid: inout String?) throws
     var reference: String? { get throws }
 }
+
+import WindowsRuntime_ABI
 
 public enum IRestrictedErrorInfoProjection: COMTwoWayProjection {
     public typealias SwiftObject = IRestrictedErrorInfo

@@ -1,5 +1,4 @@
 import COM
-import WindowsRuntime_ABI
 
 public typealias IInspectable = any IInspectableProtocol
 public protocol IInspectableProtocol: IUnknownProtocol {
@@ -7,6 +6,8 @@ public protocol IInspectableProtocol: IUnknownProtocol {
     func getRuntimeClassName() throws -> String
     func getTrustLevel() throws -> TrustLevel
 }
+
+import WindowsRuntime_ABI
 
 public enum IInspectableProjection: InterfaceProjection {
     public typealias SwiftObject = IInspectable

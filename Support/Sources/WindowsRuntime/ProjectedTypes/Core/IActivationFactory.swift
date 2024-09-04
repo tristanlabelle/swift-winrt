@@ -1,10 +1,11 @@
 import COM
-import WindowsRuntime_ABI
 
 public typealias IActivationFactory = any IActivationFactoryProtocol
 public protocol IActivationFactoryProtocol: IInspectableProtocol {
     func activateInstance() throws -> IInspectable
 }
+
+import WindowsRuntime_ABI
 
 public enum IActivationFactoryProjection: InterfaceProjection {
     public typealias SwiftObject = IActivationFactory
