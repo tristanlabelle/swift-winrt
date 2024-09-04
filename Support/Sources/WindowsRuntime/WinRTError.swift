@@ -39,15 +39,13 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     public static func fromABI(captureErrorInfo: Bool = true, _ hresult: WindowsRuntime_ABI.SWRT_HResult) throws -> HResult {
         let hresult = HResult(hresult)
         guard hresult.isFailure else { return hresult }
-        guard captureErrorInfo else { throw WinRTError(hresult: hresult) }
+        guard captureErrorInfo, let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult) else {
+            throw WinRTError(hresult: hresult)
+        }
 
-        let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult)
-        guard let restrictedErrorInfo else { throw WinRTError(hresult: hresult) }
-
-        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self) {
-            if let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException {
-                throw languageException.error
-            }
+        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self),
+                let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException {
+            throw languageException.error
         }
 
         throw WinRTError(hresult: hresult, errorInfo: restrictedErrorInfo)
@@ -112,9 +110,11 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public static func createRestrictedErrorInfo(hresult: HResult, message: String?, languageException: IUnknown? = nil) throws -> IRestrictedErrorInfo {
-        // Ro*** APIs expect an IRestrictedErrorInfo created from Ro*** APIs, we can't implement our own.
-        // The only way we have to create one is RoOriginate***, which overwrites the current error info.
-        // So we need to artificially preserve it.
+        // From the SetRestrictedErrorInfo docs at https://learn.microsoft.com/en-us/windows/win32/api/roerrorapi/nf-roerrorapi-setrestrictederrorinfo:
+        // > The call fails if IRestrictedErrorInfo isn't the system implementation.
+        // > To create an IRestrictedErrorInfo object, call the OriginateError, TransformError, or RoCaptureErrorContext functions.
+        // But RoOriginateError overwrites the current thread error info object,
+        // so we need to manually save and restore it around the call to RoOriginateError.
         let previousErrorInfo = try? COMError.getErrorInfo()
         defer { try? COMError.setErrorInfo(previousErrorInfo) }
         return try NullResult.unwrap(Self.originate(hresult: hresult, message: message) ? try? Self.getRestrictedErrorInfo() : nil)
