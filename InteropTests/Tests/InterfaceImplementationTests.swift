@@ -16,7 +16,7 @@ class InterfaceImplementationTests: WinRTTestCase {
     }
 
     func testWithDerivedClass() throws {
-        class Derived: MinimalBaseClass, IMinimalInterfaceProtocol {
+        class Derived: MinimalBaseClass, IMinimalInterfaceProtocol, @unchecked Sendable {
             override class var implements: [COMImplements] { [
                 .init(IMinimalInterfaceProjection.self)
             ] }

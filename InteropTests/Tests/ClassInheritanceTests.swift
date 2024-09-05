@@ -30,7 +30,7 @@ class ClassInheritanceTests : XCTestCase {
     }
 
     public func testOverridenMemberInSwiftClass() throws {
-        class SwiftDerived: MinimalBaseClass {
+        class SwiftDerived: MinimalBaseClass, @unchecked Sendable {
             public override init() throws { try super.init() }
             public override func _typeName() throws -> String { "SwiftDerived" }
         }
@@ -40,7 +40,7 @@ class ClassInheritanceTests : XCTestCase {
     }
 
     public func testOverridenMemberInSwiftClassDerivedFromWinRTDerivedClass() throws {
-        class SwiftDerived2: MinimalDerivedClass {
+        class SwiftDerived2: MinimalDerivedClass, @unchecked Sendable {
             public override init() throws { try super.init() }
             public override func _typeName() throws -> String { "SwiftDerived2" }
         }
