@@ -12,7 +12,8 @@ let package = Package(
             name: "Tests",
             dependencies: [
                 .product(name: "WindowsRuntime", package: "swift-winrt"),
-                .product(name: "Projection", package: "Generated"),
+                .product(name: "UWP", package: "Generated"),
+                .product(name: "WinRTComponent", package: "Generated"),
             ],
             path: "Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew

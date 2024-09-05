@@ -30,13 +30,15 @@ do {
         assemblyLoadContext: context)
     try writeProjectionFiles(projection,
         directoryPath: commandLineArguments.outputDirectoryPath,
-        generateCMakeLists: commandLineArguments.generateCMakeLists)
+        generateCMakeLists: commandLineArguments.generateCMakeLists,
+        dynamicLibraries: commandLineArguments.dynamicLibraries)
 
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
             projection,
             supportPackageLocation: commandLineArguments.supportPackageLocation,
             excludeCMakeLists: commandLineArguments.generateCMakeLists,
+            dynamicLibraries: commandLineArguments.dynamicLibraries,
             toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")
     }
 
