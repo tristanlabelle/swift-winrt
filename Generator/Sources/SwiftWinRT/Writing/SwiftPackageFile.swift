@@ -4,22 +4,25 @@ import DotNetMetadata
 import ProjectionModel
 import struct Foundation.URL
 
-func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation: String, excludeCMakeLists: Bool, toPath path: String) {
+func writeSwiftPackageFile(
+        _ projection: SwiftProjection,
+        supportPackageLocation: String,
+        excludeCMakeLists: Bool,
+        dynamicLibraries: Bool,
+        toPath path: String) {
     var package = SwiftPackage(name: "Projection")
     package.dependencies.append(getSupportPackageDependency(location: supportPackageLocation))
-
-    var productTargets = [String]()
 
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
 
         // ABI module
-        var abiModuleTarget = SwiftPackage.Target(name: module.abiModuleName, path: "\(module.name)/ABI")
+        var abiModuleTarget: SwiftPackage.Target = .target(name: module.abiModuleName, path: "\(module.name)/ABI")
         abiModuleTarget.dependencies.append(.product(name: "WindowsRuntime_ABI", package: "swift-winrt"))
         package.targets.append(abiModuleTarget)
 
         // Assembly module
-        var assemblyModuleTarget = SwiftPackage.Target(name: module.name)
+        var assemblyModuleTarget: SwiftPackage.Target = .target(name: module.name)
         assemblyModuleTarget.path = "\(module.name)/Assembly"
         assemblyModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))
 
@@ -31,7 +34,11 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
         assemblyModuleTarget.dependencies.append(.target(name: module.abiModuleName))
 
         package.targets.append(assemblyModuleTarget)
-        productTargets.append(assemblyModuleTarget.name)
+
+        // Define a product for the module
+        var moduleProduct: SwiftPackage.Product = .library(name: module.name, type: dynamicLibraries ? .dynamic : nil, targets: [])
+        moduleProduct.targets.append(assemblyModuleTarget.name)
+        moduleProduct.targets.append(abiModuleTarget.name)
 
         // Namespace modules
         if !module.flattenNamespaces {
@@ -44,15 +51,19 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
             namespaces.sort()
 
             for namespace in namespaces {
-                var namespaceModuleTarget = SwiftPackage.Target(
+                var namespaceModuleTarget: SwiftPackage.Target = .target(
                     name: module.getNamespaceModuleName(namespace: namespace))
                 let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
                 namespaceModuleTarget.path = "\(module.name)/Namespaces/\(compactNamespace)"
                 namespaceModuleTarget.dependencies.append(.target(name: module.name))
                 package.targets.append(namespaceModuleTarget)
-                productTargets.append(namespaceModuleTarget.name)
+                moduleProduct.targets.append(namespaceModuleTarget.name)
             }
         }
+
+        // Create products for the projections and the ABI
+        package.products.append(moduleProduct)
+        package.products.append(.library(name: module.abiModuleName, type: .static, targets: [abiModuleTarget.name]))
     }
 
     if excludeCMakeLists {
@@ -61,8 +72,6 @@ func writeSwiftPackageFile(_ projection: SwiftProjection, supportPackageLocation
             package.targets[targetIndex].exclude.append("CMakeLists.txt")
         }
     }
-
-    package.products.append(.library(name: "Projection", targets: productTargets))
 
     package.write(version: "5.10", to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 }

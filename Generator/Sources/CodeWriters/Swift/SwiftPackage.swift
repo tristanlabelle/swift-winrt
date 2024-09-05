@@ -29,10 +29,16 @@ public struct SwiftPackage {
 
     public struct Product {
         public var name: String
+        public var type: ProductType?
         public var targets: [String]
 
-        public static func library(name: String, targets: [String]) -> Product {
-            .init(name: name, targets: targets)
+        public static func library(name: String, type: ProductType? = nil, targets: [String]) -> Product {
+            .init(name: name, type: type, targets: targets)
+        }
+
+        public enum ProductType: String {
+            case `static`
+            case dynamic
         }
     }
 
@@ -51,18 +57,10 @@ public struct SwiftPackage {
 
     public struct Target {
         public var name: String
-        public var dependencies: [Dependency] = []
+        public var dependencies: [Dependency]
         public var path: String?
-        public var exclude: [String] = []
+        public var exclude: [String]
         public var cUnsafeFlags: [String]
-
-        public init(name: String, dependencies: [Dependency] = [], path: String? = nil, exclude: [String] = [], cUnsafeFlags: [String] = []) {
-            self.name = name
-            self.dependencies = dependencies
-            self.path = path
-            self.exclude = exclude
-            self.cUnsafeFlags = cUnsafeFlags
-        }
 
         public static func target(name: String, dependencies: [Dependency] = [], path: String? = nil, exclude: [String] = [], cUnsafeFlags: [String] = []) -> Target {
             .init(name: name, dependencies: dependencies, path: path, exclude: exclude, cUnsafeFlags: cUnsafeFlags)

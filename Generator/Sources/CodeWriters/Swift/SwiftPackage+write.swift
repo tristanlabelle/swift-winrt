@@ -48,6 +48,12 @@ extension SwiftPackage.Product {
     fileprivate func write(to writer: IndentedTextOutputStream) {
         writer.writeIndentedBlock(header: ".library(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
+
+            if let type {
+                writer.write(",", endLine: true)
+                writer.write("type: .\(type.rawValue)")
+            }
+
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
                 writer.writeIndentedBlock(header: "targets: [", footer: "]", endFooterLine: false) {

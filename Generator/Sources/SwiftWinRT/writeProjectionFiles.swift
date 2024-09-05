@@ -6,12 +6,17 @@ import Foundation
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeProjectionFiles(_ projection: SwiftProjection, directoryPath: String, generateCMakeLists: Bool) throws {
+internal func writeProjectionFiles(
+        _ projection: SwiftProjection,
+        directoryPath: String,
+        generateCMakeLists: Bool,
+        dynamicLibraries: Bool) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
         try writeModuleFiles(module,
             directoryPath: "\(directoryPath)\\\(module.name)",
-            generateCMakeLists: generateCMakeLists)
+            generateCMakeLists: generateCMakeLists,
+            dynamicLibrary: dynamicLibraries)
     }
 
     if generateCMakeLists {
@@ -25,9 +30,17 @@ internal func writeProjectionFiles(_ projection: SwiftProjection, directoryPath:
     }
 }
 
-fileprivate func writeModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+fileprivate func writeModuleFiles(
+        _ module: SwiftProjection.Module,
+        directoryPath: String,
+        generateCMakeLists: Bool,
+        dynamicLibrary: Bool) throws {
     try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", generateCMakeLists: generateCMakeLists)
-    try writeAssemblyModuleFiles(module, directoryPath: "\(directoryPath)\\Assembly", generateCMakeLists: generateCMakeLists)
+
+    try writeAssemblyModuleFiles(
+        module, directoryPath: "\(directoryPath)\\Assembly",
+        generateCMakeLists: generateCMakeLists, dynamicLibrary: dynamicLibrary)
+
     if !module.flattenNamespaces {
         try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", generateCMakeLists: generateCMakeLists)
     }
@@ -44,7 +57,9 @@ fileprivate func writeModuleFiles(_ module: SwiftProjection.Module, directoryPat
     }
 }
 
-fileprivate func writeAssemblyModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+fileprivate func writeAssemblyModuleFiles(
+        _ module: SwiftProjection.Module, directoryPath: String,
+        generateCMakeLists: Bool, dynamicLibrary: Bool) throws {
     var cmakeSources: [String] = []
     for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
         guard try hasSwiftDefinition(typeDefinition) else { continue }
@@ -88,7 +103,7 @@ fileprivate func writeAssemblyModuleFiles(_ module: SwiftProjection.Module, dire
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         cmakeSources.sort()
-        writer.writeAddLibrary(module.name, .static, cmakeSources)
+        writer.writeAddLibrary(module.name, dynamicLibrary ? .shared : .static, cmakeSources)
         writer.writeTargetLinkLibraries(
             module.name, .public,
             [ SupportModules.WinRT.moduleName, module.abiModuleName ] + module.references.map { $0.name })
