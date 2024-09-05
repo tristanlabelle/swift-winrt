@@ -1,0 +1,1 @@
+Defines Swift projections for core WinRT types, and COM types that support the Windows Runtime. Those types are defined in native idl or C++ headers rather than Windows Metadata files and cannot be generated.

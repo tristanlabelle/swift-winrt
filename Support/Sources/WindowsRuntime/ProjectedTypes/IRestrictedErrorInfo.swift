@@ -3,11 +3,24 @@ import COM
 public typealias IRestrictedErrorInfo = any IRestrictedErrorInfoProtocol
 public protocol IRestrictedErrorInfoProtocol: IUnknownProtocol {
     func getErrorDetails(
-        description: inout String?,
-        error: inout HResult,
-        restrictedDescription: inout String?,
-        capabilitySid: inout String?) throws
+        _ description: inout String?,
+        _ error: inout HResult,
+        _ restrictedDescription: inout String?,
+        _ capabilitySid: inout String?) throws
     var reference: String? { get throws }
+}
+
+extension IRestrictedErrorInfoProtocol {
+    var errorDetails: (description: String?, error: HResult, restrictedDescription: String?, capabilitySid: String?) {
+        get throws {
+            var description: String? = nil
+            var error: HResult = .fail
+            var restrictedDescription: String? = nil
+            var capabilitySid: String? = nil
+            try getErrorDetails(&description, &error, &restrictedDescription, &capabilitySid)
+            return (description, error, restrictedDescription, capabilitySid)
+        }
+    }
 }
 
 import WindowsRuntime_ABI
@@ -28,10 +41,10 @@ public enum IRestrictedErrorInfoProjection: COMProjection {
 
     private final class Import: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
         func getErrorDetails(
-                description: inout String?,
-                error: inout HResult,
-                restrictedDescription: inout String?,
-                capabilitySid: inout String?) throws {
+                _ description: inout String?,
+                _ error: inout HResult,
+                _ restrictedDescription: inout String?,
+                _ capabilitySid: inout String?) throws {
             try _interop.getErrorDetails(&description, &error, &restrictedDescription, &capabilitySid)
         }
 

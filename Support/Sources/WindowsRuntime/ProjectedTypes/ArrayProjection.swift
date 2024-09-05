@@ -1,5 +1,6 @@
 import COM
 
+/// Projects a WinRT array to a Swift array.
 public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
     // WinRT does not have a distinct representation for null and empty
     public typealias SwiftValue = [ElementProjection.SwiftValue]

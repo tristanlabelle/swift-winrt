@@ -24,9 +24,13 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public var description: String {
-        let details = (try? restrictedErrorInfo?.details) ?? RestrictedErrorInfoDetails()
-        // RestrictedDescription contains the value reported in RoOriginateError
-        return details.restrictedDescription ?? details.description ?? hresult.description
+        if let restrictedErrorInfo {
+            let errorDetails = try? restrictedErrorInfo.errorDetails
+            if let restrictedDescription = errorDetails?.restrictedDescription { return restrictedDescription }
+            if let description = errorDetails?.description { return description }
+        }
+
+        return hresult.description
     }
 
     public func toABI(setErrorInfo: Bool = true) -> HResult.Value {
@@ -41,19 +45,11 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         guard hresult.isFailure else { return hresult }
 
         // Check for an associated IRestrictedErrorInfo
-        guard captureErrorInfo, let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult) else {
+        guard captureErrorInfo,
+                let restrictedErrorInfo = try? Self.getRestrictedErrorInfo(matching: hresult),
+                (try? restrictedErrorInfo.errorDetails.error) == hresult else {
             throw WinRTError(hresult: hresult)
         }
-
-        // Ensure we didn't get a stale IRestrictedErrorInfo
-        var description: String? = nil
-        var error: HResult = .ok
-        var restrictedDescription: String? = nil
-        var capabilitySid: String? = nil
-        try? restrictedErrorInfo.getErrorDetails(
-            description: &description, error: &error,
-            restrictedDescription: &restrictedDescription, capabilitySid: &capabilitySid)
-        guard error == hresult else { throw WinRTError(hresult: hresult) }
 
         // Append to the propagation context, if available.
         // See https://learn.microsoft.com/en-us/windows/win32/api/restrictederrorinfo/nf-restrictederrorinfo-ilanguageexceptionerrorinfo2-capturepropagationcontext
