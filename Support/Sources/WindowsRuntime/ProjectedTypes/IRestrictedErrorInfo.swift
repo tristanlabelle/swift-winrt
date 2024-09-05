@@ -41,10 +41,10 @@ public enum IRestrictedErrorInfoProjection: COMProjection {
 
     private final class Import: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
         func getErrorDetails(
-                description: inout String?,
-                error: inout HResult,
-                restrictedDescription: inout String?,
-                capabilitySid: inout String?) throws {
+                _ description: inout String?,
+                _ error: inout HResult,
+                _ restrictedDescription: inout String?,
+                _ capabilitySid: inout String?) throws {
             try _interop.getErrorDetails(&description, &error, &restrictedDescription, &capabilitySid)
         }
 

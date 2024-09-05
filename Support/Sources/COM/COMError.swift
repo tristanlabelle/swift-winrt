@@ -38,7 +38,7 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public init(hresult: HResult, description: String?) {
-        self.init(hresult: hresult, errorInfo: description.flatMap { try? createErrorInfo(description: $0) })
+        self.init(hresult: hresult, errorInfo: description.flatMap { try? Self.createErrorInfo(description: $0) })
     }
 
     public var description: String {
