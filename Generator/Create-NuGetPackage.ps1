@@ -8,6 +8,8 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$OutputPath)
 
+$ErrorActionPreference = "Stop"
+
 if (!$NativeExe -and !$X64BinPath -and !$Arm64BinPath) {
     Write-Error "One executable or binaries path must be specified."
     exit 1
@@ -33,8 +35,11 @@ if ($NativeExe) {
     Copy-Item -Path $NativeExe -Destination $StagingDir\tools\$Arch\ -Force | Out-Null
 
     Write-Host "  native Swift runtime..."
-    $SwiftCoreDll = (& where.exe swiftCore.dll) | Out-String
-    $SwiftRuntimeDir = Split-Path $SwiftCoreDll -Parent
+    $SwiftCompilerPath = (& where.exe swiftc.exe) | Out-String
+    $PathMatch = [Regex]::Match($SwiftCompilerPath, "^(?<root>.*)\\Toolchains\\(?<version>\d+\.\d+\.\d+)(\+\w+)?\\")
+    $SwiftRoot = $PathMatch.Groups["root"].Value
+    $SwiftVersion = $PathMatch.Groups["version"].Value
+    $SwiftRuntimeDir = "$SwiftRoot\Runtimes\$SwiftVersion\usr\bin"
     Copy-Item -Path $SwiftRuntimeDir\*.dll -Destination $StagingDir\tools\$Arch\ -Force | Out-Null
 }
 
