@@ -75,12 +75,12 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
 }
 
 fileprivate func getWindowsSdkWinMDPaths(sdkVersion: String) throws -> [String] {
-    let sdkVersion = try FourPartVersion(parsing: sdkVersion)
-    guard let windowsKit = try WindowsKit.getInstalled().first(where: { $0.version == sdkVersion }) else {
+    guard let sdkVersion = FourPartVersion(parsing: sdkVersion),
+            let windowsKit = try WindowsKit.getInstalled().first(where: { $0.version == sdkVersion }) else {
         enum WindowsSDKError: Error {
             case notFound(version: String)
         }
-        throw WindowsSDKError.notFound(version: sdkVersion.description)
+        throw WindowsSDKError.notFound(version: sdkVersion)
     }
 
     let applicationPlatform = try windowsKit.readApplicationPlatform()
