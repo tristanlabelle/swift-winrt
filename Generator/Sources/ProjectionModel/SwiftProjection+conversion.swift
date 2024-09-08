@@ -63,7 +63,7 @@ extension SwiftProjection {
         func visit(_ type: TypeNode) throws {
             guard case .bound(let type) = type else { fatalError() }
             if !result.isEmpty { result += "_" }
-            result += type.definition.nameWithoutGenericSuffix
+            result += type.definition.nameWithoutGenericArity
             for genericArg in type.genericArgs { try visit(genericArg) }
         }
 

@@ -268,7 +268,7 @@ fileprivate func writeClassOverrideSupport(
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
                 try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
                     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
-                    let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix)
+                    let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
                     writer.writeStatement("\(outerPropertyName).initialize(embedder: self,\n"
                         + "virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
                 }

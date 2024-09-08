@@ -59,7 +59,7 @@ public enum CAbi {
 
         // WinRT only supports a fixed set of generic types, none of which are overloaded,
         // so we can drop the generic arity suffix from the name without ambiguity.
-        result += type.definition.nameWithoutGenericSuffix
+        result += type.definition.nameWithoutGenericArity
         for genericArg in type.genericArgs {
             guard case .bound(let genericArg) = genericArg else {
                 throw UnexpectedTypeError(genericArg.description, reason: "WinRT generic arguments must be bound types")

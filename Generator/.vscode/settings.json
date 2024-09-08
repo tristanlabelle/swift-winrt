@@ -4,7 +4,8 @@
     "cmake.useCMakePresets": "always",
     "swift.autoGenerateLaunchConfigurations": false,
     "search.exclude": {
-        "**/.build/**": true
+        "**/.build/**": true,
+        "**/build/**": true
     },
     "files.associations": {
         "*_swift": "swift"
