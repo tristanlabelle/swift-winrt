@@ -281,7 +281,7 @@ fileprivate func writeClassProjectionType(
                 for interface in overridableInterfaces {
                     try writeVirtualTableProperty(
                         visibility: .internal,
-                        name: Casing.pascalToCamel(interface.definition.nameWithoutGenericSuffix),
+                        name: Casing.pascalToCamel(interface.definition.nameWithoutGenericArity),
                         abiType: interface.asBoundType, swiftType: classDefinition.bindType(),
                         projection: projection, to: writer)
                 }

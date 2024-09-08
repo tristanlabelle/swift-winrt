@@ -85,7 +85,7 @@ extension SwiftProjection {
 fileprivate func toDocumentationTypeReference(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]? = nil) -> DocumentationTypeReference {
     DocumentationTypeReference(
         namespace: typeDefinition.namespace,
-        nameWithoutGenericSuffix: typeDefinition.nameWithoutGenericSuffix,
+        nameWithoutGenericArity: typeDefinition.nameWithoutGenericArity,
         genericity: {
             if let genericArgs = genericArgs {
                 return .bound(genericArgs.map(toDocumentationTypeNode))

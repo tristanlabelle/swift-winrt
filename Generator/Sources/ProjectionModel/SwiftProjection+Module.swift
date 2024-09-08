@@ -77,7 +77,7 @@ extension SwiftProjection {
                 result += typeDefinition.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
             }
 
-            result += typeDefinition.nameWithoutGenericSuffix
+            result += typeDefinition.nameWithoutGenericArity
 
             return result
         }
