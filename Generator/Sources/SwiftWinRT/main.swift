@@ -1,6 +1,7 @@
 import DotNetMetadata
 import ProjectionModel
 import Foundation
+import WindowsMetadata
 
 // Introduce a scope to workaround a compiler bug which allows
 // global main.swift variables to be referred to before their initialization.
@@ -19,15 +20,16 @@ do {
     }
 
     // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
-    let context = AssemblyLoadContext()
-    struct AssemblyLoadError: Error {}
-    guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else { throw AssemblyLoadError() }
+    let context = WinMDLoadContext()
+    guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else {
+        throw AssemblyLoadError.notFound(message: "mscorlib was not found on the machine.")
+    }
     _ = try context.load(path: mscorlibPath)
 
     let projection = try createProjection(
         commandLineArguments: commandLineArguments,
         projectionConfig: projectionConfig,
-        assemblyLoadContext: context)
+        winMDLoadContext: context)
     try writeProjectionFiles(projection,
         directoryPath: commandLineArguments.outputDirectoryPath,
         generateCMakeLists: commandLineArguments.generateCMakeLists,
