@@ -5,7 +5,7 @@ import OrderedCollections
 import ProjectionModel
 import WindowsMetadata
 
-internal func createProjection(commandLineArguments: CommandLineArguments, projectionConfig: ProjectionConfig, assemblyLoadContext: AssemblyLoadContext) throws -> SwiftProjection {
+internal func createProjection(commandLineArguments: CommandLineArguments, projectionConfig: ProjectionConfig, winMDLoadContext: WinMDLoadContext) throws -> SwiftProjection {
     var winMDFilePaths = OrderedSet(commandLineArguments.references)
     if let windowsSdkVersion = commandLineArguments.windowsSdkVersion {
         winMDFilePaths.formUnion(try getWindowsSdkWinMDPaths(sdkVersion: windowsSdkVersion))
@@ -17,7 +17,7 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
     for filePath in winMDFilePaths.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
         print("Loading assembly \(filePath.lastPathComponent)...")
 
-        let assembly = try assemblyLoadContext.load(path: filePath)
+        let assembly = try winMDLoadContext.load(path: filePath)
         let assemblyDocumentation = commandLineArguments.noDocs ? nil
             : try tryLoadDocumentation(assemblyPath: filePath, locales: commandLineArguments.locales)
         let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
@@ -28,7 +28,7 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
 
     // Gather types from assemblies
     var typeDiscoverer = WinRTTypeDiscoverer()
-    for (assemblyName, assembly) in assemblyLoadContext.loadedAssembliesByName.sorted(by: { $0.key < $1.key }) {
+    for (assemblyName, assembly) in winMDLoadContext.loadedAssembliesByName.sorted(by: { $0.key < $1.key }) {
         guard assemblyName != "mscorlib" else { continue }
 
         print("Gathering types from \(assemblyName)...")
@@ -58,14 +58,35 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         }
     }
 
+    func addReference(sourceModule: SwiftProjection.Module, targetAssembly: Assembly) {
+        if let targetModule = projection.getModule(targetAssembly), targetModule !== sourceModule {
+            sourceModule.addReference(targetModule)
+        }
+    }
+
     // Establish references between modules
-    for assembly in assemblyLoadContext.loadedAssembliesByName.values {
+    for assembly in winMDLoadContext.loadedAssembliesByName.values {
         guard assembly.name != "mscorlib" else { continue }
 
         if let sourceModule = projection.getModule(assembly) {
             for reference in assembly.references {
-                if let targetModule = projection.getModule(try reference.resolve()), targetModule !== sourceModule {
-                    sourceModule.addReference(targetModule)
+                if WinMDLoadContext.isUWPAssembly(name: reference.name) {
+                    // UWP references are messy and not always resolvable.
+                    if let targetAssembly = winMDLoadContext.findLoaded(name: reference.name) {
+                        addReference(sourceModule: sourceModule, targetAssembly: targetAssembly)
+                    }
+                    else {
+                        // Reference all modules that have loaded Windows.* assemblies.
+                        // This handles a reference to "Windows" when we've loaded "Windows.Foundation.FoundationContract", or vice-versa.
+                        for assembly in winMDLoadContext.loadedAssembliesByName.values {
+                            if WinMDLoadContext.isUWPAssembly(name: assembly.name) {
+                                addReference(sourceModule: sourceModule, targetAssembly: assembly)
+                            }
+                        }
+                    }
+                }
+                else {
+                    addReference(sourceModule: sourceModule, targetAssembly: try reference.resolve())
                 }
             }
         }
