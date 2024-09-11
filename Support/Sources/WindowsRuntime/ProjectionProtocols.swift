@@ -21,7 +21,8 @@ public protocol IReferenceableProjection: WinRTProjection {
 public protocol ValueTypeProjection: IReferenceableProjection where SwiftValue == Self {}
 
 /// Convenience protocol for projections of WinRT types into Swift.
-public protocol EnumProjection: ValueTypeProjection, IntegerEnumProjection {}
+public protocol OpenEnumProjection: ValueTypeProjection, COM.OpenEnumProjection {}
+public protocol ClosedEnumProjection: ValueTypeProjection, COM.ClosedEnumProjection {}
 
 /// Convenience protocol for projections of WinRT structs into Swift.
 public protocol StructProjection: ValueTypeProjection {} // Inert structs will also conform to ABIInertProjection

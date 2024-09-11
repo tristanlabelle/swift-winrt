@@ -27,9 +27,11 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
 
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
+        let enumProjectionProtocol = try projection.isSwiftEnumEligible(enumDefinition)
+            ? SupportModules.WinRT.closedEnumProjection : SupportModules.WinRT.openEnumProjection
         try writer.writeExtension(
                 type: .identifier(projection.toTypeName(enumDefinition)),
-                protocolConformances: [ SupportModules.WinRT.enumProjection ]) { writer in
+                protocolConformances: [ enumProjectionProtocol ]) { writer in
             // public static var typeName: String { "..." }
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
 

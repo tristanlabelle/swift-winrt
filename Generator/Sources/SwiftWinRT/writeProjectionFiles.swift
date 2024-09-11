@@ -13,6 +13,7 @@ internal func writeProjectionFiles(
         dynamicLibraries: Bool) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
+        print("Generating projection for \(module.name)...")
         try writeModuleFiles(module,
             directoryPath: "\(directoryPath)\\\(module.name)",
             generateCMakeLists: generateCMakeLists,

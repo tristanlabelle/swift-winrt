@@ -1,13 +1,25 @@
-public protocol EnumProjection: RawRepresentable, ABIInertProjection 
-    where ABIValue == CEnum, SwiftValue == Self, RawValue: FixedWidthInteger & Hashable {
-    associatedtype CEnum: RawRepresentable where CEnum.RawValue == RawValue
+/// Projection for an enumeration whose ABI representation is an integer,
+/// and for which any integer is an allowed value.
+public protocol OpenEnumProjection: RawRepresentable, ABIInertProjection 
+    where ABIValue == RawValue, SwiftValue == Self, RawValue: FixedWidthInteger & Hashable {
 
     init(rawValue value: RawValue)
 }
 
-extension EnumProjection {
-    public init(_ value: CEnum) { self.init(rawValue: value.rawValue) }
-    public static var abiDefaultValue: ABIValue { CEnum(rawValue: CEnum.RawValue.zero)! }
-    public static func toSwift(_ value: CEnum) -> Self { Self(value) }
-    public static func toABI(_ value: Self) -> CEnum { CEnum(rawValue: value.rawValue)! }
+extension OpenEnumProjection {
+    public static var abiDefaultValue: RawValue { RawValue.zero }
+    public static func toSwift(_ value: RawValue) -> Self { Self(rawValue: value) }
+    public static func toABI(_ value: Self) -> RawValue { value.rawValue }
+}
+
+/// Projection for an enumeration whose ABI representation is an integer,
+/// and for which allowed values are limited to a set of defined enumerants.
+public protocol ClosedEnumProjection: RawRepresentable, ABIInertProjection 
+    where ABIValue == RawValue, SwiftValue == Self, RawValue: FixedWidthInteger & Hashable {
+}
+
+extension ClosedEnumProjection {
+    public static var abiDefaultValue: RawValue { RawValue.zero }
+    public static func toSwift(_ value: RawValue) -> Self { Self(rawValue: value)! }
+    public static func toABI(_ value: Self) -> RawValue { value.rawValue }
 }
