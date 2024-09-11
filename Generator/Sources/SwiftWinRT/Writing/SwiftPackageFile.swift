@@ -21,23 +21,23 @@ func writeSwiftPackageFile(
         abiModuleTarget.dependencies.append(.product(name: "WindowsRuntime_ABI", package: "swift-winrt"))
         package.targets.append(abiModuleTarget)
 
-        // Assembly module
-        var assemblyModuleTarget: SwiftPackage.Target = .target(name: module.name)
-        assemblyModuleTarget.path = "\(module.name)/Assembly"
-        assemblyModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))
+        // Swift module
+        var swiftModuleTarget: SwiftPackage.Target = .target(name: module.name)
+        swiftModuleTarget.path = "\(module.name)/Module"
+        swiftModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))
 
         for referencedModule in module.references {
             guard !referencedModule.isEmpty else { continue }
-            assemblyModuleTarget.dependencies.append(.target(name: referencedModule.name))
+            swiftModuleTarget.dependencies.append(.target(name: referencedModule.name))
         }
 
-        assemblyModuleTarget.dependencies.append(.target(name: module.abiModuleName))
+        swiftModuleTarget.dependencies.append(.target(name: module.abiModuleName))
 
-        package.targets.append(assemblyModuleTarget)
+        package.targets.append(swiftModuleTarget)
 
         // Define a product for the module
         var moduleProduct: SwiftPackage.Product = .library(name: module.name, type: dynamicLibraries ? .dynamic : nil, targets: [])
-        moduleProduct.targets.append(assemblyModuleTarget.name)
+        moduleProduct.targets.append(swiftModuleTarget.name)
         moduleProduct.targets.append(abiModuleTarget.name)
 
         // Namespace modules
