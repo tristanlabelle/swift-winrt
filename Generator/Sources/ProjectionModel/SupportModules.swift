@@ -68,7 +68,8 @@ extension SupportModules.WinRT {
     public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
     public static var iinspectableProjection: SwiftType { .chain(moduleName, "IInspectableProjection") }
 
-    public static var enumProjection: SwiftType { .chain(moduleName, "EnumProjection") }
+    public static var openEnumProjection: SwiftType { .chain(moduleName, "OpenEnumProjection") }
+    public static var closedEnumProjection: SwiftType { .chain(moduleName, "ClosedEnumProjection") }
     public static var structProjection: SwiftType { .chain(moduleName, "StructProjection") }
     public static var interfaceProjection: SwiftType { .chain(moduleName, "InterfaceProjection") }
     public static var delegateProjection: SwiftType { .chain(moduleName, "DelegateProjection") }

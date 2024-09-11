@@ -339,6 +339,9 @@
     <Midl Include="SwiftAttributes.idl">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </Midl>
+    <Midl Include="SwiftEnum.idl">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </Midl>
     <Midl Include="WeakReferencer.idl">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </Midl>

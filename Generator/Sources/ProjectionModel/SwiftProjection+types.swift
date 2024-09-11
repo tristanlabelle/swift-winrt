@@ -56,6 +56,10 @@ extension SwiftProjection {
         }
     }
 
+    public func isSwiftEnumEligible(_ enumDefinition: EnumDefinition) throws -> Bool {
+        try enumDefinition.attributes.contains(where: { try $0.type.name == "SwiftEnumAttribute" }) && !enumDefinition.isFlags
+    }
+
     public func toReturnType(_ type: TypeNode, typeGenericArgs: [TypeNode]? = nil) throws -> SwiftType {
         let swiftType = try toType(type.bindGenericParams(typeArgs: typeGenericArgs))
         return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
