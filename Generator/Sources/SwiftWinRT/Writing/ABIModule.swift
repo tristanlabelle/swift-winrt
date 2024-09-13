@@ -18,8 +18,8 @@ internal func writeABIModule(_ module: SwiftProjection.Module, directoryPath: St
         let cmakeListsWriter = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt", directoryCreation: .ancestors))
         cmakeListsWriter.writeAddLibrary(module.abiModuleName, .interface)
-        cmakeListsWriter.writeTargetIncludeDirectories(module.abiModuleName, .public, ["include"])
-        cmakeListsWriter.writeTargetLinkLibraries(module.abiModuleName, .public,
+        cmakeListsWriter.writeTargetIncludeDirectories(module.abiModuleName, .interface, ["include"])
+        cmakeListsWriter.writeTargetLinkLibraries(module.abiModuleName, .interface,
             [ SupportModules.WinRT.abiModuleName ] + module.references.map { $0.abiModuleName })
     }
 }
