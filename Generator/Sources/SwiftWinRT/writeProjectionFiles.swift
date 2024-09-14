@@ -93,7 +93,7 @@ fileprivate func writeAssemblyModuleFiles(
     for abiType in try getABITypes(module: module) {
         guard let namespace = abiType.definition.namespace else { continue }
         let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
-        let mangledName = try CAbi.mangleName(type: abiType)
+        let mangledName = try CAbi.mangleName(type: abiType, shortenGenericArgs: true)
         cmakeSources.append("\(compactNamespace)/COMInterop/\(mangledName).swift")
         try writeCOMInteropExtensionFile(abiType: abiType, module: module,
             toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(mangledName).swift")
