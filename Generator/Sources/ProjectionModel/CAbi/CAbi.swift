@@ -3,9 +3,9 @@ import WindowsMetadata
 import CodeWriters
 
 public enum CAbi {
-    public static func mangleName(type: BoundType) throws -> String {
+    public static func mangleName(type: BoundType, shortenGenericArgs: Bool = false) throws -> String {
         var result = namespacingPrefix
-        try appendMangledName(type: type, to: &result)
+        try appendMangledName(type: type, shortenGenericArgs: shortenGenericArgs, to: &result)
         return result
     }
 
@@ -40,7 +40,7 @@ public enum CAbi {
         }
     }
 
-    private static func appendMangledName(type: BoundType, to result: inout String) throws {
+    private static func appendMangledName(type: BoundType, shortenGenericArgs: Bool, to result: inout String) throws {
         if type.definition.namespace == "System" {
             if type.definition.name == "Object" {
                 result += "IInspectable"
@@ -60,13 +60,26 @@ public enum CAbi {
         // WinRT only supports a fixed set of generic types, none of which are overloaded,
         // so we can drop the generic arity suffix from the name without ambiguity.
         result += type.definition.nameWithoutGenericArity
+
+        // Generic args
+        let beforeGenericArgs = result.endIndex
         for genericArg in type.genericArgs {
             guard case .bound(let genericArg) = genericArg else {
                 throw UnexpectedTypeError(genericArg.description, reason: "WinRT generic arguments must be bound types")
             }
 
             result += "_"
-            try appendMangledName(type: genericArg, to: &result)
+            try appendMangledName(type: genericArg, shortenGenericArgs: false, to: &result)
+        }
+
+        // If requested, shorten the suffix using a hash to avoid extra long names
+        if shortenGenericArgs, result.endIndex != beforeGenericArgs {
+            let hash = SHA1.get(Array(result.utf8))
+            result.removeSubrange(beforeGenericArgs...)
+            result += "_"
+            for hashByte in hash.prefix(4) {
+                result += String(format: "%02x", hashByte)
+            }
         }
     }
 
