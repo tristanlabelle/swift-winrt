@@ -32,8 +32,9 @@ struct ProjectionConfig: Codable {
             }
         }
 
+        let moduleName = assemblyName.replacingOccurrences(of: ".", with: "")
         var defaultModule = Module()
         defaultModule.assemblies.append(assemblyName)
-        return (assemblyName, defaultModule)
+        return (moduleName, defaultModule)
     }
 }
