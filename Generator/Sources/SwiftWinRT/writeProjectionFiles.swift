@@ -82,11 +82,13 @@ fileprivate func writeAssemblyModuleFiles(
         }
 
         if (typeDefinition as? ClassDefinition)?.isStatic != true,
-            !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
-            let typeName = try module.projection.toTypeName(typeDefinition)
-            cmakeSources.append("\(compactNamespace)/Projections/\(typeName)+Projection.swift")
+                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
+            // Avoid toProjectionTypeName because structs/enums have no -Projection suffix,
+            // which would result in two files with the same name in the project, which SPM does not support.
+            let fileName = try module.projection.toTypeName(typeDefinition) + "Projection.swift"
+            cmakeSources.append("\(compactNamespace)/Projections/\(fileName)")
             try writeABIProjectionConformanceFile(typeDefinition, module: module,
-                toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(typeName)+Projection.swift")
+                toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(fileName)")
         }
     }
 

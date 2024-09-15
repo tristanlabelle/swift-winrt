@@ -7,7 +7,7 @@ import WindowsMetadata
 internal func writeABIModule(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
 
-    try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\ABI.h")
+    try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\\(module.name).h")
     // FIXME: Support transitive references?
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
