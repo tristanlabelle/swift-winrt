@@ -38,7 +38,7 @@ fileprivate func writeModuleFiles(
         dynamicLibrary: Bool) throws {
     try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", generateCMakeLists: generateCMakeLists)
 
-    try writeAssemblyModuleFiles(
+    try writeSwiftModuleFiles(
         module, directoryPath: "\(directoryPath)\\Module",
         generateCMakeLists: generateCMakeLists, dynamicLibrary: dynamicLibrary)
 
@@ -58,26 +58,38 @@ fileprivate func writeModuleFiles(
     }
 }
 
-fileprivate func writeAssemblyModuleFiles(
+fileprivate func writeSwiftModuleFiles(
         _ module: SwiftProjection.Module, directoryPath: String,
         generateCMakeLists: Bool, dynamicLibrary: Bool) throws {
     var cmakeSources: [String] = []
     for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
+        // All WinRT types should have namespaces
+        guard let namespace = typeDefinition.namespace else { continue }
+
+        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
+        let typeName = try module.projection.toTypeName(typeDefinition)
+
+        // Write the COM interop extensions
+        if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
+            let fileName = "SWRT_\(typeName).swift"
+            if try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
+                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)") {
+                cmakeSources.append("\(compactNamespace)/COMInterop/\(fileName)")
+            }
+        }
+
         guard try hasSwiftDefinition(typeDefinition) else { continue }
 
-        let compactNamespace = SwiftProjection.toCompactNamespace(typeDefinition.namespace!)
-        let assemblyNamespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
-
         if module.hasTypeDefinition(typeDefinition) {
-            let typeName = try module.projection.toTypeName(typeDefinition)
+            try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
             cmakeSources.append("\(compactNamespace)/\(typeName).swift")
-            try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(assemblyNamespaceDirectoryPath)\\\(typeName).swift")
 
             if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
-                cmakeSources.append("\(compactNamespace)/\(typeName)+extras.swift")
                 try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
-                    "\(assemblyNamespaceDirectoryPath)\\\(typeName)+extras.swift",
+                    "\(namespaceDirectoryPath)\\\(typeName)+extras.swift",
                     isDirectory: false))
+                cmakeSources.append("\(compactNamespace)/\(typeName)+extras.swift")
             }
         }
 
@@ -85,20 +97,11 @@ fileprivate func writeAssemblyModuleFiles(
                 !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
             // Avoid toProjectionTypeName because structs/enums have no -Projection suffix,
             // which would result in two files with the same name in the project, which SPM does not support.
-            let fileName = try module.projection.toTypeName(typeDefinition) + "Projection.swift"
-            cmakeSources.append("\(compactNamespace)/Projections/\(fileName)")
+            let fileName = typeName + "Projection.swift"
             try writeABIProjectionConformanceFile(typeDefinition, module: module,
-                toPath: "\(assemblyNamespaceDirectoryPath)\\Projections\\\(fileName)")
+                toPath: "\(namespaceDirectoryPath)\\Projections\\\(fileName)")
+            cmakeSources.append("\(compactNamespace)/Projections/\(fileName)")
         }
-    }
-
-    for abiType in try getABITypes(module: module) {
-        guard let namespace = abiType.definition.namespace else { continue }
-        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
-        let mangledName = try CAbi.mangleName(type: abiType, shortenGenericArgs: true)
-        cmakeSources.append("\(compactNamespace)/COMInterop/\(mangledName).swift")
-        try writeCOMInteropExtensionFile(abiType: abiType, module: module,
-            toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(mangledName).swift")
     }
 
     if generateCMakeLists {
@@ -207,30 +210,26 @@ fileprivate func getExtensionFileBytes(typeDefinition: TypeDefinition) throws ->
     }
 }
 
-fileprivate func getABITypes(module: SwiftProjection.Module) throws -> [BoundType] {
-    var abiTypes = [BoundType]()
-    for typeDefinition in module.typeDefinitions {
-        guard typeDefinition.genericArity == 0 else { continue }
-        guard typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition else { continue }
-        abiTypes.append(typeDefinition.bindType())
-    }
+fileprivate func writeCOMInteropExtensionFile(typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws -> Bool {
+    // IReference<T> is implemented generically in the support module.
+    if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return false }
 
-    for (typeDefinition, instantiations) in module.genericInstantiationsByDefinition {
-        // IReference<T> is implemented generically in the support module.
-        if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { continue }
-        for genericArgs in instantiations {
-            abiTypes.append(typeDefinition.bindType(genericArgs: genericArgs))
-        }
-    }
+    let instantiations = typeDefinition.genericArity == 0 ? [[]] : (module.genericInstantiationsByDefinition[typeDefinition] ?? [])
+    guard !instantiations.isEmpty else { return false }
 
-    return abiTypes
-}
-
-fileprivate func writeCOMInteropExtensionFile(abiType: BoundType, module: SwiftProjection.Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    try writeCOMInteropExtension(abiType: abiType, projection: module.projection, to: writer)
+
+    for genericArgs in instantiations {
+        let boundType = typeDefinition.bindType(genericArgs: genericArgs)
+        if instantiations.count > 1 {
+            writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
+        }
+        try writeCOMInteropExtension(abiType: boundType, projection: module.projection, to: writer)
+    }
+
+    return true
 }
 
 internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: SwiftProjection.Module, toPath path: String) throws {
