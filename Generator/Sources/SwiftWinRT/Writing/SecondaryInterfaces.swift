@@ -7,7 +7,7 @@ import WindowsMetadata
 internal enum SecondaryInterfaces {
     internal static func writeDeclaration(
             _ interface: BoundInterface, static: Bool, composable: Bool = false,
-            projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+            projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
         let interfaceName = try projection.toTypeName(interface.definition, namespaced: false)
         let abiStructType = try projection.toABIType(interface.asBoundType)
 
@@ -41,7 +41,7 @@ internal enum SecondaryInterfaces {
     internal static let activationFactoryPropertyName = "_iactivationFactory"
 
     internal static func writeActivationFactoryDeclaration(
-            classDefinition: ClassDefinition, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+            classDefinition: ClassDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
         let storedPropertyName = "_lazyIActivationFactory"
         let abiStructType = SwiftType.identifier("SWRT_IActivationFactory")
 

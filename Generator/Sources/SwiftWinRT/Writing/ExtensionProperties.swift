@@ -4,7 +4,7 @@ import ProjectionModel
 
 internal func writeExtensionProperties(
         typeDefinition: TypeDefinition, interfaces: [InterfaceDefinition], static: Bool,
-        projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+        projection: Projection, to writer: SwiftSourceFileWriter) throws {
     // Only write the extension if we have at least one property (which needs a getter)
     let hasGetters = try interfaces.contains { try $0.properties.contains { try $0.getter != nil } }
     guard hasGetters else { return }
@@ -29,7 +29,7 @@ internal func writeExtensionProperties(
 
 internal func writeNonthrowingPropertyImplementation(
         property: Property, static: Bool,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     guard let getter = try property.getter else { return }
 
     let selfKeyword = `static` ? "Self" : "self"
@@ -37,7 +37,7 @@ internal func writeNonthrowingPropertyImplementation(
     let writeSetter: ((inout SwiftStatementWriter) throws -> Void)?
     if let setter = try property.setter {
         writeSetter = { writer in
-            writer.writeStatement("try! \(selfKeyword).\(SwiftProjection.toMemberName(setter))(newValue)")
+            writer.writeStatement("try! \(selfKeyword).\(Projection.toMemberName(setter))(newValue)")
         }
     } else {
         writeSetter = nil
@@ -54,13 +54,13 @@ internal func writeNonthrowingPropertyImplementation(
         documentation: projection.getDocumentationComment(property),
         visibility: .public,
         static: `static`,
-        name: SwiftProjection.toMemberName(property),
+        name: Projection.toMemberName(property),
         type: propertyType,
         get: { writer in
             let output = writer.output
             output.write("try! ")
             if catchNullResult { output.write("NullResult.catch(") }
-            output.write("\(selfKeyword).\(SwiftProjection.toMemberName(getter))()")
+            output.write("\(selfKeyword).\(Projection.toMemberName(getter))()")
             if catchNullResult { output.write(")") }
         },
         set: writeSetter)

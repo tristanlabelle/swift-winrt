@@ -5,7 +5,7 @@ import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 
-internal func writeCOMInteropExtension(abiType: BoundType, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeCOMInteropExtension(abiType: BoundType, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     let abiSwiftType = try projection.toABIType(abiType)
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
@@ -69,7 +69,7 @@ internal func toIIDExpression(_ uuid: UUID) throws -> String {
 fileprivate func writeCOMInteropMethod(
         _ method: Method, typeGenericArgs: [TypeNode],
         visibility: SwiftVisibility, methodKind: ABIMethodKind,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
     let (paramProjections, returnProjection) = try projection.getParamProjections(
         method: method, genericTypeArgs: typeGenericArgs, abiKind: methodKind)
@@ -77,7 +77,7 @@ fileprivate func writeCOMInteropMethod(
     // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
     try writer.writeFunc(
             visibility: visibility,
-            name: SwiftProjection.toInteropMethodName(method),
+            name: Projection.toInteropMethodName(method),
             params: paramProjections.map { $0.toSwiftParam() },
             throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
         try writeSwiftToABICall(

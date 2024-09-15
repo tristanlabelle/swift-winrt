@@ -5,7 +5,7 @@ import ProjectionModel
 import WindowsMetadata
 import struct Foundation.UUID
 
-internal func writeClassDefinition(_ classDefinition: ClassDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeClassDefinition(_ classDefinition: ClassDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     let classKind = try ClassKind(classDefinition)
     let interfaces = try ClassInterfaces(of: classDefinition, kind: classKind)
     let typeName = try projection.toTypeName(classDefinition)
@@ -39,7 +39,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 
         try writer.writeClass(
                 documentation: projection.getDocumentationComment(classDefinition),
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
+                visibility: Projection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
                 final: classDefinition.isSealed, name: typeName, base: base, protocolConformances: protocolConformances) { writer in
             try writeClassMembers(
                 classDefinition, interfaces: interfaces, kind: classKind,
@@ -52,7 +52,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 
         try writer.writeEnum(
                 documentation: projection.getDocumentationComment(classDefinition),
-                visibility: SwiftProjection.toVisibility(classDefinition.visibility),
+                visibility: Projection.toVisibility(classDefinition.visibility),
                 name: typeName) { writer in
             try writeClassMembers(
                 classDefinition, interfaces: interfaces, kind: .static,
@@ -135,7 +135,7 @@ fileprivate struct ClassInterfaces {
 
 fileprivate func writeClassMembers(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, projection: projection, to: writer)
 
     try writeClassInterfaceImplementations(
@@ -158,7 +158,7 @@ fileprivate func writeClassMembers(
 
 fileprivate func writeClassInterfaceImplementations(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     if interfaces.hasDefaultFactory {
         writeMarkComment(forInterface: "IActivationFactory", to: writer)
         try writeDefaultActivatableInitializer(classDefinition, projection: projection, to: writer)
@@ -208,7 +208,7 @@ fileprivate func writeClassInterfaceImplementations(
 
 fileprivate func writeClassInterfaceProperties(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces, kind: ClassKind,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     // Instance properties, initializers and deinit
     if kind.isComposable, let defaultInterface = interfaces.default {
         try SecondaryInterfaces.writeDeclaration(
@@ -241,7 +241,7 @@ fileprivate func writeClassInterfaceProperties(
 
 fileprivate func writeClassOverrideSupport(
         _ classDefinition: ClassDefinition, interfaces: [BoundInterface],
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let outerPropertySuffix = "outer"
 
     for interface in interfaces {
@@ -292,7 +292,7 @@ fileprivate func writeMarkComment(forInterface interfaceName: String, to writer:
 
 fileprivate func writeComposableInitializers(
         _ classDefinition: ClassDefinition, factoryInterface: InterfaceDefinition, base: ClassDefinition?,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     for method in factoryInterface.methods {
@@ -311,7 +311,7 @@ fileprivate func writeComposableInitializers(
                 let innerObjectParamName = params[params.count - 1].name
                 output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
                 try writeInteropMethodCall(
-                    name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
+                    name: Projection.toInteropMethodName(method), params: params, returnParam: returnParam,
                     thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                     projection: projection, to: writer.output)
             }
@@ -321,7 +321,7 @@ fileprivate func writeComposableInitializers(
 
 fileprivate func writeDefaultActivatableInitializer(
         _ classDefinition: ClassDefinition,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let documentationComment: SwiftDocumentationComment?
     if let constructor = classDefinition.findConstructor(arity: 0, inherited: false) {
         documentationComment = try projection.getDocumentationComment(constructor)
@@ -340,7 +340,7 @@ fileprivate func writeDefaultActivatableInitializer(
 fileprivate func writeActivatableInitializers(
         _ classDefinition: ClassDefinition,
         activationFactory: InterfaceDefinition,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [], abiKind: .activationFactory)
@@ -356,7 +356,7 @@ fileprivate func writeActivatableInitializers(
             let output = writer.output
             output.write("self.init(_wrapping: ")
             try writeInteropMethodCall(
-                name: SwiftProjection.toInteropMethodName(method), params: params, returnParam: returnParam,
+                name: Projection.toInteropMethodName(method), params: params, returnParam: returnParam,
                 thisPointer: .init(name: "Self.\(propertyName)", lazy: true),
                 projection: projection, to: writer.output)
             output.write(")")
@@ -366,7 +366,7 @@ fileprivate func writeActivatableInitializers(
 }
 
 fileprivate func writeSupportComposableInitializers(
-        defaultInterface: BoundInterface, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        defaultInterface: BoundInterface, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     // public init(_wrapping inner: COMReference<CWinRTComponent.SWRT_IFoo>) {
     //     super.init(_wrapping: inner.cast())
     // }

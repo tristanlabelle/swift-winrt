@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import WindowsMetadata
 
-extension SwiftProjection {
+extension Projection {
     public func toABIType(_ type: BoundType) throws -> SwiftType {
         if let classDefinition = type.definition as? ClassDefinition {
             // The ABI representation of a (non-static) class is that of its default interface.

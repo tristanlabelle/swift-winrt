@@ -14,7 +14,7 @@ import WindowsMetadata
 // This provides a more natural (C#-like) syntax when using those types:
 //
 //     var foo: IFoo? = getFoo()
-internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(interface) != nil {
         // Defined in WindowsRuntime, merely reexport it here.
         let protocolName = try projection.toProtocolName(interface)
@@ -31,7 +31,7 @@ internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, project
     }
 }
 
-fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     var baseProtocols = [SwiftType]()
     var whereGenericConstraints = OrderedDictionary<String, SwiftType>()
     for baseInterface in interfaceDefinition.baseInterfaces {
@@ -54,7 +54,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
             documentation: documentation.map { projection.toDocumentationComment($0) },
-            visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
+            visibility: Projection.toVisibility(interfaceDefinition.visibility),
             name: protocolName,
             typeParams: interfaceDefinition.genericParams.map { $0.name },
             bases: baseProtocols,
@@ -72,8 +72,8 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             guard method.nameKind == .regular else { continue }
             try writer.writeFunc(
                 documentation: projection.getDocumentationComment(method),
-                attributes: SwiftProjection.getSwiftAttributes(method),
-                name: SwiftProjection.toMemberName(method),
+                attributes: Projection.getSwiftAttributes(method),
+                name: Projection.toMemberName(method),
                 typeParams: method.genericParams.map { $0.name },
                 params: method.params.map { try projection.toParameter($0) },
                 throws: true,
@@ -84,7 +84,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let addAccessor = try event.addAccessor {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(event),
-                    name: SwiftProjection.toMemberName(event),
+                    name: Projection.toMemberName(event),
                     params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                     throws: true,
                     returnType: SupportModules.WinRT.eventRegistration)
@@ -92,7 +92,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 
             if let removeAccessor = try event.removeAccessor {
                 try writer.writeFunc(
-                    name: SwiftProjection.toMemberName(event),
+                    name: Projection.toMemberName(event),
                     params: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
                     throws: true)
             }
@@ -105,7 +105,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let getter = try property.getter {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(property),
-                    name: SwiftProjection.toMemberName(getter),
+                    name: Projection.toMemberName(getter),
                     throws: true,
                     returnType: projection.toReturnType(property.type))
             }
@@ -113,7 +113,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let setter = try property.setter {
                 try writer.writeFunc(
                     isPropertySetter: true,
-                    name: SwiftProjection.toMemberName(setter),
+                    name: Projection.toMemberName(setter),
                     params: setter.params.map { try projection.toParameter($0) },
                     throws: true)
             }
@@ -126,10 +126,10 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
         projection: projection, to: writer)
 }
 
-fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     writer.writeTypeAlias(
         documentation: projection.getDocumentationComment(interfaceDefinition),
-        visibility: SwiftProjection.toVisibility(interfaceDefinition.visibility),
+        visibility: Projection.toVisibility(interfaceDefinition.visibility),
         name: try projection.toTypeName(interfaceDefinition),
         typeParams: interfaceDefinition.genericParams.map { $0.name },
         target: .identifier(

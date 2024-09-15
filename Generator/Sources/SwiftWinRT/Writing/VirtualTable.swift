@@ -5,7 +5,7 @@ import WindowsMetadata
 
 internal func writeVirtualTableProperty(
         visibility: SwiftVisibility = .private, name: String, abiType: BoundType, swiftType: BoundType,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     try writer.writeStoredProperty(
         visibility: visibility, static: true, declarator: .var, name: name,
         initializer: { output in try writeVirtualTable(abiType: abiType, swiftType: swiftType, projection: projection, to: output) })
@@ -13,7 +13,7 @@ internal func writeVirtualTableProperty(
 
 fileprivate func writeVirtualTable(
         abiType: BoundType, swiftType: BoundType,
-        projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
+        projection: Projection, to output: IndentedTextOutputStream) throws {
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
     try output.writeIndentedBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
@@ -50,7 +50,7 @@ fileprivate func writeVirtualTable(
             try output.writeIndentedBlock(header: " { this in") {
                 try writeVirtualTableFunc(
                     params: params, returnParam: returnParam,
-                    swiftMemberName: SwiftProjection.toMemberName(method),
+                    swiftMemberName: Projection.toMemberName(method),
                     methodKind: WinRTMethodKind(from: method),
                     to: output)
             }

@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import ProjectionModel
 
-internal func writeTypeDefinition(_ typeDefinition: TypeDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeTypeDefinition(_ typeDefinition: TypeDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     switch typeDefinition {
         case let structDefinition as StructDefinition:
             try writeStructDefinition(structDefinition, projection: projection, to: writer)
@@ -19,10 +19,10 @@ internal func writeTypeDefinition(_ typeDefinition: TypeDefinition, projection: 
     }
 }
 
-fileprivate func writeDelegateDefinition(_ delegateDefinition: DelegateDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+fileprivate func writeDelegateDefinition(_ delegateDefinition: DelegateDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     try writer.writeTypeAlias(
         documentation: projection.getDocumentationComment(delegateDefinition),
-        visibility: SwiftProjection.toVisibility(delegateDefinition.visibility),
+        visibility: Projection.toVisibility(delegateDefinition.visibility),
         name: try projection.toTypeName(delegateDefinition),
         typeParams: delegateDefinition.genericParams.map { $0.name },
         target: .function(

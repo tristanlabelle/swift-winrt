@@ -5,7 +5,7 @@ import ProjectionModel
 import struct Foundation.URL
 
 func writeSwiftPackageFile(
-        _ projection: SwiftProjection,
+        _ projection: Projection,
         supportPackageLocation: String,
         excludeCMakeLists: Bool,
         dynamicLibraries: Bool,
@@ -53,7 +53,7 @@ func writeSwiftPackageFile(
             for namespace in namespaces {
                 var namespaceModuleTarget: SwiftPackage.Target = .target(
                     name: module.getNamespaceModuleName(namespace: namespace))
-                let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+                let compactNamespace = Projection.toCompactNamespace(namespace)
                 namespaceModuleTarget.path = "\(module.name)/Namespaces/\(compactNamespace)"
                 namespaceModuleTarget.dependencies.append(.target(name: module.name))
                 package.targets.append(namespaceModuleTarget)

@@ -1,7 +1,7 @@
 import CodeWriters
 import DotNetMetadata
 
-extension SwiftProjection {
+extension Projection {
     internal func toParamName(_ param: ParamBase) -> String {
         switch param {
             case is ReturnParam: "_result"

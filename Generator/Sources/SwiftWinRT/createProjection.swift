@@ -5,13 +5,13 @@ import OrderedCollections
 import ProjectionModel
 import WindowsMetadata
 
-internal func createProjection(commandLineArguments: CommandLineArguments, projectionConfig: ProjectionConfig, winMDLoadContext: WinMDLoadContext) throws -> SwiftProjection {
+internal func createProjection(commandLineArguments: CommandLineArguments, projectionConfig: ProjectionConfig, winMDLoadContext: WinMDLoadContext) throws -> Projection {
     var winMDFilePaths = OrderedSet(commandLineArguments.references)
     if let windowsSdkVersion = commandLineArguments.windowsSdkVersion {
         winMDFilePaths.formUnion(try getWindowsSdkWinMDPaths(sdkVersion: windowsSdkVersion))
     }
 
-    let projection = SwiftProjection()
+    let projection = Projection()
 
     // Preload assemblies and create modules
     for filePath in winMDFilePaths.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
@@ -58,7 +58,7 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         }
     }
 
-    func addReference(sourceModule: SwiftProjection.Module, targetAssembly: Assembly) {
+    func addReference(sourceModule: Module, targetAssembly: Assembly) {
         if let targetModule = projection.getModule(targetAssembly), targetModule !== sourceModule {
             sourceModule.addReference(targetModule)
         }

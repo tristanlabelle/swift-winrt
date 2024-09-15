@@ -2,7 +2,7 @@ import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 
-public class SwiftProjection {
+public class Projection {
     internal struct AssemblyEntry {
         var module: Module
         var documentation: AssemblyDocumentation?
@@ -10,7 +10,6 @@ public class SwiftProjection {
 
     public private(set) var modulesByName = OrderedDictionary<String, Module>()
     internal var assembliesToModules = [Assembly: AssemblyEntry]()
-    public var referenceReturnNullability: ReferenceNullability { .explicit } 
 
     public init() {}
 
@@ -24,5 +23,9 @@ public class SwiftProjection {
 
     public func getModule(_ assembly: Assembly) -> Module? {
         assembliesToModules[assembly]?.module
+    }
+
+    internal func addAssembly(_ assembly: Assembly, module: Module, documentation: AssemblyDocumentation? = nil) {
+        assembliesToModules[assembly] = AssemblyEntry(module: module, documentation: documentation)
     }
 }

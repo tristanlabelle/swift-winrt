@@ -2,7 +2,7 @@ import CodeWriters
 import DotNetMetadata
 import DotNetXMLDocs
 
-extension SwiftProjection {
+extension Projection {
     public func getDocumentation(_ typeDefinition: TypeDefinition) -> MemberDocumentation? {
         guard let documentation = assembliesToModules[typeDefinition.assembly]?.documentation else { return nil }
         return documentation.members[.type(toDocumentationTypeReference(typeDefinition))]

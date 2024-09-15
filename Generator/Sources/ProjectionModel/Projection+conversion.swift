@@ -3,7 +3,7 @@ import DotNetMetadata
 import DotNetXMLDocs
 import WindowsMetadata
 
-extension SwiftProjection {
+extension Projection {
     public static func toVisibility(_ visibility: DotNetMetadata.Visibility, inheritableClass: Bool = false) -> SwiftVisibility {
         switch visibility {
             case .compilerControlled: return .fileprivate

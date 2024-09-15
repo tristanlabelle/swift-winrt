@@ -4,7 +4,7 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeABIModule(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+internal func writeABIModule(_ module: Module, directoryPath: String, generateCMakeLists: Bool) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
 
     try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\\(module.name).h")
@@ -24,7 +24,7 @@ internal func writeABIModule(_ module: SwiftProjection.Module, directoryPath: St
     }
 }
 
-fileprivate func writeABIFile(module: SwiftProjection.Module, toPath path: String) throws {
+fileprivate func writeABIFile(module: Module, toPath path: String) throws {
     let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 
     // Write includes
@@ -57,7 +57,7 @@ fileprivate func writeABIFile(module: SwiftProjection.Module, toPath path: Strin
     }
 }
 
-fileprivate func getSortedEnums(module: SwiftProjection.Module) throws -> [EnumDefinition] {
+fileprivate func getSortedEnums(module: Module) throws -> [EnumDefinition] {
     var enumDefinitions = [EnumDefinition]()
     for typeDefinition in module.typeDefinitions {
         guard let enumDefinition = typeDefinition as? EnumDefinition else { continue }
@@ -69,7 +69,7 @@ fileprivate func getSortedEnums(module: SwiftProjection.Module) throws -> [EnumD
 }
 
 // Gets the module's structs in an order so that nested structs appear before their containers.
-fileprivate func getSortedStructs(module: SwiftProjection.Module) throws -> [StructDefinition] {
+fileprivate func getSortedStructs(module: Module) throws -> [StructDefinition] {
     // Create an initial deterministic ordering of structs
     var sortedByFullName = [StructDefinition]()
     for typeDefinition in module.typeDefinitions {
@@ -102,7 +102,7 @@ fileprivate func getSortedStructs(module: SwiftProjection.Module) throws -> [Str
     return sorted
 }
 
-fileprivate func getSortedInterfaces(module: SwiftProjection.Module) throws -> [BoundType] {
+fileprivate func getSortedInterfaces(module: Module) throws -> [BoundType] {
     var interfacesByMangledName = OrderedDictionary<String, BoundType>()
 
     // Add nongeneric type definitions

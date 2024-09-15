@@ -7,7 +7,7 @@ import ProjectionModel
 import WindowsMetadata
 
 internal func writeProjectionFiles(
-        _ projection: SwiftProjection,
+        _ projection: Projection,
         directoryPath: String,
         generateCMakeLists: Bool,
         dynamicLibraries: Bool) throws {
@@ -32,7 +32,7 @@ internal func writeProjectionFiles(
 }
 
 fileprivate func writeModuleFiles(
-        _ module: SwiftProjection.Module,
+        _ module: Module,
         directoryPath: String,
         generateCMakeLists: Bool,
         dynamicLibrary: Bool) throws {
@@ -59,14 +59,14 @@ fileprivate func writeModuleFiles(
 }
 
 fileprivate func writeSwiftModuleFiles(
-        _ module: SwiftProjection.Module, directoryPath: String,
+        _ module: Module, directoryPath: String,
         generateCMakeLists: Bool, dynamicLibrary: Bool) throws {
     var cmakeSources: [String] = []
     for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
         // All WinRT types should have namespaces
         guard let namespace = typeDefinition.namespace else { continue }
 
-        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let compactNamespace = Projection.toCompactNamespace(namespace)
         let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
         let typeName = try module.projection.toTypeName(typeDefinition)
 
@@ -116,7 +116,7 @@ fileprivate func writeSwiftModuleFiles(
     }
 }
 
-fileprivate func writeNamespaceModuleFiles(_ module: SwiftProjection.Module, directoryPath: String, generateCMakeLists: Bool) throws {
+fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: String, generateCMakeLists: Bool) throws {
     let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
 
     var compactNamespaces: [String] = [] 
@@ -125,7 +125,7 @@ fileprivate func writeNamespaceModuleFiles(_ module: SwiftProjection.Module, dir
         guard !typeDefinitions.isEmpty else { continue }
         guard let namespace else { continue }
 
-        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let compactNamespace = Projection.toCompactNamespace(namespace)
         compactNamespaces.append(compactNamespace)
         let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
         try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
@@ -156,14 +156,14 @@ fileprivate func hasSwiftDefinition(_ typeDefinition: TypeDefinition) throws -> 
         && typeDefinition.isPublic
 }
 
-fileprivate func writeTypeDefinitionFile(_ typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws {
+fileprivate func writeTypeDefinitionFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
     try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
 }
 
-fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws {
+fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
@@ -210,7 +210,7 @@ fileprivate func getExtensionFileBytes(typeDefinition: TypeDefinition) throws ->
     }
 }
 
-fileprivate func writeCOMInteropExtensionFile(typeDefinition: TypeDefinition, module: SwiftProjection.Module, toPath path: String) throws -> Bool {
+fileprivate func writeCOMInteropExtensionFile(typeDefinition: TypeDefinition, module: Module, toPath path: String) throws -> Bool {
     // IReference<T> is implemented generically in the support module.
     if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return false }
 
@@ -232,7 +232,7 @@ fileprivate func writeCOMInteropExtensionFile(typeDefinition: TypeDefinition, mo
     return true
 }
 
-internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: SwiftProjection.Module, toPath path: String) throws {
+internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writer.writeImport(module: module.name)
