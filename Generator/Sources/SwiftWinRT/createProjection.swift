@@ -58,7 +58,7 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         }
     }
 
-    func addReference(sourceModule: SwiftProjection.Module, targetAssembly: Assembly) {
+    func addReference(sourceModule: Module, targetAssembly: Assembly) {
         if let targetModule = projection.getModule(targetAssembly), targetModule !== sourceModule {
             sourceModule.addReference(targetModule)
         }

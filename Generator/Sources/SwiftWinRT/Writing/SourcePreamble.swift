@@ -6,7 +6,7 @@ internal func writeGeneratedCodePreamble(to writer: SwiftSourceFileWriter) {
     writer.writeCommentLine("swiftlint:disable all", groupWithNext: false)
 }
 
-internal func writeModulePreamble(_ module: SwiftProjection.Module, importABI: Bool = true, to writer: SwiftSourceFileWriter) {
+internal func writeModulePreamble(_ module: Module, importABI: Bool = true, to writer: SwiftSourceFileWriter) {
     writer.writeImport(module: SupportModules.WinRT.moduleName)
 
     if importABI {
