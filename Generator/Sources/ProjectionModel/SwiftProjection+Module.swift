@@ -14,7 +14,7 @@ extension SwiftProjection {
         private var typeDefinitionsSorted = true
 
         public private(set) var genericInstantiationsByDefinition = [TypeDefinition: [[TypeNode]]]()
-        private(set) var weakReferences: Set<Reference> = []
+        private var weakReferences: Set<Unowned<Module>> = []
 
         internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
             self.projection = projection
@@ -31,7 +31,7 @@ extension SwiftProjection {
             return lazySortedTypeDefinitions
         }
 
-        public var references: [Module] { weakReferences.map { $0.target } }
+        public var references: [Module] { weakReferences.map { $0.object } }
 
         public var isEmpty: Bool { lazySortedTypeDefinitions.isEmpty }
 
@@ -56,7 +56,7 @@ extension SwiftProjection {
         }
 
         public func addReference(_ other: Module) {
-            weakReferences.insert(Reference(target: other))
+            weakReferences.insert(Unowned(other))
         }
 
         public func getNamespaceModuleName(namespace: String) -> String {
@@ -88,18 +88,6 @@ extension SwiftProjection {
                 namespacedType = enclosingType
             }
             return namespacedType.namespace ?? ""
-        }
-
-        struct Reference: Hashable {
-            unowned var target: Module
-
-            func hash(into hasher: inout Hasher) {
-                hasher.combine(ObjectIdentifier(target))
-            }
-
-            static func == (lhs: Module.Reference, rhs: Module.Reference) -> Bool {
-                lhs.target === rhs.target
-            }
         }
     }
 }
