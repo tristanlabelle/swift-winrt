@@ -2,7 +2,7 @@ import DotNetMetadata
 import WindowsMetadata
 import CodeWriters
 
-extension SwiftProjection {
+extension Projection {
     public func toType(_ type: TypeNode) throws -> SwiftType {
         switch type {
             case let .bound(type):
@@ -116,7 +116,7 @@ extension SwiftProjection {
             else {
                 return .chain([
                     .init(projectionTypeName),
-                    .init(try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: type.genericArgs))
+                    .init(try Projection.toProjectionInstantiationTypeName(genericArgs: type.genericArgs))
                 ])
             }
         }()

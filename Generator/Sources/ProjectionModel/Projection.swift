@@ -2,7 +2,7 @@ import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 
-public class SwiftProjection {
+public class Projection {
     internal struct AssemblyEntry {
         var module: Module
         var documentation: AssemblyDocumentation?

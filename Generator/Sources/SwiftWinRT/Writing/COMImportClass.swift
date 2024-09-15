@@ -10,7 +10,7 @@ internal func writeCOMImportClass(
         visibility: SwiftVisibility,
         name: String,
         projectionName: String,
-        projection: SwiftProjection,
+        projection: Projection,
         to writer: SwiftTypeDefinitionWriter) throws {
     let importBaseTypeName: String
     let protocolConformances: [SwiftType]
@@ -66,7 +66,7 @@ internal func writeCOMImportClass(
 
 /// Gathers all generic arguments from the given interfaces and writes them as type aliases
 /// For example, if an interface is IMap<String, Int32>, write K = String and V = Int32
-internal func writeGenericTypeAliases(interfaces: [BoundInterface], projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+internal func writeGenericTypeAliases(interfaces: [BoundInterface], projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     var typeAliases = OrderedDictionary<String, SwiftType>()
 
     for interface in interfaces {

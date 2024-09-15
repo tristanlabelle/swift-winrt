@@ -3,7 +3,7 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeStructDefinition(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeStructDefinition(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(structDefinition) != nil {
         // Defined in WindowsRuntime, merely reexport it here.
         let typeName = try projection.toTypeName(structDefinition)
@@ -16,7 +16,7 @@ internal func writeStructDefinition(_ structDefinition: StructDefinition, projec
         ]
         try writer.writeStruct(
                 documentation: projection.getDocumentationComment(structDefinition),
-                visibility: SwiftProjection.toVisibility(structDefinition.visibility),
+                visibility: Projection.toVisibility(structDefinition.visibility),
                 name: try projection.toTypeName(structDefinition),
                 typeParams: structDefinition.genericParams.map { $0.name },
                 protocolConformances: protocolConformances) { writer throws in
@@ -27,18 +27,18 @@ internal func writeStructDefinition(_ structDefinition: StructDefinition, projec
     }
 }
 
-fileprivate func writeStructFields(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+fileprivate func writeStructFields(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     for field in structDefinition.fields {
         assert(field.isInstance && !field.isInitOnly && field.isPublic)
 
         try writer.writeStoredProperty(
             documentation: projection.getDocumentationComment(field),
-            visibility: .public, declarator: .var, name: SwiftProjection.toMemberName(field),
+            visibility: .public, declarator: .var, name: Projection.toMemberName(field),
             type: projection.toType(field.type))
     }
 }
 
-fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     func getInitializer(type: TypeNode) -> String {
         switch type {
             case .array(_): return "[]"
@@ -62,17 +62,17 @@ fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, p
 
     try writer.writeInit(visibility: .public, params: []) { writer in
         for field in structDefinition.fields {
-            let name = SwiftProjection.toMemberName(field)
+            let name = Projection.toMemberName(field)
             let initializer = getInitializer(type: try field.type)
             writer.writeStatement("self.\(name) = \(initializer)")
         }
     }
 }
 
-fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let params = try structDefinition.fields
         .filter { $0.visibility == .public && $0.isInstance }
-        .map { SwiftParam(name: SwiftProjection.toMemberName($0), type: try projection.toType($0.type)) }
+        .map { SwiftParam(name: Projection.toMemberName($0), type: try projection.toType($0.type)) }
     guard !params.isEmpty else { return }
 
     writer.writeInit(visibility: .public, params: params) {

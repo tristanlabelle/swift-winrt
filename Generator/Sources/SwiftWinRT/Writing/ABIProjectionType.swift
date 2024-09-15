@@ -6,7 +6,7 @@ import CodeWriters
 import struct Foundation.UUID
 
 /// Writes a type or extension providing the ABIProjection conformance for a given projected WinRT type.
-internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: SwiftProjection, to writer: SwiftSourceFileWriter) throws {
+internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndProjection {
         // The support module already defines a projection, just import and reexport it.
         if typeDefinition.isReferenceType {
@@ -70,7 +70,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
                 type: .identifier(projection.toProjectionTypeName(typeDefinition))) { writer in
             try writeInterfaceOrDelegateProjectionType(
                 typeDefinition.bindType(genericArgs: genericArgs),
-                projectionName: try SwiftProjection.toProjectionInstantiationTypeName(genericArgs: genericArgs),
+                projectionName: try Projection.toProjectionInstantiationTypeName(genericArgs: genericArgs),
                 projection: projection,
                 to: writer)
         }
@@ -79,7 +79,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
         // Generic type definition. Create a namespace for projections of specializations.
         // public enum IVectorProjection {}
         try writer.writeEnum(
-            visibility: SwiftProjection.toVisibility(typeDefinition.visibility),
+            visibility: Projection.toVisibility(typeDefinition.visibility),
             name: projection.toProjectionTypeName(typeDefinition)) { _ in }
     }
 }
@@ -87,7 +87,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
 /// Writes an extension to a struct to provide the ABIProjection conformance.
 fileprivate func writeStructProjectionExtension(
         _ structDefinition: StructDefinition,
-        projection: SwiftProjection,
+        projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
     let isInert = try projection.isProjectionInert(structDefinition)
 
@@ -139,7 +139,7 @@ fileprivate func writeStructProjectionExtension(
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructABIToSwiftInitializerParam(
-                        abiValueName: "value", abiFieldName: field.name, swiftFieldName: SwiftProjection.toMemberName(field),
+                        abiValueName: "value", abiFieldName: field.name, swiftFieldName: Projection.toMemberName(field),
                         typeProjection: projection.getTypeProjection(field.type), to: output)
                 }
             }
@@ -162,7 +162,7 @@ fileprivate func writeStructProjectionExtension(
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructSwiftToABIInitializerParam(
-                        swiftValueName: "value", swiftFieldName: SwiftProjection.toMemberName(field), abiFieldName: field.name,
+                        swiftValueName: "value", swiftFieldName: Projection.toMemberName(field), abiFieldName: field.name,
                         typeProjection: projection.getTypeProjection(field.type), to: output)
                 }
             }
@@ -252,7 +252,7 @@ fileprivate func writeIReferenceIDProperty(propertyName: String, parameterizedID
 fileprivate func writeClassProjectionType(
         _ classDefinition: ClassDefinition,
         defaultInterface: BoundInterface,
-        projection: SwiftProjection,
+        projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
     assert(!classDefinition.isStatic)
 
@@ -262,7 +262,7 @@ fileprivate func writeClassProjectionType(
 
     let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
     try writer.writeClass(
-            visibility: SwiftProjection.toVisibility(classDefinition.visibility),
+            visibility: Projection.toVisibility(classDefinition.visibility),
             name: projectionTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
 
@@ -295,7 +295,7 @@ fileprivate func writeClassProjectionType(
 fileprivate func writeInterfaceOrDelegateProjectionType(
         _ type: BoundType,
         projectionName: String,
-        projection: SwiftProjection,
+        projection: Projection,
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
     let projectionProtocol = type.definition is InterfaceDefinition
@@ -304,7 +304,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
     // Projections of generic instantiations are not owned by any specific module.
     // Making them internal avoids clashes between redundant definitions across modules.
     try writer.writeEnum(
-            visibility: type.genericArgs.isEmpty ? SwiftProjection.toVisibility(type.definition.visibility) : .internal,
+            visibility: type.genericArgs.isEmpty ? Projection.toVisibility(type.definition.visibility) : .internal,
             name: projectionName,
             protocolConformances: [ projectionProtocol ]) { writer throws in
 
@@ -361,7 +361,7 @@ internal func writeReferenceTypeProjectionConformance(
         apiType: BoundType, abiType: BoundType,
         wrapImpl: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
         toCOMImpl: ((_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void)? = nil,
-        projection: SwiftProjection,
+        projection: Projection,
         to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
         target: try projection.toType(apiType.asNode).unwrapOptional())

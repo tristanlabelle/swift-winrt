@@ -3,7 +3,7 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 public final class Module {
-    public unowned let projection: SwiftProjection
+    public unowned let projection: Projection
     public let name: String
     public let abiModuleName: String
     public let flattenNamespaces: Bool
@@ -15,7 +15,7 @@ public final class Module {
 
     public private(set) var genericInstantiationsByDefinition = [TypeDefinition: [[TypeNode]]]()
 
-    internal init(projection: SwiftProjection, name: String, flattenNamespaces: Bool = false) {
+    internal init(projection: Projection, name: String, flattenNamespaces: Bool = false) {
         self.projection = projection
         self.name = name
         self.abiModuleName = name + CAbi.moduleSuffix
@@ -60,7 +60,7 @@ public final class Module {
 
     public func getNamespaceModuleName(namespace: String) -> String {
         precondition(!flattenNamespaces)
-        return "\(name)_\(SwiftProjection.toCompactNamespace(namespace))"
+        return "\(name)_\(Projection.toCompactNamespace(namespace))"
     }
 
     internal func getName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
@@ -73,7 +73,7 @@ public final class Module {
             result += try getName(enclosingType, namespaced: namespaced) + "_"
         }
         else if namespaced && !flattenNamespaces {
-            result += typeDefinition.namespace.flatMap { SwiftProjection.toCompactNamespace($0) + "_" } ?? ""
+            result += typeDefinition.namespace.flatMap { Projection.toCompactNamespace($0) + "_" } ?? ""
         }
 
         result += typeDefinition.nameWithoutGenericArity

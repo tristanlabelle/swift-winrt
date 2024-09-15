@@ -16,7 +16,7 @@ internal struct ThisPointer {
 internal func writeInterfaceImplementation(
         abiType: BoundType, classDefinition: ClassDefinition? = nil, documentation: Bool = true,
         overridable: Bool = false, static: Bool = false, thisPointer: ThisPointer,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     for method in abiType.definition.methods {
         guard method.isPublic && !(method is Constructor) else { continue }
         // Generate Delegate.Invoke as a regular method
@@ -45,7 +45,7 @@ internal func writeInterfaceImplementation(
 fileprivate func writeInterfacePropertyImplementation(
         _ property: Property, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     if try property.definingType.hasAttribute(ExclusiveToAttribute.self) {
         // The property is exclusive to this class so it doesn't come
         // from an interface that would an extension property.
@@ -61,11 +61,11 @@ fileprivate func writeInterfacePropertyImplementation(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
-                name: SwiftProjection.toMemberName(getter),
+                name: Projection.toMemberName(getter),
                 throws: true,
                 returnType: returnParamProjection.swiftType) { writer throws in
             try writeInteropMethodCall(
-                name: SwiftProjection.toInteropMethodName(getter), params: [], returnParam: returnParamProjection,
+                name: Projection.toInteropMethodName(getter), params: [], returnParam: returnParamProjection,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
@@ -78,11 +78,11 @@ fileprivate func writeInterfacePropertyImplementation(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
                 visibility: .public,
                 static: `static`,
-                name: SwiftProjection.toMemberName(setter),
+                name: Projection.toMemberName(setter),
                 params: [ newValueParamProjection.toSwiftParam() ],
                 throws: true) { writer throws in
             try writeInteropMethodCall(
-                name: SwiftProjection.toInteropMethodName(setter),
+                name: Projection.toInteropMethodName(setter),
                 params: [ newValueParamProjection ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
@@ -92,8 +92,8 @@ fileprivate func writeInterfacePropertyImplementation(
 fileprivate func writeInterfaceEventImplementation(
         _ event: Event, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
-    let name = SwiftProjection.toMemberName(event)
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
+    let name = Projection.toMemberName(event)
 
     // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
     if let addAccessor = try event.addAccessor, let handlerParameter = try addAccessor.params.first {
@@ -108,7 +108,7 @@ fileprivate func writeInterfaceEventImplementation(
             let output = writer.output
             output.write("let _token = ")
             try writeInteropMethodCall(
-                name: SwiftProjection.toInteropMethodName(addAccessor),
+                name: Projection.toInteropMethodName(addAccessor),
                 params: [ handlerParamProjection ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: output)
             output.endLine()
@@ -127,7 +127,7 @@ fileprivate func writeInterfaceEventImplementation(
                 params: [ tokenParamProjection.toSwiftParam(label: "removing") ],
                 throws: true) { writer throws in
             try writeInteropMethodCall(
-                name: SwiftProjection.toInteropMethodName(removeAccessor),
+                name: Projection.toInteropMethodName(removeAccessor),
                 params: [ tokenParamProjection ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
@@ -137,19 +137,19 @@ fileprivate func writeInterfaceEventImplementation(
 fileprivate func writeInterfaceMethodImplementation(
         _ method: Method, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
-        projection: SwiftProjection, to writer: SwiftTypeDefinitionWriter) throws {
+        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             documentation: documentation ? projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition) : nil,
-            attributes: SwiftProjection.getSwiftAttributes(method),
+            attributes: Projection.getSwiftAttributes(method),
             visibility: overridable ? .open : .public,
             static: `static`,
-            name: SwiftProjection.toMemberName(method),
+            name: Projection.toMemberName(method),
             params: params.map { $0.toSwiftParam() },
             throws: true,
             returnType: returnParam?.swiftType) { writer throws in
         try writeInteropMethodCall(
-            name: SwiftProjection.toInteropMethodName(method),
+            name: Projection.toInteropMethodName(method),
             params: params, returnParam: returnParam,
             thisPointer: thisPointer, projection: projection, to: writer.output)
     }
@@ -157,7 +157,7 @@ fileprivate func writeInterfaceMethodImplementation(
 
 internal func writeInteropMethodCall(
         name: String, params: [ParamProjection], returnParam: ParamProjection?, thisPointer: ThisPointer,
-        projection: SwiftProjection, to output: IndentedTextOutputStream) throws {
+        projection: Projection, to output: IndentedTextOutputStream) throws {
 
     let nullReturnAsError = {
         if let returnParam, case .return(nullAsError: true) = returnParam.passBy { return true }

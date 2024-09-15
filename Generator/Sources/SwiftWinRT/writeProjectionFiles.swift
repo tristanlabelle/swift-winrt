@@ -7,7 +7,7 @@ import ProjectionModel
 import WindowsMetadata
 
 internal func writeProjectionFiles(
-        _ projection: SwiftProjection,
+        _ projection: Projection,
         directoryPath: String,
         generateCMakeLists: Bool,
         dynamicLibraries: Bool) throws {
@@ -66,7 +66,7 @@ fileprivate func writeSwiftModuleFiles(
         // All WinRT types should have namespaces
         guard let namespace = typeDefinition.namespace else { continue }
 
-        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let compactNamespace = Projection.toCompactNamespace(namespace)
         let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
         let typeName = try module.projection.toTypeName(typeDefinition)
 
@@ -125,7 +125,7 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
         guard !typeDefinitions.isEmpty else { continue }
         guard let namespace else { continue }
 
-        let compactNamespace = SwiftProjection.toCompactNamespace(namespace)
+        let compactNamespace = Projection.toCompactNamespace(namespace)
         compactNamespaces.append(compactNamespace)
         let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
         try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
