@@ -10,5 +10,5 @@ public struct TrustLevel: Hashable, RawRepresentable, Sendable {
     public static let full = Self(rawValue: 2)
 }
 
-extension TrustLevel: COM.OpenEnumProjection {
+extension TrustLevel: COM.OpenEnumBinding {
 }

@@ -4,7 +4,7 @@ import COM
 internal protocol IUnknown2Protocol: IUnknownProtocol {}
 internal typealias IUnknown2 = any IUnknown2Protocol
 
-internal enum IUnknown2Projection: COMTwoWayProjection {
+internal enum IUnknown2Binding: COMTwoWayBinding {
     public typealias SwiftObject = IUnknown2
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IUnknown
 
@@ -19,7 +19,7 @@ internal enum IUnknown2Projection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IUnknown2Projection>, IUnknown2Protocol {}
+    private final class Import: COMImport<IUnknown2Binding>, IUnknown2Protocol {}
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IUnknown_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },

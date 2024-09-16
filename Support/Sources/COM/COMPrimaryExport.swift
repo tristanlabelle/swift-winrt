@@ -1,7 +1,7 @@
 /// Base for Swift classes that implement one or more COM interfaces and owns the COM object identity,
 /// meaning that they own the object returned when using QueryInterface for IUnknown.
-/// The generic Projection parameter determines the virtual table of the identity object.
-open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Projection> {
+/// The generic Binding parameter determines the virtual table of the identity object.
+open class COMPrimaryExport<Binding: COMTwoWayBinding>: COMExportBase<Binding> {
     open class var implements: [COMImplements] { [] }
     open class var implementIAgileObject: Bool { true }
     open class var implementFreeThreadedMarshaling: Bool { implementIAgileObject }
@@ -12,13 +12,13 @@ open class COMPrimaryExport<Projection: COMTwoWayProjection>: COMExportBase<Proj
 
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
-            case Projection.interfaceID:
+            case Binding.interfaceID:
                 return toCOM().cast()
-            case IUnknownProjection.interfaceID:
+            case IUnknownBinding.interfaceID:
                 return toCOM().cast()
-            case IAgileObjectProjection.interfaceID where Self.implementIAgileObject:
+            case IAgileObjectBinding.interfaceID where Self.implementIAgileObject:
                 return toCOM().cast()
-            case FreeThreadedMarshalProjection.interfaceID where Self.implementFreeThreadedMarshaling:
+            case FreeThreadedMarshalBinding.interfaceID where Self.implementFreeThreadedMarshaling:
                 return try FreeThreadedMarshal(self).toCOM().cast()
             default:
                 if let interface = Self.implements.first(where: { $0.id == id }) {
@@ -41,10 +41,10 @@ public struct COMImplements {
         self.factory = factory
     }
 
-    public init<Projection: COMTwoWayProjection>(_: Projection.Type) {
-        self.id = Projection.interfaceID
+    public init<Binding: COMTwoWayBinding>(_: Binding.Type) {
+        self.id = Binding.interfaceID
         self.factory = { identity in
-            COMSecondaryExport<Projection>.delegating(to: identity).toCOM().cast()
+            COMSecondaryExport<Binding>.delegating(to: identity).toCOM().cast()
         }
     }
 

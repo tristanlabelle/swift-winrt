@@ -22,8 +22,8 @@ internal func writeNamespaceAlias(_ typeDefinition: TypeDefinition, projection: 
     if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
         try writer.writeTypeAlias(
             visibility: Projection.toVisibility(typeDefinition.visibility),
-            name: projection.toProjectionTypeName(typeDefinition, namespaced: false),
+            name: projection.toBindingTypeName(typeDefinition, namespaced: false),
             target: SwiftType.identifier(
-                name: projection.toProjectionTypeName(typeDefinition)))
+                name: projection.toBindingTypeName(typeDefinition)))
     }
 }

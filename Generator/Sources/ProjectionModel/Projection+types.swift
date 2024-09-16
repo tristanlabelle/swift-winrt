@@ -17,8 +17,8 @@ extension Projection {
     }
 
     public func toType(_ boundType: BoundType, nullable: Bool = true) throws -> SwiftType {
-        if let specialTypeProjection = try getSpecialTypeProjection(boundType) {
-            return specialTypeProjection.swiftType
+        if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
+            return specialTypeBinding.swiftType
         }
 
         let swiftObjectType = SwiftType.identifier(
@@ -27,7 +27,7 @@ extension Projection {
         return boundType.definition.isReferenceType && nullable ? .optional(wrapped: swiftObjectType) : swiftObjectType
     }
 
-    public func isProjectionInert(_ typeDefinition: TypeDefinition) throws -> Bool {
+    public func isBindingInert(_ typeDefinition: TypeDefinition) throws -> Bool {
         switch typeDefinition {
             case is InterfaceDefinition, is DelegateDefinition, is ClassDefinition: return false
             case let structDefinition as StructDefinition:
@@ -36,7 +36,7 @@ extension Projection {
                     switch try field.type {
                         case let .bound(type):
                             // Careful, primitive types have recursive fields (System.Int32 has a field of type System.Int32)
-                            return try type.definition == typeDefinition || isProjectionInert(type.definition)
+                            return try type.definition == typeDefinition || isBindingInert(type.definition)
                         default: return false
                     }
                 }
@@ -65,31 +65,31 @@ extension Projection {
         return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
     }
 
-    public func getTypeProjection(_ type: TypeNode) throws -> TypeProjection {
+    public func getTypeBinding(_ type: TypeNode) throws -> TypeProjection {
         switch type {
             case let .bound(type):
-                return try getTypeProjection(type)
+                return try getTypeBinding(type)
             case let .genericParam(param):
-                throw UnexpectedTypeError(param.name, context: "Generic params have no projection.")
+                throw UnexpectedTypeError(param.name, context: "Generic params have no binding.")
             case let .array(of: element):
-                let elementProjection = try getTypeProjection(element)
-                let swiftType = SwiftType.array(element: elementProjection.swiftType)
+                let elementBinding = try getTypeBinding(element)
+                let swiftType = SwiftType.array(element: elementBinding.swiftType)
                 return TypeProjection(
-                    abiType: SupportModules.COM.comArray(of: elementProjection.abiType),
+                    abiType: SupportModules.COM.comArray(of: elementBinding.abiType),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: swiftType,
                     swiftDefaultValue: "[]",
-                    projectionType: SupportModules.WinRT.arrayProjection(of: elementProjection.projectionType),
+                    bindingType: SupportModules.WinRT.arrayBinding(of: elementBinding.bindingType),
                     kind: .array)
 
             default:
-                fatalError("Not implemented: projecting values of type \(type)")
+                fatalError("Not implemented: type binding for values of type \(type)")
         }
     }
 
-    private func getTypeProjection(_ type: BoundType) throws -> TypeProjection {
-        if let specialTypeProjection = try getSpecialTypeProjection(type) {
-            return specialTypeProjection
+    private func getTypeBinding(_ type: BoundType) throws -> TypeProjection {
+        if let specialTypeBinding = try getSpecialTypeBinding(type) {
+            return specialTypeBinding
         }
 
         var abiType: SwiftType
@@ -108,15 +108,15 @@ extension Projection {
             abiType = .optional(wrapped: .unsafeMutablePointer(to: abiType))
         }
 
-        let projectionType: SwiftType = try {
-            let projectionTypeName = try toProjectionTypeName(type.definition)
+        let bindingType: SwiftType = try {
+            let bindingTypeName = try toBindingTypeName(type.definition)
             if type.genericArgs.isEmpty {
-                return .identifier(projectionTypeName)
+                return .identifier(bindingTypeName)
             }
             else {
                 return .chain([
-                    .init(projectionTypeName),
-                    .init(try Projection.toProjectionInstantiationTypeName(genericArgs: type.genericArgs))
+                    .init(bindingTypeName),
+                    .init(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
                 ])
             }
         }()
@@ -126,19 +126,19 @@ extension Projection {
             abiDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             swiftType: try toType(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
-            projectionType: projectionType,
-            kind: try isProjectionInert(type.definition) ? .inert : .allocating)
+            bindingType: bindingType,
+            kind: try isBindingInert(type.definition) ? .inert : .allocating)
     }
 
-    private func getSpecialTypeProjection(_ type: BoundType) throws -> TypeProjection? {
+    private func getSpecialTypeBinding(_ type: BoundType) throws -> TypeProjection? {
         if type.definition.namespace == "System" {
-            guard let typeProjection = try getCoreLibraryTypeProjection(type) else {
+            guard let typeProjection = try getCoreLibraryTypeBinding(type) else {
                 throw UnexpectedTypeError(type.description, context: "Not a valid WinRT System type.")
             }
             return typeProjection
         }
         else if type.definition.namespace == "Windows.Foundation",
-                let typeProjection = try getWindowsFoundationTypeProjection(type) {
+                let typeProjection = try getWindowsFoundationTypeBinding(type) {
             return typeProjection
         }
         else {
@@ -146,7 +146,7 @@ extension Projection {
         }
     }
 
-    private func getCoreLibraryTypeProjection(_ type: BoundType) throws -> TypeProjection? {
+    private func getCoreLibraryTypeBinding(_ type: BoundType) throws -> TypeProjection? {
         guard type.definition.namespace == "System" else { return nil }
 
         if type.definition.name == "Object" {
@@ -155,7 +155,7 @@ extension Projection {
                 abiDefaultValue: .nil,
                 swiftType: .optional(wrapped: SupportModules.WinRT.iinspectable),
                 swiftDefaultValue: .nil,
-                projectionType: SupportModules.WinRT.iinspectableProjection,
+                bindingType: SupportModules.WinRT.iinspectableBinding,
                 kind: .allocating)
         }
         guard let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) else { return nil }
@@ -171,7 +171,7 @@ extension Projection {
                     abiDefaultValue: primitiveType == .boolean ? .`false` : .zero,
                     swiftType: swiftType,
                     swiftDefaultValue: primitiveType == .boolean ? .`false` : .zero,
-                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
+                    bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .identity)
             case .char16:
                 return TypeProjection(
@@ -179,7 +179,7 @@ extension Projection {
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.WinRT.char16,
                     swiftDefaultValue: ".init(0)",
-                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
+                    bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .inert)
             case .guid:
                 return TypeProjection(
@@ -187,7 +187,7 @@ extension Projection {
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
+                    bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .inert)
             case .string:
                 return .init(
@@ -195,17 +195,17 @@ extension Projection {
                     abiDefaultValue: .nil,
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
-                    projectionType: SupportModules.WinRT.primitiveProjection(of: primitiveType),
+                    bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .allocating)
         }
     }
 
-    private func getWindowsFoundationTypeProjection(_ type: BoundType) throws -> TypeProjection? {
+    private func getWindowsFoundationTypeBinding(_ type: BoundType) throws -> TypeProjection? {
         guard type.definition.namespace == "Windows.Foundation" else { return nil }
         switch type.definition.name {
             case "IReference`1":
                 guard case let .bound(type) = type.genericArgs[0] else { return nil }
-                return try getIReferenceTypeProjection(of: type)
+                return try getIReferenceTypeBinding(of: type)
 
             case "EventRegistrationToken":
                 return TypeProjection(
@@ -213,7 +213,7 @@ extension Projection {
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.WinRT.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: SupportModules.WinRT.eventRegistrationToken,
+                    bindingType: SupportModules.WinRT.eventRegistrationToken,
                     kind: .inert)
 
             case "HResult":
@@ -222,7 +222,7 @@ extension Projection {
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.COM.hresult,
                     swiftDefaultValue: .defaultInitializer,
-                    projectionType: SupportModules.COM.hresultProjection,
+                    bindingType: SupportModules.COM.hresultBinding,
                     kind: .inert)
 
             default:
@@ -230,15 +230,15 @@ extension Projection {
         }
     }
 
-    private func getIReferenceTypeProjection(of type: BoundType) throws -> TypeProjection? {
-        let typeProjection = try getTypeProjection(type.asNode)
-        let projectionType: SwiftType
+    private func getIReferenceTypeBinding(of type: BoundType) throws -> TypeProjection? {
+        let typeProjection = try getTypeBinding(type.asNode)
+        let bindingType: SwiftType
         if type.definition.namespace == "System",
                 let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
-            projectionType = SupportModules.WinRT.ireferenceToOptionalProjection(of: primitiveType)
+            bindingType = SupportModules.WinRT.ireferenceToOptionalBinding(of: primitiveType)
         }
         else if type.definition is EnumDefinition || type.definition is StructDefinition || type.definition is DelegateDefinition {
-            projectionType = SupportModules.WinRT.ireferenceToOptionalProjection(of: typeProjection.projectionType)
+            bindingType = SupportModules.WinRT.ireferenceToOptionalBinding(of: typeProjection.bindingType)
         }
         else {
             return nil
@@ -249,7 +249,7 @@ extension Projection {
             abiDefaultValue: .nil,
             swiftType: .optional(wrapped: typeProjection.swiftType),
             swiftDefaultValue: .nil,
-            projectionType: projectionType,
+            bindingType: bindingType,
             kind: .allocating)
     }
 }

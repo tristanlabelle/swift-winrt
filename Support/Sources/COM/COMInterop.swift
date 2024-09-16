@@ -32,7 +32,7 @@ public struct COMInterop<ABIStruct> {
     }
 
     public func queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
-        var iid = GUIDProjection.toABI(id)
+        var iid = GUIDBinding.toABI(id)
         var rawPointer: UnsafeMutableRawPointer? = nil
         try COMError.fromABI(unknown.pointee.VirtualTable.pointee.QueryInterface(unknown, &iid, &rawPointer))
         guard let rawPointer else {

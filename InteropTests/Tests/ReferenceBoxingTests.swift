@@ -3,7 +3,7 @@ import WinRTComponent
 import XCTest
 
 class ReferenceBoxingTests: WinRTTestCase {
-    func testRoundTripOfPrimitiveWithIdentityProjection() throws {
+    func testRoundTripOfPrimitiveWithIdentityBinding() throws {
         let original = Int32(42)
         XCTAssertEqual(try XCTUnwrap(ReferenceBoxing.boxInt32(original)), original)
         XCTAssertEqual(try ReferenceBoxing.unboxInt32(Optional(original)), original)

@@ -35,7 +35,7 @@ extension WindowsFoundation_DateTime {
 
 import SWRT_WindowsFoundation
 
-extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIInertProjection {
+extension WindowsFoundation_DateTime: WindowsRuntime.StructBinding, COM.PODBinding {
     public typealias SwiftValue = Self
     public typealias ABIValue = SWRT_WindowsFoundation_DateTime
 
@@ -60,10 +60,10 @@ extension WindowsFoundation_DateTime: WindowsRuntime.StructProjection, COM.ABIIn
     }
 
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
-        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createDateTime)
+        try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createDateTime)
     }
 
     public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
-        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createDateTimeArray)
+        try PropertyValueStatics.createIReferenceArray(value, valueBinding: Self.self, factory: PropertyValueStatics.createDateTimeArray)
     }
 }

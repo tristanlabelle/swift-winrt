@@ -7,7 +7,7 @@ public protocol IWeakReferenceProtocol: IUnknownProtocol {
 
 import WindowsRuntime_ABI
 
-public enum IWeakReferenceProjection: COMTwoWayProjection {
+public enum IWeakReferenceBinding: COMTwoWayBinding {
     public typealias SwiftObject = IWeakReference
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IWeakReference
 
@@ -22,9 +22,9 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IWeakReferenceProjection>, IWeakReferenceProtocol {
+    private final class Import: COMImport<IWeakReferenceBinding>, IWeakReferenceProtocol {
         public func resolve() throws -> IInspectable? {
-            try _interop.resolve(IInspectableProjection.interfaceID)
+            try _interop.resolve(IInspectableBinding.interfaceID)
         }
     }
 
@@ -35,11 +35,11 @@ public enum IWeakReferenceProjection: COMTwoWayProjection {
         Resolve: { this, iid, objectReference in _implement(this) {
             guard let iid, let objectReference else { throw COMError.pointer }
             objectReference.pointee = nil
-            var inspectable = try IInspectableProjection.toABI($0.resolve())
-            defer { IInspectableProjection.release(&inspectable) }
+            var inspectable = try IInspectableBinding.toABI($0.resolve())
+            defer { IInspectableBinding.release(&inspectable) }
             guard let inspectable else { return }
             objectReference.pointee = try COMInterop(inspectable)
-                .queryInterface(GUIDProjection.toSwift(iid.pointee), type: SWRT_IInspectable.self)
+                .queryInterface(GUIDBinding.toSwift(iid.pointee), type: SWRT_IInspectable.self)
                 .detach()
         } })
 }
@@ -50,9 +50,9 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReference.Type) -> COMInterfa
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReference {
     public func resolve(_ iid: COMInterfaceID) throws -> IInspectable? {
-        var iid = GUIDProjection.toABI(iid)
-        var objectReference = IInspectableProjection.abiDefaultValue
+        var iid = GUIDBinding.toABI(iid)
+        var objectReference = IInspectableBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.Resolve(this, &iid, &objectReference))
-        return IInspectableProjection.toSwift(consuming: &objectReference)
+        return IInspectableBinding.toSwift(consuming: &objectReference)
     }
 }

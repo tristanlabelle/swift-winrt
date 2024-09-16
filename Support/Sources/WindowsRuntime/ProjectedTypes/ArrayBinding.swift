@@ -1,10 +1,10 @@
 import COM
 
-/// Projects a WinRT array to a Swift array.
-public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
+/// Binds a WinRT array to a Swift array.
+public enum ArrayBinding<ElementBinding: ABIBinding>: ABIBinding {
     // WinRT does not have a distinct representation for null and empty
-    public typealias SwiftValue = [ElementProjection.SwiftValue]
-    public typealias ABIValue = COMArray<ElementProjection.ABIValue>
+    public typealias SwiftValue = [ElementBinding.SwiftValue]
+    public typealias ABIValue = COMArray<ElementBinding.ABIValue>
 
     public static var abiDefaultValue: ABIValue { .null }
 
@@ -12,13 +12,13 @@ public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
         guard value.count > 0 else { return [] }
         return .init(unsafeUninitializedCapacity: Int(value.count)) { buffer, initializedCount in
             for i in 0..<Int(value.count) {
-                buffer.initializeElement(at: i, to: ElementProjection.toSwift(value[i]))
+                buffer.initializeElement(at: i, to: ElementBinding.toSwift(value[i]))
                 initializedCount = i + 1
             }
         }
     }
 
-    public static func toSwift(pointer: UnsafeMutablePointer<ElementProjection.ABIValue>?, count: UInt32) -> SwiftValue {
+    public static func toSwift(pointer: UnsafeMutablePointer<ElementBinding.ABIValue>?, count: UInt32) -> SwiftValue {
         if let pointer {
             return toSwift(COMArray(pointer: pointer, count: count))
         } else {
@@ -32,9 +32,9 @@ public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
 
         var result = ABIValue.allocate(count: UInt32(value.count))
         for i in 0..<Int(result.count) {
-            do { result[i] = try ElementProjection.toABI(value[i]) }
+            do { result[i] = try ElementBinding.toABI(value[i]) }
             catch {
-                for j in 0..<i { ElementProjection.release(&result[j]) }
+                for j in 0..<i { ElementBinding.release(&result[j]) }
                 result.deallocate()
                 throw error
             }
@@ -45,7 +45,7 @@ public enum ArrayProjection<ElementProjection: ABIProjection>: ABIProjection {
 
     public static func release(_ value: inout ABIValue) {
         guard let buffer = value.buffer else { return }
-        for i in 0..<buffer.count { ElementProjection.release(&buffer[i]) }
+        for i in 0..<buffer.count { ElementBinding.release(&buffer[i]) }
         value.deallocate()
     }
 }

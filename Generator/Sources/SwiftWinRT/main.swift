@@ -30,7 +30,7 @@ do {
         commandLineArguments: commandLineArguments,
         projectionConfig: projectionConfig,
         winMDLoadContext: context)
-    try writeProjectionFiles(projection,
+    try writeBindingFiles(projection,
         directoryPath: commandLineArguments.outputDirectoryPath,
         generateCMakeLists: commandLineArguments.generateCMakeLists,
         dynamicLibraries: commandLineArguments.dynamicLibraries)

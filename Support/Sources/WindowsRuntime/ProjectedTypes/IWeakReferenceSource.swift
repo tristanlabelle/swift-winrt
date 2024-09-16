@@ -7,7 +7,7 @@ public protocol IWeakReferenceSourceProtocol: IUnknownProtocol {
 
 import WindowsRuntime_ABI
 
-public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
+public enum IWeakReferenceSourceBinding: COMTwoWayBinding {
     public typealias SwiftObject = IWeakReferenceSource
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IWeakReferenceSource
 
@@ -22,7 +22,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IWeakReferenceSourceProjection>, IWeakReferenceSourceProtocol {
+    private final class Import: COMImport<IWeakReferenceSourceBinding>, IWeakReferenceSourceProtocol {
         public func getWeakReference() throws -> IWeakReference {
             try NullResult.unwrap(_interop.getWeakReference())
         }
@@ -32,7 +32,7 @@ public enum IWeakReferenceSourceProjection: COMTwoWayProjection {
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
-        GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceProjection.toABI($0.getWeakReference())) } })
+        GetWeakReference: { this, weakReference in _implement(this) { try _set(weakReference, IWeakReferenceBinding.toABI($0.getWeakReference())) } })
 }
 
 public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReferenceSource.Type) -> COMInterfaceID {
@@ -41,8 +41,8 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IWeakReferenceSource.Type) -> COMI
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReferenceSource {
     public func getWeakReference() throws -> IWeakReference? {
-        var value = IWeakReferenceProjection.abiDefaultValue
+        var value = IWeakReferenceBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetWeakReference(this, &value))
-        return IWeakReferenceProjection.toSwift(consuming: &value)
+        return IWeakReferenceBinding.toSwift(consuming: &value)
     }
 }

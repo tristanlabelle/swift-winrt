@@ -3,8 +3,8 @@ import WinRTComponent
 import XCTest
 
 extension IInspectableProtocol {
-    fileprivate func unbox<Projection: IReferenceableProjection>(_ projection: Projection.Type) throws -> Projection.SwiftValue {
-        let ireference = try self.queryInterface(WindowsFoundation_IReferenceProjection<Projection>.self)
+    fileprivate func unbox<Binding: IReferenceableBinding>(_: Binding.Type) throws -> Binding.SwiftValue {
+        let ireference = try self.queryInterface(WindowsFoundation_IReferenceBinding<Binding>.self)
         return try ireference._value()
     }
 }
@@ -12,13 +12,13 @@ extension IInspectableProtocol {
 class InspectableBoxingTests: WinRTTestCase {
     func testInertPrimitiveRoundTrip() throws {
         let original = Int32(42)
-        XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(Int32Projection.self), original)
+        XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(Int32Binding.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxInt32(createIReference(original)), original)
     }
 
     func testAllocatingPrimitiveRoundTrip() throws {
         let original = "Hello"
-        XCTAssertEqual(try InspectableBoxing.boxString(original).unbox(StringProjection.self), original)
+        XCTAssertEqual(try InspectableBoxing.boxString(original).unbox(StringBinding.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxString(createIReference(original)), original)
     }
 
@@ -45,17 +45,17 @@ class InspectableBoxingTests: WinRTTestCase {
         }
 
         try assertRoundTrip {
-            let ireference = try createIReference($0, projection: MinimalDelegateProjection.self)
+            let ireference = try createIReference($0, binding: MinimalDelegateBinding.self)
             return try XCTUnwrap(ireference._value())
         }
 
         try assertRoundTrip {
             let iinspectable = try InspectableBoxing.boxMinimalDelegate($0)
-            return try XCTUnwrap(iinspectable.unbox(MinimalDelegateProjection.self))
+            return try XCTUnwrap(iinspectable.unbox(MinimalDelegateBinding.self))
         }
 
         try assertRoundTrip {
-            let ireference = try createIReference($0, projection: MinimalDelegateProjection.self)
+            let ireference = try createIReference($0, binding: MinimalDelegateBinding.self)
             return try InspectableBoxing.unboxMinimalDelegate(ireference)
         }
     }

@@ -56,16 +56,16 @@ fileprivate func writeInterfacePropertyImplementation(
 
     // public [static] func _myProperty() throws -> MyPropertyType { ... }
     if let getter = try property.getter, try getter.hasReturnValue {
-        let returnParamProjection = try projection.getParamProjection(getter.returnParam, genericTypeArgs: typeGenericArgs)
+        let returnParamBinding = try projection.getParamBinding(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: Projection.toMemberName(getter),
                 throws: true,
-                returnType: returnParamProjection.swiftType) { writer throws in
+                returnType: returnParamBinding.swiftType) { writer throws in
             try writeInteropMethodCall(
-                name: Projection.toInteropMethodName(getter), params: [], returnParam: returnParamProjection,
+                name: Projection.toInteropMethodName(getter), params: [], returnParam: returnParamBinding,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
@@ -73,17 +73,17 @@ fileprivate func writeInterfacePropertyImplementation(
     // public [static] func myProperty(_ newValue: MyPropertyType) throws { ... }
     if let setter = try property.setter {
         guard let newValueParam = try setter.params.first else { fatalError() }
-        let newValueParamProjection = try projection.getParamProjection(newValueParam, genericTypeArgs: typeGenericArgs)
+        let newValueParamBinding = try projection.getParamBinding(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
                 visibility: .public,
                 static: `static`,
                 name: Projection.toMemberName(setter),
-                params: [ newValueParamProjection.toSwiftParam() ],
+                params: [ newValueParamBinding.toSwiftParam() ],
                 throws: true) { writer throws in
             try writeInteropMethodCall(
                 name: Projection.toInteropMethodName(setter),
-                params: [ newValueParamProjection ], returnParam: nil,
+                params: [ newValueParamBinding ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
@@ -97,19 +97,19 @@ fileprivate func writeInterfaceEventImplementation(
 
     // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
     if let addAccessor = try event.addAccessor, let handlerParameter = try addAccessor.params.first {
-        let handlerParamProjection = try projection.getParamProjection(handlerParameter, genericTypeArgs: typeGenericArgs)
+        let handlerParamBinding = try projection.getParamBinding(handlerParameter, genericTypeArgs: typeGenericArgs)
         let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(abiMember: event, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public, static: `static`, name: name,
-                params: [ handlerParamProjection.toSwiftParam(label: "adding") ], throws: true,
+                params: [ handlerParamBinding.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
             // Convert the return token into an EventRegistration type for ease of unregistering
             let output = writer.output
             output.write("let _token = ")
             try writeInteropMethodCall(
                 name: Projection.toInteropMethodName(addAccessor),
-                params: [ handlerParamProjection ], returnParam: nil,
+                params: [ handlerParamBinding ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: output)
             output.endLine()
 
@@ -119,16 +119,16 @@ fileprivate func writeInterfaceEventImplementation(
 
     // public [static] func myEvent(removing token: EventRegistrationToken) throws { ... }
     if let removeAccessor = try event.removeAccessor, let tokenParameter = try removeAccessor.params.first {
-        let tokenParamProjection = try projection.getParamProjection(tokenParameter, genericTypeArgs: typeGenericArgs)
+        let tokenParamBinding = try projection.getParamBinding(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: name,
-                params: [ tokenParamProjection.toSwiftParam(label: "removing") ],
+                params: [ tokenParamBinding.toSwiftParam(label: "removing") ],
                 throws: true) { writer throws in
             try writeInteropMethodCall(
                 name: Projection.toInteropMethodName(removeAccessor),
-                params: [ tokenParamProjection ], returnParam: nil,
+                params: [ tokenParamBinding ], returnParam: nil,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
@@ -138,7 +138,7 @@ fileprivate func writeInterfaceMethodImplementation(
         _ method: Method, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: typeGenericArgs)
+    let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             documentation: documentation ? projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition) : nil,
             attributes: Projection.getSwiftAttributes(method),

@@ -9,7 +9,7 @@ public protocol IInspectableProtocol: IUnknownProtocol {
 
 import WindowsRuntime_ABI
 
-public enum IInspectableProjection: InterfaceProjection {
+public enum IInspectableBinding: InterfaceBinding {
     public typealias SwiftObject = IInspectable
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IInspectable
 
@@ -25,7 +25,7 @@ public enum IInspectableProjection: InterfaceProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: WinRTImport<IInspectableProjection> {}
+    private final class Import: WinRTImport<IInspectableBinding> {}
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IInspectable_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
@@ -40,21 +40,21 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_IInspectable.Type) -> COMInterface
     .init(0xAF86E2E0, 0xB12D, 0x4C6A, 0x9C5A, 0xD7AA65101E90)
 }
 
-public typealias IInspectablePointer = IInspectableProjection.ABIPointer
-public typealias IInspectableReference = IInspectableProjection.ABIReference
+public typealias IInspectablePointer = IInspectableBinding.ABIPointer
+public typealias IInspectableReference = IInspectableBinding.ABIReference
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
     public func getIids() throws -> [COMInterfaceID] {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
-        return ArrayProjection<GUIDProjection>.toSwift(consuming: &iids)
+        return ArrayBinding<GUIDBinding>.toSwift(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
-        return StringProjection.toSwift(consuming: &runtimeClassName)
+        return StringBinding.toSwift(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {

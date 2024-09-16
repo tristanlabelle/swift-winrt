@@ -5,33 +5,33 @@ import ProjectionModel
 import CodeWriters
 import struct Foundation.UUID
 
-/// Writes a type or extension providing the ABIProjection conformance for a given projected WinRT type.
-internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: Projection, to writer: SwiftSourceFileWriter) throws {
-    if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndProjection {
+/// Writes a type or extension providing the ABIBinding conformance for a given projected WinRT type.
+internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: Projection, to writer: SwiftSourceFileWriter) throws {
+    if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndBinding {
         // The support module already defines a projection, just import and reexport it.
         if typeDefinition.isReferenceType {
-            let projectionTypeName = try projection.toProjectionTypeName(typeDefinition)
-            writer.writeImport(exported: true, kind: .enum, module: SupportModules.WinRT.moduleName, symbolName: projectionTypeName)
+            let bindingTypeName = try projection.toBindingTypeName(typeDefinition)
+            writer.writeImport(exported: true, kind: .enum, module: SupportModules.WinRT.moduleName, symbolName: bindingTypeName)
         }
         else {
-            // The struct conforms to ABIProjection itself, and we already imported it.
+            // The struct conforms to ABIBinding itself, and we already imported it.
         }
         return
     }
 
     if let structDefinition = typeDefinition as? StructDefinition {
         assert(genericArgs == nil)
-        try writeStructProjectionExtension(structDefinition, projection: projection, to: writer)
+        try writeStructBindingExtension(structDefinition, projection: projection, to: writer)
         return
     }
 
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
-        let enumProjectionProtocol = try projection.isSwiftEnumEligible(enumDefinition)
-            ? SupportModules.WinRT.closedEnumProjection : SupportModules.WinRT.openEnumProjection
+        let enumBindingProtocol = try projection.isSwiftEnumEligible(enumDefinition)
+            ? SupportModules.WinRT.closedEnumBinding : SupportModules.WinRT.openEnumBinding
         try writer.writeExtension(
                 type: .identifier(projection.toTypeName(enumDefinition)),
-                protocolConformances: [ enumProjectionProtocol ]) { writer in
+                protocolConformances: [ enumBindingProtocol ]) { writer in
             // public static var typeName: String { "..." }
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
 
@@ -45,7 +45,7 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
     if let classDefinition = typeDefinition as? ClassDefinition {
         assert(genericArgs == nil)
         if let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) {
-            try writeClassProjectionType(classDefinition, defaultInterface: defaultInterface, projection: projection, to: writer)
+            try writeClassBindingType(classDefinition, defaultInterface: defaultInterface, projection: projection, to: writer)
         }
         else {
             // Static classes have no ABI-representable values to be projected.
@@ -57,46 +57,46 @@ internal func writeABIProjectionConformance(_ typeDefinition: TypeDefinition, ge
     // Interface, delegate or activatable class
     if typeDefinition.genericArity == 0 {
         // Non-generic type, create a standard projection type.
-        // enum IVectorProjection: WinRTProjection... {}
-        try writeInterfaceOrDelegateProjectionType(typeDefinition.bindType(),
-            projectionName: try projection.toProjectionTypeName(typeDefinition), projection: projection, to: writer)
+        // enum IVectorBinding: WinRTBinding... {}
+        try writeInterfaceOrDelegateBindingType(typeDefinition.bindType(),
+            projectionName: try projection.toBindingTypeName(typeDefinition), projection: projection, to: writer)
     }
     else if let genericArgs {
         // Generic type specialization. Create a projection for the specialization.
-        // extension IVectorProjection {
-        //     internal final class Boolean: WinRTProjection... {}
+        // extension IVectorBinding {
+        //     internal final class Boolean: WinRTBinding... {}
         // }
         try writer.writeExtension(
-                type: .identifier(projection.toProjectionTypeName(typeDefinition))) { writer in
-            try writeInterfaceOrDelegateProjectionType(
+                type: .identifier(projection.toBindingTypeName(typeDefinition))) { writer in
+            try writeInterfaceOrDelegateBindingType(
                 typeDefinition.bindType(genericArgs: genericArgs),
-                projectionName: try Projection.toProjectionInstantiationTypeName(genericArgs: genericArgs),
+                projectionName: try Projection.toBindingInstantiationTypeName(genericArgs: genericArgs),
                 projection: projection,
                 to: writer)
         }
     }
     else {
         // Generic type definition. Create a namespace for projections of specializations.
-        // public enum IVectorProjection {}
+        // public enum IVectorBinding {}
         try writer.writeEnum(
             visibility: Projection.toVisibility(typeDefinition.visibility),
-            name: projection.toProjectionTypeName(typeDefinition)) { _ in }
+            name: projection.toBindingTypeName(typeDefinition)) { _ in }
     }
 }
 
-/// Writes an extension to a struct to provide the ABIProjection conformance.
-fileprivate func writeStructProjectionExtension(
+/// Writes an extension to a struct to provide the ABIBinding conformance.
+fileprivate func writeStructBindingExtension(
         _ structDefinition: StructDefinition,
         projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
-    let isInert = try projection.isProjectionInert(structDefinition)
+    let isInert = try projection.isBindingInert(structDefinition)
 
-    var protocolConformances = [SupportModules.WinRT.structProjection]
+    var protocolConformances = [SupportModules.WinRT.structBinding]
     if isInert {
-        protocolConformances.append(SupportModules.COM.abiInertProjection)
+        protocolConformances.append(SupportModules.COM.abiInertBinding)
     }
 
-    // extension <struct>: IReferenceableProjection[, ABIInertProjection]
+    // extension <struct>: IReferenceableBinding[, PODBinding]
     try writer.writeExtension(
             type: .identifier(projection.toTypeName(structDefinition)),
             protocolConformances: protocolConformances) { writer in
@@ -140,7 +140,7 @@ fileprivate func writeStructProjectionExtension(
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructABIToSwiftInitializerParam(
                         abiValueName: "value", abiFieldName: field.name, swiftFieldName: Projection.toMemberName(field),
-                        typeProjection: projection.getTypeProjection(field.type), to: output)
+                        typeProjection: projection.getTypeBinding(field.type), to: output)
                 }
             }
             output.write(")", endLine: true)
@@ -163,7 +163,7 @@ fileprivate func writeStructProjectionExtension(
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructSwiftToABIInitializerParam(
                         swiftValueName: "value", swiftFieldName: Projection.toMemberName(field), abiFieldName: field.name,
-                        typeProjection: projection.getTypeProjection(field.type), to: output)
+                        typeProjection: projection.getTypeBinding(field.type), to: output)
                 }
             }
             output.write(")", endLine: true)
@@ -175,9 +175,9 @@ fileprivate func writeStructProjectionExtension(
                     visibility: .public, static: true, name: "release",
                     params: [.init(label: "_", name: "value", `inout`: true, type: abiType)]) { writer in
                 for field in fields {
-                    let typeProjection = try projection.getTypeProjection(field.type)
+                    let typeProjection = try projection.getTypeBinding(field.type)
                     if typeProjection.kind == .allocating {
-                        writer.writeStatement("\(typeProjection.projectionType).release(&value.\(field.name))")
+                        writer.writeStatement("\(typeProjection.bindingType).release(&value.\(field.name))")
                     }
                 }
             }
@@ -193,7 +193,7 @@ fileprivate func writeStructABIToSwiftInitializerParam(
     output.write(": ")
 
     if typeProjection.kind != .identity {
-        typeProjection.projectionType.write(to: &output)
+        typeProjection.bindingType.write(to: &output)
         output.write(".toSwift(")
     }
 
@@ -215,7 +215,7 @@ fileprivate func writeStructSwiftToABIInitializerParam(
 
     if typeProjection.kind != .identity {
         if typeProjection.kind != .inert { output.write("try ") }
-        typeProjection.projectionType.write(to: &output)
+        typeProjection.bindingType.write(to: &output)
         output.write(".toABI(")
     }
 
@@ -248,8 +248,8 @@ fileprivate func writeIReferenceIDProperty(propertyName: String, parameterizedID
     }
 }
 
-/// Writes a type providing the ABIProjection conformance for a WinRT class.
-fileprivate func writeClassProjectionType(
+/// Writes a type providing the ABIBinding conformance for a WinRT class.
+fileprivate func writeClassBindingType(
         _ classDefinition: ClassDefinition,
         defaultInterface: BoundInterface,
         projection: Projection,
@@ -257,16 +257,16 @@ fileprivate func writeClassProjectionType(
     assert(!classDefinition.isStatic)
 
     let projectionProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
-        ? SupportModules.WinRT.composableClassProjection
-        : SupportModules.WinRT.activatableClassProjection
+        ? SupportModules.WinRT.composableClassBinding
+        : SupportModules.WinRT.activatableClassBinding
 
-    let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
+    let bindingTypeName = try projection.toBindingTypeName(classDefinition)
     try writer.writeClass(
             visibility: Projection.toVisibility(classDefinition.visibility),
-            name: projectionTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
+            name: bindingTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
         let typeName = try projection.toTypeName(classDefinition)
 
-        try writeReferenceTypeProjectionConformance(
+        try writeReferenceTypeBindingConformance(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
             wrapImpl: { writer, paramName in
@@ -292,14 +292,14 @@ fileprivate func writeClassProjectionType(
     }
 }
 
-fileprivate func writeInterfaceOrDelegateProjectionType(
+fileprivate func writeInterfaceOrDelegateBindingType(
         _ type: BoundType,
         projectionName: String,
         projection: Projection,
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
     let projectionProtocol = type.definition is InterfaceDefinition
-        ? SupportModules.WinRT.interfaceProjection : SupportModules.WinRT.delegateProjection
+        ? SupportModules.WinRT.interfaceBinding : SupportModules.WinRT.delegateBinding
 
     // Projections of generic instantiations are not owned by any specific module.
     // Making them internal avoids clashes between redundant definitions across modules.
@@ -311,7 +311,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         let importClassName = "Import"
 
         if type.definition is InterfaceDefinition {
-            try writeReferenceTypeProjectionConformance(
+            try writeReferenceTypeBindingConformance(
                 apiType: type, abiType: type,
                 wrapImpl: { writer, paramName in
                     writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName))")
@@ -321,7 +321,7 @@ fileprivate func writeInterfaceOrDelegateProjectionType(
         }
         else {
             assert(type.definition is DelegateDefinition)
-            try writeReferenceTypeProjectionConformance(
+            try writeReferenceTypeBindingConformance(
                 apiType: type, abiType: type,
                 wrapImpl: { writer, paramName in
                     writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName)).invoke")
@@ -356,8 +356,8 @@ internal func writeTypeNameProperty(type: BoundType, to writer: SwiftTypeDefinit
         initialValue: "\"\(typeName)\"")
 }
 
-/// Writes members implementing the COMProjection or WinRTProjection protocol
-internal func writeReferenceTypeProjectionConformance(
+/// Writes members implementing the COMBinding or WinRTBinding protocol
+internal func writeReferenceTypeBindingConformance(
         apiType: BoundType, abiType: BoundType,
         wrapImpl: (_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void,
         toCOMImpl: ((_ writer: inout SwiftStatementWriter, _ paramName: String) throws -> Void)? = nil,

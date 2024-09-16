@@ -11,7 +11,7 @@ public protocol ILanguageExceptionErrorInfo2Protocol: ILanguageExceptionErrorInf
 
 import WindowsRuntime_ABI
 
-public enum ILanguageExceptionErrorInfo2Projection: COMProjection {
+public enum ILanguageExceptionErrorInfo2Binding: COMBinding {
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo2
     public typealias SwiftObject = ILanguageExceptionErrorInfo2
 
@@ -25,7 +25,7 @@ public enum ILanguageExceptionErrorInfo2Projection: COMProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<ILanguageExceptionErrorInfo2Projection>, ILanguageExceptionErrorInfo2Protocol {
+    private final class Import: COMImport<ILanguageExceptionErrorInfo2Binding>, ILanguageExceptionErrorInfo2Protocol {
         var languageException: IUnknown? {
             get throws { try _interop.getLanguageException() }
         }
@@ -50,29 +50,29 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo2.Type)
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo2 {
     public func getLanguageException() throws -> IUnknown? {
-        var result: IUnknownPointer? = nil // IUnknownProjection.abiDefaultValue (compiler bug?)
-        defer { IUnknownProjection.release(&result) }
+        var result: IUnknownPointer? = nil // IUnknownBinding.abiDefaultValue (compiler bug?)
+        defer { IUnknownBinding.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetLanguageException(this, &result))
-        return IUnknownProjection.toSwift(consuming: &result)
+        return IUnknownBinding.toSwift(consuming: &result)
     }
 
     public func getPreviousLanguageExceptionErrorInfo() throws -> ILanguageExceptionErrorInfo2? {
-        var result = ILanguageExceptionErrorInfo2Projection.abiDefaultValue
-        defer { ILanguageExceptionErrorInfo2Projection.release(&result) }
+        var result = ILanguageExceptionErrorInfo2Binding.abiDefaultValue
+        defer { ILanguageExceptionErrorInfo2Binding.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetPreviousLanguageExceptionErrorInfo(this, &result))
-        return ILanguageExceptionErrorInfo2Projection.toSwift(consuming: &result)
+        return ILanguageExceptionErrorInfo2Binding.toSwift(consuming: &result)
     }
 
     public func capturePropagationContext(_ languageException: IUnknown?) throws {
-        var languageException = try IUnknownProjection.toABI(languageException)
-        defer { IUnknownProjection.release(&languageException) }
+        var languageException = try IUnknownBinding.toABI(languageException)
+        defer { IUnknownBinding.release(&languageException) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.CapturePropagationContext(this, languageException))
     }
 
     public func getPropagationContextHead() throws -> ILanguageExceptionErrorInfo2? {
-        var result = ILanguageExceptionErrorInfo2Projection.abiDefaultValue
-        defer { ILanguageExceptionErrorInfo2Projection.release(&result) }
+        var result = ILanguageExceptionErrorInfo2Binding.abiDefaultValue
+        defer { ILanguageExceptionErrorInfo2Binding.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetPropagationContextHead(this, &result))
-        return ILanguageExceptionErrorInfo2Projection.toSwift(consuming: &result)
+        return ILanguageExceptionErrorInfo2Binding.toSwift(consuming: &result)
     }
 }

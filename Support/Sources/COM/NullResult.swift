@@ -1,4 +1,4 @@
-/// Error thrown when a COM or WinRT projection returns a null pointer.
+/// Error thrown when a projected COM or WinRT method returns a null pointer.
 ///
 /// - Remarks:
 /// The WinRT type system implies that all values of reference types can be `null`,

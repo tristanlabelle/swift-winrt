@@ -18,15 +18,15 @@ public struct ParamProjection {
         self.passBy = passBy
     }
 
-    public var projectionType: SwiftType { typeProjection.projectionType }
+    public var bindingType: SwiftType { typeProjection.bindingType }
 
     public var swiftType: SwiftType {
         if case .return(nullAsError: true) = passBy { return typeProjection.swiftType.unwrapOptional() }
         return typeProjection.swiftType
     }
 
-    public var abiProjectionName: String { name + "_abi" }
-    public var swiftProjectionName: String { name + "_swift" }
+    public var abiBindingName: String { name + "_abi" }
+    public var swiftBindingName: String { name + "_swift" }
     public var isArray: Bool { typeProjection.kind == .array }
     public var arrayLengthName: String {
         precondition(isArray)

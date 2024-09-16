@@ -28,7 +28,7 @@ This document compares [thebrowsercompany/swift-winrt](https://github.com/thebro
 
 **Migration path (easy)**: Fix any build errors with new code shape (resulting from `nil` comparisons or assignment to optional values)
 
-### System.Object  type projection
+### System.Object type projection
 
 **v1**: `Any`
 
@@ -184,11 +184,11 @@ v2: None on property, but separate throwing getter/setters functions exposed
 
 **v2**: Abstracted and handled uniformly
 
-### Value projection logic
+### Type & value binding logic
 
 **v1**: Several special cases throughout
 
-**v2**: Mostly unified through `ABIProjection` abstraction
+**v2**: Mostly unified through `ABIBinding` abstraction
 
 ###  Tests
 

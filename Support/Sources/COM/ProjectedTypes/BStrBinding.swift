@@ -1,9 +1,9 @@
 import COM_ABI
 
-/// Projects a C BSTR to a Swift Optional<String>.
+/// Binds a C BSTR to a Swift Optional<String>.
 /// Null and empty BSTRs are supposed to be treated the same,
 /// but they have different representations, which we preserve into Swift.
-public enum BStrProjection: ABIProjection {
+public enum BStrBinding: ABIBinding {
     public typealias SwiftValue = String?
     public typealias ABIValue = COM_ABI.SWRT_BStr?
 

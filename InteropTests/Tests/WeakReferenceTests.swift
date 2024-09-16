@@ -5,7 +5,7 @@ import WinRTComponent
 class WeakReferenceTests: WinRTTestCase {
     func testNulledWhenUnreferencedFromSwift() throws {
         var target: MinimalClass! = try MinimalClass()
-        let weakReference = try WeakReference<MinimalClassProjection>(target)
+        let weakReference = try WeakReference<MinimalClassBinding>(target)
         XCTAssertNotNil(try weakReference.resolve())
         target = nil
         XCTAssertNil(try weakReference.resolve())
@@ -14,7 +14,7 @@ class WeakReferenceTests: WinRTTestCase {
     func testNulledWhenUnreferencedFromWinRT() throws {
         var target: MinimalClass! = try MinimalClass()
         let strongReferencer = try ObjectReferencer(target)
-        let weakReference = try WeakReference<MinimalClassProjection>(target)
+        let weakReference = try WeakReference<MinimalClassBinding>(target)
         target = nil
 
         XCTAssertNotNil(try strongReferencer._target())
@@ -28,7 +28,7 @@ class WeakReferenceTests: WinRTTestCase {
 
     func testThroughIWeakReferenceSource() throws {
         var target: MinimalClass! = try MinimalClass()
-        var weakReferenceSource: IWeakReferenceSource! = try target.queryInterface(IWeakReferenceSourceProjection.self)
+        var weakReferenceSource: IWeakReferenceSource! = try target.queryInterface(IWeakReferenceSourceBinding.self)
         let weakReference = try weakReferenceSource.getWeakReference()
         XCTAssertNotNil(try weakReference.resolve())
         target = nil

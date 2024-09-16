@@ -4,7 +4,7 @@ import WindowsRuntime
 internal protocol IInspectable2Protocol: IInspectableProtocol {}
 internal typealias IInspectable2 = any IInspectable2Protocol
 
-internal enum IInspectable2Projection: InterfaceProjection {
+internal enum IInspectable2Binding: InterfaceBinding {
     public typealias SwiftObject = IInspectable2
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IInspectable
 
@@ -20,7 +20,7 @@ internal enum IInspectable2Projection: InterfaceProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: WinRTImport<IInspectable2Projection>, IInspectable2Protocol {}
+    private final class Import: WinRTImport<IInspectable2Binding>, IInspectable2Protocol {}
 
     private static var virtualTable: WindowsRuntime_ABI.SWRT_IInspectable_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },

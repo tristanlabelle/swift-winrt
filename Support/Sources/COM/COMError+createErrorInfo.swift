@@ -3,10 +3,10 @@ import COM_ABI
 extension COMError {
     /// Creates an instance of `ICreateErrorInfo`.
     public static func createErrorInfo() throws -> ICreateErrorInfo {
-        var createErrorInfo = ICreateErrorInfoProjection.abiDefaultValue
-        defer { ICreateErrorInfoProjection.release(&createErrorInfo) }
+        var createErrorInfo = ICreateErrorInfoBinding.abiDefaultValue
+        defer { ICreateErrorInfoBinding.release(&createErrorInfo) }
         try COMError.fromABI(SWRT_CreateErrorInfo(&createErrorInfo))
-        return try NullResult.unwrap(ICreateErrorInfoProjection.toSwift(createErrorInfo))
+        return try NullResult.unwrap(ICreateErrorInfoBinding.toSwift(createErrorInfo))
     }
 
     /// Creates an instance of `IErrorInfo` with prepopulated fields.
@@ -18,6 +18,6 @@ extension COMError {
         if let description { try errorInfo.setDescription(description) }
         if let helpFile { try errorInfo.setHelpFile(helpFile) }
         if let helpContext { try errorInfo.setHelpContext(helpContext) }
-        return try errorInfo.queryInterface(IErrorInfoProjection.self)
+        return try errorInfo.queryInterface(IErrorInfoBinding.self)
     }
 }

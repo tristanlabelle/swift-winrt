@@ -8,7 +8,7 @@ public protocol ILanguageExceptionErrorInfoProtocol: IUnknownProtocol {
 
 import WindowsRuntime_ABI
 
-public enum ILanguageExceptionErrorInfoProjection: COMProjection {
+public enum ILanguageExceptionErrorInfoBinding: COMBinding {
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo
     public typealias SwiftObject = ILanguageExceptionErrorInfo
 
@@ -22,7 +22,7 @@ public enum ILanguageExceptionErrorInfoProjection: COMProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<ILanguageExceptionErrorInfoProjection>, ILanguageExceptionErrorInfoProtocol {
+    private final class Import: COMImport<ILanguageExceptionErrorInfoBinding>, ILanguageExceptionErrorInfoProtocol {
         var languageException: IUnknown? {
             get throws { try _interop.getLanguageException() }
         }
@@ -35,9 +35,9 @@ public func uuidof(_: WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo.Type) 
 
 extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_ILanguageExceptionErrorInfo {
     public func getLanguageException() throws -> IUnknown? {
-        var result: IUnknownPointer? = nil // IUnknownProjection.abiDefaultValue (compiler bug?)
-        defer { IUnknownProjection.release(&result) }
+        var result: IUnknownPointer? = nil // IUnknownBinding.abiDefaultValue (compiler bug?)
+        defer { IUnknownBinding.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetLanguageException(this, &result))
-        return IUnknownProjection.toSwift(consuming: &result)
+        return IUnknownBinding.toSwift(consuming: &result)
     }
 }

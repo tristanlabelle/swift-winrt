@@ -89,14 +89,14 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
 
     public static func getErrorInfo() throws -> IErrorInfo? {
         var errorInfo: UnsafeMutablePointer<SWRT_IErrorInfo>?
-        defer { IErrorInfoProjection.release(&errorInfo) }
+        defer { IErrorInfoBinding.release(&errorInfo) }
         try fromABI(captureErrorInfo: false, COM_ABI.SWRT_GetErrorInfo(/* dwReserved: */ 0, &errorInfo))
-        return IErrorInfoProjection.toSwift(consuming: &errorInfo)
+        return IErrorInfoBinding.toSwift(consuming: &errorInfo)
     }
 
     public static func setErrorInfo(_ errorInfo: IErrorInfo?) throws {
-        var errorInfo = try IErrorInfoProjection.toABI(errorInfo)
-        defer { IErrorInfoProjection.release(&errorInfo) }
+        var errorInfo = try IErrorInfoBinding.toABI(errorInfo)
+        defer { IErrorInfoBinding.release(&errorInfo) }
         try fromABI(captureErrorInfo: false, COM_ABI.SWRT_SetErrorInfo(/* dwReserved: */ 0, errorInfo))
     }
 }

@@ -2,11 +2,11 @@ import COM_ABI
 
 /// Protocol for COM interfaces projected into Swift both for consuming COM objects
 /// and for implementing the interface from Swift.
-public protocol COMTwoWayProjection: COMProjection {
+public protocol COMTwoWayBinding: COMBinding {
     static var virtualTablePointer: UnsafeRawPointer { get }
 }
 
-extension COMTwoWayProjection {
+extension COMTwoWayBinding {
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? {
         COMEmbedding.getImplementation(pointer)
     }

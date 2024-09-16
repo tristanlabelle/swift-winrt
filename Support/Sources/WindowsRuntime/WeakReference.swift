@@ -2,10 +2,10 @@ import COM
 import WindowsRuntime_ABI
 
 /// A weak reference to a WinRT object.
-public final class WeakReference<Projection: ReferenceTypeProjection> {
+public final class WeakReference<Binding: ReferenceTypeBinding> {
     private var weakReference: COMReference<SWRT_IWeakReference>
 
-    public init(_ target: Projection.SwiftObject) throws {
+    public init(_ target: Binding.SwiftObject) throws {
         guard let targetInspectable = target as? IInspectable else { throw COMError.invalidArg }
         let source = try targetInspectable._queryInterface(
             uuidof(SWRT_IWeakReferenceSource.self), type: SWRT_IWeakReferenceSource.self)
@@ -22,12 +22,12 @@ public final class WeakReference<Projection: ReferenceTypeProjection> {
         throw COMError.fail
     }
 
-    public func resolve() throws -> Projection.SwiftObject? {
+    public func resolve() throws -> Binding.SwiftObject? {
         var inspectableTarget: UnsafeMutablePointer<SWRT_IInspectable>? = nil
-        var iid = GUIDProjection.toABI(Projection.interfaceID)
+        var iid = GUIDBinding.toABI(Binding.interfaceID)
         try WinRTError.fromABI(weakReference.pointer.pointee.VirtualTable.pointee.Resolve(
             weakReference.pointer, &iid, &inspectableTarget))
-        var target = Projection.ABIPointer(OpaquePointer(inspectableTarget))
-        return Projection.toSwift(consuming: &target)
+        var target = Binding.ABIPointer(OpaquePointer(inspectableTarget))
+        return Binding.toSwift(consuming: &target)
     }
 }

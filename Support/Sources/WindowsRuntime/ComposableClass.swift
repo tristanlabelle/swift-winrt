@@ -37,7 +37,7 @@ open class ComposableClass: IInspectableProtocol {
             // - self.inner needs to be initialized before being able to reference self
             self.outer = .uninitialized
             self.innerWithRef = IInspectablePointer(OpaquePointer(outer.unknownPointer)) // We need to assign inner to something, it doesn't matter what.
-            self.outer.initialize(embedder: self, virtualTable: IInspectableProjection.virtualTablePointer)
+            self.outer.initialize(embedder: self, virtualTable: IInspectableBinding.virtualTablePointer)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
@@ -52,7 +52,7 @@ open class ComposableClass: IInspectableProtocol {
 
             // We don't care about the inner object since WinRT provides us with the composed object.
             var inner: IInspectablePointer? = nil
-            defer { IInspectableProjection.release(&inner) }
+            defer { IInspectableBinding.release(&inner) }
             self.innerWithRef = try _factory(nil, &inner).cast().detach()
         }
     }
@@ -73,7 +73,7 @@ open class ComposableClass: IInspectableProtocol {
         // If we are a composed object create from Swift, act as such
         if outer.isInitialized {
             // We own the identity, don't delegate to the inner object.
-            if id == IUnknownProjection.interfaceID || id == IInspectableProjection.interfaceID {
+            if id == IUnknownBinding.interfaceID || id == IInspectableBinding.interfaceID {
                 return outer.toCOM()
             }
 

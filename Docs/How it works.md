@@ -1,32 +1,32 @@
 # How it works
 
-Swift/WinRT has three layers which build up in complexity: ABI projections, COM projections, and WinRT projections.
+Swift/WinRT has three layers which build up in complexity: ABI bindings, COM bindings, and WinRT projections.
 
-The term "projection" refers to lifting ABI concepts into language-specific concepts.
+The term "binding" refers the mapping of an ABI type to a Swift type. The term "projection" refers to mapping an entire WinRT module's into Swift.
 
-## ABI Projections
+## ABI Bindings
 
 It is a general problem when interop'ing with C code that values need to be converted between a Swift representation and an ABI representation. A simple example is between `Swift.String` and `const char*`. Swift's native C/C++ interop allows calling C functions directly, but it requires dealing with C types directly from Swift code, such as `UnsafePointer<CChar>`, which makes API usage difficult.
 
-Swift/WinRT has a general mechanism for these projections: the `ABIProjection` protocol. This protocol has only static members and defines:
+Swift/WinRT has a general mechanism for these bindings: the `ABIBinding` protocol. This protocol has only static members and defines:
 
 - `associatedtypes` for the ABI and Swift type representations.
 - A means to convert from the ABI representation to the Swift representation.
 - A means to convert from the Swift representation and the ABI representation.
 - A means to free resources owned by the ABI representation, if any.
 
-For example, a `CStringUTF8MallocProjection` could have:
+For example, a `CStringUTF8MallocBinding` could have:
 
 - Typealiases for `Swift.String` and  `UnsafePointer<CChar>`
 - Use `String(fromCString:)` to convert from `UnsafePointer<CChar>` and `String`
 - Use `malloc` and copying `String.utf8` to create an `UnsafePointer<CChar>` from a `String`
 - Use `free` to release `UnsafePointer<CChar>` values
 
-There could be multiple projections for some Swift or ABI type representations. For example, there could be a `CStringASCIIMallocProjection` with the same types but a different implementation of the conversion and freeing functions.
+There could be multiple bindings for some Swift or ABI type representations. For example, there could be a `CStringASCIIMallocBinding` with the same types but a different implementation of the conversion and freeing functions.
 
-## COM Projections
+## COM Bindings
 
-COM projections build on top of ABI projections when the ABI representation is a COM interface.
+COM bindings build on top of ABI bindings when the ABI representation is a COM interface.
 
 There are two things we may want to do with a COM interface in Swift:
 
@@ -89,9 +89,9 @@ extension SWRT_IFoo {
 extension COMInterop when T == SWRT_IFoo {
     func getName() throws -> String {
         var name: BSTR? = nil
-        defer { BStrProjection.release(&name) }
+        defer { BStrBinding.release(&name) }
         try COMError.fromABI(pointer.pointee.vtable.pointee.GetName(pointer, &name))
-        return BStrProjection.toSwift(name)
+        return BStrBinding.toSwift(name)
     }
 }
 
@@ -101,10 +101,10 @@ let name = try COMInterop(pointer).getName()
 
 ### COMImport Wrappers (generated)
 
-Our `IFooProjection` will convert between `UnsafeMutablePointer<SWRT_IFoo>?` as the ABI representation and `IFoo?` as the Swift representation (allowing for null pointers), and back. Therefore, we need to generate an `IFooProtocol` implementation that will wrap an `UnsafeMutablePointer<SWRT_IFoo>`. These are the `COMImport` wrappers. In our case, it'll look like:
+Our `IFooBinding` will convert between `UnsafeMutablePointer<SWRT_IFoo>?` as the ABI representation and `IFoo?` as the Swift representation (allowing for null pointers), and back. Therefore, we need to generate an `IFooProtocol` implementation that will wrap an `UnsafeMutablePointer<SWRT_IFoo>`. These are the `COMImport` wrappers. In our case, it'll look like:
 
 ```swift
-private class IFooImport: COMImport<IFooProjection>, IFooProtocol {
+private class IFooImport: COMImport<IFooBinding>, IFooProtocol {
     public func getName() throws -> String {
         try _interop.getName() // _interop is a COMInterop<SWRT_IFoo> from the base class.
     }
@@ -113,11 +113,11 @@ private class IFooImport: COMImport<IFooProjection>, IFooProtocol {
 
 The `COMImport` base class handles the reference counting of the underlying COM object and implements `queryInterface`. If the `IFoo` interface requires other interfaces like `IBar`, this `IFooImport` class would also provide implementations for the additional methods from `IBarProtocol`.
 
-### COMProjection (generated)
+### COMBinding (generated)
 
-At this point we have enough to generate our ABI projection type, which as we recall is used to map values between their ABI and Swift representations. This conceptually looks like the below:
+At this point we have enough to generate our ABI binding type, which as we recall is used to map values between their ABI and Swift representations. This conceptually looks like the below:
 ```swift
-enum IFooProjection: COMProjection { // COMProjection conforms to ABIProjection
+enum IFooBinding: COMBinding { // COMBinding conforms to ABIBinding
     public typealias SwiftValue = IFoo?
     public typealias ABIValue = UnsafeMutablePointer<SWRT_IFoo>?
     
@@ -144,7 +144,7 @@ This is a different problem. Now we have a Swift native object that we must turn
 For example:
 
 ```swift
-class MyFoo: COMExport<IFooProjection>, IFooProtocol {
+class MyFoo: COMExport<IFooBinding>, IFooProtocol {
     public func getName() throws -> String { "George" }
 }
 
@@ -154,7 +154,7 @@ class MyFoo: COMExport<IFooProjection>, IFooProtocol {
 //     void* swiftObject; // Will point back to MyFoo
 // } SWRT_SwiftCOMObject;
 
-enum IFooProjection {
+enum IFooBinding {
     private static var virtualTable: SWRT_IFoo_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
@@ -170,11 +170,11 @@ COM also supports [aggregation](https://learn.microsoft.com/en-us/windows/win32/
 
 [To be written]
 
-## WinRT Projections
+## WinRT Bindings
 
 ### Primitive types
 
-The Swift projection of most primitive WinRT types is trivial: the ABI-level Int32 type maps to the Swift Int32 type, etc. Strings are a little more complicated since their ABI representation is an HSTRING which has special lifetime semantics, but we can handle these easily with the ABIProjection machinery.
+Most primitive WinRT types bind to Swift trivially: the ABI-level Int32 type maps to the Swift Int32 type, etc. Strings are a little more complicated since their ABI representation is an HSTRING which has special lifetime semantics, but we can handle these easily with the ABIBinding machinery.
 
 ### Enums
 

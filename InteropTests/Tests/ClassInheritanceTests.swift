@@ -55,34 +55,34 @@ class ClassInheritanceTests : XCTestCase {
 
     public func testWithUpcasting() throws {
         struct UpcastingSwiftWrapperFactory: SwiftWrapperFactory {
-            func create<Projection: COMProjection>(
-                    _ reference: consuming Projection.ABIReference,
-                    projection: Projection.Type) -> Projection.SwiftObject {
-                // Try from the runtime type first, then fall back to the statically known projection
-                if let object: Projection.SwiftObject = fromRuntimeType(
+            func create<Binding: COMBinding>(
+                    _ reference: consuming Binding.ABIReference,
+                    binding: Binding.Type) -> Binding.SwiftObject {
+                // Try from the runtime type first, then fall back to the statically known binding
+                if let object: Binding.SwiftObject = fromRuntimeType(
                         inspectable: IInspectablePointer(OpaquePointer(reference.pointer))) {
                     return object
                 } else {
-                    return Projection._wrap(consume reference)
+                    return Binding._wrap(consume reference)
                 }
             }
 
-            func toProjectionQualifiedName(runtimeClassName: String) -> String {
-                // Namespace.ClassName -> WinRTComponent.ClassNameProjection
+            func toBindingQualifiedName(runtimeClassName: String) -> String {
+                // Namespace.ClassName -> WinRTComponent.ClassNameBinding
                 var result = runtimeClassName
                 if let lastDotIndex = runtimeClassName.lastIndex(of: ".") {
                     result.removeSubrange(...lastDotIndex)
                 }
                 result.insert(contentsOf: "WinRTComponent.", at: result.startIndex)
-                result += "Projection"
+                result += "Binding"
                 return result
             }
 
             func fromRuntimeType<SwiftObject>(inspectable: IInspectablePointer) -> SwiftObject? {
                 guard let runtimeClassName = try? COMInterop(inspectable).getRuntimeClassName() else { return nil }
-                let swiftProjectionQualifiedName = toProjectionQualifiedName(runtimeClassName: consume runtimeClassName)
-                guard let projectionType = NSClassFromString(swiftProjectionQualifiedName) as? any ComposableClassProjection.Type else { return nil }
-                return projectionType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
+                let swiftBindingQualifiedName = toBindingQualifiedName(runtimeClassName: consume runtimeClassName)
+                guard let bindingType = NSClassFromString(swiftBindingQualifiedName) as? any ComposableClassBinding.Type else { return nil }
+                return bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
             }
         }
 
