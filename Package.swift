@@ -27,8 +27,12 @@ let package = Package(
             path: "Support/Sources/InternalABI",
             exclude: ["CMakeLists.txt"]),
         .target(
+            name: "ABIBindings",
+            path: "Support/Sources/ABIBindings",
+            exclude: ["CMakeLists.txt"]),
+        .target(
             name: "COM",
-            dependencies: ["COM_ABI", "InternalABI"],
+            dependencies: ["ABIBindings", "COM_ABI", "InternalABI"],
             path: "Support/Sources/COM",
             exclude: ["CMakeLists.txt"]),
         .target(
