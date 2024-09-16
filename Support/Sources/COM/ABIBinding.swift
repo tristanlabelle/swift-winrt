@@ -1,5 +1,6 @@
-/// A type that manages projecting the ABI representation of a value into Swift and back.
-public protocol ABIProjection {
+/// Describes how to bind an ABI type to a Swift type,
+/// including how to convert values between the two representations.
+public protocol ABIBinding {
     // The type for the ABI representation of values.
     associatedtype ABIValue
 
@@ -26,7 +27,7 @@ public protocol ABIProjection {
     static func release(_ value: inout ABIValue)
 }
 
-extension ABIProjection {
+extension ABIBinding {
     public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
         defer { release(&value) }
         return toSwift(value)
@@ -39,25 +40,13 @@ extension ABIProjection {
     }
 }
 
-/// A type that projects values between Swift and ABI representations,
-/// where the ABI representation requires no resource allocation.
-/// For conformance convenience.
-public protocol ABIInertProjection: ABIProjection {
-    static func toABI(_ value: SwiftValue) -> ABIValue // No throw version
-}
+public protocol IdentityBinding: PODBinding where SwiftValue == ABIValue {}
 
-extension ABIInertProjection {
-    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue { toSwift(value) }
-    public static func release(_ value: inout ABIValue) {}
-}
-
-public protocol ABIIdentityProjection: ABIInertProjection where SwiftValue == ABIValue {}
-
-extension ABIIdentityProjection {
+extension IdentityBinding {
     public static func toABI(_ value: SwiftValue) -> ABIValue { value }
     public static func toSwift(_ value: ABIValue) -> SwiftValue { value }
 }
 
-public enum ABIProjectionError: Error {
+public enum ABIBindingError: Error {
     case unsupported(Any.Type)
 }

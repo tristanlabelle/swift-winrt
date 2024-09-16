@@ -59,10 +59,10 @@ public struct AsyncStatus: Hashable {
 }
 ```
 
-### No inheritance between projection types
-`IInspectableProjection` does not inherit from `IUnknownProjection`, they are both leaf types. However, `IInspectableProtocol` does require `IUnknownProjection`.
+### No inheritance between binding types
+`IInspectableBinding` does not inherit from `IUnknownBinding`, they are both leaf types. However, `IInspectableProtocol` does require `IUnknownBinding`.
 
-**Rationale**: Inheritance between projection types would make it impossible to conform to `COMProjection` differently between a base and derived projection class (conformance cannot be overriden), and it does not correctly express the COM ABI.
+**Rationale**: Inheritance between binding types would make it impossible to conform to `COMBinding` differently between a base and derived binding class (conformance cannot be overriden), and it does not correctly express the COM ABI.
 
 ### IFoo and IFooProtocol naming
 Swift protocols generated for COM/WinRT interfaces have a "Protocol" suffix. The unsuffixed interface name is used for its existential typealias.

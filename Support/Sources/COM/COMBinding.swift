@@ -2,9 +2,9 @@ import COM_ABI
 
 public typealias COMInterfaceID = GUID
 
-/// A type which projects a COM interface to a corresponding Swift object.
+/// A type which binds a COM interface to a corresponding Swift object.
 /// Swift and ABI values are optional types, as COM interfaces can be null.
-public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, ABIValue == ABIPointer? {
+public protocol COMBinding: ABIBinding where SwiftValue == SwiftObject?, ABIValue == ABIPointer? {
     /// The Swift type to which the COM interface is projected.
     associatedtype SwiftObject
     /// The COM interface structure.
@@ -27,8 +27,8 @@ public protocol COMProjection: ABIProjection where SwiftValue == SwiftObject?, A
     static func _wrap(_ reference: consuming ABIReference) -> SwiftObject
 }
 
-extension COMProjection {
-    // Default ABIProjection implementation
+extension COMBinding {
+    // Default ABIBinding implementation
     public static var abiDefaultValue: ABIValue { nil }
 
     public static func toSwift(_ value: ABIValue) -> SwiftValue {
@@ -53,7 +53,7 @@ extension COMProjection {
         value = nil
     }
 
-    // Default COMProjection implementation
+    // Default COMBinding implementation
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? { nil }
 
     public static func toSwift(_ reference: consuming ABIReference) -> SwiftObject {
@@ -63,7 +63,7 @@ extension COMProjection {
 
     public static func toCOM(_ object: SwiftObject) throws -> ABIReference {
         guard let unknown = object as? COM.IUnknown else {
-            throw ABIProjectionError.unsupported(SwiftObject.self)
+            throw ABIBindingError.unsupported(SwiftObject.self)
         }
         return try unknown._queryInterface(Self.self)
     }

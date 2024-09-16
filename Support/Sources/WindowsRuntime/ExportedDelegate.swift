@@ -1,9 +1,9 @@
 
 /// A COM-exported object delegating its implementation to a Swift object.
-public class ExportedDelegate<Projection: DelegateProjection>: COMPrimaryExport<Projection>, COMEmbedderWithDelegatedImplementation {
-    public let closure: Projection.SwiftObject
+public class ExportedDelegate<Binding: DelegateBinding>: COMPrimaryExport<Binding>, COMEmbedderWithDelegatedImplementation {
+    public let closure: Binding.SwiftObject
 
-    public init(_ closure: Projection.SwiftObject) {
+    public init(_ closure: Binding.SwiftObject) {
         self.closure = closure
     }
 

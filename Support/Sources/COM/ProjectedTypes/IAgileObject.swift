@@ -1,17 +1,17 @@
 import COM_ABI
 
-/// Projection for the IAgileObject COM interface, which marks an object as supporting agile marshaling.
+/// Binding for the IAgileObject COM interface, which marks an object as supporting agile marshaling.
 /// IAgileObject is a marker interface with no methods over IUnknown's, so it does not need its own virtual table.
 /// This means we can piggyback on the IUnknown virtual table to transparently implement IAgileObject,
-/// so we don't need to expose a protocol type for it or a two-way projection.
-public enum IAgileObjectProjection: COMProjection {
+/// so we don't need to expose a protocol type for it or a two-way binding.
+public enum IAgileObjectBinding: COMBinding {
     public typealias SwiftObject = IUnknown // Avoid introducing an interface for IAgileObject since it is a marker interface.
     public typealias ABIStruct = COM_ABI.SWRT_IAgileObject
 
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
-        IUnknownProjection._wrap(reference.cast())
+        IUnknownBinding._wrap(reference.cast())
     }
 
     public static func toCOM(_ object: SwiftObject) throws -> ABIReference {

@@ -8,7 +8,7 @@ class ActivationFactoryResolutionTests: WinRTTestCase {
             private let dllResolver = DllActivationFactoryResolver(name: "WinRTComponent.dll")
             var lastRuntimeClass: String? = nil
 
-            func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryProjection.ABIStruct> {
+            func resolve(runtimeClass: String) throws -> COMReference<IActivationFactoryBinding.ABIStruct> {
                 lastRuntimeClass = runtimeClass
                 return try dllResolver.resolve(runtimeClass: runtimeClass)
             }

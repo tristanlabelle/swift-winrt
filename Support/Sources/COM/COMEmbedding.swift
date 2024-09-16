@@ -126,7 +126,7 @@ public enum IUnknownVirtualTable {
         ppvObject.pointee = nil
 
         return COMError.toABI {
-            let id = GUIDProjection.toSwift(iid.pointee)
+            let id = GUIDBinding.toSwift(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
             let reference = id == uuidof(SWRT_SwiftCOMObject.self)
                 ? IUnknownReference(addingRef: this)

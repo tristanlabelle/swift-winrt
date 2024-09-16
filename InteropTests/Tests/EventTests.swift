@@ -28,7 +28,7 @@ class EventTests: WinRTTestCase {
         try eventSource.fire()
         XCTAssertEqual(try counter._count(), 1)
 
-        class EventSource: WinRTPrimaryExport<IEventSourceProjection>, IEventSourceProtocol {
+        class EventSource: WinRTPrimaryExport<IEventSourceBinding>, IEventSourceProtocol {
             private var invocationList: EventInvocationList<MinimalDelegate> = .init()
 
             func event(adding handler: MinimalDelegate?) throws -> EventRegistration {

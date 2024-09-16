@@ -8,7 +8,7 @@ public struct EventRegistrationToken: Hashable, Sendable {
     public static let none = Self(0)
 }
 
-extension EventRegistrationToken: ABIInertProjection {
+extension EventRegistrationToken: PODBinding {
     public typealias SwiftValue = Self
     public typealias ABIValue = WindowsRuntime_ABI.SWRT_EventRegistrationToken
 

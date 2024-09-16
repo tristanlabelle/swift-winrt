@@ -71,19 +71,19 @@ fileprivate func writeCOMInteropMethod(
         visibility: SwiftVisibility, methodKind: ABIMethodKind,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let abiMethodName = try method.findAttribute(OverloadAttribute.self)?.methodName ?? method.name
-    let (paramProjections, returnProjection) = try projection.getParamProjections(
+    let (paramBindings, returnBinding) = try projection.getParamBindings(
         method: method, genericTypeArgs: typeGenericArgs, abiKind: methodKind)
 
     // Generic instantiations can exist in multiple modules, so use internal visibility to avoid collisions
     try writer.writeFunc(
             visibility: visibility,
             name: Projection.toInteropMethodName(method),
-            params: paramProjections.map { $0.toSwiftParam() },
-            throws: true, returnType: returnProjection.map { $0.typeProjection.swiftType }) { writer in
+            params: paramBindings.map { $0.toSwiftParam() },
+            throws: true, returnType: returnBinding.map { $0.typeProjection.swiftType }) { writer in
         try writeSwiftToABICall(
             abiMethodName: abiMethodName,
-            params: paramProjections,
-            returnParam: returnProjection,
+            params: paramBindings,
+            returnParam: returnBinding,
             returnCOMReference: methodKind == .activationFactory || methodKind == .composableFactory,
             to: writer)
     }
@@ -121,19 +121,19 @@ fileprivate func writeSwiftToABICall(
         if param.passBy.isOutput { needsOutParamsEpilogue = true }
 
         if param.passBy.isOutput && !param.passBy.isInput {
-            writer.writeStatement("\(declarator) \(param.abiProjectionName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
+            writer.writeStatement("\(declarator) \(param.abiBindingName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
         }
         else {
             let tryPrefix = typeProjection.kind == .inert ? "" : "try "
-            writer.writeStatement("\(declarator) \(param.abiProjectionName) = "
-                + "\(tryPrefix)\(typeProjection.projectionType).toABI(\(param.name))")
+            writer.writeStatement("\(declarator) \(param.abiBindingName) = "
+                + "\(tryPrefix)\(typeProjection.bindingType).toABI(\(param.name))")
         }
 
         if typeProjection.kind != .inert {
-            writer.writeStatement("defer { \(typeProjection.projectionType).release(&\(param.abiProjectionName)) }")
+            writer.writeStatement("defer { \(typeProjection.bindingType).release(&\(param.abiBindingName)) }")
         }
 
-        addAbiArg(param.abiProjectionName, byRef: param.passBy.isReference, array: typeProjection.kind == .array)
+        addAbiArg(param.abiBindingName, byRef: param.passBy.isReference, array: typeProjection.kind == .array)
     }
 
     func writeOutParamsEpilogue() throws {
@@ -141,10 +141,10 @@ fileprivate func writeSwiftToABICall(
             let typeProjection = param.typeProjection
             if typeProjection.kind != .identity && param.passBy.isOutput {
                 if typeProjection.kind == .inert {
-                    writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(\(param.abiProjectionName))")
+                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).toSwift(\(param.abiBindingName))")
                 }
                 else {
-                    writer.writeStatement("\(param.name) = \(typeProjection.projectionType).toSwift(consuming: &\(param.abiProjectionName))")
+                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).toSwift(consuming: &\(param.abiBindingName))")
                 }
             }
         }
@@ -163,15 +163,15 @@ fileprivate func writeSwiftToABICall(
     }
 
     // Value-returning functions
-    let returnTypeProjection = returnParam.typeProjection
-    writer.writeStatement("var \(returnParam.name): \(returnTypeProjection.abiType) = \(returnTypeProjection.abiDefaultValue)")
-    addAbiArg(returnParam.name, byRef: true, array: returnTypeProjection.kind == .array)
+    let returnTypeBinding = returnParam.typeProjection
+    writer.writeStatement("var \(returnParam.name): \(returnTypeBinding.abiType) = \(returnTypeBinding.abiDefaultValue)")
+    addAbiArg(returnParam.name, byRef: true, array: returnTypeBinding.kind == .array)
     try writeCall()
 
     if needsOutParamsEpilogue {
         // Don't leak the result if we fail in the out params epilogue
-        if returnTypeProjection.kind != .identity && returnTypeProjection.kind != .inert {
-            writer.writeStatement("defer { \(returnTypeProjection.projectionType).release(&\(returnParam.name)) }")
+        if returnTypeBinding.kind != .identity && returnTypeBinding.kind != .inert {
+            writer.writeStatement("defer { \(returnTypeBinding.bindingType).release(&\(returnParam.name)) }")
         }
 
         try writeOutParamsEpilogue()
@@ -179,16 +179,16 @@ fileprivate func writeSwiftToABICall(
 
     // Handle the return value
     let returnValue: String
-    switch returnTypeProjection.kind {
+    switch returnTypeBinding.kind {
         case .identity where returnCOMReference:
             writer.writeStatement("guard let \(returnParam.name) else { throw COMError.pointer }")
             returnValue = "\(SupportModules.COM.comReference)(transferringRef: \(returnParam.name))"
         case .identity where !returnCOMReference:
             returnValue = returnParam.name
         case .inert:
-            returnValue = "\(returnTypeProjection.projectionType).toSwift(\(returnParam.name))"
+            returnValue = "\(returnTypeBinding.bindingType).toSwift(\(returnParam.name))"
         default:
-            returnValue = "\(returnTypeProjection.projectionType).toSwift(consuming: &\(returnParam.name))"
+            returnValue = "\(returnTypeBinding.bindingType).toSwift(consuming: &\(returnParam.name))"
     }
 
     writer.writeReturnStatement(value: returnValue)

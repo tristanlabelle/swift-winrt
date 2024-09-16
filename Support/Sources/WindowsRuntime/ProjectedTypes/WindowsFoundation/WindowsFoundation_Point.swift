@@ -19,7 +19,7 @@ public struct WindowsFoundation_Point: Hashable, Codable, Sendable {
 
 import SWRT_WindowsFoundation
 
-extension WindowsFoundation_Point: WindowsRuntime.StructProjection, COM.ABIInertProjection {
+extension WindowsFoundation_Point: WindowsRuntime.StructBinding, COM.PODBinding {
     public typealias SwiftValue = Self
     public typealias ABIValue = SWRT_WindowsFoundation_Point
 
@@ -44,10 +44,10 @@ extension WindowsFoundation_Point: WindowsRuntime.StructProjection, COM.ABIInert
     }
 
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
-        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createPoint)
+        try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createPoint)
     }
 
     public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
-        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createPointArray)
+        try PropertyValueStatics.createIReferenceArray(value, valueBinding: Self.self, factory: PropertyValueStatics.createPointArray)
     }
 }

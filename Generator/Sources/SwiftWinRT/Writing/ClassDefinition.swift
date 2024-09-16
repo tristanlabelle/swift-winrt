@@ -11,7 +11,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
     let typeName = try projection.toTypeName(classDefinition)
 
     if classKind != .static {
-        let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
+        let bindingTypeName = try projection.toBindingTypeName(classDefinition)
         assert(classDefinition.isSealed || classKind.isComposable)
         assert(!classDefinition.isAbstract || classKind.isComposable)
 
@@ -22,7 +22,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
             case .composable(base: nil):
                 base = SupportModules.WinRT.composableClass
             default:
-                base = SupportModules.WinRT.winRTImport(of: .identifier(projectionTypeName))
+                base = SupportModules.WinRT.winRTImport(of: .identifier(bindingTypeName))
         }
 
         var protocolConformances: [SwiftType] = []
@@ -263,14 +263,14 @@ fileprivate func writeClassOverrideSupport(
             try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 // if !_ifooOverrides_outer.isInitialized {
                 //     _ifooOverrides_outer = COMEmbedding(
-                //         swiftObject: self, virtualTable: &FooProjection.VirtualTables.ifooOverrides)
+                //         swiftObject: self, virtualTable: &FooBinding.VirtualTables.ifooOverrides)
                 // }
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
                 try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
-                    let projectionTypeName = try projection.toProjectionTypeName(classDefinition)
+                    let bindingTypeName = try projection.toBindingTypeName(classDefinition)
                     let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
                     writer.writeStatement("\(outerPropertyName).initialize(embedder: self,\n"
-                        + "virtualTable: &\(projectionTypeName).VirtualTables.\(vtablePropertyName))")
+                        + "virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName))")
                 }
 
                 // return .init(_iminimalUnsealedClassOverrides_outer.toCOM())
@@ -297,7 +297,7 @@ fileprivate func writeComposableInitializers(
 
     for method in factoryInterface.methods {
         // The last 2 params should be the IInspectable outer and inner pointers
-        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [], abiKind: .composableFactory)
+        let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .composableFactory)
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
@@ -331,9 +331,9 @@ fileprivate func writeDefaultActivatableInitializer(
 
     try writer.writeInit(documentation: documentationComment, visibility: .public, convenience: true, throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
-        let projectionClassName = try projection.toProjectionTypeName(classDefinition)
+        let projectionClassName = try projection.toBindingTypeName(classDefinition)
         writer.writeStatement("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
-            + ".activateInstance(projection: \(projectionClassName).self)))")
+            + ".activateInstance(binding: \(projectionClassName).self)))")
     }
 }
 
@@ -343,7 +343,7 @@ fileprivate func writeActivatableInitializers(
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
     for method in activationFactory.methods {
-        let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: [], abiKind: .activationFactory)
+        let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,

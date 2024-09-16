@@ -6,7 +6,7 @@ import Foundation
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeProjectionFiles(
+internal func writeBindingFiles(
         _ projection: Projection,
         directoryPath: String,
         generateCMakeLists: Bool,
@@ -94,13 +94,13 @@ fileprivate func writeSwiftModuleFiles(
         }
 
         if (typeDefinition as? ClassDefinition)?.isStatic != true,
-                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndProjection {
-            // Avoid toProjectionTypeName because structs/enums have no -Projection suffix,
+                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndBinding {
+            // Avoid toBindingTypeName because structs/enums have no -Binding suffix,
             // which would result in two files with the same name in the project, which SPM does not support.
-            let fileName = typeName + "Projection.swift"
-            try writeABIProjectionConformanceFile(typeDefinition, module: module,
-                toPath: "\(namespaceDirectoryPath)\\Projections\\\(fileName)")
-            cmakeSources.append("\(compactNamespace)/Projections/\(fileName)")
+            let fileName = "\(typeName)Binding.swift"
+            try writeABIBindingConformanceFile(typeDefinition, module: module,
+                toPath: "\(namespaceDirectoryPath)\\Bindings\\\(fileName)")
+            cmakeSources.append("\(compactNamespace)/Bindings/\(fileName)")
         }
     }
 
@@ -163,19 +163,19 @@ fileprivate func writeTypeDefinitionFile(_ typeDefinition: TypeDefinition, modul
     try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
 }
 
-fileprivate func writeABIProjectionConformanceFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
+fileprivate func writeABIBindingConformanceFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
 
     if module.hasTypeDefinition(typeDefinition) {
-        try writeABIProjectionConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
+        try writeABIBindingConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
     }
 
     for genericArgs in module.genericInstantiationsByDefinition[typeDefinition] ?? [] {
         let boundType = typeDefinition.bindType(genericArgs: genericArgs)
         writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
-        try writeABIProjectionConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
+        try writeABIBindingConformance(typeDefinition, genericArgs: genericArgs, projection: module.projection, to: writer)
     }
 }
 

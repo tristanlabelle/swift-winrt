@@ -46,19 +46,19 @@ extension Projection {
         try toTypeName(typeDefinition, namespaced: namespaced) + "Protocol"
     }
 
-    public func toProjectionTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
+    public func toBindingTypeName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
         var typeName = try toTypeName(typeDefinition, namespaced: namespaced)
         if typeDefinition is InterfaceDefinition
             || typeDefinition is DelegateDefinition
             || typeDefinition is ClassDefinition {
             // protocols and function pointers cannot serve as the projection class,
-            // so an accompanying type provides the ABIProjection conformance.
-            typeName += "Projection"
+            // so an accompanying type provides the ABIBinding conformance.
+            typeName += "Binding"
         }
         return typeName
     }
 
-    public static func toProjectionInstantiationTypeName(genericArgs: [TypeNode]) throws -> String {
+    public static func toBindingInstantiationTypeName(genericArgs: [TypeNode]) throws -> String {
         var result = ""
         func visit(_ type: TypeNode) throws {
             guard case .bound(let type) = type else { fatalError() }

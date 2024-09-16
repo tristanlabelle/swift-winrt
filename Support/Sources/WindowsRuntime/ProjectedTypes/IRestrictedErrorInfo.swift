@@ -25,7 +25,7 @@ extension IRestrictedErrorInfoProtocol {
 
 import WindowsRuntime_ABI
 
-public enum IRestrictedErrorInfoProjection: COMProjection {
+public enum IRestrictedErrorInfoBinding: COMBinding {
     public typealias SwiftObject = IRestrictedErrorInfo
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IRestrictedErrorInfo
 
@@ -39,7 +39,7 @@ public enum IRestrictedErrorInfoProjection: COMProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IRestrictedErrorInfoProjection>, IRestrictedErrorInfoProtocol {
+    private final class Import: COMImport<IRestrictedErrorInfoBinding>, IRestrictedErrorInfoProtocol {
         func getErrorDetails(
                 _ description: inout String?,
                 _ error: inout HResult,
@@ -63,22 +63,22 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IRestrictedError
             _ restrictedDescription: inout String?,
             _ capabilitySid: inout String?) throws {
         var description_: WindowsRuntime_ABI.SWRT_BStr? = nil
-        defer { BStrProjection.release(&description_) }
+        defer { BStrBinding.release(&description_) }
         var error_: WindowsRuntime_ABI.SWRT_HResult = 0
         var restrictedDescription_: WindowsRuntime_ABI.SWRT_BStr? = nil
-        defer { BStrProjection.release(&restrictedDescription_) }
+        defer { BStrBinding.release(&restrictedDescription_) }
         var capabilitySid_: WindowsRuntime_ABI.SWRT_BStr? = nil
-        defer { BStrProjection.release(&capabilitySid_) }
+        defer { BStrBinding.release(&capabilitySid_) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
-        description = BStrProjection.toSwift(consuming: &description_)
-        error = HResultProjection.toSwift(error_)
-        restrictedDescription = BStrProjection.toSwift(consuming: &restrictedDescription_)
-        capabilitySid = BStrProjection.toSwift(consuming: &capabilitySid_)
+        description = BStrBinding.toSwift(consuming: &description_)
+        error = HResultBinding.toSwift(error_)
+        restrictedDescription = BStrBinding.toSwift(consuming: &restrictedDescription_)
+        capabilitySid = BStrBinding.toSwift(consuming: &capabilitySid_)
     }
 
     public func getReference() throws -> String? {
-        var value = BStrProjection.abiDefaultValue
+        var value = BStrBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetReference(this, &value))
-        return BStrProjection.toSwift(consuming: &value)
+        return BStrBinding.toSwift(consuming: &value)
     }
 }

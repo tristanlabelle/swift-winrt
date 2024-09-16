@@ -1,6 +1,6 @@
 import COM_ABI
 
-public enum HResultProjection: ABIInertProjection {
+public enum HResultBinding: PODBinding {
     public typealias SwiftValue = HResult
     public typealias ABIValue = COM_ABI.SWRT_HResult
 

@@ -1,6 +1,6 @@
 extension COMError {
     /// Wraps a Swift Error object into an `IErrorInfo` to preserve it across COM boundaries.
-    internal final class SwiftErrorInfo: COMPrimaryExport<IErrorInfoProjection>, IErrorInfoProtocol {
+    internal final class SwiftErrorInfo: COMPrimaryExport<IErrorInfoBinding>, IErrorInfoProtocol {
         public let error: Error
 
         public init(error: Error) {

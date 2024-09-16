@@ -1,5 +1,5 @@
-/// Projects the C(++) bool type to Swift's Bool type.
-public enum BoolProjection: ABIInertProjection {
+/// Binds the C(++) bool type to Swift's Bool type.
+public enum BoolBinding: PODBinding {
     public typealias ABIValue = CBool
     public typealias SwiftValue = Bool
 

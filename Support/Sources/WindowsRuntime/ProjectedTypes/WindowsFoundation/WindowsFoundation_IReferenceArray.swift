@@ -21,14 +21,14 @@ extension WindowsFoundation_IReferenceArrayProtocol {
 
 import SWRT_WindowsFoundation
 
-public enum WindowsFoundation_IReferenceArrayProjection<TProjection: IReferenceableProjection>: InterfaceProjection {
-    public typealias SwiftObject = WindowsFoundation_IReferenceArray<TProjection.SwiftValue>
+public enum WindowsFoundation_IReferenceArrayBinding<TBinding: IReferenceableBinding>: InterfaceBinding {
+    public typealias SwiftObject = WindowsFoundation_IReferenceArray<TBinding.SwiftValue>
 
     // Our ABI-level IReferenceArray<T> definition is nongeneric, see IReference<T> for why.
     public typealias ABIStruct = SWRT_WindowsFoundation_IReferenceArray
 
-    public static var typeName: String { fatalError("Windows.Foundation.IReferenceArray`1<\(TProjection.typeName)>") }
-    public static var interfaceID: COMInterfaceID { TProjection.ireferenceArrayID }
+    public static var typeName: String { fatalError("Windows.Foundation.IReferenceArray`1<\(TBinding.typeName)>") }
+    public static var interfaceID: COMInterfaceID { TBinding.ireferenceArrayID }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
@@ -40,9 +40,9 @@ public enum WindowsFoundation_IReferenceArrayProjection<TProjection: IReferencea
     }
 
     private final class Import
-            : WinRTImport<WindowsFoundation_IReferenceArrayProjection<TProjection>>,
+            : WinRTImport<WindowsFoundation_IReferenceArrayBinding<TBinding>>,
             WindowsFoundation_IReferenceArrayProtocol {
-        public typealias T = TProjection.SwiftValue
+        public typealias T = TBinding.SwiftValue
 
         private var _lazyIPropertyValue: COMReference<SWRT_WindowsFoundation_IPropertyValue>.Optional = .none
         public var _ipropertyValue: COMInterop<SWRT_WindowsFoundation_IPropertyValue> {
@@ -67,10 +67,10 @@ public enum WindowsFoundation_IReferenceArrayProjection<TProjection: IReferencea
             try _interop.get_Value(&length, &pointer)
             guard let pointer else { return [] }
 
-            var abiValue = COMArray<TProjection.ABIValue>(
-                pointer: pointer.bindMemory(to: TProjection.ABIValue.self, capacity: Int(length)),
+            var abiValue = COMArray<TBinding.ABIValue>(
+                pointer: pointer.bindMemory(to: TBinding.ABIValue.self, capacity: Int(length)),
                 count: length)
-            return ArrayProjection<TProjection>.toSwift(consuming: &abiValue)
+            return ArrayBinding<TBinding>.toSwift(consuming: &abiValue)
         }
 
         public func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws {

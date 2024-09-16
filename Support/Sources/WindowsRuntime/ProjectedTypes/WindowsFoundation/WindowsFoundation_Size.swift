@@ -19,7 +19,7 @@ public struct WindowsFoundation_Size: Hashable, Codable, Sendable {
 
 import SWRT_WindowsFoundation
 
-extension WindowsFoundation_Size: WindowsRuntime.StructProjection, COM.ABIInertProjection {
+extension WindowsFoundation_Size: WindowsRuntime.StructBinding, COM.PODBinding {
     public typealias SwiftValue = Self
     public typealias ABIValue = SWRT_WindowsFoundation_Size
 
@@ -44,10 +44,10 @@ extension WindowsFoundation_Size: WindowsRuntime.StructProjection, COM.ABIInertP
     }
 
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
-        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createSize)
+        try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createSize)
     }
 
     public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
-        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createSizeArray)
+        try PropertyValueStatics.createIReferenceArray(value, valueBinding: Self.self, factory: PropertyValueStatics.createSizeArray)
     }
 }

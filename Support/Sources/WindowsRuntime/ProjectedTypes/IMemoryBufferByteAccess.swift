@@ -7,7 +7,7 @@ public protocol IMemoryBufferByteAccessProtocol: IUnknownProtocol {
 
 import WindowsRuntime_ABI
 
-public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
+public enum IMemoryBufferByteAccessBinding: COMTwoWayBinding {
     public typealias SwiftObject = IMemoryBufferByteAccess
     public typealias ABIStruct = WindowsRuntime_ABI.SWRT_IMemoryBufferByteAccess
 
@@ -22,7 +22,7 @@ public enum IMemoryBufferByteAccessProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<IMemoryBufferByteAccessProjection>, IMemoryBufferByteAccessProtocol {
+    private final class Import: COMImport<IMemoryBufferByteAccessBinding>, IMemoryBufferByteAccessProtocol {
         public var buffer: UnsafeMutableBufferPointer<UInt8> { get throws { try NullResult.unwrap(_interop.getBuffer()) } }
     }
 

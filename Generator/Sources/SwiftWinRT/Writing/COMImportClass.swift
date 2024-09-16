@@ -24,7 +24,7 @@ internal func writeCOMImportClass(
         default: fatalError()
     }
 
-    // private final class Import: WinRTImport<IFooProjection>, IFooProtocol {}
+    // private final class Import: WinRTImport<IFooBinding>, IFooProtocol {}
     try writer.writeClass(
         visibility: visibility, final: true, name: name,
         base: .identifier(name: importBaseTypeName, genericArgs: [.identifier(name: projectionName)]),

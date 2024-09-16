@@ -20,7 +20,7 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     }
 
     public var errorInfo: IErrorInfo? {
-        try? restrictedErrorInfo?.queryInterface(IErrorInfoProjection.self)
+        try? restrictedErrorInfo?.queryInterface(IErrorInfoBinding.self)
     }
 
     public var description: String {
@@ -53,10 +53,10 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
 
         // Append to the propagation context, if available.
         // See https://learn.microsoft.com/en-us/windows/win32/api/restrictederrorinfo/nf-restrictederrorinfo-ilanguageexceptionerrorinfo2-capturepropagationcontext
-        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoProjection.self) {
+        if let languageExceptionErrorInfo = try? restrictedErrorInfo.queryInterface(ILanguageExceptionErrorInfoBinding.self) {
             let languageException = try? languageExceptionErrorInfo.languageException as? LanguageException
 
-            if let languageExceptionErrorInfo2 = try? languageExceptionErrorInfo.queryInterface(ILanguageExceptionErrorInfo2Projection.self) {
+            if let languageExceptionErrorInfo2 = try? languageExceptionErrorInfo.queryInterface(ILanguageExceptionErrorInfo2Binding.self) {
                 try languageExceptionErrorInfo2.capturePropagationContext(nil) // No new language exception to provide
             }
 
@@ -98,8 +98,8 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
 
     @discardableResult
     public static func originate(hresult: HResult, message: String?) -> Bool {
-        var message = message == nil ? nil : try? StringProjection.toABI(message!)
-        defer { StringProjection.release(&message) }
+        var message = message == nil ? nil : try? StringBinding.toABI(message!)
+        defer { StringBinding.release(&message) }
         return WindowsRuntime_ABI.SWRT_RoOriginateError(hresult.value, message)
     }
 
@@ -107,10 +107,10 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
     public static func originate(hresult: HResult, message: String?, languageException: IUnknown?) -> Bool {
         guard let languageException else { return originate(hresult: hresult, message: message) }
 
-        var message = message == nil ? nil : try? StringProjection.toABI(message!)
-        defer { StringProjection.release(&message) }
-        var iunknown = try? IUnknownProjection.toABI(languageException)
-        defer { IUnknownProjection.release(&iunknown) }
+        var message = message == nil ? nil : try? StringBinding.toABI(message!)
+        defer { StringBinding.release(&message) }
+        var iunknown = try? IUnknownBinding.toABI(languageException)
+        defer { IUnknownBinding.release(&iunknown) }
         return WindowsRuntime_ABI.SWRT_RoOriginateLanguageException(hresult.value, message, iunknown)
     }
 
@@ -139,21 +139,21 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
 
     public static func getRestrictedErrorInfo() throws -> IRestrictedErrorInfo? {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
-        defer { IRestrictedErrorInfoProjection.release(&restrictedErrorInfo) }
+        defer { IRestrictedErrorInfoBinding.release(&restrictedErrorInfo) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_GetRestrictedErrorInfo(&restrictedErrorInfo))
-        return IRestrictedErrorInfoProjection.toSwift(consuming: &restrictedErrorInfo)
+        return IRestrictedErrorInfoBinding.toSwift(consuming: &restrictedErrorInfo)
     }
 
     public static func getRestrictedErrorInfo(matching expectedHResult: HResult) throws -> IRestrictedErrorInfo? {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
-        defer { IRestrictedErrorInfoProjection.release(&restrictedErrorInfo) }
+        defer { IRestrictedErrorInfoBinding.release(&restrictedErrorInfo) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_RoGetMatchingRestrictedErrorInfo(expectedHResult.value, &restrictedErrorInfo))
-        return IRestrictedErrorInfoProjection.toSwift(consuming: &restrictedErrorInfo)
+        return IRestrictedErrorInfoBinding.toSwift(consuming: &restrictedErrorInfo)
     }
 
     public static func setRestrictedErrorInfo(_ value: IRestrictedErrorInfo?) throws {
-        var abiValue = try IRestrictedErrorInfoProjection.toABI(value)
-        defer { IRestrictedErrorInfoProjection.release(&abiValue) }
+        var abiValue = try IRestrictedErrorInfoBinding.toABI(value)
+        defer { IRestrictedErrorInfoBinding.release(&abiValue) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_SetRestrictedErrorInfo(abiValue))
     }
 }

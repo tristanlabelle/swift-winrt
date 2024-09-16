@@ -33,8 +33,8 @@ extension GUID {
     }
 }
 
-/// Projects the native GUID type to Swift's Foundation.UUID type
-public enum GUIDProjection: ABIInertProjection {
+/// Binds the native GUID type to Swift's Foundation.UUID type
+public enum GUIDBinding: PODBinding {
     public typealias SwiftValue = GUID
     public typealias ABIValue = COM_ABI.SWRT_Guid
 

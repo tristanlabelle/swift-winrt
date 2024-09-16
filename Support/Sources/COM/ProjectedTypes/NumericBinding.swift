@@ -1,5 +1,5 @@
-/// Projects a C numeric type into the corresponding Swift numeric type.
-public enum NumericProjection<Value: Numeric>: ABIInertProjection {
+/// Binds a C numeric type to the corresponding Swift numeric type.
+public enum NumericBinding<Value: Numeric>: PODBinding {
     public typealias ABIValue = Value
     public typealias SwiftValue = Value
 

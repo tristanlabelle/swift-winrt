@@ -40,7 +40,7 @@ fileprivate func writeVirtualTable(
             output.write(": ")
             output.write("{ this")
 
-            let (params, returnParam) = try projection.getParamProjections(method: method, genericTypeArgs: abiType.genericArgs)
+            let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: abiType.genericArgs)
             for abiParamName in getABIParamNames(params, returnParam: returnParam) {
                 output.write(", ")
                 output.write(abiParamName)
@@ -103,7 +103,7 @@ fileprivate func writeVirtualTableFunc(
             if returnParam.typeProjection.kind != .inert {
                 epilogueOutParamWithCleanupCount += 1
             }
-            output.write("let \(returnParam.swiftProjectionName) = ")
+            output.write("let \(returnParam.swiftBindingName) = ")
         }
 
         if case .return(nullAsError: true) = returnParam.passBy {
@@ -127,7 +127,7 @@ fileprivate func writeVirtualTableFunc(
             output.write(param.name)
             if param.passBy != .value { output.write(".pointee") }
         } else {
-            output.write(param.swiftProjectionName)
+            output.write(param.swiftBindingName)
         }
     }
     output.write(")")
@@ -168,7 +168,7 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
 fileprivate func writePrologueForParam(_ param: ParamProjection, to output: IndentedTextOutputStream) throws {
     if param.passBy.isInput {
         let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
-        output.write("\(declarator) \(param.swiftProjectionName) = \(param.projectionType).toSwift")
+        output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).toSwift")
         switch param.typeProjection.kind {
             case .identity: fatalError("Case should have been ignored earlier.")
             case .inert, .allocating:
@@ -177,7 +177,7 @@ fileprivate func writePrologueForParam(_ param: ParamProjection, to output: Inde
                 output.write("(pointer: \(param.name), count: \(param.arrayLengthName))")
         }
     } else {
-        output.write("var \(param.swiftProjectionName): \(param.typeProjection.swiftType)"
+        output.write("var \(param.swiftBindingName): \(param.typeProjection.swiftType)"
             + " = \(param.typeProjection.swiftDefaultValue)")
     }
     output.endLine()
@@ -201,10 +201,10 @@ fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup:
 
         output.write("\(param.name).pointee = ")
         if param.typeProjection.kind == .identity {
-            output.write(param.swiftProjectionName)
+            output.write(param.swiftBindingName)
         } else {
             if param.typeProjection.kind == .allocating { output.write ("try ") }
-            output.write("\(param.projectionType).toABI(\(param.swiftProjectionName))")
+            output.write("\(param.bindingType).toABI(\(param.swiftBindingName))")
         }
 
         if isOptional { output.write(" }") }
@@ -214,7 +214,7 @@ fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup:
         if param.typeProjection.kind == .allocating, !skipCleanup {
             output.write("defer { ")
             output.write("if !_success, let \(param.name) { ")
-            output.write("\(param.projectionType).release(&\(param.name).pointee)")
+            output.write("\(param.bindingType).release(&\(param.name).pointee)")
             output.write(" }")
             output.write(" }", endLine: true)
         }

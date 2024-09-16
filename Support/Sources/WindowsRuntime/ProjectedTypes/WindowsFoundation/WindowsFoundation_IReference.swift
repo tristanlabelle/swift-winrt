@@ -25,8 +25,8 @@ extension WindowsFoundation_IReferenceProtocol {
 
 import SWRT_WindowsFoundation
 
-public enum WindowsFoundation_IReferenceProjection<TProjection: IReferenceableProjection>: InterfaceProjection {
-    public typealias SwiftObject = WindowsFoundation_IReference<TProjection.SwiftValue>
+public enum WindowsFoundation_IReferenceBinding<TBinding: IReferenceableBinding>: InterfaceBinding {
+    public typealias SwiftObject = WindowsFoundation_IReference<TBinding.SwiftValue>
 
     // Our ABI-level IReference<T> definition is nongeneric.
     // We can do this because the pointer in get_Value(T*) has the same ABI representation for all T's.
@@ -34,8 +34,8 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: IReferenceablePr
     // and hence centralize the logic for dealing with this type in the support module.
     public typealias ABIStruct = SWRT_WindowsFoundation_IReference
 
-    public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TProjection.typeName)>") }
-    public static var interfaceID: COMInterfaceID { TProjection.ireferenceID }
+    public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TBinding.typeName)>") }
+    public static var interfaceID: COMInterfaceID { TBinding.ireferenceID }
     public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
@@ -47,9 +47,9 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: IReferenceablePr
     }
 
     private final class Import
-            : WinRTImport<WindowsFoundation_IReferenceProjection<TProjection>>,
+            : WinRTImport<WindowsFoundation_IReferenceBinding<TBinding>>,
             WindowsFoundation_IReferenceProtocol {
-        public typealias T = TProjection.SwiftValue
+        public typealias T = TBinding.SwiftValue
 
         private var _lazyIPropertyValue: COMReference<SWRT_WindowsFoundation_IPropertyValue>.Optional = .none
         public var _ipropertyValue: COMInterop<SWRT_WindowsFoundation_IPropertyValue> {
@@ -69,15 +69,15 @@ public enum WindowsFoundation_IReferenceProjection<TProjection: IReferenceablePr
         }
 
         public func _value() throws -> T {
-            var abiValue = TProjection.abiDefaultValue
+            var abiValue = TBinding.abiDefaultValue
             try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
                 try _interop.get_Value(abiValuePointer)
             }
-            return TProjection.toSwift(consuming: &abiValue)
+            return TBinding.toSwift(consuming: &abiValue)
         }
 
         public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
-            try _interop.get_Value(pointer.bindMemory(to: TProjection.ABIValue.self, capacity: 1))
+            try _interop.get_Value(pointer.bindMemory(to: TBinding.ABIValue.self, capacity: 1))
         }
     }
 }

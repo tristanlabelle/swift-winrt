@@ -1,16 +1,16 @@
 public protocol SwiftWrapperFactory {
-    func create<Projection: COMProjection>(
-        _ reference: consuming Projection.ABIReference,
-        projection: Projection.Type) -> Projection.SwiftObject
+    func create<Binding: COMBinding>(
+        _ reference: consuming Binding.ABIReference,
+        binding: Binding.Type) -> Binding.SwiftObject
 }
 
 public struct DefaultSwiftWrapperFactory: SwiftWrapperFactory {
     public init() {}
 
-    public func create<Projection: COMProjection>(
-            _ reference: consuming Projection.ABIReference,
-            projection: Projection.Type) -> Projection.SwiftObject {
-        Projection._wrap(consume reference)
+    public func create<Binding: COMBinding>(
+            _ reference: consuming Binding.ABIReference,
+            binding: Binding.Type) -> Binding.SwiftObject {
+        Binding._wrap(consume reference)
     }
 }
 

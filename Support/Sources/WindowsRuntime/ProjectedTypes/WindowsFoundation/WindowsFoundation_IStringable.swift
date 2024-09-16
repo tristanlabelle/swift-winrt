@@ -9,7 +9,7 @@ public protocol WindowsFoundation_IStringableProtocol: IInspectableProtocol {
 
 import SWRT_WindowsFoundation
 
-public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
+public enum WindowsFoundation_IStringableBinding: InterfaceBinding {
     public typealias SwiftObject = WindowsFoundation_IStringable
     public typealias ABIStruct = SWRT_WindowsFoundation_IStringable
 
@@ -25,7 +25,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: WinRTImport<WindowsFoundation_IStringableProjection>, WindowsFoundation_IStringableProtocol {
+    private final class Import: WinRTImport<WindowsFoundation_IStringableBinding>, WindowsFoundation_IStringableProtocol {
         public func toString() throws -> String {
             try _interop.toString()
         }
@@ -38,7 +38,7 @@ public enum WindowsFoundation_IStringableProjection: InterfaceProjection {
         GetIids: { IInspectableVirtualTable.GetIids($0, $1, $2) },
         GetRuntimeClassName: { IInspectableVirtualTable.GetRuntimeClassName($0, $1) },
         GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
-        ToString: { this, value in _implement(this) { try _set(value, StringProjection.toABI($0.toString())) } })
+        ToString: { this, value in _implement(this) { try _set(value, StringBinding.toABI($0.toString())) } })
 }
 
 public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID {
@@ -47,8 +47,8 @@ public func uuidof(_: SWRT_WindowsFoundation_IStringable.Type) -> COMInterfaceID
 
 extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
-        var value = StringProjection.abiDefaultValue
+        var value = StringBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.ToString(this, &value))
-        return StringProjection.toSwift(consuming: &value)
+        return StringBinding.toSwift(consuming: &value)
     }
 }

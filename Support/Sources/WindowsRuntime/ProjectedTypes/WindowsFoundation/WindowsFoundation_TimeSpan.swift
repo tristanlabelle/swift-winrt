@@ -48,11 +48,10 @@ extension WindowsFoundation_TimeSpan {
     }
 }
 
-// Projection
+// Binding
 import SWRT_WindowsFoundation
 
-/// Projects a Windows.Foundation.TimeSpan into a Swift.Duration value.
-extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
+extension WindowsFoundation_TimeSpan: StructBinding, PODBinding {
     public typealias SwiftValue = WindowsFoundation_TimeSpan
     public typealias ABIValue = SWRT_WindowsFoundation_TimeSpan
 
@@ -76,10 +75,10 @@ extension WindowsFoundation_TimeSpan: StructProjection, ABIInertProjection {
     }
 
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
-        try PropertyValueStatics.createIReference(value, projection: Self.self, factory: PropertyValueStatics.createTimeSpan)
+        try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createTimeSpan)
     }
 
     public static func createIReferenceArray(_ value: [SwiftValue]) throws -> WindowsFoundation_IReferenceArray<SwiftValue> {
-        try PropertyValueStatics.createIReferenceArray(value, projection: Self.self, factory: PropertyValueStatics.createTimeSpanArray)
+        try PropertyValueStatics.createIReferenceArray(value, valueBinding: Self.self, factory: PropertyValueStatics.createTimeSpanArray)
     }
 }

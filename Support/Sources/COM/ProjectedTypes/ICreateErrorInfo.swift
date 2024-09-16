@@ -9,7 +9,7 @@ public protocol ICreateErrorInfoProtocol: IUnknownProtocol {
     func setHelpContext(_ helpContext: UInt32) throws
 }
 
-public enum ICreateErrorInfoProjection: COMTwoWayProjection {
+public enum ICreateErrorInfoBinding: COMTwoWayBinding {
     public typealias ABIStruct = COM_ABI.SWRT_ICreateErrorInfo
     public typealias SwiftObject = ICreateErrorInfo
 
@@ -24,7 +24,7 @@ public enum ICreateErrorInfoProjection: COMTwoWayProjection {
         try Import.toCOM(object)
     }
 
-    private final class Import: COMImport<ICreateErrorInfoProjection>, ICreateErrorInfoProtocol {
+    private final class Import: COMImport<ICreateErrorInfoBinding>, ICreateErrorInfoProtocol {
         public func setGUID(_ guid: GUID) throws { try _interop.setGUID(guid) }
         public func setSource(_ source: String?) throws { try _interop.setSource(source) }
         public func setDescription(_ description: String?) throws { try _interop.setDescription(description) }
@@ -38,11 +38,11 @@ public enum ICreateErrorInfoProjection: COMTwoWayProjection {
         Release: { IUnknownVirtualTable.Release($0) },
         SetGUID: { this, guid in _implement(this) {
             guard let guid else { throw COMError.invalidArg }
-            try $0.setGUID(GUIDProjection.toSwift(guid.pointee))
+            try $0.setGUID(GUIDBinding.toSwift(guid.pointee))
         } },
-        SetSource: { this, source in _implement(this) { try $0.setSource(BStrProjection.toSwift(source)) } },
-        SetDescription: { this, description in _implement(this) { try $0.setDescription(BStrProjection.toSwift(description)) } },
-        SetHelpFile: { this, helpFile in _implement(this) { try $0.setHelpFile(BStrProjection.toSwift(helpFile)) } },
+        SetSource: { this, source in _implement(this) { try $0.setSource(BStrBinding.toSwift(source)) } },
+        SetDescription: { this, description in _implement(this) { try $0.setDescription(BStrBinding.toSwift(description)) } },
+        SetHelpFile: { this, helpFile in _implement(this) { try $0.setHelpFile(BStrBinding.toSwift(helpFile)) } },
         SetHelpContext: { this, helpContext in _implement(this) { try $0.setHelpContext(helpContext) } })
 }
 
@@ -52,25 +52,25 @@ public func uuidof(_: COM_ABI.SWRT_ICreateErrorInfo.Type) -> COMInterfaceID {
 
 extension COMInterop where ABIStruct == COM_ABI.SWRT_ICreateErrorInfo {
     public func setGUID(_ guid: GUID) throws {
-        var guid = GUIDProjection.toABI(guid)
+        var guid = GUIDBinding.toABI(guid)
         try COMError.fromABI(this.pointee.VirtualTable.pointee.SetGUID(this, &guid))
     }
 
     public func setSource(_ source: String?) throws {
-        var source = try BStrProjection.toABI(source)
-        defer { BStrProjection.release(&source) }
+        var source = try BStrBinding.toABI(source)
+        defer { BStrBinding.release(&source) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.SetSource(this, source))
     }
 
     public func setDescription(_ description: String?) throws {
-        var description = try BStrProjection.toABI(description)
-        defer { BStrProjection.release(&description) }
+        var description = try BStrBinding.toABI(description)
+        defer { BStrBinding.release(&description) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.SetDescription(this, description))
     }
 
     public func setHelpFile(_ helpFile: String?) throws {
-        var helpFile = try BStrProjection.toABI(helpFile)
-        defer { BStrProjection.release(&helpFile) }
+        var helpFile = try BStrBinding.toABI(helpFile)
+        defer { BStrBinding.release(&helpFile) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.SetHelpFile(this, helpFile))
     }
 

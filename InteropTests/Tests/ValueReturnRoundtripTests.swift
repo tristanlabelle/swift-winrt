@@ -78,7 +78,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     }
 
     func testArray_twoWay() throws {
-        throw XCTSkip("Two-way array projections are not implemented yet")
+        throw XCTSkip("Two-way array bindings are not implemented yet")
     }
 
     func testReference() throws {
@@ -86,7 +86,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         XCTAssertNil(try twoWay.reference(nil))
     }
 
-    class ReturnArgumentImplementation: WinRTPrimaryExport<IReturnArgumentProjection>, IReturnArgumentProtocol {
+    class ReturnArgumentImplementation: WinRTPrimaryExport<IReturnArgumentBinding>, IReturnArgumentProtocol {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
         func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable { try NullResult.unwrap(value) }

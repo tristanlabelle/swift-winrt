@@ -40,20 +40,20 @@ public struct TypeProjection {
     public let swiftType: SwiftType
     /// The default value for the Swift representation, e.g. `nil`.
     public let swiftDefaultValue: DefaultValue
-    /// The type implementing the `ABIProjection` protocol, e.g. `IFooProjection`.
-    public let projectionType: SwiftType
+    /// The type implementing the `ABIBinding` protocol, e.g. `IFooBinding`.
+    public let bindingType: SwiftType
     /// The kind of projection to be performed.
     public let kind: Kind
 
     public init(
             abiType: SwiftType, abiDefaultValue: DefaultValue,
             swiftType: SwiftType, swiftDefaultValue: DefaultValue,
-            projectionType: SwiftType, kind: Kind) {
+            bindingType: SwiftType, kind: Kind) {
         self.abiType = abiType
         self.abiDefaultValue = abiDefaultValue
         self.swiftType = swiftType
         self.swiftDefaultValue = swiftDefaultValue
-        self.projectionType = projectionType
+        self.bindingType = bindingType
         self.kind = kind
     }
 
@@ -63,7 +63,7 @@ public struct TypeProjection {
             abiDefaultValue: "0",
             swiftType: type,
             swiftDefaultValue: "0",
-            projectionType: .identifier("NumericProjection", genericArgs: [type]),
+            bindingType: .identifier("NumericBinding", genericArgs: [type]),
             kind: .identity)
     }
 }

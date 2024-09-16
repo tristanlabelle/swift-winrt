@@ -3,7 +3,7 @@ import WindowsRuntime
 import WinRTComponent
 
 class ObjectExportingTests: WinRTTestCase {
-    class ExportedClass: WinRTPrimaryExport<IInspectableProjection> {}
+    class ExportedClass: WinRTPrimaryExport<IInspectableBinding> {}
 
     func testBalancedAddRefRelease() throws {
         let obj: ExportedClass = .init()
@@ -38,11 +38,11 @@ class ObjectExportingTests: WinRTTestCase {
     }
 
     func testImplementsIAgileObject() throws {
-        let _ = try ExportedClass().queryInterface(IAgileObjectProjection.self)
+        let _ = try ExportedClass().queryInterface(IAgileObjectBinding.self)
     }
 
     func testWeakReference() throws {
-        class Exported: WinRTPrimaryExport<IInspectableProjection> {}
+        class Exported: WinRTPrimaryExport<IInspectableBinding> {}
 
         var instance: Exported? = Exported()
         let weakReferencer = try WeakReferencer(XCTUnwrap(instance))

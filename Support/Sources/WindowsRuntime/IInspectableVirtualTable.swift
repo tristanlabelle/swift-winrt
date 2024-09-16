@@ -12,7 +12,7 @@ public enum IInspectableVirtualTable {
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return WinRTError.toABI {
             let idsArray = try object.getIids()
-            let comArray = try ArrayProjection<GUIDProjection>.toABI(idsArray)
+            let comArray = try ArrayBinding<GUIDBinding>.toABI(idsArray)
             count.pointee = comArray.count
             iids.pointee = comArray.pointer
         }
@@ -25,7 +25,7 @@ public enum IInspectableVirtualTable {
         className.pointee = nil
         let object = COMEmbedding.getEmbedderObjectOrCrash(this) as! IInspectable
         return WinRTError.toABI {
-            className.pointee = try StringProjection.toABI(object.getRuntimeClassName())
+            className.pointee = try StringBinding.toABI(object.getRuntimeClassName())
         }
     }
 

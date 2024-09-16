@@ -6,7 +6,7 @@ import class Foundation.NSLock
 /// aka the COM object that implements the default constructor and
 /// can be QI'd for other factory and static interfaces.
 public protocol ActivationFactoryResolver {
-    mutating func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference
+    mutating func resolve(runtimeClass: String) throws -> IActivationFactoryBinding.ABIReference
 }
 
 public var activationFactoryResolver: any ActivationFactoryResolver = SystemActivationFactoryResolver()
@@ -16,16 +16,16 @@ public var activationFactoryResolver: any ActivationFactoryResolver = SystemActi
 public struct SystemActivationFactoryResolver: ActivationFactoryResolver {
     public init() {}
 
-    public func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference {
-        try Self.resolve(runtimeClass: runtimeClass, interfaceID: IActivationFactoryProjection.interfaceID)
+    public func resolve(runtimeClass: String) throws -> IActivationFactoryBinding.ABIReference {
+        try Self.resolve(runtimeClass: runtimeClass, interfaceID: IActivationFactoryBinding.interfaceID)
     }
 
     public static func resolve<ABIStruct>(runtimeClass: String, interfaceID: COMInterfaceID,
             type: ABIStruct.Type = ABIStruct.self) throws -> COMReference<ABIStruct> {
-        var activatableId = try StringProjection.toABI(runtimeClass)
-        defer { StringProjection.release(&activatableId) }
+        var activatableId = try StringBinding.toABI(runtimeClass)
+        defer { StringBinding.release(&activatableId) }
 
-        var iid = GUIDProjection.toABI(interfaceID)
+        var iid = GUIDBinding.toABI(interfaceID)
         var rawPointer: UnsafeMutableRawPointer?
         try WinRTError.fromABI(WindowsRuntime_ABI.SWRT_RoGetActivationFactory(activatableId, &iid, &rawPointer))
         guard let rawPointer else { throw COMError.noInterface }
@@ -83,9 +83,9 @@ public final class DllActivationFactoryResolver: ActivationFactoryResolver {
         }
     }
 
-    public func resolve(runtimeClass: String) throws -> IActivationFactoryProjection.ABIReference {
-        var activatableId = try StringProjection.toABI(runtimeClass)
-        defer { StringProjection.release(&activatableId) }
+    public func resolve(runtimeClass: String) throws -> IActivationFactoryBinding.ABIReference {
+        var activatableId = try StringBinding.toABI(runtimeClass)
+        defer { StringBinding.release(&activatableId) }
 
         var factoryPointer: UnsafeMutablePointer<SWRT_IActivationFactory>?
         try WinRTError.fromABI(function(activatableId, &factoryPointer))
