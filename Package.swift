@@ -41,8 +41,8 @@ let package = Package(
             path: "Support/Sources/WindowsRuntime",
             exclude: [
                 "CMakeLists.txt",
-                "ProjectedTypes/Readme.md",
-                "ProjectedTypes/WindowsFoundation/Readme.md",
+                "Projection/Readme.md",
+                "Projection/WindowsFoundation/Readme.md",
             ]),
         .testTarget(
             name: "Tests",
