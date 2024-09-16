@@ -6,13 +6,11 @@ import WindowsMetadata
 
 internal func writeABIModule(_ module: Module, directoryPath: String, generateCMakeLists: Bool) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
+    let includeSWRTDirectoryPath = "\(includeDirectoryPath)\\SWRT"
 
-    try writeABIFile(module: module, toPath: "\(includeDirectoryPath)\\\(module.name).h")
-    // FIXME: Support transitive references?
-    for referencedModule in module.references {
-        guard !referencedModule.isEmpty else { continue }
-        try writeABIFile(module: referencedModule, toPath: "\(includeDirectoryPath)\\\(referencedModule.name).h")
-    }
+    try writeABIFile(module: module, toPath: "\(includeSWRTDirectoryPath)\\\(module.name).h")
+
+    try writeModulemapFile(module: module, toPath: "\(includeDirectoryPath)\\module.modulemap")
 
     if generateCMakeLists {
         let cmakeListsWriter = CMakeListsWriter(output: FileTextOutputStream(
@@ -32,7 +30,7 @@ fileprivate func writeABIFile(module: Module, toPath path: String) throws {
 
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
-        cHeaderWriter.writeInclude(pathSpec: "\(referencedModule.name).h", kind: .doubleQuotes)
+        cHeaderWriter.writeInclude(pathSpec: "SWRT/\(referencedModule.name).h", kind: .doubleQuotes)
     }
 
     // Declare enums
@@ -129,4 +127,12 @@ fileprivate func getSortedInterfaces(module: Module) throws -> [BoundType] {
 
     interfacesByMangledName.sort { $0.key < $1.key }
     return Array(interfacesByMangledName.values)
+}
+
+fileprivate func writeModulemapFile(module: Module, toPath path: String) throws {
+    let output = IndentedTextOutputStream(inner: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    output.writeIndentedBlock(header: "module \(module.abiModuleName) {", footer: "}") {
+        output.writeFullLine("header \"SWRT/\(module.name).h\"")
+        output.writeFullLine("export *")
+    }
 }

@@ -39,7 +39,7 @@ fileprivate func writeModuleFiles(
     try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", generateCMakeLists: generateCMakeLists)
 
     try writeSwiftModuleFiles(
-        module, directoryPath: "\(directoryPath)\\Module",
+        module, directoryPath: "\(directoryPath)\\Projection",
         generateCMakeLists: generateCMakeLists, dynamicLibrary: dynamicLibrary)
 
     if !module.flattenNamespaces {
@@ -51,7 +51,7 @@ fileprivate func writeModuleFiles(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         writer.writeAddSubdirectory("ABI")
-        writer.writeAddSubdirectory("Module")
+        writer.writeAddSubdirectory("Projection")
         if !module.flattenNamespaces {
             writer.writeAddSubdirectory("Namespaces")
         }
