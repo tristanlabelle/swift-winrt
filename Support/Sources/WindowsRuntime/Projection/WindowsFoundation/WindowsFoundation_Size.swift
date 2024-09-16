@@ -35,7 +35,7 @@ extension WindowsFoundation_Size: WindowsRuntime.StructBinding, COM.PODBinding {
 
     public static var abiDefaultValue: ABIValue { .init() }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+    public static func fromABI(_ value: ABIValue) -> SwiftValue {
         .init(width: value.Width, height: value.Height)
     }
 

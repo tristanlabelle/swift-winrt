@@ -9,7 +9,7 @@ public enum BStrBinding: ABIBinding {
 
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(_ value: COM_ABI.SWRT_BStr?) -> String? {
+    public static func fromABI(_ value: COM_ABI.SWRT_BStr?) -> String? {
         guard let value else { return nil }
         let length = COM_ABI.SWRT_SysStringLen(value)
         return String(utf16CodeUnits: value, count: Int(length))

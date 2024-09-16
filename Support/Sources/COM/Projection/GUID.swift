@@ -42,7 +42,7 @@ public enum GUIDBinding: PODBinding {
         .init(Data1: 0, Data2: 0, Data3: 0, Data4: (0, 0, 0, 0, 0, 0, 0, 0))
     }
 
-    public static func toSwift(_ value: COM_ABI.SWRT_Guid) -> GUID {
+    public static func fromABI(_ value: COM_ABI.SWRT_Guid) -> GUID {
         .init(uuid: (
             UInt8((value.Data1 >> 24) & 0xFF), UInt8((value.Data1 >> 16) & 0xFF),
             UInt8((value.Data1 >> 8) & 0xFF), UInt8((value.Data1 >> 0) & 0xFF),

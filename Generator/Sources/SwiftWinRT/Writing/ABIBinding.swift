@@ -124,9 +124,9 @@ fileprivate func writeStructBindingExtension(
 
         let fields = structDefinition.fields.filter { $0.isInstance }
 
-        // public static func toSwift(_ value: ABIValue) -> SwiftValue { .init(field: value.Field, ...) }
+        // public static func fromABI(_ value: ABIValue) -> SwiftValue { .init(field: value.Field, ...) }
         try writer.writeFunc(
-                visibility: .public, static: true, name: "toSwift",
+                visibility: .public, static: true, name: "fromABI",
                 params: [.init(label: "_", name: "value", type: abiType)],
                 returnType: .`self`) { writer in
             if fields.isEmpty {
@@ -194,7 +194,7 @@ fileprivate func writeStructABIToSwiftInitializerParam(
 
     if typeProjection.kind != .identity {
         typeProjection.bindingType.write(to: &output)
-        output.write(".toSwift(")
+        output.write(".fromABI(")
     }
 
     SwiftIdentifier.write(abiValueName, to: &output)

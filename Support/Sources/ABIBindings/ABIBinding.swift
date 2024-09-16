@@ -13,11 +13,11 @@ public protocol ABIBinding {
 
     /// Converts a value from its ABI to its Swift representation
     /// without releasing the original value.
-    static func toSwift(_ value: ABIValue) -> SwiftValue
+    static func fromABI(_ value: ABIValue) -> SwiftValue
 
     /// Converts a value from its ABI to its Swift representation,
     /// releasing the original value.
-    static func toSwift(consuming value: inout ABIValue) -> SwiftValue
+    static func fromABI(consuming value: inout ABIValue) -> SwiftValue
 
     /// Converts a value from its Swift to its ABI representation.
     /// The resulting value should be released as its creation might have allocated resources.
@@ -28,9 +28,9 @@ public protocol ABIBinding {
 }
 
 extension ABIBinding {
-    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
+    public static func fromABI(consuming value: inout ABIValue) -> SwiftValue {
         defer { release(&value) }
-        return toSwift(value)
+        return fromABI(value)
     }
 
     public static func withABI<Result>(_ value: SwiftValue, _ closure: (ABIValue) throws -> Result) throws -> Result {

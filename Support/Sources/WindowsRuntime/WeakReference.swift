@@ -28,6 +28,6 @@ public final class WeakReference<Binding: ReferenceTypeBinding> {
         try WinRTError.fromABI(weakReference.pointer.pointee.VirtualTable.pointee.Resolve(
             weakReference.pointer, &iid, &inspectableTarget))
         var target = Binding.ABIPointer(OpaquePointer(inspectableTarget))
-        return Binding.toSwift(consuming: &target)
+        return Binding.fromABI(consuming: &target)
     }
 }

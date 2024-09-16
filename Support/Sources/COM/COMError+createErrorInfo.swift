@@ -6,7 +6,7 @@ extension COMError {
         var createErrorInfo = ICreateErrorInfoBinding.abiDefaultValue
         defer { ICreateErrorInfoBinding.release(&createErrorInfo) }
         try COMError.fromABI(SWRT_CreateErrorInfo(&createErrorInfo))
-        return try NullResult.unwrap(ICreateErrorInfoBinding.toSwift(createErrorInfo))
+        return try NullResult.unwrap(ICreateErrorInfoBinding.fromABI(createErrorInfo))
     }
 
     /// Creates an instance of `IErrorInfo` with prepopulated fields.

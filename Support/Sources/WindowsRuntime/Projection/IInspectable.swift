@@ -48,18 +48,18 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IInspectable {
         var iids: COMArray<WindowsRuntime_ABI.SWRT_Guid> = .null
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetIids(this, &iids.count, &iids.pointer))
         defer { iids.deallocate() }
-        return ArrayBinding<GUIDBinding>.toSwift(consuming: &iids)
+        return ArrayBinding<GUIDBinding>.fromABI(consuming: &iids)
     }
 
     public func getRuntimeClassName() throws -> String {
         var runtimeClassName: WindowsRuntime_ABI.SWRT_HString?
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetRuntimeClassName(this, &runtimeClassName))
-        return StringBinding.toSwift(consuming: &runtimeClassName)
+        return StringBinding.fromABI(consuming: &runtimeClassName)
     }
 
     public func getTrustLevel() throws -> TrustLevel {
         var trustLevel: WindowsRuntime_ABI.SWRT_TrustLevel = 0
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.GetTrustLevel(this, &trustLevel))
-        return TrustLevel.toSwift(trustLevel)
+        return TrustLevel.fromABI(trustLevel)
     }
 }

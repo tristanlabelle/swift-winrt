@@ -16,7 +16,7 @@ public enum IReferenceToOptionalBinding<Binding: IReferenceableBinding>: WinRTBi
         withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
             try! reference.interop.get_Value(abiValuePointer)
         }
-        return Binding.toSwift(consuming: &abiValue)
+        return Binding.fromABI(consuming: &abiValue)
     }
 
     public static func toCOM(_ value: SwiftObject) throws -> ABIReference {

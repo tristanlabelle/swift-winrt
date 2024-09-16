@@ -78,7 +78,7 @@ extension ActivatableClassBinding {
 }
 
 extension ComposableClassBinding {
-    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
+    public static func fromABI(consuming value: inout ABIValue) -> SwiftValue {
         guard let pointer = value else { return nil }
         let reference = COMReference(transferringRef: pointer)
         if let swiftObject = _unwrap(reference.pointer) { return swiftObject }

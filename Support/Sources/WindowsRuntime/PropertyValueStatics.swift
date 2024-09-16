@@ -265,7 +265,7 @@ internal enum PropertyValueStatics {
             valueBinding: ValueBinding.Type,
             factory: (ValueBinding.SwiftValue) throws -> COMReference<SWRT_IInspectable>)
             throws -> WindowsFoundation_IReference<ValueBinding.SwiftValue> {
-        try WindowsFoundation_IReferenceBinding<ValueBinding>.toSwift(
+        try WindowsFoundation_IReferenceBinding<ValueBinding>.fromABI(
             factory(value).queryInterface(ValueBinding.ireferenceID, type: SWRT_WindowsFoundation_IReference.self))
     }
 
@@ -274,7 +274,7 @@ internal enum PropertyValueStatics {
             valueBinding: ValueBinding.Type,
             factory: ([ValueBinding.SwiftValue]) throws -> COMReference<SWRT_IInspectable>)
             throws -> WindowsFoundation_IReferenceArray<ValueBinding.SwiftValue> {
-        try WindowsFoundation_IReferenceArrayBinding<ValueBinding>.toSwift(
+        try WindowsFoundation_IReferenceArrayBinding<ValueBinding>.fromABI(
             factory(array).queryInterface(ValueBinding.ireferenceArrayID, type: SWRT_WindowsFoundation_IReferenceArray.self))
     }
 }

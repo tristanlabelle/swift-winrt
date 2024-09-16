@@ -39,7 +39,7 @@ public enum IWeakReferenceBinding: COMTwoWayBinding {
             defer { IInspectableBinding.release(&inspectable) }
             guard let inspectable else { return }
             objectReference.pointee = try COMInterop(inspectable)
-                .queryInterface(GUIDBinding.toSwift(iid.pointee), type: SWRT_IInspectable.self)
+                .queryInterface(GUIDBinding.fromABI(iid.pointee), type: SWRT_IInspectable.self)
                 .detach()
         } })
 }
@@ -53,6 +53,6 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReference {
         var iid = GUIDBinding.toABI(iid)
         var objectReference = IInspectableBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.Resolve(this, &iid, &objectReference))
-        return IInspectableBinding.toSwift(consuming: &objectReference)
+        return IInspectableBinding.fromABI(consuming: &objectReference)
     }
 }

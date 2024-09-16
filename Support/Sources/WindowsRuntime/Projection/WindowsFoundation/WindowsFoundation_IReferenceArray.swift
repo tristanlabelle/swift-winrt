@@ -70,7 +70,7 @@ public enum WindowsFoundation_IReferenceArrayBinding<TBinding: IReferenceableBin
             var abiValue = COMArray<TBinding.ABIValue>(
                 pointer: pointer.bindMemory(to: TBinding.ABIValue.self, capacity: Int(length)),
                 count: length)
-            return ArrayBinding<TBinding>.toSwift(consuming: &abiValue)
+            return ArrayBinding<TBinding>.fromABI(consuming: &abiValue)
         }
 
         public func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws {

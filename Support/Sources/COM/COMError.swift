@@ -91,7 +91,7 @@ public struct COMError: COMErrorProtocol, CustomStringConvertible {
         var errorInfo: UnsafeMutablePointer<SWRT_IErrorInfo>?
         defer { IErrorInfoBinding.release(&errorInfo) }
         try fromABI(captureErrorInfo: false, COM_ABI.SWRT_GetErrorInfo(/* dwReserved: */ 0, &errorInfo))
-        return IErrorInfoBinding.toSwift(consuming: &errorInfo)
+        return IErrorInfoBinding.fromABI(consuming: &errorInfo)
     }
 
     public static func setErrorInfo(_ errorInfo: IErrorInfo?) throws {

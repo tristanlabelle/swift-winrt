@@ -49,6 +49,6 @@ extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IStringable {
     public func toString() throws -> String {
         var value = StringBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.ToString(this, &value))
-        return StringBinding.toSwift(consuming: &value)
+        return StringBinding.fromABI(consuming: &value)
     }
 }

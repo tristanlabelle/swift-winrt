@@ -38,6 +38,6 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_ILanguageExcepti
         var result: IUnknownPointer? = nil // IUnknownBinding.abiDefaultValue (compiler bug?)
         defer { IUnknownBinding.release(&result) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetLanguageException(this, &result))
-        return IUnknownBinding.toSwift(consuming: &result)
+        return IUnknownBinding.fromABI(consuming: &result)
     }
 }

@@ -13,6 +13,6 @@ extension EventRegistrationToken: PODBinding {
     public typealias ABIValue = WindowsRuntime_ABI.SWRT_EventRegistrationToken
 
     public static var abiDefaultValue: ABIValue { WindowsRuntime_ABI.SWRT_EventRegistrationToken(value: 0) }
-    public static func toSwift(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
+    public static func fromABI(_ value: ABIValue) -> SwiftValue { SwiftValue(value.value) }
     public static func toABI(_ value: SwiftValue) -> ABIValue { ABIValue(value: value.value) }
 }

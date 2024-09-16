@@ -168,7 +168,7 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
 fileprivate func writePrologueForParam(_ param: ParamProjection, to output: IndentedTextOutputStream) throws {
     if param.passBy.isInput {
         let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
-        output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).toSwift")
+        output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).fromABI")
         switch param.typeProjection.kind {
             case .identity: fatalError("Case should have been ignored earlier.")
             case .inert, .allocating:

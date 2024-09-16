@@ -70,15 +70,15 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IRestrictedError
         var capabilitySid_: WindowsRuntime_ABI.SWRT_BStr? = nil
         defer { BStrBinding.release(&capabilitySid_) }
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetErrorDetails(this, &description_, &error_, &restrictedDescription_, &capabilitySid_))
-        description = BStrBinding.toSwift(consuming: &description_)
-        error = HResultBinding.toSwift(error_)
-        restrictedDescription = BStrBinding.toSwift(consuming: &restrictedDescription_)
-        capabilitySid = BStrBinding.toSwift(consuming: &capabilitySid_)
+        description = BStrBinding.fromABI(consuming: &description_)
+        error = HResultBinding.fromABI(error_)
+        restrictedDescription = BStrBinding.fromABI(consuming: &restrictedDescription_)
+        capabilitySid = BStrBinding.fromABI(consuming: &capabilitySid_)
     }
 
     public func getReference() throws -> String? {
         var value = BStrBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetReference(this, &value))
-        return BStrBinding.toSwift(consuming: &value)
+        return BStrBinding.fromABI(consuming: &value)
     }
 }
