@@ -73,7 +73,7 @@ public enum WindowsFoundation_IReferenceBinding<TBinding: IReferenceableBinding>
             try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
                 try _interop.get_Value(abiValuePointer)
             }
-            return TBinding.toSwift(consuming: &abiValue)
+            return TBinding.fromABI(consuming: &abiValue)
         }
 
         public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {

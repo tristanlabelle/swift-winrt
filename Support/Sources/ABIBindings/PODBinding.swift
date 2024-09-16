@@ -5,6 +5,6 @@ public protocol PODBinding: ABIBinding {
 }
 
 extension PODBinding {
-    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue { toSwift(value) }
+    public static func fromABI(consuming value: inout ABIValue) -> SwiftValue { fromABI(value) }
     public static func release(_ value: inout ABIValue) {}
 }

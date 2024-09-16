@@ -38,11 +38,11 @@ public enum ICreateErrorInfoBinding: COMTwoWayBinding {
         Release: { IUnknownVirtualTable.Release($0) },
         SetGUID: { this, guid in _implement(this) {
             guard let guid else { throw COMError.invalidArg }
-            try $0.setGUID(GUIDBinding.toSwift(guid.pointee))
+            try $0.setGUID(GUIDBinding.fromABI(guid.pointee))
         } },
-        SetSource: { this, source in _implement(this) { try $0.setSource(BStrBinding.toSwift(source)) } },
-        SetDescription: { this, description in _implement(this) { try $0.setDescription(BStrBinding.toSwift(description)) } },
-        SetHelpFile: { this, helpFile in _implement(this) { try $0.setHelpFile(BStrBinding.toSwift(helpFile)) } },
+        SetSource: { this, source in _implement(this) { try $0.setSource(BStrBinding.fromABI(source)) } },
+        SetDescription: { this, description in _implement(this) { try $0.setDescription(BStrBinding.fromABI(description)) } },
+        SetHelpFile: { this, helpFile in _implement(this) { try $0.setHelpFile(BStrBinding.fromABI(helpFile)) } },
         SetHelpContext: { this, helpContext in _implement(this) { try $0.setHelpContext(helpContext) } })
 }
 

@@ -31,15 +31,15 @@ extension COMBinding {
     // Default ABIBinding implementation
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+    public static func fromABI(_ value: ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
-        return toSwift(ABIReference(addingRef: comPointer))
+        return fromABI(ABIReference(addingRef: comPointer))
     }
 
-    public static func toSwift(consuming value: inout ABIValue) -> SwiftValue {
+    public static func fromABI(consuming value: inout ABIValue) -> SwiftValue {
         guard let comPointer = value else { return nil }
         value = nil
-        return toSwift(ABIReference(transferringRef: comPointer))
+        return fromABI(ABIReference(transferringRef: comPointer))
     }
 
     public static func toABI(_ value: SwiftValue) throws -> ABIValue {
@@ -56,7 +56,7 @@ extension COMBinding {
     // Default COMBinding implementation
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? { nil }
 
-    public static func toSwift(_ reference: consuming ABIReference) -> SwiftObject {
+    public static func fromABI(_ reference: consuming ABIReference) -> SwiftObject {
         if let swiftObject = _unwrap(reference.pointer) { return swiftObject }
         return _wrap(consume reference)
     }

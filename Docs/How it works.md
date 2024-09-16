@@ -91,7 +91,7 @@ extension COMInterop when T == SWRT_IFoo {
         var name: BSTR? = nil
         defer { BStrBinding.release(&name) }
         try COMError.fromABI(pointer.pointee.vtable.pointee.GetName(pointer, &name))
-        return BStrBinding.toSwift(name)
+        return BStrBinding.fromABI(name)
     }
 }
 
@@ -123,7 +123,7 @@ enum IFooBinding: COMBinding { // COMBinding conforms to ABIBinding
     
     public static var interfaceID: COMInterfaceID { SWRT_IFoo.iid }
     
-    public static func toSwift(_ value: UnsafeMutablePointer<SWRT_IFoo>?) -> IFoo? {
+    public static func fromABI(_ value: UnsafeMutablePointer<SWRT_IFoo>?) -> IFoo? {
         guard let value else { return nil }
         return IFooImport(addingRef: value)
     }

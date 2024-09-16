@@ -35,7 +35,7 @@ extension WindowsFoundation_Point: WindowsRuntime.StructBinding, COM.PODBinding 
 
     public static var abiDefaultValue: ABIValue { .init() }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+    public static func fromABI(_ value: ABIValue) -> SwiftValue {
         .init(x: value.X, y: value.Y)
     }
 

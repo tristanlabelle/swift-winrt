@@ -26,7 +26,7 @@ public enum IActivationFactoryBinding: InterfaceBinding {
     private final class Import: WinRTImport<IActivationFactoryBinding>, IActivationFactoryProtocol {
         public func activateInstance() throws -> IInspectable {
             var instancePointer = try _interop.activateInstance()
-            return try NullResult.unwrap(IInspectableBinding.toSwift(consuming: &instancePointer))
+            return try NullResult.unwrap(IInspectableBinding.fromABI(consuming: &instancePointer))
         }
     }
 }

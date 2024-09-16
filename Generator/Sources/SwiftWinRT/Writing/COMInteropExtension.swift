@@ -141,10 +141,10 @@ fileprivate func writeSwiftToABICall(
             let typeProjection = param.typeProjection
             if typeProjection.kind != .identity && param.passBy.isOutput {
                 if typeProjection.kind == .inert {
-                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).toSwift(\(param.abiBindingName))")
+                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).fromABI(\(param.abiBindingName))")
                 }
                 else {
-                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).toSwift(consuming: &\(param.abiBindingName))")
+                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).fromABI(consuming: &\(param.abiBindingName))")
                 }
             }
         }
@@ -186,9 +186,9 @@ fileprivate func writeSwiftToABICall(
         case .identity where !returnCOMReference:
             returnValue = returnParam.name
         case .inert:
-            returnValue = "\(returnTypeBinding.bindingType).toSwift(\(returnParam.name))"
+            returnValue = "\(returnTypeBinding.bindingType).fromABI(\(returnParam.name))"
         default:
-            returnValue = "\(returnTypeBinding.bindingType).toSwift(consuming: &\(returnParam.name))"
+            returnValue = "\(returnTypeBinding.bindingType).fromABI(consuming: &\(returnParam.name))"
     }
 
     writer.writeReturnStatement(value: returnValue)

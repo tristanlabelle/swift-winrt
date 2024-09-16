@@ -51,25 +51,25 @@ extension COMInterop where ABIStruct == COM_ABI.SWRT_IErrorInfo {
     public func getGuid() throws -> GUID {
         var value = GUIDBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetGUID(this, &value))
-        return GUIDBinding.toSwift(value)
+        return GUIDBinding.fromABI(value)
     }
 
     public func getSource() throws ->  String? {
         var value = BStrBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetSource(this, &value))
-        return BStrBinding.toSwift(consuming: &value)
+        return BStrBinding.fromABI(consuming: &value)
     }
 
     public func getDescription() throws ->  String? {
         var value = BStrBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetDescription(this, &value))
-        return BStrBinding.toSwift(consuming: &value)
+        return BStrBinding.fromABI(consuming: &value)
     }
 
     public func getHelpFile() throws ->  String? {
         var value = BStrBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetHelpFile(this, &value))
-        return BStrBinding.toSwift(consuming: &value)
+        return BStrBinding.fromABI(consuming: &value)
     }
 
     public func getHelpContext() throws ->  UInt32 {

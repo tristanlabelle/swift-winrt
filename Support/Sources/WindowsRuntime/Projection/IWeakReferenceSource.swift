@@ -43,6 +43,6 @@ extension COMInterop where ABIStruct == WindowsRuntime_ABI.SWRT_IWeakReferenceSo
     public func getWeakReference() throws -> IWeakReference? {
         var value = IWeakReferenceBinding.abiDefaultValue
         try COMError.fromABI(this.pointee.VirtualTable.pointee.GetWeakReference(this, &value))
-        return IWeakReferenceBinding.toSwift(consuming: &value)
+        return IWeakReferenceBinding.fromABI(consuming: &value)
     }
 }

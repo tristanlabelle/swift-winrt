@@ -28,7 +28,7 @@ extension IUnknownProtocol {
     /// Queries this object for an additional COM interface described by the given binding.
     /// On failure, throws a COMError with an HResult of E_NOINTERFACE.
     public func queryInterface<Binding: COMBinding>(_: Binding.Type) throws -> Binding.SwiftObject {
-        Binding.toSwift(try self._queryInterface(Binding.self))
+        Binding.fromABI(try self._queryInterface(Binding.self))
     }
 }
 

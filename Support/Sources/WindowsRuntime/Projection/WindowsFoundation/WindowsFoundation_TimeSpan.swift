@@ -66,7 +66,7 @@ extension WindowsFoundation_TimeSpan: StructBinding, PODBinding {
 
     public static var abiDefaultValue: ABIValue { .init() }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+    public static func fromABI(_ value: ABIValue) -> SwiftValue {
         .init(duration: value.Duration)
     }
 

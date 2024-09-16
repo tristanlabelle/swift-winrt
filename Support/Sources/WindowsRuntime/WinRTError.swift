@@ -141,14 +141,14 @@ public struct WinRTError: COMErrorProtocol, CustomStringConvertible {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
         defer { IRestrictedErrorInfoBinding.release(&restrictedErrorInfo) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_GetRestrictedErrorInfo(&restrictedErrorInfo))
-        return IRestrictedErrorInfoBinding.toSwift(consuming: &restrictedErrorInfo)
+        return IRestrictedErrorInfoBinding.fromABI(consuming: &restrictedErrorInfo)
     }
 
     public static func getRestrictedErrorInfo(matching expectedHResult: HResult) throws -> IRestrictedErrorInfo? {
         var restrictedErrorInfo: UnsafeMutablePointer<SWRT_IRestrictedErrorInfo>?
         defer { IRestrictedErrorInfoBinding.release(&restrictedErrorInfo) }
         try fromABI(captureErrorInfo: false, WindowsRuntime_ABI.SWRT_RoGetMatchingRestrictedErrorInfo(expectedHResult.value, &restrictedErrorInfo))
-        return IRestrictedErrorInfoBinding.toSwift(consuming: &restrictedErrorInfo)
+        return IRestrictedErrorInfoBinding.fromABI(consuming: &restrictedErrorInfo)
     }
 
     public static func setRestrictedErrorInfo(_ value: IRestrictedErrorInfo?) throws {

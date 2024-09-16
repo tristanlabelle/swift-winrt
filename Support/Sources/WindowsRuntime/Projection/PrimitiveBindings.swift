@@ -139,7 +139,7 @@ public enum Char16Binding: IReferenceableBinding, PODBinding {
     public static var ireferenceID: COM.COMInterfaceID { COMInterfaceID(0xFB393EF3, 0xBBAC, 0x5BD5, 0x9144, 0x84F23576F415) }
     public static var ireferenceArrayID: COMInterfaceID { COMInterfaceID(0xA4095AAB, 0xEB7D, 0x5782, 0x8FAD, 0x1609DEA249AD) }
     public static var abiDefaultValue: ABIType { 0 }
-    public static func toSwift(_ value: ABIType) -> SwiftType { .init(value) }
+    public static func fromABI(_ value: ABIType) -> SwiftType { .init(value) }
     public static func toABI(_ value: SwiftType) -> ABIType { value.codeUnit }
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
         try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createChar16)
@@ -158,7 +158,7 @@ public enum StringBinding: IReferenceableBinding {
     public static var ireferenceArrayID: COMInterfaceID { COMInterfaceID(0x0385688E, 0xE3C7, 0x5C5E, 0xA389, 0x5524EDE349F1) }
     public static var abiDefaultValue: ABIValue { nil }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue { HString.toString(value) }
+    public static func fromABI(_ value: ABIValue) -> SwiftValue { HString.toString(value) }
     public static func toABI(_ value: SwiftValue) throws -> ABIValue { try HString.create(value).detach() }
 
     public static func release(_ value: inout ABIValue) {
@@ -183,7 +183,7 @@ public enum GuidBinding: IReferenceableBinding, PODBinding {
     public static var ireferenceID: COM.COMInterfaceID { COMInterfaceID(0x7D50F649, 0x632C, 0x51F9, 0x849A, 0xEE49428933EA) }
     public static var ireferenceArrayID: COMInterfaceID { COMInterfaceID(0xEECF9838, 0xC1C2, 0x5B4A, 0x976F, 0xCEC261AE1D55) }
     public static var abiDefaultValue: ABIType { .init() }
-    public static func toSwift(_ value: ABIType) -> SwiftType { COM.GUIDBinding.toSwift(value) }
+    public static func fromABI(_ value: ABIType) -> SwiftType { COM.GUIDBinding.fromABI(value) }
     public static func toABI(_ value: SwiftType) -> ABIType { COM.GUIDBinding.toABI(value) }
     public static func createIReference(_ value: SwiftValue) throws -> WindowsFoundation_IReference<SwiftValue> {
         try PropertyValueStatics.createIReference(value, valueBinding: Self.self, factory: PropertyValueStatics.createGuid)

@@ -8,19 +8,19 @@ public enum ArrayBinding<ElementBinding: ABIBinding>: ABIBinding {
 
     public static var abiDefaultValue: ABIValue { .null }
 
-    public static func toSwift(_ value: ABIValue) -> SwiftValue {
+    public static func fromABI(_ value: ABIValue) -> SwiftValue {
         guard value.count > 0 else { return [] }
         return .init(unsafeUninitializedCapacity: Int(value.count)) { buffer, initializedCount in
             for i in 0..<Int(value.count) {
-                buffer.initializeElement(at: i, to: ElementBinding.toSwift(value[i]))
+                buffer.initializeElement(at: i, to: ElementBinding.fromABI(value[i]))
                 initializedCount = i + 1
             }
         }
     }
 
-    public static func toSwift(pointer: UnsafeMutablePointer<ElementBinding.ABIValue>?, count: UInt32) -> SwiftValue {
+    public static func fromABI(pointer: UnsafeMutablePointer<ElementBinding.ABIValue>?, count: UInt32) -> SwiftValue {
         if let pointer {
-            return toSwift(COMArray(pointer: pointer, count: count))
+            return fromABI(COMArray(pointer: pointer, count: count))
         } else {
             assert(count == 0)
             return []

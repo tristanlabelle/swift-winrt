@@ -6,6 +6,6 @@ public protocol ClosedEnumBinding: RawRepresentable, PODBinding
 
 extension ClosedEnumBinding {
     public static var abiDefaultValue: RawValue { RawValue.zero }
-    public static func toSwift(_ value: RawValue) -> Self { Self(rawValue: value)! }
+    public static func fromABI(_ value: RawValue) -> Self { Self(rawValue: value)! }
     public static func toABI(_ value: Self) -> RawValue { value.rawValue }
 }
