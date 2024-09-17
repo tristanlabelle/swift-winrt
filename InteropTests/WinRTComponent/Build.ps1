@@ -20,9 +20,12 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     -p:Platform=$Platform `
     -p:Configuration=$Configuration `
     -p:IntermediateOutputPath=$BinaryDirBase\obj\$Configuration\ `
-    -p:OutputPath=$BinaryDirBase\bin\$Configuration\ `
+    -p:OutDir=$BinaryDirBase\bin\$Configuration\ `
     -verbosity:minimal `
     $PSScriptRoot\WinRTComponent.vcxproj | Write-Host
 if ($LASTEXITCODE -ne 0) { throw "Failed to build WinRT component" }
 
-Write-Output "$BinaryDirBase\bin\$Configuration\$Platform\WinRTComponent"
+if ($MyInvocation.PSCommandPath) {
+    # Return the path to PowerShell
+    Write-Output "$BinaryDirBase\bin\$Configuration\$Platform\WinRTComponent"
+}
