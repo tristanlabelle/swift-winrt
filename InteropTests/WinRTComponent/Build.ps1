@@ -2,7 +2,7 @@
 param(
     [string] $Platform = "",
     [string] $Configuration = "Debug",
-    [string] $BinaryDirBase = $PSScriptRoot
+    [string] $BinaryDirBase = ""
 )
 
 Set-StrictMode -Version 3
@@ -15,17 +15,26 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     default { throw "Unsupported architecture: $($Env:PROCESSOR_ARCHITECTURE)" }
 }
 
+if ($BinaryDirBase) {
+    $IntermediateOutputPath = "$BinaryDirBase\obj\"
+    $OutDir = "$BinaryDirBase\bin\"
+}
+else {
+    $IntermediateOutputPath = "$PSScriptRoot\obj\$Configuration\$Platform\"
+    $OutDir = "$PSScriptRoot\bin\$Configuration\$Platform\"
+}
+
 & msbuild.exe -restore `
     -p:RestorePackagesConfig=true `
     -p:Platform=$Platform `
     -p:Configuration=$Configuration `
-    -p:IntermediateOutputPath=$BinaryDirBase\obj\$Configuration\ `
-    -p:OutDir=$BinaryDirBase\bin\$Configuration\ `
+    -p:IntermediateOutputPath=$IntermediateOutputPath `
+    -p:OutDir=$OutDir `
     -verbosity:minimal `
     $PSScriptRoot\WinRTComponent.vcxproj | Write-Host
 if ($LASTEXITCODE -ne 0) { throw "Failed to build WinRT component" }
 
 if ($MyInvocation.PSCommandPath) {
     # Return the path to PowerShell
-    Write-Output "$BinaryDirBase\bin\$Configuration\$Platform\WinRTComponent"
+    Write-Output "$OutDir\WinRTComponent"
 }

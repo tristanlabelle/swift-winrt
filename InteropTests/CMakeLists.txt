@@ -16,7 +16,7 @@ execute_process(
     COMMAND powershell.exe -File "${SCRIPT_PATH_ARG}"
         -BinaryDirBase "${BINARY_DIR_BASE_ARG}"
     COMMAND_ERROR_IS_FATAL ANY)
-set(WINRTCOMPONENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent/bin/Debug/WinRTComponent")
+set(WINRTCOMPONENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent/bin/WinRTComponent")
 
 # Generate Swift projection
 message(STATUS "Generating Swift projection for WinRTComponent...")
