@@ -49,7 +49,7 @@ jobs:
     - name: Build Test WinRT Component
       working-directory: InteropTests
       shell: pwsh
-      run: '& .\BuildWinRTComponent.ps1'
+      run: '& .\BuildAndGenerate.ps1'
 
     - name: Build InteropTests
       working-directory: InteropTests
