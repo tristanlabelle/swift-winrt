@@ -22,4 +22,7 @@ $WindowsSDKVersion = $env:WindowsSDKVersion -replace "\\",""
     --out-manifest "$OutputDir\WinRTComponent.manifest" | Write-Host
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }
 
-Write-Output $OutputDir
+if ($MyInvocation.PSCommandPath) {
+    # Return the path to PowerShell
+    Write-Output $OutputDir
+}

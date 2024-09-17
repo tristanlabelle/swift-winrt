@@ -34,6 +34,8 @@ execute_process(
 
 # Build the Swift projection
 add_subdirectory(../Support ${CMAKE_CURRENT_BINARY_DIR}/Support)
-add_subdirectory(
-    ${CMAKE_CURRENT_BINARY_DIR}/Generated/Sources
-    ${CMAKE_CURRENT_BINARY_DIR}/Generated/Build)
+
+# TODO(https://github.com/tristanlabelle/swift-winrt/issues/302): Fix linking issues
+# add_subdirectory(
+#     ${CMAKE_CURRENT_BINARY_DIR}/Generated/Sources
+#     ${CMAKE_CURRENT_BINARY_DIR}/Generated/Build)
