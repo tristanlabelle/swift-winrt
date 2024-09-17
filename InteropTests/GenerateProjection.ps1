@@ -19,7 +19,7 @@ $WindowsSDKVersion = $env:WindowsSDKVersion -replace "\\",""
     --cmakelists `
     --support "..\.." `
     --out $OutputDir `
-    --out-manifest "$OutputDir\WinRTComponent.manifest"
+    --out-manifest "$OutputDir\WinRTComponent.manifest" | Write-Host
 if ($LASTEXITCODE -ne 0) { throw "Failed to generate Swift projection for WinRT component" }
 
 Write-Output $OutputDir

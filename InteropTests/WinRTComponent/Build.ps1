@@ -1,7 +1,8 @@
 [CmdletBinding(PositionalBinding = $false)]
 param(
     [string] $Platform = "",
-    [string] $Configuration = "Debug"
+    [string] $Configuration = "Debug",
+    [string] $BinaryDirBase = $PSScriptRoot
 )
 
 Set-StrictMode -Version 3
@@ -18,10 +19,10 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     -p:RestorePackagesConfig=true `
     -p:Platform=$Platform `
     -p:Configuration=$Configuration `
-    -p:IntermediateOutputPath=obj\$Configuration\ `
-    -p:OutputPath=bin\$Configuration\ `
+    -p:IntermediateOutputPath=$BinaryDirBase\obj\$Configuration\ `
+    -p:OutputPath=$BinaryDirBase\bin\$Configuration\ `
     -verbosity:minimal `
-    $PSScriptRoot\WinRTComponent.vcxproj
+    $PSScriptRoot\WinRTComponent.vcxproj | Write-Host
 if ($LASTEXITCODE -ne 0) { throw "Failed to build WinRT component" }
 
-Write-Output "$PSScriptRoot\bin\$MSBuildConfiguration\$Platform\WinRTComponent"
+Write-Output "$BinaryDirBase\bin\$Configuration\$Platform\WinRTComponent"
