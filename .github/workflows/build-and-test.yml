@@ -11,7 +11,7 @@ on:
 
 jobs:
   support-spm:
-    name: Support Module (SPM)
+    name: SPM - Support Module
     runs-on: windows-2022
     timeout-minutes: 10
 
@@ -28,7 +28,7 @@ jobs:
       run: swift test --verbose --skip-build
 
   generator-and-interoptests-spm:
-    name: Generator and InteropTests (SPM)
+    name: SPM - Generator and InteropTests
     runs-on: windows-2022
     timeout-minutes: 15
 
@@ -61,8 +61,8 @@ jobs:
       shell: pwsh
       run: swift test --verbose --skip-build
 
-  support-cmake:
-    name: Support Module (CMake)
+  cmake:
+    name: CMake - All (No Tests)
     runs-on: windows-2022
     timeout-minutes: 15
 
@@ -75,34 +75,5 @@ jobs:
       run: cmake --preset debug
 
     - name: CMake Build
-      shell: pwsh
-      run: cmake --build --preset debug
-
-  generator-cmake:
-    name: Generator (CMake)
-    runs-on: windows-2022
-    timeout-minutes: 15
-
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/setup-swift
-
-    - name: Configure Generator
-      working-directory: Generator
-      shell: pwsh
-      run: cmake --preset debug
-
-    - name: Build Generator
-      working-directory: Generator
-      shell: pwsh
-      run: cmake --build --preset debug
-
-    - name: Generate InteropTests Projection
-      working-directory: InteropTests
-      shell: pwsh
-      run: cmake --preset debug -D SWIFT_WINRT_EXE=${Env:GITHUB_WORKSPACE}\Generator\build\debug\Sources\SwiftWinRT\SwiftWinRT.exe
-
-    - name: Build InteropTests Projection
-      working-directory: InteropTests
       shell: pwsh
       run: cmake --build --preset debug

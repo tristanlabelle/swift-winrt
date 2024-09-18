@@ -24,7 +24,7 @@
 			}
 		},
 		{
-			"label": "Build Support Module (CMake)",
+			"label": "Build (CMake)",
 			"type": "cmake",
 			"command": "build",
 			"preset": "${command:cmake.activeBuildPresetName}",
