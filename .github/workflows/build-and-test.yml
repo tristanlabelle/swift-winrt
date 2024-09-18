@@ -11,7 +11,7 @@ on:
 
 jobs:
   support-spm:
-    name: Support Module (SPM)
+    name: SPM - Support Module
     runs-on: windows-2022
     timeout-minutes: 10
 
@@ -28,7 +28,7 @@ jobs:
       run: swift test --verbose --skip-build
 
   generator-and-interoptests-spm:
-    name: Generator and InteropTests (SPM)
+    name: SPM - Generator and InteropTests
     runs-on: windows-2022
     timeout-minutes: 15
 
@@ -62,7 +62,7 @@ jobs:
       run: swift test --verbose --skip-build
 
   cmake:
-    name: Build All (CMake)
+    name: CMake - All (No Tests)
     runs-on: windows-2022
     timeout-minutes: 15
 
