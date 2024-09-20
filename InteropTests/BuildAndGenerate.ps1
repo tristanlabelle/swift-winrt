@@ -22,6 +22,7 @@ Push-Location "$PSScriptRoot\WinRTComponent"
 & cmake.exe --preset $CMakePreset
 & cmake.exe --build --preset $CMakePreset
 Pop-Location
+$WinRTComponentBinDir = "$PSScriptRoot\WinRTComponent\build\$CMakePreset"
 
 Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
 & "$PSScriptRoot\GenerateProjection.ps1" -SwiftWinRT $SwiftWinRT -WinMD "$WinRTComponentBinDir\WinRTComponent.winmd"
