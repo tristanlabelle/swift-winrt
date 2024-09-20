@@ -17,8 +17,12 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to build SwiftWinRT.exe" }
 $SwiftWinRT = "$GeneratorProjectDir\.build\$SwiftConfiguration\SwiftWinRT.exe"
 
 Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll & winmd..."
-$MSBuildConfiguration = if ($Release) { "Release" } else { "Debug" }
-$WinRTComponentBinDir = & "$PSScriptRoot\WinRTComponent\Build.ps1" -Configuration $MSBuildConfiguration
+$CMakePreset = if ($Release) { "release" } else { "debug" }
+Push-Location "$PSScriptRoot\WinRTComponent"
+& cmake.exe --preset $CMakePreset
+& cmake.exe --build --preset $CMakePreset
+Pop-Location
+$WinRTComponentBinDir = "$PSScriptRoot\WinRTComponent\build\$CMakePreset"
 
 Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
 & "$PSScriptRoot\GenerateProjection.ps1" -SwiftWinRT $SwiftWinRT -WinMD "$WinRTComponentBinDir\WinRTComponent.winmd"

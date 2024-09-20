@@ -1,0 +1,28 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 21,
+      "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "debug",
+        "displayName": "Debug",
+        "generator": "Ninja",
+        "binaryDir": "${sourceDir}/build/debug",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_CXX_COMPILER": "cl",
+          "CMAKE_CXX_FLAGS": "/std:c++latest /W4 /EHsc"
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "debug",
+        "displayName": "Debug",
+        "configurePreset": "debug"
+      }
+    ]
+  }

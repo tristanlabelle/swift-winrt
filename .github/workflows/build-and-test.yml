@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  support-spm:
+  spm-support:
     name: SPM - Support Module
     runs-on: windows-2022
     timeout-minutes: 10
@@ -27,7 +27,7 @@ jobs:
       shell: pwsh
       run: swift test --verbose --skip-build
 
-  generator-and-interoptests-spm:
+  spm-generator-and-interoptests:
     name: SPM - Generator and InteropTests
     runs-on: windows-2022
     timeout-minutes: 15
@@ -46,7 +46,7 @@ jobs:
       shell: pwsh
       run: swift test --verbose --skip-build
 
-    - name: Build Test WinRT Component
+    - name: Build WinRTComponent
       working-directory: InteropTests
       shell: pwsh
       run: '& .\BuildAndGenerate.ps1'

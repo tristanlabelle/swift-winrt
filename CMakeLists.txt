@@ -4,17 +4,23 @@ project(SwiftWinRT LANGUAGES C Swift)
 
 add_subdirectory(Support)
 
-include(ExternalProject)
+# InteropTests depends on SwiftWinRT.exe, so build it now 
+message(STATUS "Configuring Generator subproject...")
+execute_process(
+    COMMAND ${CMAKE_COMMAND}
+        -S "${CMAKE_CURRENT_SOURCE_DIR}/Generator"
+        -B "${CMAKE_CURRENT_BINARY_DIR}/Generator"
+        -G "${CMAKE_GENERATOR}"
+        -D "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+        -D "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+        -D "CMAKE_Swift_COMPILER=${CMAKE_Swift_COMPILER}"
+    COMMAND_ERROR_IS_FATAL ANY)
 
-ExternalProject_Add(Generator
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Generator
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Generator
-    INSTALL_COMMAND "")
-set(SWIFT_WINRT_EXE ${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe)
+message(STATUS "Building Generator subproject...")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/Generator"
+    COMMAND_ERROR_IS_FATAL ANY)
+set(SWIFT_WINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe")
 
-ExternalProject_Add(InteropTests
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/InteropTests
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/InteropTests
-    CMAKE_ARGS -DSWIFT_WINRT_EXE=${SWIFT_WINRT_EXE}
-    INSTALL_COMMAND ""
-    DEPENDS Generator)
+# Now build InteropTests, which depends on SWIFT_WINRT_EXE
+add_subdirectory(InteropTests)

@@ -36,7 +36,7 @@ let package = Package(
                 .product(name: "DotNetMetadata", package: "swift-dotnetmetadata")
             ],
             path: "Sources/SwiftWinRT",
-            exclude: [ "CMakeLists.txt" ],
+            exclude: [ "CMakeLists.txt", "Extensions/CMakeLists.txt" ],
             resources: [
                 // Avoid the .swift extension or SPM will pick those up a source files.
                 .embedInCode("Extensions/WindowsFoundation_IAsyncAction_swift"),
