@@ -4,17 +4,15 @@ project(SwiftWinRT LANGUAGES C Swift)
 
 add_subdirectory(Support)
 
-include(ExternalProject)
-
-ExternalProject_Add(Generator
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Generator
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Generator
-    INSTALL_COMMAND "")
+# InteropTests depends on SwiftWinRT.exe, so build it now 
+execute_process(
+    COMMAND ${CMAKE_COMMAND}
+        -S "${CMAKE_CURRENT_SOURCE_DIR}/Generator"
+        -B "${CMAKE_CURRENT_BINARY_DIR}/Generator"
+    COMMAND ${CMAKE_COMMAND}
+        --build "${CMAKE_CURRENT_BINARY_DIR}/Generator"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Generator"
+    COMMAND_ERROR_IS_FATAL ANY)
 set(SWIFT_WINRT_EXE ${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe)
 
-ExternalProject_Add(InteropTests
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/InteropTests
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/InteropTests
-    CMAKE_ARGS -DSWIFT_WINRT_EXE=${SWIFT_WINRT_EXE}
-    INSTALL_COMMAND ""
-    DEPENDS Generator)
+add_subdirectory(InteropTests) # Depends on SWIFT_WINRT_EXE
