@@ -23,6 +23,9 @@ function(generate_projection)
         message(FATAL_ERROR "SPM_SUPPORT_MODULE_DIR argument is required")
     endif()
 
+    # SPM won't handle an absolute path with a ".." component.
+    cmake_path(ABSOLUTE_PATH ARG_SPM_SUPPORT_MODULE_DIR NORMALIZE)
+
     cmake_path(CONVERT "${ARG_PROJECTION_JSON}" TO_NATIVE_PATH_LIST PROJECTION_JSON_NATIVE)
     string(REPLACE "\\" "" WINDOWS_SDK_VERSION "$ENV{WindowsSDKVersion}") # Remove trailing slash
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
