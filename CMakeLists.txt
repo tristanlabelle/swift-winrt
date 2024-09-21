@@ -20,7 +20,7 @@ message(STATUS "Building Generator subproject...")
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/Generator"
     COMMAND_ERROR_IS_FATAL ANY)
-set(SWIFT_WINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe")
+set(SWIFTWINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe")
 
-# Now build InteropTests, which depends on SWIFT_WINRT_EXE
+# Now build InteropTests, which depends on SWIFTWINRT_EXE
 add_subdirectory(InteropTests)
