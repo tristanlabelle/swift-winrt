@@ -11,11 +11,11 @@ Swift/WinRT includes:
 
 For examples of using projections, refer to [interop tests](InteropTests/Tests).
 
-The codebase uses features up to Swift 5.9, but requires Swift 5.10 because the 5.9 compiler crashes with more advanced uses of non-copyable types.
-
 This project was inspired by its C++ namesake at [thebrowsercompany/swift-winrt](https://github.com/thebrowsercompany/swift-winrt).
 
 ## Using in your project
+
+Note: Swift/WinRT requires Swift 5.10 or above due to uses of non-copyable types which crash the Swift 5.9 compiler.
 
 ### With CMake
 
