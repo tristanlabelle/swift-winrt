@@ -6,12 +6,12 @@ import struct Foundation.URL
 
 func writeSwiftPackageFile(
         _ projection: Projection,
-        supportPackageLocation: String,
+        supportPackageReference: String,
         excludeCMakeLists: Bool,
         dynamicLibraries: Bool,
         toPath path: String) {
     var package = SwiftPackage(name: "Projection")
-    package.dependencies.append(getSupportPackageDependency(location: supportPackageLocation))
+    package.dependencies.append(getSupportPackageDependency(reference: supportPackageReference))
 
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
@@ -77,19 +77,26 @@ func writeSwiftPackageFile(
     package.write(version: "5.10", to: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 }
 
-fileprivate func getSupportPackageDependency(location: String) -> SwiftPackage.Dependency {
-    if location.starts(with: "https://") {
-        if let separatorIndex = location.lastIndex(of: ":"),
-                let lastSlashIndex = location.lastIndex(of: "/"),
-                separatorIndex > lastSlashIndex {
-            let url = String(location[..<separatorIndex])
-            let branch = String(location[location.index(after: separatorIndex)...])
-            return .package(url: url, branch: branch)
+fileprivate func getSupportPackageDependency(reference: String) -> SwiftPackage.Dependency {
+    if reference.starts(with: "https://") {
+        guard let fragmentSeparatorIndex = reference.lastIndex(of: "#") else {
+            fatalError("Package URL reference should include # fragment: \(reference)")
         }
-        else {
-            fatalError("Unexpected support package location format: \(location)")
+
+        let url = reference[..<fragmentSeparatorIndex]
+        let fragment = reference[reference.index(after: fragmentSeparatorIndex)...]
+        guard let equalIndex = fragment.firstIndex(of: "=") else {
+            fatalError("Package URL fragment should include an assignment: \(reference)")
         }
+
+        let lhs = fragment[..<equalIndex]
+        let rhs = fragment[fragment.index(after: equalIndex)...]
+        guard lhs == "branch" else {
+            fatalError("Package URL fragment should include a branch assignment: \(reference)")
+        }
+
+        return .package(url: String(url), branch: String(rhs))
     } else {
-        return .package(name: "Support", path: location)
+        return .package(name: "Support", path: reference)
     }
 }

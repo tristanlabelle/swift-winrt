@@ -40,7 +40,7 @@ Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT componen
     -D "WINRTCOMPONENT_WINMD=$WinRTComponentBinDir\WinRTComponent.winmd" `
     -D "PROJECTION_JSON=$PSScriptRoot\projection.json" `
     -D "PROJECTION_DIR=$PSScriptRoot\Generated" `
-    -D "SPM_SUPPORT_MODULE_DIR=$PSScriptRoot\.." `
+    -D "SPM_SUPPORT_PACKAGE_DIR=$PSScriptRoot\.." `
     -P "$PSScriptRoot\GenerateProjection.cmake"
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
