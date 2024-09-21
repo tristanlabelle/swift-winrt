@@ -15,7 +15,7 @@ This project was inspired by its C++ namesake at [thebrowsercompany/swift-winrt]
 
 ## Using in your project
 
-Note: Swift/WinRT requires Swift 5.10 or above due to uses of non-copyable which crash the Swift 5.9 compiler.
+Note: Swift/WinRT requires Swift 5.10 or above due to uses of non-copyable types which crash the Swift 5.9 compiler.
 
 ### With CMake
 
