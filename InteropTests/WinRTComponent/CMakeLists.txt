@@ -3,10 +3,12 @@ cmake_minimum_required(VERSION 3.21.0)
 project(WinRTComponent LANGUAGES CXX)
 
 # Generate the WinRTComponent.winmd file if not previously done
-if(NOT DEFINED WINRTCOMPONENT_WINMD)
-    set(WINRTCOMPONENT_IDL "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.idl")
+if("${WINRTCOMPONENT_WINMD}" STREQUAL "")
     set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd")
     include(GenerateWinMD.cmake)
+    generate_winrtcomponent_winmd(
+        IDL "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.idl"
+        WINMD "${WINRTCOMPONENT_WINMD}")
 endif()
 
 # Generate the C++/WinRT boilerplate
@@ -34,5 +36,3 @@ target_include_directories(WinRTComponent PRIVATE
     "${CMAKE_CURRENT_SOURCES_DIR}"
     "${CPPWINRT_GENERATED_DIR}")
 target_precompile_headers(WinRTComponent PRIVATE pch.h)
-
-set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd" PARENT_SCOPE)
