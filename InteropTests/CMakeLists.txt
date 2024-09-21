@@ -10,23 +10,21 @@ endif()
 cmake_path(ABSOLUTE_PATH SWIFTWINRT_EXE NORMALIZE OUTPUT_VARIABLE SWIFTWINRT_EXE)
 
 # Generating projection sources will depend on WinRTComponent.winmd, so build it now
-set(WINRTCOMPONENT_IDL "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent/WinRTComponent.idl")
-set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd")
 include(WinRTComponent/GenerateWinMD.cmake)
+set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd")
+generate_winrtcomponent_winmd(
+    IDL "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent/WinRTComponent.idl"
+    WINMD "${WINRTCOMPONENT_WINMD}")
 
 # Generate Swift projection
 message(STATUS "Generating Swift projection for WinRTComponent...")
-cmake_path(CONVERT "${CMAKE_CURRENT_SOURCE_DIR}/GenerateProjection.ps1" TO_NATIVE_PATH_LIST SCRIPT_PATH_NATIVE)
-cmake_path(CONVERT "${SWIFTWINRT_EXE}" TO_NATIVE_PATH_LIST SWIFTWINRT_EXE_NATIVE)
-cmake_path(CONVERT "${WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
-cmake_path(CONVERT "${CMAKE_CURRENT_BINARY_DIR}/Generated/Sources" TO_NATIVE_PATH_LIST OUTPUT_DIR_NATIVE)
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${SCRIPT_PATH_ARG}")
-execute_process(
-    COMMAND powershell.exe -File "${SCRIPT_PATH_NATIVE}"
-        -SwiftWinRT "${SWIFTWINRT_EXE_NATIVE}"
-        -WinMD "${WINRTCOMPONENT_WINMD_NATIVE}"
-        -OutputDir "${OUTPUT_DIR_NATIVE}"
-    COMMAND_ERROR_IS_FATAL ANY)
+include(GenerateProjection.cmake)
+generate_projection(
+    SWIFTWINRT_EXE "${SWIFTWINRT_EXE}"
+    WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
+    PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/projection.json"
+    PROJECTION_DIR "${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources"
+    SPM_SUPPORT_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # Define WinRTComponent build (requires the cl.exe compiler)
 include(ExternalProject)
@@ -49,5 +47,5 @@ endif()
 # Build the Swift projection
 # TODO(https://github.com/tristanlabelle/swift-winrt/issues/302): Fix linking issues
 # add_subdirectory(
-#     ${CMAKE_CURRENT_BINARY_DIR}/Generated/Sources
-#     ${CMAKE_CURRENT_BINARY_DIR}/Generated/Build)
+#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources
+#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Build)
