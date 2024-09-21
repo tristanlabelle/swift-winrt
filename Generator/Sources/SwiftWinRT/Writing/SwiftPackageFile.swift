@@ -18,13 +18,13 @@ func writeSwiftPackageFile(
 
         // ABI module
         var abiModuleTarget: SwiftPackage.Target = .target(name: module.abiModuleName, path: "\(module.name)/ABI")
-        abiModuleTarget.dependencies.append(.product(name: "WindowsRuntime_ABI", package: "swift-winrt"))
+        abiModuleTarget.dependencies.append(.product(name: "WindowsRuntime_ABI", package: "Support"))
         package.targets.append(abiModuleTarget)
 
         // Swift module
         var projectionModuleTarget: SwiftPackage.Target = .target(name: module.name)
         projectionModuleTarget.path = "\(module.name)/Projection"
-        projectionModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "swift-winrt"))
+        projectionModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "Support"))
 
         for referencedModule in module.references {
             guard !referencedModule.isEmpty else { continue }
@@ -90,6 +90,6 @@ fileprivate func getSupportPackageDependency(location: String) -> SwiftPackage.D
             fatalError("Unexpected support package location format: \(location)")
         }
     } else {
-        return .package(path: location)
+        return .package(name: "Support", path: location)
     }
 }

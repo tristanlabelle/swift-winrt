@@ -1,7 +1,7 @@
 # Invokes SwiftWinRT to generate a Swift projection for a WinRT component
 # This file can be called as a CMake script.
 function(generate_projection)
-    cmake_parse_arguments("ARG" "" "SWIFTWINRT_EXE;WINRTCOMPONENT_WINMD;PROJECTION_JSON;PROJECTION_DIR;SUPPORT_MODULE_DIR" "" ${ARGN})
+    cmake_parse_arguments("ARG" "" "SWIFTWINRT_EXE;WINRTCOMPONENT_WINMD;PROJECTION_JSON;PROJECTION_DIR;SPM_SUPPORT_MODULE_DIR" "" ${ARGN})
 
     if ("${ARG_SWIFTWINRT_EXE}" STREQUAL "")
         message(FATAL_ERROR "SWIFTWINRT_EXE argument is required")
@@ -19,14 +19,14 @@ function(generate_projection)
         message(FATAL_ERROR "PROJECTION_DIR argument is required")
     endif()
 
-    if("${ARG_SUPPORT_MODULE_DIR}" STREQUAL "")
-        message(FATAL_ERROR "SUPPORT_MODULE_DIR argument is required")
+    if("${ARG_SPM_SUPPORT_MODULE_DIR}" STREQUAL "")
+        message(FATAL_ERROR "SPM_SUPPORT_MODULE_DIR argument is required")
     endif()
 
     cmake_path(CONVERT "${ARG_PROJECTION_JSON}" TO_NATIVE_PATH_LIST PROJECTION_JSON_NATIVE)
     string(REPLACE "\\" "" WINDOWS_SDK_VERSION "$ENV{WindowsSDKVersion}") # Remove trailing slash
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
-    cmake_path(CONVERT "${ARG_SUPPORT_MODULE_DIR}" TO_NATIVE_PATH_LIST SUPPORT_MODULE_DIR_NATIVE)
+    cmake_path(CONVERT "${ARG_SPM_SUPPORT_MODULE_DIR}" TO_NATIVE_PATH_LIST SPM_SUPPORT_MODULE_DIR_NATIVE)
     cmake_path(CONVERT "${ARG_PROJECTION_DIR}" TO_NATIVE_PATH_LIST PROJECTION_DIR_NATIVE)
     execute_process(
         COMMAND "${ARG_SWIFTWINRT_EXE}"
@@ -34,7 +34,7 @@ function(generate_projection)
             --winsdk "${WINDOWS_SDK_VERSION}"
             --reference "${WINRTCOMPONENT_WINMD_NATIVE}"
             --spm
-            --support "${SUPPORT_MODULE_DIR_NATIVE}"
+            --support "${SPM_SUPPORT_MODULE_DIR_NATIVE}"
             --cmakelists
             --out "${PROJECTION_DIR_NATIVE}"
             --out-manifest "${PROJECTION_DIR_NATIVE}\\WinRTComponent.manifest"
@@ -48,5 +48,5 @@ if(CMAKE_SCRIPT_MODE_FILE AND NOT CMAKE_PARENT_LIST_FILE)
         WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
         PROJECTION_JSON "${PROJECTION_JSON}"
         PROJECTION_DIR "${PROJECTION_DIR}"
-        SUPPORT_MODULE_DIR "${SUPPORT_MODULE_DIR}")
+        SPM_SUPPORT_MODULE_DIR "${SPM_SUPPORT_MODULE_DIR}")
 endif()
