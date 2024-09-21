@@ -38,7 +38,7 @@ do {
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
             projection,
-            supportPackageLocation: commandLineArguments.supportPackageLocation,
+            supportPackageReference: commandLineArguments.spmSupportPackageReference,
             excludeCMakeLists: commandLineArguments.generateCMakeLists,
             dynamicLibraries: commandLineArguments.dynamicLibraries,
             toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")

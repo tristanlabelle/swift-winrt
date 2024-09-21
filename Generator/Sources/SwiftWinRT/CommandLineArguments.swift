@@ -28,8 +28,8 @@ struct CommandLineArguments: ParsableCommand {
     @Flag(name: .customLong("spm"), help: "Generate a package.swift file for building with SPM.")
     var generatePackageDotSwift: Bool = false
 
-    @Option(name: .customLong("support"), help: .init("The directory path or url:branch or url@revision of the support package to use.", valueName: "dir-or-url"))
-    var supportPackageLocation: String = "https://github.com/tristanlabelle/swift-winrt.git:main"
+    @Option(name: .customLong("spm-support-package"), help: .init("The directory path or '<url>#branch=<branch>' of the support package to reference.", valueName: "dir-or-url"))
+    var spmSupportPackageReference: String = "https://github.com/tristanlabelle/swift-winrt.git#branch=main"
 
     @Flag(name: .customLong("cmakelists"), help: "Generate a CMakeLists.txt files for building with CMake.")
     var generateCMakeLists: Bool = false

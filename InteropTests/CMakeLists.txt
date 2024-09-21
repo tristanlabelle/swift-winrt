@@ -24,7 +24,7 @@ generate_projection(
     WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
     PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/projection.json"
     PROJECTION_DIR "${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources"
-    SPM_SUPPORT_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+    SPM_SUPPORT_PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # Define WinRTComponent build (requires the cl.exe compiler)
 include(ExternalProject)
