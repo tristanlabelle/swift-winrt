@@ -25,13 +25,16 @@ if (-not $SwiftWinRT) {
     if ($LASTEXITCODE -ne 0) { throw "Failed to build SwiftWinRT.exe" }
     $SwiftWinRT = "$GeneratorProjectDir\.build\$SwiftConfiguration\SwiftWinRT.exe"
 }
+else {
+    $SwiftWinRT = [IO.Path]::GetFullPath($SwiftWinRT)
+}
 
 Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll & winmd..."
 $CMakePreset = "debug" # Tests are always built in debug mode
 Push-Location "$PSScriptRoot\WinRTComponent"
 & cmake.exe --preset $CMakePreset -D "SWIFTWINRT_EXE=$SwiftWinRT"
 & cmake.exe --build --preset $CMakePreset
-$WinRTComponentBinDir = "$PSScriptRoot\build\$CMakePreset\Dll"
+$WinRTComponentBinDir = "$(Get-Location)\build\$CMakePreset\Dll"
 Pop-Location
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
