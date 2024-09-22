@@ -31,7 +31,7 @@ generate_projection(
 
 # Define the dll build (requires cl.exe)
 include(ExternalProject)
-ExternalProject_Add(WinRTComponentDll
+ExternalProject_Add(WinRTComponent
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dll"
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/Dll"
     CMAKE_ARGS
