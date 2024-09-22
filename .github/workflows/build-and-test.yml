@@ -50,7 +50,7 @@ jobs:
       working-directory: Generator/InteropTests
       shell: pwsh
       run: |
-        & .\Build-WinRTComponentProjection.ps1 -SwiftWinRT "$Env:GITHUB_WORKSPACE\Generator\.build\debug\SwiftWinRT.exe"
+        & .\SPMPrebuild.ps1 -SwiftWinRT "$Env:GITHUB_WORKSPACE\Generator\.build\debug\SwiftWinRT.exe"
 
     - name: Build InteropTests
       working-directory: Generator/InteropTests

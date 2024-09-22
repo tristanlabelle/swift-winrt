@@ -1,7 +1,7 @@
 # Invokes SwiftWinRT to generate a Swift projection for a WinRT component
 # This file can be called as a CMake script.
 function(generate_projection)
-    cmake_parse_arguments("ARG" "" "SWIFTWINRT_EXE;WINRTCOMPONENT_WINMD;PROJECTION_JSON;PROJECTION_DIR;SPM_SUPPORT_PACKAGE_DIR" "" ${ARGN})
+    cmake_parse_arguments("ARG" "" "SWIFTWINRT_EXE;WINRTCOMPONENT_WINMD;PROJECTION_JSON;PROJECTION_DIR" "" ${ARGN})
 
     if ("${ARG_SWIFTWINRT_EXE}" STREQUAL "")
         message(FATAL_ERROR "SWIFTWINRT_EXE argument is required")
@@ -19,17 +19,17 @@ function(generate_projection)
         message(FATAL_ERROR "PROJECTION_DIR argument is required")
     endif()
 
-    if("${ARG_SPM_SUPPORT_PACKAGE_DIR}" STREQUAL "")
-        message(FATAL_ERROR "SPM_SUPPORT_PACKAGE_DIR argument is required")
-    endif()
-
-    # SPM won't handle an absolute path with a ".." component.
-    cmake_path(ABSOLUTE_PATH ARG_SPM_SUPPORT_PACKAGE_DIR NORMALIZE)
+    # Determine the support package directory
+    execute_process(
+        COMMAND git.exe -C "${CMAKE_CURRENT_SOURCE_DIR}" rev-parse --path-format=absolute --show-toplevel
+        OUTPUT_VARIABLE REPO_ROOT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND_ERROR_IS_FATAL ANY)
 
     cmake_path(CONVERT "${ARG_PROJECTION_JSON}" TO_NATIVE_PATH_LIST PROJECTION_JSON_NATIVE)
     string(REPLACE "\\" "" WINDOWS_SDK_VERSION "$ENV{WindowsSDKVersion}") # Remove trailing slash
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
-    cmake_path(CONVERT "${ARG_SPM_SUPPORT_PACKAGE_DIR}" TO_NATIVE_PATH_LIST SPM_SUPPORT_PACKAGE_DIR_NATIVE)
+    cmake_path(CONVERT "${REPO_ROOT}" TO_NATIVE_PATH_LIST SPM_SUPPORT_PACKAGE_DIR_NATIVE)
     cmake_path(CONVERT "${ARG_PROJECTION_DIR}" TO_NATIVE_PATH_LIST PROJECTION_DIR_NATIVE)
     execute_process(
         COMMAND "${ARG_SWIFTWINRT_EXE}"
@@ -50,6 +50,5 @@ if(CMAKE_SCRIPT_MODE_FILE AND NOT CMAKE_PARENT_LIST_FILE)
         SWIFTWINRT_EXE "${SWIFTWINRT_EXE}"
         WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
         PROJECTION_JSON "${PROJECTION_JSON}"
-        PROJECTION_DIR "${PROJECTION_DIR}"
-        SPM_SUPPORT_PACKAGE_DIR "${SPM_SUPPORT_PACKAGE_DIR}")
+        PROJECTION_DIR "${PROJECTION_DIR}")
 endif()

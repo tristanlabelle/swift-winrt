@@ -1,5 +1,4 @@
 # This directory can be built in two modes: standalone or as a subdirectory.
-message(STATUS "CMAKE_PROJECT_NAME: ${CMAKE_PROJECT_NAME}")
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     # Standalone mode. Only build the code generator.
     # We can't build InteropTests in this mode because it depends on SwiftWinRT.exe

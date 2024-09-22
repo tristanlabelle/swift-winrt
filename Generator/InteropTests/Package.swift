@@ -5,15 +5,15 @@ let package = Package(
     name: "InteropTests",
     dependencies: [
         .package(name: "Support", path: "../.."),
-        .package(path: "Generated"),
+        .package(name: "Projection", path: "WinRTComponent/Projection"),
     ],
     targets: [
         .testTarget(
             name: "Tests",
             dependencies: [
                 .product(name: "WindowsRuntime", package: "Support"),
-                .product(name: "UWP", package: "Generated"),
-                .product(name: "WinRTComponent", package: "Generated"),
+                .product(name: "UWP", package: "Projection"),
+                .product(name: "WinRTComponent", package: "Projection"),
             ],
             path: "Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
