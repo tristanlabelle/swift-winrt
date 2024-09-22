@@ -23,11 +23,11 @@ execute_process(
 
 # Build WinRTComponent.dll
 file(GLOB SOURCES "*.cpp")
-add_library(WinRTComponentDll SHARED
+add_library(WinRTComponent SHARED
     ${SOURCES}
     "${CPPWINRT_GENERATED_DIR}/module.g.cpp" # Other .g.cpp files are #included by our .cpp files
     WinRTComponent.def)
-target_include_directories(WinRTComponentDll PRIVATE
+target_include_directories(WinRTComponent PRIVATE
     "${CMAKE_CURRENT_SOURCES_DIR}"
     "${CPPWINRT_GENERATED_DIR}")
-target_precompile_headers(WinRTComponentDll PRIVATE pch.h)
+target_precompile_headers(WinRTComponent PRIVATE pch.h)
