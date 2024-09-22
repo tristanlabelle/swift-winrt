@@ -38,4 +38,4 @@ Generator> swift build --build-tests
 Generator> swift test --skip-build
 ```
 
-The `/InteropTests` subdirectory requires building `WinRTComponent.winmd` and `WinRTComponent.dll`, which SPM cannot do. A helper script, `Build-WinRTComponentProjection.ps1`, will do that using CMake, after which the package can be built and tested normally.
+The `/Generator/InteropTests` subdirectory requires building `WinRTComponent.winmd` and `WinRTComponent.dll`, which SPM cannot do. A helper script, `SPMPrebuild.ps1`, will do that using CMake, after which the package can be built and tested normally.

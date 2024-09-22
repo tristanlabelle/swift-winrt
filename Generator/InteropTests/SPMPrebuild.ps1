@@ -25,23 +25,17 @@ if (-not $SwiftWinRT) {
     if ($LASTEXITCODE -ne 0) { throw "Failed to build SwiftWinRT.exe" }
     $SwiftWinRT = "$GeneratorProjectDir\.build\$SwiftConfiguration\SwiftWinRT.exe"
 }
+else {
+    $SwiftWinRT = [IO.Path]::GetFullPath($SwiftWinRT)
+}
 
 Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll & winmd..."
-$CMakePreset = "debug"
+$CMakePreset = "debug" # Tests are always built in debug mode
 Push-Location "$PSScriptRoot\WinRTComponent"
-    & cmake.exe --preset $CMakePreset
-    & cmake.exe --build --preset $CMakePreset
+& cmake.exe --preset $CMakePreset -D "SWIFTWINRT_EXE=$SwiftWinRT" -D "PROJECTION_DIR=$(Get-Location)\Projection"
+& cmake.exe --build --preset $CMakePreset --target WinRTComponent
+$WinRTComponentBinDir = "$(Get-Location)\build\$CMakePreset\Dll"
 Pop-Location
-$WinRTComponentBinDir = "$PSScriptRoot\WinRTComponent\build\$CMakePreset"
-
-Write-Host -ForegroundColor Cyan "Generating Swift projection for WinRT component..."
-& cmake.exe `
-    -D "SWIFTWINRT_EXE=$SwiftWinRT" `
-    -D "WINRTCOMPONENT_WINMD=$WinRTComponentBinDir\WinRTComponent.winmd" `
-    -D "PROJECTION_JSON=$PSScriptRoot\projection.json" `
-    -D "PROJECTION_DIR=$PSScriptRoot\Generated" `
-    -D "SPM_SUPPORT_PACKAGE_DIR=$PSScriptRoot\..\.." `
-    -P "$PSScriptRoot\GenerateProjection.cmake"
 
 Write-Host -ForegroundColor Cyan "Copying the WinRT component dll next to the test..."
 $SwiftTestPackageDir = $PSScriptRoot
