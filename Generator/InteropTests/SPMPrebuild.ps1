@@ -33,7 +33,7 @@ Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll & winmd..."
 $CMakePreset = "debug" # Tests are always built in debug mode
 Push-Location "$PSScriptRoot\WinRTComponent"
 & cmake.exe --preset $CMakePreset -D "SWIFTWINRT_EXE=$SwiftWinRT" -D "PROJECTION_DIR=$(Get-Location)\Projection"
-& cmake.exe --build --preset $CMakePreset --target WinRTComponentDll
+& cmake.exe --build --preset $CMakePreset --target WinRTComponent
 $WinRTComponentBinDir = "$(Get-Location)\build\$CMakePreset\Dll"
 Pop-Location
 
