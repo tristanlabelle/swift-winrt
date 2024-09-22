@@ -16,11 +16,12 @@ let package = Package(
                 .product(name: "WinRTComponent", package: "Projection"),
             ],
             path: "Tests",
-            // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags([
-                "-Xlinker", "-ignore:4217",
-                "-Xlinker", "/manifestinput:Generated/WinRTComponent.manifest",
-                "-Xlinker", "/manifest:embed"
+                // Embed the WinRT component manifest to locate activation factories
+                "-Xlinker", "/manifestinput:WinRTComponent/Projection/WinRTComponent.manifest",
+                "-Xlinker", "/manifest:embed",
+                // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
+                "-Xlinker", "-ignore:4217"
             ]) ])
     ]
 )
