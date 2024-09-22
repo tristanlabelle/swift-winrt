@@ -9,7 +9,6 @@
 				"-Xlinker",
 				"-debug:dwarf"
 			],
-			"cwd": "d:\\swift-winrt\\InteropTests",
 			"disableTaskQueue": true,
 			"problemMatcher": [
 				"$swiftc"

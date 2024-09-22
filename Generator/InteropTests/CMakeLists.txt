@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.21.0)
+# Support using this directory as a standalone project or as a subdirectory.
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+    cmake_minimum_required(VERSION 3.21.0)
 
-if(NOT DEFINED CMAKE_PROJECT_NAME)
     project(InteropTests LANGUAGES C Swift)
 endif()
 
@@ -8,6 +9,8 @@ if (NOT DEFINED SWIFTWINRT_EXE)
     message(FATAL_ERROR "SWIFTWINRT_EXE must be defined")
 endif()
 cmake_path(ABSOLUTE_PATH SWIFTWINRT_EXE NORMALIZE OUTPUT_VARIABLE SWIFTWINRT_EXE)
+
+set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
 # Generating projection sources will depend on WinRTComponent.winmd, so build it now
 include(WinRTComponent/GenerateWinMD.cmake)
@@ -24,7 +27,7 @@ generate_projection(
     WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
     PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/projection.json"
     PROJECTION_DIR "${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources"
-    SPM_SUPPORT_PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+    SPM_SUPPORT_PACKAGE_DIR "${REPO_ROOT}")
 
 # Define WinRTComponent build (requires the cl.exe compiler)
 include(ExternalProject)
@@ -41,7 +44,7 @@ ExternalProject_Add(WinRTComponent
 
 # Build the support module if not already the case (by root CMakeLists.txt)
 if(NOT TARGET WindowsRuntime)
-    add_subdirectory(../Support "${CMAKE_CURRENT_BINARY_DIR}/Support")
+    add_subdirectory("${REPO_ROOT}/Support/Sources" "${CMAKE_CURRENT_BINARY_DIR}/Support")
 endif()
 
 # Build the Swift projection
