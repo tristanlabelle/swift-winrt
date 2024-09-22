@@ -9,6 +9,10 @@ if (NOT DEFINED SWIFTWINRT_EXE)
 endif()
 cmake_path(ABSOLUTE_PATH SWIFTWINRT_EXE NORMALIZE)
 
+if(NOT DEFINED PROJECTION_DIR)
+    set(PROJECTION_DIR "${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources")
+endif()
+
 # Generate the WinRTComponent.winmd file
 set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd")
 include(GenerateWinMD.cmake)
@@ -23,7 +27,7 @@ generate_projection(
     SWIFTWINRT_EXE "${SWIFTWINRT_EXE}"
     WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
     PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/projection.json"
-    PROJECTION_DIR "${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources")
+    PROJECTION_DIR "${PROJECTION_DIR}")
 
 # Define the dll build (requires cl.exe)
 include(ExternalProject)
