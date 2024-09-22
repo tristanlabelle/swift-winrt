@@ -4,14 +4,14 @@ import PackageDescription
 let package = Package(
     name: "InteropTests",
     dependencies: [
-        .package(path: ".."), // Support package
+        .package(name: "Support", path: "../.."),
         .package(path: "Generated"),
     ],
     targets: [
         .testTarget(
             name: "Tests",
             dependencies: [
-                .product(name: "WindowsRuntime", package: "swift-winrt"),
+                .product(name: "WindowsRuntime", package: "Support"),
                 .product(name: "UWP", package: "Generated"),
                 .product(name: "WinRTComponent", package: "Generated"),
             ],
