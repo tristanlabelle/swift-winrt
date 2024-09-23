@@ -141,8 +141,13 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
             writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
             if targetName != namespaceModuleName {
                 writer.writeSingleLineCommand(
-                    "set_target_properties", .unquoted(targetName),
-                    "PROPERTIES", "Swift_MODULE_NAME", .unquoted(namespaceModuleName))
+                    "set_target_properties", .autoquote(targetName),
+                    "PROPERTIES", "Swift_MODULE_NAME", .autoquote(namespaceModuleName))
+                // Workaround CMake error with mismatching module names:
+                // "CMake can not determine linker language for target: <blah>"
+                writer.writeSingleLineCommand(
+                    "set_target_properties", .autoquote(targetName),
+                    "PROPERTIES", "LINKER_LANGUAGE", "Swift")
             }
             writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
         }
