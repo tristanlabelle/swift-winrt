@@ -23,8 +23,8 @@ public final class CMakeListsWriter {
                     output.beginLine()
                     argument.write(to: &output)
                 }
+                output.write(")")
             }
-            output.write(")", endLine: true)
         }
     }
 

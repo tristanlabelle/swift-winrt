@@ -6,7 +6,8 @@ struct SPMOptions {
     public let excludeCMakeLists: Bool
 
     public func getLibraryName(moduleName: String) -> String {
-        "\(libraryPrefix)\(module)\(librarySuffix)"
+        guard !libraryPrefix.isEmpty || !librarySuffix.isEmpty else { return moduleName }
+        return "\(libraryPrefix)\(moduleName)\(librarySuffix)"
     }
 }
 
@@ -16,6 +17,7 @@ struct CMakeOptions {
     public let dynamicLibraries: Bool
 
     public func getTargetName(moduleName: String) -> String {
-        "\(targetPrefix)\(module)\(targetSuffix)"
+        guard !targetPrefix.isEmpty || !targetSuffix.isEmpty else { return moduleName }
+        return "\(targetPrefix)\(moduleName)\(targetSuffix)"
     }
 }

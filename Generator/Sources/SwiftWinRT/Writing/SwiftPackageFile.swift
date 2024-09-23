@@ -62,7 +62,9 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
 
         // Create products for the projections and the ABI
         package.products.append(moduleProduct)
-        package.products.append(.library(name: module.abiModuleName, type: .static, targets: [abiModuleTarget.name]))
+        package.products.append(.library(
+            name: spmOptions.getLibraryName(moduleName: module.abiModuleName),
+            type: .static, targets: [abiModuleTarget.name]))
     }
 
     if spmOptions.excludeCMakeLists {

@@ -41,7 +41,7 @@ fileprivate func writeModuleFiles(
         try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", cmakeOptions: cmakeOptions)
     }
 
-    if let cmakeOptions {
+    if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
@@ -108,8 +108,8 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
         writer.writeTargetLinkLibraries(targetName, .public,
-            [ SupportModules.WinRT.moduleName, SupportModules.WinRT.abiModuleName ]
-                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.abiModuleName) })
+            [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
+                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.name) })
     }
 }
 
@@ -143,7 +143,7 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
         }
     }
 
-    if let cmakeOptions, !compactNamespaces.isEmpty {
+    if cmakeOptions != nil, !compactNamespaces.isEmpty {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
