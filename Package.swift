@@ -9,7 +9,7 @@ let package = Package(
             targets: ["COM_ABI", "WindowsRuntime_ABI"]),
         .library(
             name: "WindowsRuntime",
-            targets: ["COM", "WindowsRuntime"]),
+            targets: ["ABIBindings", "COM", "WindowsRuntime"]),
     ],
     targets: [
         .target(
