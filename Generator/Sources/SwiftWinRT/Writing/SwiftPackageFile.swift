@@ -4,14 +4,9 @@ import DotNetMetadata
 import ProjectionModel
 import struct Foundation.URL
 
-func writeSwiftPackageFile(
-        _ projection: Projection,
-        supportPackageReference: String,
-        excludeCMakeLists: Bool,
-        dynamicLibraries: Bool,
-        toPath path: String) {
+func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toPath path: String) {
     var package = SwiftPackage(name: "Projection")
-    package.dependencies.append(getSupportPackageDependency(reference: supportPackageReference))
+    package.dependencies.append(getSupportPackageDependency(reference: spmOptions.supportPackageReference))
 
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
@@ -37,7 +32,10 @@ func writeSwiftPackageFile(
         package.targets.append(projectionModuleTarget)
 
         // Define a product for the module
-        var moduleProduct: SwiftPackage.Product = .library(name: module.name, type: dynamicLibraries ? .dynamic : nil, targets: [])
+        var moduleProduct: SwiftPackage.Product = .library(
+            name: spmOptions.getLibraryName(moduleName: module.name),
+            type: spmOptions.dynamicLibraries ? .dynamic : nil,
+            targets: [])
         moduleProduct.targets.append(projectionModuleTarget.name)
         moduleProduct.targets.append(abiModuleTarget.name)
 
@@ -64,10 +62,12 @@ func writeSwiftPackageFile(
 
         // Create products for the projections and the ABI
         package.products.append(moduleProduct)
-        package.products.append(.library(name: module.abiModuleName, type: .static, targets: [abiModuleTarget.name]))
+        package.products.append(.library(
+            name: spmOptions.getLibraryName(moduleName: module.abiModuleName),
+            type: .static, targets: [abiModuleTarget.name]))
     }
 
-    if excludeCMakeLists {
+    if spmOptions.excludeCMakeLists {
         // Assume every target has a root CMakeLists.txt file
         for targetIndex in package.targets.indices {
             package.targets[targetIndex].exclude.append("CMakeLists.txt")

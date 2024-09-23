@@ -28,11 +28,23 @@ struct CommandLineArguments: ParsableCommand {
     @Flag(name: .customLong("spm"), help: "Generate a package.swift file for building with SPM.")
     var generatePackageDotSwift: Bool = false
 
+    @Option(name: .customLong("spm-library-prefix"), help: "A prefix to the module name when naming SPM libraries.")
+    var spmLibraryPrefix: String = ""
+
+    @Option(name: .customLong("spm-library-suffix"), help: "A suffix to the module name when naming SPM libraries.")
+    var spmLibrarySuffix: String = ""
+
     @Option(name: .customLong("spm-support-package"), help: .init("The directory path or '<url>#branch=<branch>' of the support package to reference.", valueName: "dir-or-url"))
     var spmSupportPackageReference: String = "https://github.com/tristanlabelle/swift-winrt.git#branch=main"
 
-    @Flag(name: .customLong("cmakelists"), help: "Generate a CMakeLists.txt files for building with CMake.")
+    @Flag(name: .customLong("cmake"), help: "Generate build definitions for the CMake build system.")
     var generateCMakeLists: Bool = false
+
+    @Option(name: .customLong("cmake-target-prefix"), help: "A prefix to the module name when naming CMake targets.")
+    var cmakeTargetPrefix: String = ""
+
+    @Option(name: .customLong("cmake-target-suffix"), help: "A suffix to the module name when naming CMake targets.")
+    var cmakeTargetSuffix: String = ""
 
     @Flag(name: .customLong("dylib"), help: "Makes SPM and CMake build definitions specify to build dynamic libraries.")
     var dynamicLibraries: Bool = false

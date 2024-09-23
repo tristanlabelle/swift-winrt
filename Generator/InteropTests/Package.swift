@@ -12,8 +12,8 @@ let package = Package(
             name: "Tests",
             dependencies: [
                 .product(name: "WindowsRuntime", package: "Support"),
-                .product(name: "UWP", package: "Projection"),
-                .product(name: "WinRTComponent", package: "Projection"),
+                .product(name: "SwiftUWP", package: "Projection"),
+                .product(name: "SwiftWinRTComponent", package: "Projection"),
             ],
             path: "Tests",
             linkerSettings: [ .unsafeFlags([

@@ -5,34 +5,61 @@ public final class CMakeListsWriter {
         self.output = .init(inner: output)
     }
 
-    public func writeAddLibrary(_ name: String, _ type: CMakeLibraryType? = nil, _ sources: [String] = []) {
-        let typeSuffix = type.map { " \($0.rawValue)" } ?? ""
-        output.writeIndentedBlock(grouping: .never, header: "add_library(\(name)\(typeSuffix)", footer: ")") {
-            for source in sources {
-                output.writeFullLine(source)
+    public func writeCommand(_ command: String, headerArguments: [CMakeCommandArgument] = [], multilineArguments: [CMakeCommandArgument] = []) {
+        var output = output // Safe because IndentedTextOutputStream is a class
+        output.beginLine(grouping: .withName(command))
+        output.write(command)
+        output.write("(")
+        for (index, argument) in headerArguments.enumerated() {
+            if index > 0 { output.write(" ") }
+            argument.write(to: &output)
+        }
+        if multilineArguments.isEmpty {
+            output.write(")", endLine: true)
+        }
+        else {
+            output.writeIndentedBlock {
+                for argument in multilineArguments {
+                    output.beginLine()
+                    argument.write(to: &output)
+                }
+                output.write(")")
             }
         }
+    }
+
+    public func writeSingleLineCommand(_ command: String, _ arguments: [CMakeCommandArgument]) {
+        writeCommand(command, headerArguments: arguments)
+    }
+
+    public func writeSingleLineCommand(_ command: String, _ arguments: CMakeCommandArgument...) {
+        writeCommand(command, headerArguments: arguments)
+    }
+
+    public func writeAddLibrary(_ name: String, _ type: CMakeLibraryType? = nil, _ sources: [String] = []) {
+        var headerArguments: [CMakeCommandArgument] = [ .autoquote(name) ]
+        if let type { headerArguments.append(.unquoted(type.rawValue)) }
+        writeCommand("add_library", headerArguments: headerArguments,
+            multilineArguments: sources.map { .autoquote($0) })
     }
 
     public func writeTargetIncludeDirectories(_ target: String, _ visibility: CMakeVisibility, _ directories: [String]) {
         guard !directories.isEmpty else { return }
-        output.writeIndentedBlock(grouping: .never, header: "target_include_directories(\(target) \(visibility.rawValue)", footer: ")") {
-            for directory in directories {
-                output.writeFullLine(directory)
-            }
-        }
+        writeCommand("target_include_directories",
+            headerArguments: [ .autoquote(target), .unquoted(visibility.rawValue) ],
+            multilineArguments: directories.map { .autoquote($0) })
     }
 
     public func writeTargetLinkLibraries(_ target: String, _ visibility: CMakeVisibility, _ libraries: [String]) {
         guard !libraries.isEmpty else { return }
-        output.writeIndentedBlock(grouping: .never, header: "target_link_libraries(\(target) \(visibility.rawValue)", footer: ")") {
-            for library in libraries {
-                output.writeFullLine(library)
-            }
-        }
+        writeCommand("target_link_libraries",
+            headerArguments: [ .autoquote(target), .unquoted(visibility.rawValue) ],
+            multilineArguments: libraries.map { .autoquote($0) })
     }
 
-    public func writeAddSubdirectory(_ sources: String) {
-        output.writeFullLine(grouping: .withName("add_subdirectory"), "add_subdirectory(\(sources))")
+    public func writeAddSubdirectory(_ source: String, _ binary: String? = nil) {
+        var args: [CMakeCommandArgument] = [ .autoquote(source) ]
+        if let binary { args.append(.autoquote(binary)) }
+        writeSingleLineCommand("add_subdirectory", args)
     }
 }

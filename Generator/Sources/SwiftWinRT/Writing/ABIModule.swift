@@ -4,7 +4,7 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeABIModule(_ module: Module, directoryPath: String, generateCMakeLists: Bool) throws {
+internal func writeABIModule(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
     let includeSWRTDirectoryPath = "\(includeDirectoryPath)\\SWRT"
 
@@ -12,13 +12,15 @@ internal func writeABIModule(_ module: Module, directoryPath: String, generateCM
 
     try writeModulemapFile(module: module, toPath: "\(includeDirectoryPath)\\module.modulemap")
 
-    if generateCMakeLists {
+    if let cmakeOptions {
         let cmakeListsWriter = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt", directoryCreation: .ancestors))
-        cmakeListsWriter.writeAddLibrary(module.abiModuleName, .interface)
-        cmakeListsWriter.writeTargetIncludeDirectories(module.abiModuleName, .interface, ["include"])
-        cmakeListsWriter.writeTargetLinkLibraries(module.abiModuleName, .interface,
-            [ SupportModules.WinRT.abiModuleName ] + module.references.map { $0.abiModuleName })
+        let targetName = cmakeOptions.getTargetName(moduleName: module.abiModuleName)
+        cmakeListsWriter.writeAddLibrary(targetName, .interface)
+        cmakeListsWriter.writeTargetIncludeDirectories(targetName, .interface, ["include"])
+        cmakeListsWriter.writeTargetLinkLibraries(targetName, .interface,
+            [ SupportModules.WinRT.abiModuleName ]
+                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.abiModuleName) })
     }
 }
 

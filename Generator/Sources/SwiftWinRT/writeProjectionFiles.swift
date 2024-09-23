@@ -6,21 +6,19 @@ import Foundation
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeBindingFiles(
+internal func writeProjectionFiles(
         _ projection: Projection,
         directoryPath: String,
-        generateCMakeLists: Bool,
-        dynamicLibraries: Bool) throws {
+        cmakeOptions: CMakeOptions?) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
         print("Generating projection for \(module.name)...")
         try writeModuleFiles(module,
             directoryPath: "\(directoryPath)\\\(module.name)",
-            generateCMakeLists: generateCMakeLists,
-            dynamicLibrary: dynamicLibraries)
+            cmakeOptions: cmakeOptions)
     }
 
-    if generateCMakeLists {
+    if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
@@ -34,19 +32,16 @@ internal func writeBindingFiles(
 fileprivate func writeModuleFiles(
         _ module: Module,
         directoryPath: String,
-        generateCMakeLists: Bool,
-        dynamicLibrary: Bool) throws {
-    try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", generateCMakeLists: generateCMakeLists)
+        cmakeOptions: CMakeOptions?) throws {
+    try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", cmakeOptions: cmakeOptions)
 
-    try writeSwiftModuleFiles(
-        module, directoryPath: "\(directoryPath)\\Projection",
-        generateCMakeLists: generateCMakeLists, dynamicLibrary: dynamicLibrary)
+    try writeSwiftModuleFiles(module, directoryPath: "\(directoryPath)\\Projection", cmakeOptions: cmakeOptions)
 
     if !module.flattenNamespaces {
-        try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", generateCMakeLists: generateCMakeLists)
+        try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", cmakeOptions: cmakeOptions)
     }
 
-    if generateCMakeLists {
+    if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
@@ -58,10 +53,7 @@ fileprivate func writeModuleFiles(
     }
 }
 
-fileprivate func writeSwiftModuleFiles(
-        _ module: Module, directoryPath: String,
-        generateCMakeLists: Bool, dynamicLibrary: Bool) throws {
-    var cmakeSources: [String] = []
+fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
     for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
         // All WinRT types should have namespaces
         guard let namespace = typeDefinition.namespace else { continue }
@@ -73,23 +65,19 @@ fileprivate func writeSwiftModuleFiles(
         // Write the COM interop extensions
         if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
             let fileName = "SWRT_\(typeName).swift"
-            if try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
-                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)") {
-                cmakeSources.append("\(compactNamespace)/COMInterop/\(fileName)")
-            }
+            _ = try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
+                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)")
         }
 
         guard try hasSwiftDefinition(typeDefinition) else { continue }
 
         if module.hasTypeDefinition(typeDefinition) {
             try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
-            cmakeSources.append("\(compactNamespace)/\(typeName).swift")
 
             if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
                 try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
                     "\(namespaceDirectoryPath)\\\(typeName)+extras.swift",
                     isDirectory: false))
-                cmakeSources.append("\(compactNamespace)/\(typeName)+extras.swift")
             }
         }
 
@@ -100,23 +88,32 @@ fileprivate func writeSwiftModuleFiles(
             let fileName = "\(typeName)Binding.swift"
             try writeABIBindingConformanceFile(typeDefinition, module: module,
                 toPath: "\(namespaceDirectoryPath)\\Bindings\\\(fileName)")
-            cmakeSources.append("\(compactNamespace)/Bindings/\(fileName)")
         }
     }
 
-    if generateCMakeLists {
+    if let cmakeOptions {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        cmakeSources.sort()
-        writer.writeAddLibrary(module.name, dynamicLibrary ? .shared : .static, cmakeSources)
-        writer.writeTargetLinkLibraries(
-            module.name, .public,
-            [ SupportModules.WinRT.moduleName, module.abiModuleName ] + module.references.map { $0.name })
+        writer.writeSingleLineCommand("file", "GLOB_RECURSE", "SOURCES", "*.swift")
+        let targetName = cmakeOptions.getTargetName(moduleName: module.name)
+        writer.writeSingleLineCommand(
+            "add_library",
+            .autoquote(targetName),
+            .unquoted(cmakeOptions.dynamicLibraries ? "SHARED" : "STATIC"),
+            .unquoted("${SOURCES}"))
+        if targetName != module.name {
+            writer.writeSingleLineCommand(
+                "set_target_properties", .autoquote(targetName),
+                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
+        }
+        writer.writeTargetLinkLibraries(targetName, .public,
+            [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
+                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.name) })
     }
 }
 
-fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: String, generateCMakeLists: Bool) throws {
+fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
     let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
 
     var compactNamespaces: [String] = [] 
@@ -130,17 +127,23 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
         let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
         try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
 
-        if generateCMakeLists {
+        if let cmakeOptions {
             let writer = CMakeListsWriter(output: FileTextOutputStream(
                 path: "\(directoryPath)\\\(compactNamespace)\\CMakeLists.txt",
                 directoryCreation: .ancestors))
             let namespaceModuleName = module.getNamespaceModuleName(namespace: namespace)
-            writer.writeAddLibrary(namespaceModuleName, .static, ["Aliases.swift"])
-            writer.writeTargetLinkLibraries(namespaceModuleName, .public, [module.name])
+            let targetName = cmakeOptions.getTargetName(moduleName: namespaceModuleName)
+            writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
+            if targetName != namespaceModuleName {
+                writer.writeSingleLineCommand(
+                    "set_target_properties", .unquoted(targetName),
+                    "PROPERTIES", "Swift_MODULE_NAME", .unquoted(namespaceModuleName))
+            }
+            writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
         }
     }
 
-    if generateCMakeLists, !compactNamespaces.isEmpty {
+    if cmakeOptions != nil, !compactNamespaces.isEmpty {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))

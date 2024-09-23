@@ -38,7 +38,9 @@ function(generate_projection)
             --reference "${WINRTCOMPONENT_WINMD_NATIVE}"
             --spm
             --spm-support-package "${SPM_SUPPORT_PACKAGE_DIR_NATIVE}"
-            --cmakelists
+            --spm-library-prefix "Swift"
+            --cmake
+            --cmake-target-prefix "Swift"
             --out "${PROJECTION_DIR_NATIVE}"
             --out-manifest "${PROJECTION_DIR_NATIVE}\\WinRTComponent.manifest"
         COMMAND_ERROR_IS_FATAL ANY)

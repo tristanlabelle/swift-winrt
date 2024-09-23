@@ -30,17 +30,23 @@ do {
         commandLineArguments: commandLineArguments,
         projectionConfig: projectionConfig,
         winMDLoadContext: context)
-    try writeBindingFiles(projection,
+
+    try writeProjectionFiles(projection,
         directoryPath: commandLineArguments.outputDirectoryPath,
-        generateCMakeLists: commandLineArguments.generateCMakeLists,
-        dynamicLibraries: commandLineArguments.dynamicLibraries)
+        cmakeOptions: !commandLineArguments.generateCMakeLists ? nil : CMakeOptions(
+            targetPrefix: commandLineArguments.cmakeTargetPrefix,
+            targetSuffix: commandLineArguments.cmakeTargetSuffix,
+            dynamicLibraries: commandLineArguments.dynamicLibraries))
 
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
             projection,
-            supportPackageReference: commandLineArguments.spmSupportPackageReference,
-            excludeCMakeLists: commandLineArguments.generateCMakeLists,
-            dynamicLibraries: commandLineArguments.dynamicLibraries,
+            spmOptions: SPMOptions(
+                supportPackageReference: commandLineArguments.spmSupportPackageReference,
+                libraryPrefix: commandLineArguments.spmLibraryPrefix,
+                librarySuffix: commandLineArguments.spmLibrarySuffix,
+                dynamicLibraries: commandLineArguments.dynamicLibraries,
+                excludeCMakeLists: commandLineArguments.generateCMakeLists),
             toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")
     }
 
