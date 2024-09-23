@@ -18,13 +18,13 @@ internal func writeProjectionFiles(
             cmakeOptions: cmakeOptions)
     }
 
-    if let cmakeOptions {
+    if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         for module in projection.modulesByName.values {
             guard !module.isEmpty else { continue }
-            writer.writeAddSubdirectory(.autoquote(module.name))
+            writer.writeAddSubdirectory(module.name)
         }
     }
 }
@@ -53,9 +53,7 @@ fileprivate func writeModuleFiles(
     }
 }
 
-fileprivate func writeSwiftModuleFiles(
-        _ module: Module, directoryPath: String,
-        cmakeOptions: CMakeOptions?) throws {
+fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
     for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
         // All WinRT types should have namespaces
         guard let namespace = typeDefinition.namespace else { continue }
@@ -67,8 +65,8 @@ fileprivate func writeSwiftModuleFiles(
         // Write the COM interop extensions
         if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
             let fileName = "SWRT_\(typeName).swift"
-            if try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
-                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)") {
+            _ = try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
+                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)")
         }
 
         guard try hasSwiftDefinition(typeDefinition) else { continue }
@@ -98,22 +96,20 @@ fileprivate func writeSwiftModuleFiles(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         writer.writeSingleLineCommand("file", "GLOB_RECURSE", "SOURCES", "*.swift")
-        let targetName = cmakeOptions.getTargetName(module: module.name)
+        let targetName = cmakeOptions.getTargetName(moduleName: module.name)
         writer.writeSingleLineCommand(
             "add_library",
             .autoquote(targetName),
-            .unquoted(cmakeOptionsdynamicLibraries ? "SHARED" : "STATIC"),
+            .unquoted(cmakeOptions.dynamicLibraries ? "SHARED" : "STATIC"),
             .unquoted("${SOURCES}"))
         if targetName != module.name {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
-        var linkLibrariesArgs: [CMakeCommandArgument] = [
-            .autoquote(SupportModules.WinRT.moduleName),
-            .autoquote(SupportModules.WinRT.abiModuleName),
-        ] + module.references.map { .autoquote(cmakeOptions.getTargetName(module: $0.abiModuleName)) }
-        writer.writeTargetLinkLibraries(.unquoted(targetName), .public, linkLibrariesArgs)
+        writer.writeTargetLinkLibraries(targetName, .public,
+            [ SupportModules.WinRT.moduleName, SupportModules.WinRT.abiModuleName ]
+                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.abiModuleName) })
     }
 }
 
@@ -136,14 +132,14 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
                 path: "\(directoryPath)\\\(compactNamespace)\\CMakeLists.txt",
                 directoryCreation: .ancestors))
             let namespaceModuleName = module.getNamespaceModuleName(namespace: namespace)
-            let targetName = cmakeOptions.getTargetName(module: namespaceModuleName)
-            writer.writeAddLibrary(.unquoted(targetName), .static, ["Aliases.swift"])
+            let targetName = cmakeOptions.getTargetName(moduleName: namespaceModuleName)
+            writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
             if targetName != namespaceModuleName {
                 writer.writeSingleLineCommand(
                     "set_target_properties", .unquoted(targetName),
                     "PROPERTIES", "Swift_MODULE_NAME", .unquoted(namespaceModuleName))
             }
-            writer.writeTargetLinkLibraries(.unquoted(targetName), .public, [module.name])
+            writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
         }
     }
 

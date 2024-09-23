@@ -6,7 +6,7 @@ import struct Foundation.URL
 
 func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toPath path: String) {
     var package = SwiftPackage(name: "Projection")
-    package.dependencies.append(getSupportPackageDependency(reference: supportPackageReference))
+    package.dependencies.append(getSupportPackageDependency(reference: spmOptions.supportPackageReference))
 
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
@@ -33,7 +33,7 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
 
         // Define a product for the module
         var moduleProduct: SwiftPackage.Product = .library(
-            name: spmOptions.getLibraryName(module: module.name),
+            name: spmOptions.getLibraryName(moduleName: module.name),
             type: spmOptions.dynamicLibraries ? .dynamic : nil,
             targets: [])
         moduleProduct.targets.append(projectionModuleTarget.name)

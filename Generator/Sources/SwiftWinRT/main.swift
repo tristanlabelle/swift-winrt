@@ -33,7 +33,7 @@ do {
 
     try writeProjectionFiles(projection,
         directoryPath: commandLineArguments.outputDirectoryPath,
-        cmakeOptions: !generateCMakeLists ? nil : CMakeOptions(
+        cmakeOptions: !commandLineArguments.generateCMakeLists ? nil : CMakeOptions(
             targetPrefix: commandLineArguments.cmakeTargetPrefix,
             targetSuffix: commandLineArguments.cmakeTargetSuffix,
             dynamicLibraries: commandLineArguments.dynamicLibraries))
@@ -42,6 +42,7 @@ do {
         writeSwiftPackageFile(
             projection,
             spmOptions: SPMOptions(
+                supportPackageReference: commandLineArguments.spmSupportPackageReference,
                 libraryPrefix: commandLineArguments.spmLibraryPrefix,
                 librarySuffix: commandLineArguments.spmLibrarySuffix,
                 dynamicLibraries: commandLineArguments.dynamicLibraries,

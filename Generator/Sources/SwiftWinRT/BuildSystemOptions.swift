@@ -1,10 +1,11 @@
 struct SPMOptions {
+    public let supportPackageReference: String
     public let libraryPrefix: String
     public let librarySuffix: String
     public let dynamicLibraries: Bool
     public let excludeCMakeLists: Bool
 
-    public func getLibraryName(module: String) -> String {
+    public func getLibraryName(moduleName: String) -> String {
         "\(libraryPrefix)\(module)\(librarySuffix)"
     }
 }
@@ -14,7 +15,7 @@ struct CMakeOptions {
     public let targetSuffix: String
     public let dynamicLibraries: Bool
 
-    public func getTargetName(module: String) -> String {
+    public func getTargetName(moduleName: String) -> String {
         "\(targetPrefix)\(module)\(targetSuffix)"
     }
 }

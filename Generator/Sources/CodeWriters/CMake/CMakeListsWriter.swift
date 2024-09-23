@@ -36,23 +36,30 @@ public final class CMakeListsWriter {
         writeCommand(command, headerArguments: arguments)
     }
 
-    public func writeAddLibrary(_ name: CMakeCommandArgument, _ type: CMakeLibraryType? = nil, _ sources: [CMakeCommandArgument] = []) {
-        var headerArguments = [ name ]
+    public func writeAddLibrary(_ name: String, _ type: CMakeLibraryType? = nil, _ sources: [String] = []) {
+        var headerArguments: [CMakeCommandArgument] = [ .autoquote(name) ]
         if let type { headerArguments.append(.unquoted(type.rawValue)) }
-        writeCommand("add_library", headerArguments: headerArguments, multilineArguments: sources)
+        writeCommand("add_library", headerArguments: headerArguments,
+            multilineArguments: sources.map { .autoquote($0) })
     }
 
-    public func writeTargetIncludeDirectories(_ target: CMakeCommandArgument, _ visibility: CMakeVisibility, _ directories: [CMakeCommandArgument]) {
+    public func writeTargetIncludeDirectories(_ target: String, _ visibility: CMakeVisibility, _ directories: [String]) {
         guard !directories.isEmpty else { return }
-        writeCommand("target_include_directories", headerArguments: [ target, .unquoted(visibility.rawValue) ], multilineArguments: directories)
+        writeCommand("target_include_directories",
+            headerArguments: [ .autoquote(target), .unquoted(visibility.rawValue) ],
+            multilineArguments: directories.map { .autoquote($0) })
     }
 
-    public func writeTargetLinkLibraries(_ target: CMakeCommandArgument, _ visibility: CMakeVisibility, _ libraries: [CMakeCommandArgument]) {
+    public func writeTargetLinkLibraries(_ target: String, _ visibility: CMakeVisibility, _ libraries: [String]) {
         guard !libraries.isEmpty else { return }
-        writeCommand("target_link_libraries", headerArguments: [ target, .unquoted(visibility.rawValue) ], multilineArguments: libraries)
+        writeCommand("target_link_libraries",
+            headerArguments: [ .autoquote(target), .unquoted(visibility.rawValue) ],
+            multilineArguments: libraries.map { .autoquote($0) })
     }
 
-    public func writeAddSubdirectory(_ source: CMakeCommandArgument, _ binary: CMakeCommandArgument? = nil) {
-        writeSingleLineCommand("add_subdirectory", binary.map { [source, $0] } ?? [source])
+    public func writeAddSubdirectory(_ source: String, _ binary: String? = nil) {
+        var args: [CMakeCommandArgument] = [ .autoquote(source) ]
+        if let binary { args.append(.autoquote(binary)) }
+        writeSingleLineCommand("add_subdirectory", args)
     }
 }
