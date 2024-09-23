@@ -42,7 +42,6 @@ ExternalProject_Add(WinRTComponent
     TEST_COMMAND "")
 
 # Define the projection build
-# TODO(https://github.com/tristanlabelle/swift-winrt/issues/302): Fix linking issues
-# add_subdirectory(
-#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources
-#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Build)
+add_subdirectory(
+    "${PROJECTION_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/Projection/Build")
