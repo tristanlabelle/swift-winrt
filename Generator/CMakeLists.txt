@@ -16,7 +16,7 @@ else()
     execute_process(
         COMMAND ${CMAKE_COMMAND}
             -S "${CMAKE_CURRENT_SOURCE_DIR}"
-            -B "${CMAKE_CURRENT_BINARY_DIR}"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/Build"
             -G "${CMAKE_GENERATOR}"
             -D "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
             -D "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
@@ -25,10 +25,10 @@ else()
 
     message(STATUS "Building Generator as subproject...")
     execute_process(
-        COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/Build"
         COMMAND_ERROR_IS_FATAL ANY)
 
     # Now build InteropTests, which depends on SWIFTWINRT_EXE
-    set(SWIFTWINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Sources/SwiftWinRT/SwiftWinRT.exe")
+    set(SWIFTWINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Build/Sources/SwiftWinRT/SwiftWinRT.exe")
     add_subdirectory(InteropTests)
 endif()
