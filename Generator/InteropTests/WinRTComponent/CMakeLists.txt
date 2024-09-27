@@ -42,6 +42,4 @@ ExternalProject_Add(WinRTComponent
     TEST_COMMAND "")
 
 # Define the projection build
-add_subdirectory(
-    "${PROJECTION_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/Projection/Build")
+add_subdirectory("${PROJECTION_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/Projection/Build")

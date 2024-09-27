@@ -4,4 +4,5 @@ target_link_libraries(WindowsRuntime PUBLIC COM WindowsRuntime_ABI)
 target_link_libraries(WindowsRuntime PRIVATE SWRT_InternalABI)
 
 # Workaround for CMake not propagating include dirs
-target_include_directories(WindowsRuntime INTERFACE "$<TARGET_FILE_DIR:ABIBindings>")
+# target_include_directories(WindowsRuntime INTERFACE "$<TARGET_FILE_DIR:ABIBindings>")
+# target_include_directories(WindowsRuntime INTERFACE "$<TARGET_PROPERTY:SWRT_InternalABI,INCLUDE_DIRECTORIES>")
