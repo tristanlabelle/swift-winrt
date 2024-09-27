@@ -25,8 +25,16 @@ function(generate_winrtcomponent_winmd)
             /metadata_dir "${METADATA_DIR_NATIVE}"
             /reference "${FOUNDATIONCONTRACT_WINMD_NATIVE}"
             /reference "${UNIVERSALAPICONTRACT_WINMD_NATIVE}"
-            /winmd "${WINRTCOMPONENT_WINMD_NATIVE}"
+            /winmd "${WINRTCOMPONENT_WINMD_NATIVE}.timestamped"
             /header "${WINRTCOMPONENT_H_NATIVE}"
             "${WINRTCOMPONENT_IDL_NATIVE}"
+        COMMAND_ERROR_IS_FATAL ANY)
+
+    # Remove the timestamp from the generated WinRTComponent.winmd file for cachability
+    # TODO: We also need to zero the random "mvid" (module version id) field of the module metadata table :/
+    execute_process(
+        COMMAND powershell.exe -File "${CMAKE_CURRENT_SOURCE_DIR}/Clear-PEDateTimeStamp.ps1"
+            -In "${WINRTCOMPONENT_WINMD_NATIVE}.timestamped"
+            -Out "${WINRTCOMPONENT_WINMD_NATIVE}"
         COMMAND_ERROR_IS_FATAL ANY)
 endfunction()

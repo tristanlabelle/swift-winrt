@@ -19,17 +19,39 @@ function(generate_projection)
         message(FATAL_ERROR "PROJECTION_DIR argument is required")
     endif()
 
+    string(REPLACE "\\" "" WINDOWS_SDK_VERSION "$ENV{WindowsSDKVersion}") # Remove trailing slash
+
     # Determine the support package directory
     execute_process(
         COMMAND git.exe -C "${CMAKE_CURRENT_SOURCE_DIR}" rev-parse --path-format=absolute --show-toplevel
-        OUTPUT_VARIABLE REPO_ROOT
+        OUTPUT_VARIABLE SPM_SUPPORT_PACKAGE_DIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
         COMMAND_ERROR_IS_FATAL ANY)
 
+    # Skip if the inputs have not changed
+    file(SHA256 "${ARG_SWIFTWINRT_EXE}" SWIFTWINRT_EXE_HASH)
+    file(SHA256 "${ARG_WINRTCOMPONENT_WINMD}" WINRTCOMPONENT_WINMD_HASH)
+    file(SHA256 "${ARG_PROJECTION_JSON}" PROJECTION_JSON_HASH)
+    set(CACHE_KEY
+        "SwiftWinRT.exe: ${SWIFTWINRT_EXE_HASH}"
+        "WinRTComponent.winmd: ${WINRTCOMPONENT_WINMD_HASH}"
+        "Projection.json: ${PROJECTION_JSON_HASH}"
+        "Projection directory: ${ARG_PROJECTION_DIR}"
+        "Support package directory: ${SPM_SUPPORT_PACKAGE_DIR}"
+        "Windows SDK version: ${WINDOWS_SDK_VERSION}")
+    string(REPLACE ";" "\n" CACHE_KEY "${CACHE_KEY}")
+    if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/ProjectionCacheKey.txt")
+        file(READ "${CMAKE_CURRENT_BINARY_DIR}/ProjectionCacheKey.txt" PREVIOUS_CACHE_KEY)
+        if("${PREVIOUS_CACHE_KEY}" STREQUAL "${CACHE_KEY}")
+            message(STATUS "Skipping projection generation because the inputs have not changed")
+            return()
+        endif()
+    endif()
+
+    # Generate the projection
     cmake_path(CONVERT "${ARG_PROJECTION_JSON}" TO_NATIVE_PATH_LIST PROJECTION_JSON_NATIVE)
-    string(REPLACE "\\" "" WINDOWS_SDK_VERSION "$ENV{WindowsSDKVersion}") # Remove trailing slash
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
-    cmake_path(CONVERT "${REPO_ROOT}" TO_NATIVE_PATH_LIST SPM_SUPPORT_PACKAGE_DIR_NATIVE)
+    cmake_path(CONVERT "${SPM_SUPPORT_PACKAGE_DIR}" TO_NATIVE_PATH_LIST SPM_SUPPORT_PACKAGE_DIR_NATIVE)
     cmake_path(CONVERT "${ARG_PROJECTION_DIR}" TO_NATIVE_PATH_LIST PROJECTION_DIR_NATIVE)
     execute_process(
         COMMAND "${ARG_SWIFTWINRT_EXE}"
@@ -44,6 +66,9 @@ function(generate_projection)
             --out "${PROJECTION_DIR_NATIVE}"
             --out-manifest "${PROJECTION_DIR_NATIVE}\\WinRTComponent.manifest"
         COMMAND_ERROR_IS_FATAL ANY)
+
+    # Save the cache key
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ProjectionCacheKey.txt" "${CACHE_KEY}")
 endfunction()
 
 # Support running as a script
