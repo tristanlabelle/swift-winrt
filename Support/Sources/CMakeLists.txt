@@ -1,5 +1,4 @@
 add_subdirectory(COM_ABI)
-add_subdirectory(COM_InternalABI)
 add_subdirectory(WindowsRuntime_ABI)
 
 add_subdirectory(ABIBindings)

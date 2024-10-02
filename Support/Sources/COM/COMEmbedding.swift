@@ -1,5 +1,5 @@
 import COM_ABI
-import SWRT_SwiftCOMObject
+import COM_PrivateABI
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {

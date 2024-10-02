@@ -1,3 +1,0 @@
-add_library(COM_InternalABI INTERFACE)
-target_include_directories(COM_InternalABI INTERFACE include)
-target_link_libraries(COM_InternalABI INTERFACE COM_ABI WindowsRuntime_ABI)
