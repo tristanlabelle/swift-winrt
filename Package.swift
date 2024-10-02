@@ -22,9 +22,9 @@ let package = Package(
             path: "Support/Sources/WindowsRuntime_ABI",
             exclude: ["CMakeLists.txt"]),
         .target(
-            name: "InternalABI",
+            name: "COM_InternalABI",
             dependencies: ["COM_ABI", "WindowsRuntime_ABI"],
-            path: "Support/Sources/InternalABI",
+            path: "Support/Sources/COM_InternalABI",
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "ABIBindings",
@@ -32,12 +32,12 @@ let package = Package(
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "COM",
-            dependencies: ["ABIBindings", "COM_ABI", "InternalABI"],
+            dependencies: ["ABIBindings", "COM_ABI", "COM_InternalABI"],
             path: "Support/Sources/COM",
             exclude: ["CMakeLists.txt"]),
         .target(
             name: "WindowsRuntime",
-            dependencies: ["COM", "WindowsRuntime_ABI", "InternalABI"],
+            dependencies: ["COM", "WindowsRuntime_ABI"],
             path: "Support/Sources/WindowsRuntime",
             exclude: [
                 "CMakeLists.txt",

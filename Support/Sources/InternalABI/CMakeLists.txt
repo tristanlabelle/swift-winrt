@@ -1,3 +1,0 @@
-add_library(SWRT_InternalABI INTERFACE)
-target_include_directories(SWRT_InternalABI INTERFACE include)
-target_link_libraries(SWRT_InternalABI INTERFACE COM_ABI WindowsRuntime_ABI)

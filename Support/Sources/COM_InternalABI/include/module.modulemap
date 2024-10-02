@@ -1,0 +1,4 @@
+module SWRT_SwiftCOMObject {
+    header "SwiftCOMObject.h"
+    export *
+}

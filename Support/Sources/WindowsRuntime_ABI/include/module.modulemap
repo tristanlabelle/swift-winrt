@@ -12,3 +12,8 @@ module WindowsRuntime_ABI {
     header "SWRT/windows/winstring.h"
     export *
 }
+
+module SWRT_WindowsFoundation {
+    header "SWRT/windows/windows.foundation.h"
+    export *
+}
