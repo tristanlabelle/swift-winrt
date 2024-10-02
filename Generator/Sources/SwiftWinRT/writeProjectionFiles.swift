@@ -106,11 +106,6 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
-            // Workaround CMake error with mismatching module names:
-            // "CMake can not determine linker language for target: <blah>"
-            // writer.writeSingleLineCommand(
-            //     "set_target_properties", .autoquote(targetName),
-            //     "PROPERTIES", "LINKER_LANGUAGE", "Swift")
         }
         writer.writeTargetLinkLibraries(targetName, .public,
             [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
@@ -143,11 +138,6 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
                 writer.writeSingleLineCommand(
                     "set_target_properties", .autoquote(targetName),
                     "PROPERTIES", "Swift_MODULE_NAME", .autoquote(namespaceModuleName))
-                // Workaround CMake error with mismatching module names:
-                // "CMake can not determine linker language for target: <blah>"
-                // writer.writeSingleLineCommand(
-                //     "set_target_properties", .autoquote(targetName),
-                //     "PROPERTIES", "LINKER_LANGUAGE", "Swift")
             }
             writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
         }

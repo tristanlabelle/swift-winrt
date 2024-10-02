@@ -1,5 +1,6 @@
 import COM_ABI
-import SWRT_SwiftCOMObject
+// @_implementationOnly to work around https://gitlab.kitware.com/cmake/cmake/-/issues/26346
+@_implementationOnly import SWRT_SwiftCOMObject
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {
