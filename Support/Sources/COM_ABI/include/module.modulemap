@@ -10,3 +10,8 @@ module COM_ABI {
     header "SWRT/windows/wtypes.h"
     export *
 }
+
+module COM_PrivateABI {
+    header "SwiftCOMObject.h"
+    export *
+}

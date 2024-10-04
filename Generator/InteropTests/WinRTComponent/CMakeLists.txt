@@ -1,7 +1,7 @@
 # Support using this directory as a standalone project or as a subdirectory.
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     cmake_minimum_required(VERSION 3.21.0)
-    project(WinRTComponent LANGUAGES CXX)
+    project(WinRTComponent LANGUAGES CXX Swift)
 endif()
 
 if (NOT DEFINED SWIFTWINRT_EXE)
@@ -42,7 +42,4 @@ ExternalProject_Add(WinRTComponent
     TEST_COMMAND "")
 
 # Define the projection build
-# TODO(https://github.com/tristanlabelle/swift-winrt/issues/302): Fix linking issues
-# add_subdirectory(
-#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Sources
-#     ${CMAKE_CURRENT_BINARY_DIR}/Projection/Build)
+add_subdirectory("${PROJECTION_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/Projection/Build")

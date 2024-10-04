@@ -96,17 +96,25 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         writer.writeSingleLineCommand("file", "GLOB_RECURSE", "SOURCES", "*.swift")
+        
         let targetName = cmakeOptions.getTargetName(moduleName: module.name)
         writer.writeSingleLineCommand(
             "add_library",
             .autoquote(targetName),
             .unquoted(cmakeOptions.dynamicLibraries ? "SHARED" : "STATIC"),
             .unquoted("${SOURCES}"))
+        
         if targetName != module.name {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
+
+        // Workaround for https://github.com/swiftlang/swift-driver/issues/1477
+        writer.writeSingleLineCommand(
+            "target_compile_options", .autoquote(targetName),
+            "PRIVATE", "-driver-filelist-threshold=9999")
+
         writer.writeTargetLinkLibraries(targetName, .public,
             [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
                 + module.references.map { cmakeOptions.getTargetName(moduleName: $0.name) })
@@ -136,8 +144,8 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
             writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
             if targetName != namespaceModuleName {
                 writer.writeSingleLineCommand(
-                    "set_target_properties", .unquoted(targetName),
-                    "PROPERTIES", "Swift_MODULE_NAME", .unquoted(namespaceModuleName))
+                    "set_target_properties", .autoquote(targetName),
+                    "PROPERTIES", "Swift_MODULE_NAME", .autoquote(namespaceModuleName))
             }
             writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
         }
