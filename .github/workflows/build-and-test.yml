@@ -47,18 +47,18 @@ jobs:
       run: swift test --verbose --skip-build
 
     - name: Build WinRTComponent
-      working-directory: Generator/InteropTests
+      working-directory: InteropTests
       shell: pwsh
       run: |
         & .\SPMPrebuild.ps1 -SwiftWinRT "$Env:GITHUB_WORKSPACE\Generator\.build\debug\SwiftWinRT.exe"
 
     - name: Build InteropTests
-      working-directory: Generator/InteropTests
+      working-directory: InteropTests
       shell: pwsh
       run: swift build --verbose --build-tests
 
     - name: Run InteropTests
-      working-directory: Generator/InteropTests
+      working-directory: InteropTests
       shell: pwsh
       run: swift test --verbose --skip-build
 
