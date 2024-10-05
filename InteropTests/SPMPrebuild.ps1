@@ -17,7 +17,8 @@ $ErrorActionPreference = "Stop"
 if (-not $SwiftWinRT) {
     Write-Host -ForegroundColor Cyan "Building SwiftWinRT.exe with SPM..."
     $SwiftConfiguration = "debug"
-    $GeneratorProjectDir = "$PSScriptRoot\.."
+    $RepoRoot = (& git.exe -C "$PSScriptRoot" rev-parse --path-format=absolute --show-toplevel).Trim()
+    $GeneratorProjectDir = "$RepoRoot\Generator"
     & swift.exe build `
         --package-path $GeneratorProjectDir `
         --configuration $SwiftConfiguration `

@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "InteropTests",
     dependencies: [
-        .package(name: "Support", path: "../.."),
+        .package(name: "Support", path: ".."),
         .package(name: "Projection", path: "WinRTComponent/Projection"),
     ],
     targets: [
