@@ -1,4 +1,4 @@
-// swift-tools-version: 5.10 
+// swift-tools-version: 5.10
 import PackageDescription
 
 // This root Package.swift by design only builds the Swift/WinRT support modules, and not the code generator.
