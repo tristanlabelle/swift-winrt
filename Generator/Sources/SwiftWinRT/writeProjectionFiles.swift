@@ -115,7 +115,7 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
         // See https://github.com/swiftlang/swift-driver/blob/6af4c7dbc0559694578e5221d49970f94603b9e5/Sources/SwiftDriver/Jobs/FrontendJobHelpers.swift#L714
         writer.writeSingleLineCommand(
             "target_compile_options", .autoquote(targetName),
-            "PRIVATE", "-driver-filelist-threshold=\(Int32.max)")
+            "PRIVATE", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
 
         writer.writeTargetLinkLibraries(targetName, .public,
             [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
