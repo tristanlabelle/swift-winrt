@@ -17,11 +17,11 @@ class EnumTests: WinRTTestCase {
         XCTAssertEqual(Flags.all.rawValue, 0xFFFFFFFF)
     }
 
-    func testFlagsBitwiseOps() throws {
-        XCTAssert(Enums.hasFlags(Flags.bit0 | Flags.bit16, Flags.bit0))
-        XCTAssert(Enums.hasFlags(Flags.bit0 | Flags.bit16, Flags.bit16))
-        XCTAssert(Enums.hasFlags(Flags.all & Flags.bit0, Flags.bit0))
-        XCTAssertFalse(Enums.hasFlags(Flags.all & Flags.bit0, Flags.bit16))
+    func testFlagsSetAlgebra() throws {
+        XCTAssert(Enums.hasFlags(Flags.bit0.union(Flags.bit16), Flags.bit0))
+        XCTAssert(Enums.hasFlags(Flags.bit0.union(Flags.bit16), Flags.bit16))
+        XCTAssert(Enums.hasFlags(Flags.all.intersection(Flags.bit0), Flags.bit0))
+        XCTAssertFalse(Enums.hasFlags(Flags.all.intersection(Flags.bit0), Flags.bit16))
         XCTAssertFalse(Enums.hasFlags(Flags.bit0, Flags.bit16))
     }
 }

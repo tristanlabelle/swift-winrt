@@ -7,7 +7,7 @@ namespace winrt::WinRTComponent::implementation
     {
         Enums() = default;
 
-        static boolean HasFlag(Flags value, Flags flag);
+        static boolean HasFlags(Flags value, Flags flags);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

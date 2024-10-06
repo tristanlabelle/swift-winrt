@@ -4,8 +4,8 @@
 
 namespace winrt::WinRTComponent::implementation
 {
-    boolean Enums::HasFlag(Flags value, Flags flag)
+    boolean Enums::HasFlags(Flags value, Flags flags)
     {
-        return (value & flag) == flag;
+        return (value & flags) == flags;
     }
 }

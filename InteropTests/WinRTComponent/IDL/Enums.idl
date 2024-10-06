@@ -18,6 +18,6 @@ namespace WinRTComponent
 
     static runtimeclass Enums
     {
-        static Boolean HasFlag(Flags value, Flags flag);
+        static Boolean HasFlags(Flags value, Flags flags);
     };
 }
