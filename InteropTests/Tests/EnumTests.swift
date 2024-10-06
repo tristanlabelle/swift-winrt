@@ -18,8 +18,10 @@ class EnumTests: WinRTTestCase {
     }
 
     func testFlagsBitwiseOps() throws {
-        XCTAssert(Enums.HasFlags(Flags.bit1 | Flags.bit16, Flags.bit1))
-        XCTAssert(Enums.HasFlags(Flags.bit1 | Flags.bit16, Flags.bit16))
-        XCTAssertFalse(Enums.HasFlags(Flags.bit1, Flags.bit16))
+        XCTAssert(Enums.hasFlags(Flags.bit0 | Flags.bit16, Flags.bit0))
+        XCTAssert(Enums.hasFlags(Flags.bit0 | Flags.bit16, Flags.bit16))
+        XCTAssert(Enums.hasFlags(Flags.all & Flags.bit0, Flags.bit0))
+        XCTAssertFalse(Enums.hasFlags(Flags.all & Flags.bit0, Flags.bit16))
+        XCTAssertFalse(Enums.hasFlags(Flags.bit0, Flags.bit16))
     }
 }
