@@ -15,4 +15,9 @@ namespace WinRTComponent
         Bit16 = 0x10000,
         All = 0xFFFFFFFF,
     };
+
+    static runtimeclass Enums
+    {
+        static Boolean HasFlags(Flags value, Flags flags);
+    };
 }
