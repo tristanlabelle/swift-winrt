@@ -23,5 +23,5 @@ execute_process(
 add_subdirectory(Support)
 
 # Now build InteropTests, which depends on SWIFTWINRT_EXE
-set(SWIFTWINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Generator/Sources/SwiftWinRT/SwiftWinRT.exe")
+set(SWIFTWINRT_EXE "${CMAKE_CURRENT_BINARY_DIR}/Generator/SwiftWinRT.exe")
 add_subdirectory(InteropTests)
