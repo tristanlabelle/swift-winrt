@@ -16,4 +16,10 @@ class EnumTests: WinRTTestCase {
         XCTAssertEqual(Flags.bit16.rawValue, 0x10000)
         XCTAssertEqual(Flags.all.rawValue, 0xFFFFFFFF)
     }
+
+    func testFlagsBitwiseOps() throws {
+        XCTAssert(Enums.HasFlags(Flags.bit1 | Flags.bit16, Flags.bit1))
+        XCTAssert(Enums.HasFlags(Flags.bit1 | Flags.bit16, Flags.bit16))
+        XCTAssertFalse(Enums.HasFlags(Flags.bit1, Flags.bit16))
+    }
 }
