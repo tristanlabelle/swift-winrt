@@ -6,11 +6,11 @@ namespace winrt::WinRTComponent::implementation
 {
     FlagsEnum Enums::BitwiseAnd(FlagsEnum lhs, FlagsEnum rhs)
     {
-        return value & flags;
+        return lhs & rhs;
     }
 
     FlagsEnum Enums::BitwiseOr(FlagsEnum lhs, FlagsEnum rhs)
     {
-        return value | flags;
+        return lhs | rhs;
     }
 }
