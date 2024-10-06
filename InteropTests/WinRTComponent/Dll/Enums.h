@@ -7,7 +7,8 @@ namespace winrt::WinRTComponent::implementation
     {
         Enums() = default;
 
-        static boolean HasFlags(Flags value, Flags flags);
+        static FlagsEnum BitwiseAnd(FlagsEnum lhs, FlagsEnum rhs);
+        static FlagsEnum BitwiseOr(FlagsEnum lhs, FlagsEnum rhs);
     };
 }
 namespace winrt::WinRTComponent::factory_implementation

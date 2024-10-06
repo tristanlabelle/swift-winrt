@@ -1,27 +1,31 @@
 import XCTest
 import WinRTComponent
 
+// Compile-time test that the type was generated as a Swift enum
+import enum WinRTComponent.SwiftEnum
+
 class EnumTests: WinRTTestCase {
     func testNonFlags() throws {
-        XCTAssert(Enum.RawValue.self == Int32.self)
-        XCTAssertEqual(Enum.minusOne.rawValue, -1)
-        XCTAssertEqual(Enum.zero.rawValue, 0)
-        XCTAssertEqual(Enum.int32Max.rawValue, Int32.max)
+        XCTAssert(SignedEnum.RawValue.self == Int32.self)
+        XCTAssertEqual(SignedEnum.min.rawValue, Int32.min)
+        XCTAssertEqual(SignedEnum.negativeOne.rawValue, -1)
+        XCTAssertEqual(SignedEnum.zero.rawValue, 0)
+        XCTAssertEqual(SignedEnum.one.rawValue, 1)
+        XCTAssertEqual(SignedEnum.max.rawValue, Int32.max)
     }
 
     func testFlags() throws {
-        XCTAssert(Flags.RawValue.self == UInt32.self)
-        XCTAssertEqual(Flags.none.rawValue, 0)
-        XCTAssertEqual(Flags.bit0.rawValue, 1)
-        XCTAssertEqual(Flags.bit16.rawValue, 0x10000)
-        XCTAssertEqual(Flags.all.rawValue, 0xFFFFFFFF)
+        XCTAssert(FlagsEnum.RawValue.self == UInt32.self)
+        XCTAssertEqual(FlagsEnum.none.rawValue, 0)
+        XCTAssertEqual(FlagsEnum.bit0.rawValue, 1)
+        XCTAssertEqual(FlagsEnum.bit16.rawValue, 0x10000)
+        XCTAssertEqual(FlagsEnum.all.rawValue, 0xFFFFFFFF)
     }
 
     func testFlagsSetAlgebra() throws {
-        XCTAssert(try Enums.hasFlags(Flags.bit0.union(Flags.bit16), Flags.bit0))
-        XCTAssert(try Enums.hasFlags(Flags.bit0.union(Flags.bit16), Flags.bit16))
-        XCTAssert(try Enums.hasFlags(Flags.all.intersection(Flags.bit0), Flags.bit0))
-        XCTAssertFalse(try Enums.hasFlags(Flags.all.intersection(Flags.bit0), Flags.bit16))
-        XCTAssertFalse(try Enums.hasFlags(Flags.bit0, Flags.bit16))
+        XCTAssertEqual(FlagsEnum.all.intersection(FlagsEnum.bit16), try Enums.bitwiseAnd(FlagsEnum.all, FlagsEnum.bit16))
+        XCTAssertEqual(FlagsEnum.bit16.intersection(FlagsEnum.all), try Enums.bitwiseAnd(FlagsEnum.bit16, FlagsEnum.all))
+        XCTAssertEqual(FlagsEnum.bit0.union(FlagsEnum.bit16), try Enums.bitwiseOr(FlagsEnum.bit0, FlagsEnum.bit16))
+        XCTAssertEqual(FlagsEnum.bit16.union(FlagsEnum.bit0), try Enums.bitwiseOr(FlagsEnum.bit16, FlagsEnum.bit0))
     }
 }

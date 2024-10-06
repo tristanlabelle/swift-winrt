@@ -1,14 +1,16 @@
 namespace WinRTComponent
 {
-    enum Enum
+    enum SignedEnum
     {
-        MinusOne = -1,
+        Min = -2147483648,
+        NegativeOne = -1,
         Zero = 0,
-        Int32Max = 2147483647
+        One = 1,
+        Max = 2147483647
     };
 
     [flags]
-    enum Flags
+    enum FlagsEnum
     {
         None = 0,
         Bit0 = 1,
@@ -16,8 +18,19 @@ namespace WinRTComponent
         All = 0xFFFFFFFF,
     };
 
+    [attributeusage(target_enum)]
+    attribute SwiftEnumAttribute {}
+
+    [SwiftEnum]
+    enum SwiftEnum
+    {
+        Zero = 0,
+        One = 1
+    };
+
     static runtimeclass Enums
     {
-        static Boolean HasFlags(Flags value, Flags flags);
+        static FlagsEnum BitwiseAnd(FlagsEnum lhs, FlagsEnum rhs);
+        static FlagsEnum BitwiseOr(FlagsEnum lhs, FlagsEnum rhs);
     };
 }
