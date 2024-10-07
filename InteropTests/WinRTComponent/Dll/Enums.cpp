@@ -4,8 +4,13 @@
 
 namespace winrt::WinRTComponent::implementation
 {
-    boolean Enums::HasFlags(Flags value, Flags flags)
+    FlagsEnum Enums::BitwiseAnd(FlagsEnum lhs, FlagsEnum rhs)
     {
-        return (value & flags) == flags;
+        return lhs & rhs;
+    }
+
+    FlagsEnum Enums::BitwiseOr(FlagsEnum lhs, FlagsEnum rhs)
+    {
+        return lhs | rhs;
     }
 }
