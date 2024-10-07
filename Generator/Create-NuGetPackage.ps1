@@ -1,3 +1,7 @@
+<#
+.SYNOPSIS
+Creates the Swift/WinRT nuget package, including the code generator executable and support module sources.
+#>
 param(
     [string]$NativeExe = $null,
     [string]$X64BinPath = $null,
@@ -57,12 +61,26 @@ if ($Arm64BinPath) {
 
 Write-Host "  support module sources..."
 New-Item -ItemType Directory -Path $StagingDir\swift -Force | Out-Null
-Copy-Item -Path $PSScriptRoot\..\Package.swift -Destination $StagingDir\swift\ -Force | Out-Null
-Copy-Item -Path $PSScriptRoot\..\Package.resolved -Destination $StagingDir\swift\ -Force -ErrorAction Ignore | Out-Null # Might not have one
-Copy-Item -Path $PSScriptRoot\..\Support -Destination $StagingDir\swift\Support\ -Recurse -Force | Out-Null
+$RepoRoot = (& git.exe -C "$PSScriptRoot" rev-parse --path-format=absolute --show-toplevel).Trim()
+$PackageSwift = Get-Content -Path $RepoRoot\Package.swift -Raw -Encoding UTF8
+$PackageSwift = $PackageSwift -replace "Support/Sources/", "" # Flatten directory structure
+# Remove test targets
+$PackageSwift = [Regex]::Replace($PackageSwift, "
+    # Match the first line of a test target
+    ^(?<indentation>[ ]+)
+        \.testTarget\(
+        .*\n
+    # Match subsequent lines of the test target (further indented)
+    (
+        \k<indentation> .*\n
+    )*
+    ", "", "CultureInvariant,ExplicitCapture,IgnorePatternWhitespace,Multiline")
+Out-File -FilePath $StagingDir\swift\Package.swift -InputObject $PackageSwift -Encoding UTF8
+Copy-Item -Path $RepoRoot\Package.resolved -Destination $StagingDir\swift\ -Force -ErrorAction Ignore | Out-Null # Might not have one
+Copy-Item -Path $RepoRoot\Support\Sources\* -Destination $StagingDir\swift\ -Recurse -Force | Out-Null
 
 Write-Host "  readme..."
-Copy-Item -Path $PSScriptRoot\..\Readme.md -Destination $StagingDir\ -Force | Out-Null
+Copy-Item -Path $RepoRoot\Readme.md -Destination $StagingDir\ -Force | Out-Null
 
 Write-Host "Creating NuGet package..."
 $NuGetArgs = @("pack",
