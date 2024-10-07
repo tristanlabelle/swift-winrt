@@ -19,19 +19,20 @@ internal func writeEnumDefinition(_ enumDefinition: EnumDefinition, projection: 
 }
 
 fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
-    // Enums are syntactic sugar for integers in .NET,
+    // By default, enums are syntactic sugar for integers in .NET,
     // so we cannot guarantee that the enumerants are exhaustive,
     // therefore we cannot project them to Swift enums
     // since they would be unable to represent unknown values.
+    var protocolConformances: [SwiftType] = [ .identifier("CStyleEnum") ]
+    if try enumDefinition.isFlags {
+        protocolConformances.append(.identifier("OptionSet"))
+    }
+
     try writer.writeStruct(
             documentation: projection.getDocumentationComment(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
-            protocolConformances: [
-                .identifier(name: enumDefinition.isFlags ? "OptionSet" : "RawRepresentable"),
-                .identifier("Codable"),
-                .identifier("Hashable"),
-                .identifier("Sendable") ]) { writer throws in
+            protocolConformances: protocolConformances) { writer throws in
 
         let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
         writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
@@ -59,10 +60,7 @@ fileprivate func writeClosedEnumDefinition(_ enumDefinition: EnumDefinition, pro
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
             rawValueType: try projection.toType(enumDefinition.underlyingType.bindNode()),
-            protocolConformances: [
-                .identifier("Codable"),
-                .identifier("Hashable"),
-                .identifier("Sendable") ]) { writer throws in
+            protocolConformances: [ .identifier("ClosedEnum") ]) { writer throws in
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             try writer.writeEnumCase(
                 documentation: projection.getDocumentationComment(field),

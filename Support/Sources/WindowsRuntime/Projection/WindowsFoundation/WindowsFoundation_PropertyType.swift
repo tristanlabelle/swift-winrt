@@ -1,5 +1,5 @@
 /// Specifies property value types.
-public struct WindowsFoundation_PropertyType: RawRepresentable, Hashable, Codable, Sendable {
+public struct WindowsFoundation_PropertyType: CStyleEnum {
     public var rawValue: Swift.Int32
 
     public init(rawValue: Swift.Int32 = 0) {
