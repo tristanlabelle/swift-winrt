@@ -77,8 +77,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
 
                 writer.writeFunc(
                         visibility: .public, static: true, name: op + "=",
-                        params: [ .init(name: "lhs", `inout`: true, type: .`self`), .init(name: "rhs", type: .`self`) ],
-                        returnType: .`self`) { writer in
+                        params: [ .init(name: "lhs", `inout`: true, type: .`self`), .init(name: "rhs", type: .`self`) ]) { writer in
                     writer.writeStatement("lhs = Self(rawValue: lhs.rawValue \(op) rhs.rawValue)")
                 }
             }
