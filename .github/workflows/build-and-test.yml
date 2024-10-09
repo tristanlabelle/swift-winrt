@@ -94,7 +94,6 @@ jobs:
         Test-Json `
           -Path InteropTests\WinRTComponent\Projection.json `
           -SchemaFile Generator\Projection.schema.json
-        throw "bleh"
 
   required:
     name: Go/No-Go
