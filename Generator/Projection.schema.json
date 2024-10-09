@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "Defines how to project WinRT types into Swift",
+    "type": "object",
+    "properties": {
+        "modules": {
+            "description": "Defines the Swift modules to be generated.",
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9_]+$": {
+                    "description": "Defines a generated Swift module.",
+                    "type": "object",
+                    "properties": {
+                        "assemblies": {
+                            "description": "A list of name patterns for assemblies whose types contribute to this module.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "types": {
+                            "title": "A list of name patterns for types to be included in the generated Swift module.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "flattenNamespaces": {
+                            "title": "Whether to ignore WinRT namespaces when generating Swift types.",
+                            "type": "boolean"
+                        },
+                        "fileNameInManifest": {
+                            "title": "The filename of the dll which provides class activation for this module.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "assemblies"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

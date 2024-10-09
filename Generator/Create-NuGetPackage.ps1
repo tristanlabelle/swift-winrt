@@ -3,14 +3,14 @@
 Creates the Swift/WinRT nuget package, including the code generator executable and support module sources.
 #>
 param(
-    [string]$NativeExe = $null,
-    [string]$X64BinPath = $null,
-    [string]$Arm64BinPath = $null,
-    [string]$Version = $null,
-    [string]$StagingDir = $null,
-    [string]$NuGetExe = "nuget.exe",
+    [string] $NativeExe = $null,
+    [string] $X64BinPath = $null,
+    [string] $Arm64BinPath = $null,
+    [string] $Version = $null,
+    [string] $StagingDir = $null,
+    [string] $NuGetExe = "nuget.exe",
     [Parameter(Mandatory=$true)]
-    [string]$OutputPath)
+    [string] $OutputPath)
 
 $ErrorActionPreference = "Stop"
 
@@ -78,6 +78,10 @@ $PackageSwift = [Regex]::Replace($PackageSwift, "
 Out-File -FilePath $StagingDir\swift\Package.swift -InputObject $PackageSwift -Encoding UTF8
 Copy-Item -Path $RepoRoot\Package.resolved -Destination $StagingDir\swift\ -Force -ErrorAction Ignore | Out-Null # Might not have one
 Copy-Item -Path $RepoRoot\Support\Sources\* -Destination $StagingDir\swift\ -Recurse -Force | Out-Null
+
+Write-Host "  json schema..."
+New-Item -ItemType Directory $StagingDir\json -Force | Out-Null
+Copy-Item -Path $PSScriptRoot\Projection.schema.json -Destination $StagingDir\json\ -Force | Out-Null
 
 Write-Host "  readme..."
 Copy-Item -Path $RepoRoot\Readme.md -Destination $StagingDir\ -Force | Out-Null

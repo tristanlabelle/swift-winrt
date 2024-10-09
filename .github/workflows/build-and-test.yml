@@ -78,3 +78,29 @@ jobs:
     - name: CMake Build
       shell: pwsh
       run: cmake --build --preset debug
+
+  json-schema:
+    name: JSON Schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Test Schema
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Test-Json `
+          -Path InteropTests\WinRTComponent\Projection.json `
+          -SchemaFile Generator\Projection.schema.json
+
+  required:
+    name: Go/No-Go
+    runs-on: ubuntu-latest
+    needs: [spm-support, spm-generator-and-interoptests, cmake, json-schema]
+    if: always()
+    steps:
+      - name: Check for required job failures
+        if: contains(needs.*.result, 'failure')
+        run: exit 1
