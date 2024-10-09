@@ -70,6 +70,7 @@ extension SwiftSyntaxWriter {
         static: Bool = false,
         override: Bool = false,
         mutating: Bool = false,
+        operatorLocation: SwiftOperatorLocation? = nil,
         name: String,
         typeParams: [String] = [],
         params: [SwiftParam] = [],
@@ -83,6 +84,10 @@ extension SwiftSyntaxWriter {
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
         if `mutating` { output.write("mutating ") }
+        if let `operatorLocation` {
+            output.write(String(describing: operatorLocation))
+            output.write(" ")
+        }
         output.write("func ")
         SwiftIdentifier.write(name, to: &output)
         writeTypeParams(typeParams)

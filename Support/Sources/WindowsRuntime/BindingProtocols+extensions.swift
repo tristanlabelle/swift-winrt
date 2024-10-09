@@ -1,6 +1,12 @@
 import WindowsRuntime_ABI
 import SWRT_WindowsFoundation
 
+extension ClosedEnumBinding {
+    public static var abiDefaultValue: RawValue { RawValue.zero }
+    public static func fromABI(_ value: RawValue) -> Self { Self(rawValue: value)! }
+    public static func toABI(_ value: Self) -> RawValue { value.rawValue }
+}
+
 extension IReferenceableBinding {
     public typealias IReferenceToOptional = IReferenceToOptionalBinding<Self>
 

@@ -22,10 +22,12 @@ class EnumTests: WinRTTestCase {
         XCTAssertEqual(FlagsEnum.all.rawValue, 0xFFFFFFFF)
     }
 
-    func testFlagsSetAlgebra() throws {
-        XCTAssertEqual(FlagsEnum.all.intersection(FlagsEnum.bit16), try Enums.bitwiseAnd(FlagsEnum.all, FlagsEnum.bit16))
-        XCTAssertEqual(FlagsEnum.bit16.intersection(FlagsEnum.all), try Enums.bitwiseAnd(FlagsEnum.bit16, FlagsEnum.all))
-        XCTAssertEqual(FlagsEnum.bit0.union(FlagsEnum.bit16), try Enums.bitwiseOr(FlagsEnum.bit0, FlagsEnum.bit16))
-        XCTAssertEqual(FlagsEnum.bit16.union(FlagsEnum.bit0), try Enums.bitwiseOr(FlagsEnum.bit16, FlagsEnum.bit0))
+    func testFlagsBitwiseOperators() throws {
+        XCTAssertEqual(~FlagsEnum.all, try Enums.bitwiseNot(FlagsEnum.all))
+        XCTAssertEqual(FlagsEnum.all & FlagsEnum.bit16, try Enums.bitwiseAnd(FlagsEnum.all, FlagsEnum.bit16))
+        XCTAssertEqual(FlagsEnum.bit16 & FlagsEnum.all, try Enums.bitwiseAnd(FlagsEnum.bit16, FlagsEnum.all))
+        XCTAssertEqual(FlagsEnum.bit0 | FlagsEnum.bit16, try Enums.bitwiseOr(FlagsEnum.bit0, FlagsEnum.bit16))
+        XCTAssertEqual(FlagsEnum.bit16 | FlagsEnum.bit0, try Enums.bitwiseOr(FlagsEnum.bit16, FlagsEnum.bit0))
+        XCTAssertEqual(FlagsEnum.bit0 ^ FlagsEnum.bit16, try Enums.bitwiseXor(FlagsEnum.bit0, FlagsEnum.bit16))
     }
 }
