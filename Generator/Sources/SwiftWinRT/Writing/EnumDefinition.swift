@@ -23,16 +23,12 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
     // so we cannot guarantee that the enumerants are exhaustive,
     // therefore we cannot project them to Swift enums
     // since they would be unable to represent unknown values.
-    var protocolConformances: [SwiftType] = [ .identifier("CStyleEnum") ]
-    if try enumDefinition.isFlags {
-        protocolConformances.append(.identifier("OptionSet"))
-    }
-
+    let structName = try projection.toTypeName(enumDefinition)
     try writer.writeStruct(
             documentation: projection.getDocumentationComment(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
-            name: try projection.toTypeName(enumDefinition),
-            protocolConformances: protocolConformances) { writer throws in
+            name: structName,
+            protocolConformances: [ .identifier("CStyleEnum") ]) { writer throws in
 
         let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
         writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
@@ -50,6 +46,42 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
                 visibility: .public, static: true, declarator: .let,
                 name: Projection.toMemberName(field),
                 initialValue: initializer)
+        }
+    }
+
+    // Generate bitwise operators for flags enums.
+    // We can't define them on the base protocol because
+    // it would require importing that module to resolve the operators.
+    if try enumDefinition.isFlags {
+        write.writeMarkComment("OptionSet and bitwise operators")
+
+        writer.writeExtension(
+                type: .identifier(structName),
+                protocolConformances: [ .identifier("OptionSet") ]) { writer in
+            // Bitwise not
+            writer.writeFunc(
+                    visibility: .public, static: true, operatorLocation: .prefix, name: "~",
+                    params: [ .init(name: "value", type: .`self`) ],
+                    returnType: .`self`) { writer in
+                writer.writeStatement("Self(rawValue: ~value.rawValue)")
+            }
+
+            // Bitwise or, and, xor, including assignment forms
+            for op in [ "|", "&", "^" ] {
+                writer.writeFunc(
+                        visibility: .public, static: true, name: op,
+                        params: [ .init(name: "lhs", type: .`self`), .init(name: "rhs", type: .`self`) ],
+                        returnType: .`self`) { writer in
+                    writer.writeStatement("Self(rawValue: lhs.rawValue \(op) rhs.rawValue)")
+                }
+
+                writer.writeFunc(
+                        visibility: .public, static: true, name: op + "=",
+                        params: [ .init(name: "lhs", `inout`: true, type: .`self`), .init(name: "rhs", type: .`self`) ],
+                        returnType: .`self`) { writer in
+                    writer.writeStatement("lhs = Self(rawValue: lhs.rawValue \(op) rhs.rawValue)")
+                }
+            }
         }
     }
 }
