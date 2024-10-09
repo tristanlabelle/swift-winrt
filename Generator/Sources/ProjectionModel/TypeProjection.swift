@@ -24,8 +24,8 @@ public struct TypeProjection {
     public enum Kind: Hashable {
         /// The Swift and ABI representations are the same, and do not own any resources.
         case identity
-        /// The ABI representation is distinct and does not own any resources.
-        case inert
+        /// The ABI representation is distinct and does not own any resources (Plain Old Data).
+        case pod
         /// The ABI representation is distinct and owns resources.
         case allocating
         /// The ABI representation is a WinRT array.

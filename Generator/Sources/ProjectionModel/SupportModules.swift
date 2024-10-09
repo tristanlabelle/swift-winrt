@@ -22,7 +22,7 @@ extension SupportModules.COM {
     public static var hresult: SwiftType { .chain(moduleName, "HResult") }
 
     public static var abiBinding: SwiftType { .chain(moduleName, "ABIBinding") }
-    public static var abiInertBinding: SwiftType { .chain(moduleName, "PODBinding") }
+    public static var abiPODBinding: SwiftType { .chain(moduleName, "PODBinding") }
     public static var boolBinding: SwiftType { .chain(moduleName, "BoolBinding") }
     public static var wideCharBinding: SwiftType { .chain(moduleName, "WideCharBinding") }
     public static var guidBinding: SwiftType { .chain(moduleName, "GUIDBinding") }

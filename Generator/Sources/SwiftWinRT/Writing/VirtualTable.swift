@@ -88,7 +88,7 @@ fileprivate func writeVirtualTableFunc(
     var epilogueOutParamWithCleanupCount = 0
     for param in params {
         guard param.typeProjection.kind != .identity else { continue }
-        if param.passBy.isOutput, param.typeProjection.kind != .inert {
+        if param.passBy.isOutput, param.typeProjection.kind != .pod {
             epilogueOutParamWithCleanupCount += 1
         }
         try writePrologueForParam(param, to: output)
@@ -100,7 +100,7 @@ fileprivate func writeVirtualTableFunc(
             output.write("\(returnParam.name).pointee = ")
         }
         else {
-            if returnParam.typeProjection.kind != .inert {
+            if returnParam.typeProjection.kind != .pod {
                 epilogueOutParamWithCleanupCount += 1
             }
             output.write("let \(returnParam.swiftBindingName) = ")
@@ -171,7 +171,7 @@ fileprivate func writePrologueForParam(_ param: ParamProjection, to output: Inde
         output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).fromABI")
         switch param.typeProjection.kind {
             case .identity: fatalError("Case should have been ignored earlier.")
-            case .inert, .allocating:
+            case .pod, .allocating:
                 output.write("(\(param.name))")
             case .array:
                 output.write("(pointer: \(param.name), count: \(param.arrayLengthName))")

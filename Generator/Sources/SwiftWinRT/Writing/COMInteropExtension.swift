@@ -117,19 +117,19 @@ fileprivate func writeSwiftToABICall(
             continue
         }
 
-        let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeProjection.kind != .inert ? .var : .let
+        let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeProjection.kind != .pod ? .var : .let
         if param.passBy.isOutput { needsOutParamsEpilogue = true }
 
         if param.passBy.isOutput && !param.passBy.isInput {
             writer.writeStatement("\(declarator) \(param.abiBindingName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
         }
         else {
-            let tryPrefix = typeProjection.kind == .inert ? "" : "try "
+            let tryPrefix = typeProjection.kind == .pod ? "" : "try "
             writer.writeStatement("\(declarator) \(param.abiBindingName) = "
                 + "\(tryPrefix)\(typeProjection.bindingType).toABI(\(param.name))")
         }
 
-        if typeProjection.kind != .inert {
+        if typeProjection.kind != .pod {
             writer.writeStatement("defer { \(typeProjection.bindingType).release(&\(param.abiBindingName)) }")
         }
 
@@ -140,7 +140,7 @@ fileprivate func writeSwiftToABICall(
         for param in params {
             let typeProjection = param.typeProjection
             if typeProjection.kind != .identity && param.passBy.isOutput {
-                if typeProjection.kind == .inert {
+                if typeProjection.kind == .pod {
                     writer.writeStatement("\(param.name) = \(typeProjection.bindingType).fromABI(\(param.abiBindingName))")
                 }
                 else {
@@ -170,7 +170,7 @@ fileprivate func writeSwiftToABICall(
 
     if needsOutParamsEpilogue {
         // Don't leak the result if we fail in the out params epilogue
-        if returnTypeBinding.kind != .identity && returnTypeBinding.kind != .inert {
+        if returnTypeBinding.kind != .identity && returnTypeBinding.kind != .pod {
             writer.writeStatement("defer { \(returnTypeBinding.bindingType).release(&\(returnParam.name)) }")
         }
 
@@ -185,7 +185,7 @@ fileprivate func writeSwiftToABICall(
             returnValue = "\(SupportModules.COM.comReference)(transferringRef: \(returnParam.name))"
         case .identity where !returnCOMReference:
             returnValue = returnParam.name
-        case .inert:
+        case .pod:
             returnValue = "\(returnTypeBinding.bindingType).fromABI(\(returnParam.name))"
         default:
             returnValue = "\(returnTypeBinding.bindingType).fromABI(consuming: &\(returnParam.name))"

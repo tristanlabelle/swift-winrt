@@ -5,7 +5,7 @@ namespace WinRTComponent
     static runtimeclass Arrays
     {
         // Use an element type involving allocations,
-        // and assume that inert elements an other objects behave the same.
+        // and assume that POD elements and other objects behave the same.
         static String GetLast(String[] value);
         static String[] Make(String a, String b);
         static void Output(String a, String b, out String[] array);
