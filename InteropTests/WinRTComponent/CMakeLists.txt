@@ -26,7 +26,7 @@ include(GenerateProjection.cmake)
 generate_projection(
     SWIFTWINRT_EXE "${SWIFTWINRT_EXE}"
     WINRTCOMPONENT_WINMD "${WINRTCOMPONENT_WINMD}"
-    PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/projection.json"
+    PROJECTION_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Projection.json"
     PROJECTION_DIR "${PROJECTION_DIR}")
 
 # Define the dll build (requires cl.exe)

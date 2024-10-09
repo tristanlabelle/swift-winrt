@@ -92,7 +92,7 @@ jobs:
       run: |
         $ErrorActionPreference = 'Stop'
         Test-Json `
-          -Path InteropTests\WinRTComponent\projection.json `
+          -Path InteropTests\WinRTComponent\Projection.json `
           -SchemaFile Generator\Projection.schema.json
 
   required:

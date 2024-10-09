@@ -24,10 +24,10 @@ Setup your project's build to:
 1. Download the latest NuGet package from this repo's [Releases](https://github.com/tristanlabelle/swift-winrt/releases). Eventually those will be pushed to `nuget.org`.
 2. Invoke the `SwiftWinRT.exe` located in the NuGet package, specifying:
    - The Windows SDK and WinMD files to be projected.
-   - A `projection.json` file to describe the modules to generate, which assemblies should contribute to each of them, and which types to include. Refer to [this example](InteropTests/projection.json).
+   - A `Projection.json` file to describe the modules to generate, which assemblies should contribute to each of them, and which types to include. Refer to [this example](InteropTests/Projection.json) or [the schema](Generator/Projection.schema.json).
    - An output directory path.
 3. Reference and build the support module under the `swift` subdirectory of the NuGet package.
-4. Reference and build the generated code modules. For each module specified in `projection.json`, there should be an assembly module (with projected types), an ABI module (with C code) and any number of namespace modules (with type aliases for convenience).
+4. Reference and build the generated code modules. For each module specified in `Projection.json`, there should be an assembly module (with projected types), an ABI module (with C code) and any number of namespace modules (with type aliases for convenience).
 
 ### With the Swift Package Manager (SPM)
 
