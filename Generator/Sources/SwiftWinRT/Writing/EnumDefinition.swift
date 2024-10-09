@@ -53,7 +53,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
     // We can't define them on the base protocol because
     // it would require importing that module to resolve the operators.
     if try enumDefinition.isFlags {
-        write.writeMarkComment("OptionSet and bitwise operators")
+        writer.writeMarkComment("OptionSet and bitwise operators")
 
         writer.writeExtension(
                 type: .identifier(structName),
