@@ -89,11 +89,11 @@ fileprivate func writeStructBindingExtension(
         _ structDefinition: StructDefinition,
         projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
-    let isInert = try projection.isBindingInert(structDefinition)
+    let isPOD = try projection.isPODBinding(structDefinition)
 
     var protocolConformances = [SupportModules.WinRT.structBinding]
-    if isInert {
-        protocolConformances.append(SupportModules.COM.abiInertBinding)
+    if isPOD {
+        protocolConformances.append(SupportModules.COM.abiPODBinding)
     }
 
     // extension <struct>: IReferenceableBinding[, PODBinding]
@@ -150,7 +150,7 @@ fileprivate func writeStructBindingExtension(
         try writer.writeFunc(
                 visibility: .public, static: true, name: "toABI",
                 params: [.init(label: "_", name: "value", type: .`self`)],
-                throws: !isInert,
+                throws: !isPOD,
                 returnType: abiType) { writer in
             if fields.isEmpty {
                 writer.writeStatement(".init()")
@@ -169,7 +169,7 @@ fileprivate func writeStructBindingExtension(
             output.write(")", endLine: true)
         }
 
-        if !isInert {
+        if !isPOD {
             // public static func release(_ value: inout ABIValue) {}
             try writer.writeFunc(
                     visibility: .public, static: true, name: "release",
@@ -214,7 +214,7 @@ fileprivate func writeStructSwiftToABIInitializerParam(
     output.write(": ")
 
     if typeProjection.kind != .identity {
-        if typeProjection.kind != .inert { output.write("try ") }
+        if typeProjection.kind != .pod { output.write("try ") }
         typeProjection.bindingType.write(to: &output)
         output.write(".toABI(")
     }

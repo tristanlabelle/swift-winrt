@@ -28,7 +28,7 @@ public protocol ClosedEnumBinding: ClosedEnum, PODBinding, ValueTypeBinding
     where SwiftValue == Self, ABIValue == RawValue {}
 
 /// Protocol for bindings of WinRT structs into Swift.
-public protocol StructBinding: ValueTypeBinding {} // Inert structs will also conform to PODBinding
+public protocol StructBinding: ValueTypeBinding {} // POD structs will also conform to PODBinding
 
 /// Protocol for bindings of WinRT reference types into Swift.
 public protocol ReferenceTypeBinding: WinRTBinding, COMBinding {}

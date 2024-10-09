@@ -2,7 +2,7 @@ import XCTest
 import WindowsRuntime
 
 internal final class IReferenceTests: WinRTTestCase {
-    func testInertPrimitive() throws {
+    func testPODPrimitive() throws {
         let ireference = try createIReference(true)
         XCTAssertEqual(try ireference._value(), true)
     }
@@ -22,7 +22,7 @@ internal final class IReferenceTests: WinRTTestCase {
         XCTAssertEqual(try ireference._value(), WindowsFoundation_Point(x: 1, y: 2))
     }
 
-    func testInertPrimitiveArray() throws {
+    func testPODPrimitiveArray() throws {
         let ireferenceArray = try createIReferenceArray([true])
         XCTAssertEqual(try ireferenceArray._value(), [true])
     }

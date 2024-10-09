@@ -10,7 +10,7 @@ extension IInspectableProtocol {
 }
 
 class InspectableBoxingTests: WinRTTestCase {
-    func testInertPrimitiveRoundTrip() throws {
+    func testPODPrimitiveRoundTrip() throws {
         let original = Int32(42)
         XCTAssertEqual(try InspectableBoxing.boxInt32(original).unbox(Int32Binding.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxInt32(createIReference(original)), original)
@@ -28,7 +28,7 @@ class InspectableBoxingTests: WinRTTestCase {
         XCTAssertEqual(try InspectableBoxing.unboxMinimalEnum(createIReference(original)), original)
     }
 
-    func testStructRoundTrip() throws {
+    func testPODStructRoundTrip() throws {
         let original = MinimalStruct(field: 42)
         XCTAssertEqual(try InspectableBoxing.boxMinimalStruct(original).unbox(MinimalStruct.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxMinimalStruct(createIReference(original)), original)

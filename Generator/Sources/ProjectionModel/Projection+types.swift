@@ -27,7 +27,7 @@ extension Projection {
         return boundType.definition.isReferenceType && nullable ? .optional(wrapped: swiftObjectType) : swiftObjectType
     }
 
-    public func isBindingInert(_ typeDefinition: TypeDefinition) throws -> Bool {
+    public func isPODBinding(_ typeDefinition: TypeDefinition) throws -> Bool {
         switch typeDefinition {
             case is InterfaceDefinition, is DelegateDefinition, is ClassDefinition: return false
             case let structDefinition as StructDefinition:
@@ -36,7 +36,7 @@ extension Projection {
                     switch try field.type {
                         case let .bound(type):
                             // Careful, primitive types have recursive fields (System.Int32 has a field of type System.Int32)
-                            return try type.definition == typeDefinition || isBindingInert(type.definition)
+                            return try type.definition == typeDefinition || isPODBinding(type.definition)
                         default: return false
                     }
                 }
@@ -127,7 +127,7 @@ extension Projection {
             swiftType: try toType(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             bindingType: bindingType,
-            kind: try isBindingInert(type.definition) ? .inert : .allocating)
+            kind: try isPODBinding(type.definition) ? .pod : .allocating)
     }
 
     private func getSpecialTypeBinding(_ type: BoundType) throws -> TypeProjection? {
@@ -180,7 +180,7 @@ extension Projection {
                     swiftType: SupportModules.WinRT.char16,
                     swiftDefaultValue: ".init(0)",
                     bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
-                    kind: .inert)
+                    kind: .pod)
             case .guid:
                 return TypeProjection(
                     abiType: .identifier(CAbi.guidName),
@@ -188,7 +188,7 @@ extension Projection {
                     swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
                     bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
-                    kind: .inert)
+                    kind: .pod)
             case .string:
                 return .init(
                     abiType: .optional(wrapped: .identifier(CAbi.hstringName)),
@@ -214,7 +214,7 @@ extension Projection {
                     swiftType: SupportModules.WinRT.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
                     bindingType: SupportModules.WinRT.eventRegistrationToken,
-                    kind: .inert)
+                    kind: .pod)
 
             case "HResult":
                 return TypeProjection(
@@ -223,7 +223,7 @@ extension Projection {
                     swiftType: SupportModules.COM.hresult,
                     swiftDefaultValue: .defaultInitializer,
                     bindingType: SupportModules.COM.hresultBinding,
-                    kind: .inert)
+                    kind: .pod)
 
             default:
                 return nil
