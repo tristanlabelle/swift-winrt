@@ -101,6 +101,6 @@ jobs:
     needs: [spm-support, spm-generator-and-interoptests, cmake, json-schema]
     if: always()
     steps:
-      - name: Check for required job failures
+      - name: Fail if any required job failed
         if: contains(needs.*.result, 'failure')
         run: exit 1
