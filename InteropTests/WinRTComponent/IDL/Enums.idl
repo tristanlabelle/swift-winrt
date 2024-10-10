@@ -28,11 +28,8 @@ namespace WinRTComponent
         One = 1
     };
 
-    static runtimeclass Enums
-    {
-        static FlagsEnum BitwiseNot(FlagsEnum value);
-        static FlagsEnum BitwiseAnd(FlagsEnum lhs, FlagsEnum rhs);
-        static FlagsEnum BitwiseOr(FlagsEnum lhs, FlagsEnum rhs);
-        static FlagsEnum BitwiseXor(FlagsEnum lhs, FlagsEnum rhs);
+    // Regression test for https://github.com/tristanlabelle/swift-winrt/issues/330
+    interface IFlagsEnumParam {
+        void Set(FlagsEnum value);
     };
 }
