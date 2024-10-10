@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-swift
     
     - name: Build support module
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-swift
 
     - name: Build code generator
@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-swift
 
     - name: CMake Configure
@@ -85,7 +85,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Test Schema
       shell: pwsh
