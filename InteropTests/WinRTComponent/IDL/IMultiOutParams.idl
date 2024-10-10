@@ -1,0 +1,11 @@
+#include "MinimalTypes.idl"
+
+namespace WinRTComponent
+{
+    interface IMultiOutParams
+    {
+        // The virtual table entry for methods with multiple out params is tricky
+        // because it requires supporting rollback if writing the second out param fails.
+        void Get(out MinimalClass output0, out MinimalClass output1);
+    }
+}

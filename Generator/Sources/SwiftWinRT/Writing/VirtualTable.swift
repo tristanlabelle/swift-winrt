@@ -213,7 +213,7 @@ fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup:
 
         if param.typeProjection.kind == .allocating, !skipCleanup {
             output.write("defer { ")
-            output.write("if !_success, let \(param.name) { ")
+            output.write("if !_success { ")
             output.write("\(param.bindingType).release(&\(param.name).pointee)")
             output.write(" }")
             output.write(" }", endLine: true)
