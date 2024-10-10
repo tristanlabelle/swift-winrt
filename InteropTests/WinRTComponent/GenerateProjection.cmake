@@ -48,6 +48,11 @@ function(generate_projection)
         endif()
     endif()
 
+    # Delete the previous projection files
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${ARG_PROJECTION_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY)
+
     # Generate the projection
     cmake_path(CONVERT "${ARG_PROJECTION_JSON}" TO_NATIVE_PATH_LIST PROJECTION_JSON_NATIVE)
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
