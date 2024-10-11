@@ -7,7 +7,7 @@ namespace winrt::WinRTComponent::implementation
     {
         static void MainActor() {}
         static void AvailableFromSwift1() {}
-        static int32_t AvailableFromSwift1WithDiscardableResult() {}
+        static int32_t AvailableFromSwift1WithDiscardableResult() { return 42; }
     };
 }
 

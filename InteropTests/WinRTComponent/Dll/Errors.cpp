@@ -15,7 +15,7 @@ namespace winrt::WinRTComponent::implementation
             throw winrt::hresult_not_implemented();
         }
 
-        static void NotImplementedProperty(hstring const& value)
+        static void NotImplementedProperty(hstring const&)
         {
             throw winrt::hresult_not_implemented();
         }
