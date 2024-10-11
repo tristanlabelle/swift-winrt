@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "Events.h"
-#include "Events.g.cpp"
+#include "Events.g.h"
 #include <unordered_map>
 
 namespace
@@ -56,12 +55,25 @@ namespace
 
 namespace winrt::WinRTComponent::implementation
 {
-    winrt::WinRTComponent::IEventSource Events::CreateSource()
+    struct Events
     {
-        return winrt::make<Source>();
-    }
-    winrt::WinRTComponent::IEventCounter Events::CreateCounter(winrt::WinRTComponent::IEventSource const& source)
-    {
-        return winrt::make<Counter>(source);
-    }
+        static winrt::WinRTComponent::IEventSource CreateSource()
+        {
+            return winrt::make<Source>();
+        }
+
+        static winrt::WinRTComponent::IEventCounter CreateCounter(winrt::WinRTComponent::IEventSource const& source)
+        {
+            return winrt::make<Counter>(source);
+        }
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct Events : EventsT<Events, implementation::Events>
+    {
+    };
+}
+
+#include "Events.g.cpp"

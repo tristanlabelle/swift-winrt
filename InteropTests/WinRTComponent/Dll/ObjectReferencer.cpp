@@ -1,28 +1,39 @@
 #include "pch.h"
-#include "ObjectReferencer.h"
-#include "ObjectReferencer.g.cpp"
+#include "ObjectReferencer.g.h"
 #include <inspectable.h>
 
 namespace winrt::WinRTComponent::implementation
 {
-    ObjectReferencer::ObjectReferencer(winrt::Windows::Foundation::IInspectable const& obj)
+    struct ObjectReferencer : ObjectReferencerT<ObjectReferencer>
     {
-        m_object = obj;
-    }
-    winrt::Windows::Foundation::IInspectable ObjectReferencer::Target()
-    {
-        return m_object;
-    }
-    void ObjectReferencer::Clear()
-    {
-        m_object = nullptr;
-    }
-    uint32_t ObjectReferencer::CallAddRef()
-    {
-        return winrt::get_unknown(m_object)->AddRef();
-    }
-    uint32_t ObjectReferencer::CallRelease()
-    {
-        return winrt::get_unknown(m_object)->Release();
-    }
+        ObjectReferencer(winrt::Windows::Foundation::IInspectable const& obj)
+        {
+            m_object = obj;
+        }
+
+        winrt::Windows::Foundation::IInspectable Target() { return m_object; }
+        void Clear() { m_object = nullptr; }
+
+        uint32_t CallAddRef()
+        {
+            return winrt::get_unknown(m_object)->AddRef();
+        }
+
+        uint32_t CallRelease()
+        {
+            return winrt::get_unknown(m_object)->Release();
+        }
+
+    private:
+        winrt::Windows::Foundation::IInspectable m_object = nullptr;
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct ObjectReferencer : ObjectReferencerT<ObjectReferencer, implementation::ObjectReferencer>
+    {
+    };
+}
+
+#include "ObjectReferencer.g.cpp"

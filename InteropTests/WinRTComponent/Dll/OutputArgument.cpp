@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "OutputArgument.h"
-#include "OutputArgument.g.cpp"
+#include "OutputArgument.g.h"
 
 namespace
 {
@@ -42,12 +41,25 @@ namespace
 
 namespace winrt::WinRTComponent::implementation
 {
-    winrt::WinRTComponent::IOutputArgument OutputArgument::Create()
+    struct OutputArgument
     {
-        return winrt::make<Implementation>();
-    }
-    winrt::WinRTComponent::IOutputArgument OutputArgument::CreateProxy(winrt::WinRTComponent::IOutputArgument const& inner)
-    {
-        return winrt::make<Proxy>(inner);
-    }
+        static winrt::WinRTComponent::IOutputArgument Create()
+        {
+            return winrt::make<Implementation>();
+        }
+
+        static winrt::WinRTComponent::IOutputArgument CreateProxy(winrt::WinRTComponent::IOutputArgument const& inner)
+        {
+            return winrt::make<Proxy>(inner);
+        }
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct OutputArgument : OutputArgumentT<OutputArgument, implementation::OutputArgument>
+    {
+    };
+}
+
+#include "OutputArgument.g.cpp"

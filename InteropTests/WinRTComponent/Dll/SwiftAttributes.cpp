@@ -1,17 +1,21 @@
 #include "pch.h"
-#include "SwiftAttributes.h"
-#include "SwiftAttributes.g.cpp"
+#include "SwiftAttributes.g.h"
 
 namespace winrt::WinRTComponent::implementation
 {
-    void SwiftAttributes::MainActor()
+    struct SwiftAttributes
     {
-    }
-    void SwiftAttributes::AvailableFromSwift1()
-    {
-    }
-    int32_t SwiftAttributes::AvailableFromSwift1WithDiscardableResult()
-    {
-        return 42;
-    }
+        static void MainActor() {}
+        static void AvailableFromSwift1() {}
+        static int32_t AvailableFromSwift1WithDiscardableResult() { return 42; }
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct SwiftAttributes : SwiftAttributesT<SwiftAttributes, implementation::SwiftAttributes>
+    {
+    };
+}
+
+#include "SwiftAttributes.g.cpp"

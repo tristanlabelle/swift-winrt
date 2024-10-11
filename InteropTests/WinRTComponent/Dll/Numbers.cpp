@@ -1,47 +1,28 @@
 #include "pch.h"
-#include "Numbers.h"
-#include "Numbers.g.cpp"
+#include "Numbers.g.h"
 
 namespace winrt::WinRTComponent::implementation
 {
-    bool Numbers::Not(bool value)
+    struct Numbers
     {
-        return !value;
-    }
-    uint8_t Numbers::IncrementUInt8(uint8_t value)
-    {
-        return value + 1;
-    }
-    int16_t Numbers::IncrementInt16(int16_t value)
-    {
-        return value + 1;
-    }
-    uint16_t Numbers::IncrementUInt16(uint16_t value)
-    {
-        return value + 1;
-    }
-    int32_t Numbers::IncrementInt32(int32_t value)
-    {
-        return value + 1;
-    }
-    uint32_t Numbers::IncrementUInt32(uint32_t value)
-    {
-        return value + 1;
-    }
-    int64_t Numbers::IncrementInt64(int64_t value)
-    {
-        return value + 1;
-    }
-    uint64_t Numbers::IncrementUInt64(uint64_t value)
-    {
-        return value + 1;
-    }
-    float Numbers::NegateSingle(float value)
-    {
-        return -value;
-    }
-    double Numbers::NegateDouble(double value)
-    {
-        return -value;
-    }
+        static bool Not(bool value) { return !value; }
+        static uint8_t IncrementUInt8(uint8_t value) { return value + 1; }
+        static int16_t IncrementInt16(int16_t value) { return value + 1; }
+        static uint16_t IncrementUInt16(uint16_t value) { return value + 1; }
+        static int32_t IncrementInt32(int32_t value) { return value + 1; }
+        static uint32_t IncrementUInt32(uint32_t value) { return value + 1; }
+        static int64_t IncrementInt64(int64_t value) { return value + 1; }
+        static uint64_t IncrementUInt64(uint64_t value) { return value + 1; }
+        static float NegateSingle(float value) { return -value; }
+        static double NegateDouble(double value) { return -value; }
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct Numbers : NumbersT<Numbers, implementation::Numbers>
+    {
+    };
+}
+
+#include "Numbers.g.cpp"

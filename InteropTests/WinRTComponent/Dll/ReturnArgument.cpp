@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "ReturnArgument.h"
-#include "ReturnArgument.g.cpp"
+#include "ReturnArgument.g.h"
 
 namespace
 {
@@ -42,12 +41,25 @@ namespace
 
 namespace winrt::WinRTComponent::implementation
 {
-    winrt::WinRTComponent::IReturnArgument ReturnArgument::Create()
+    struct ReturnArgument
     {
-        return winrt::make<Implementation>();
-    }
-    winrt::WinRTComponent::IReturnArgument ReturnArgument::CreateProxy(winrt::WinRTComponent::IReturnArgument const& inner)
-    {
-        return winrt::make<Proxy>(inner);
-    }
+        static winrt::WinRTComponent::IReturnArgument Create()
+        {
+            return winrt::make<Implementation>();
+        }
+
+        static winrt::WinRTComponent::IReturnArgument CreateProxy(winrt::WinRTComponent::IReturnArgument const& inner)
+        {
+            return winrt::make<Proxy>(inner);
+        }
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct ReturnArgument : ReturnArgumentT<ReturnArgument, implementation::ReturnArgument>
+    {
+    };
+}
+
+#include "ReturnArgument.g.cpp"

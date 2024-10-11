@@ -1,10 +1,19 @@
 #include "pch.h"
-#include "ForCustomActivationFactoryResolution.h"
-#include "ForCustomActivationFactoryResolution.g.cpp"
+#include "ForCustomActivationFactoryResolution.g.h"
 
 namespace winrt::WinRTComponent::implementation
 {
-    void ForCustomActivationFactoryResolution::Method()
+    struct ForCustomActivationFactoryResolution
     {
-    }
+        static void Method() {}
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct ForCustomActivationFactoryResolution : ForCustomActivationFactoryResolutionT<ForCustomActivationFactoryResolution, implementation::ForCustomActivationFactoryResolution>
+    {
+    };
+}
+
+#include "ForCustomActivationFactoryResolution.g.cpp"

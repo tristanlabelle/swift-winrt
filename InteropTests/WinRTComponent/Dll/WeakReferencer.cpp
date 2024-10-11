@@ -1,15 +1,30 @@
 #include "pch.h"
-#include "WeakReferencer.h"
-#include "WeakReferencer.g.cpp"
+#include "WeakReferencer.g.h"
 
 namespace winrt::WinRTComponent::implementation
 {
-    WeakReferencer::WeakReferencer(winrt::Windows::Foundation::IInspectable const& target)
+    struct WeakReferencer : WeakReferencerT<WeakReferencer>
     {
-        this->target = winrt::make_weak(target);
-    }
-    winrt::Windows::Foundation::IInspectable WeakReferencer::Target()
-    {
-        return target.get();
-    }
+        WeakReferencer(winrt::Windows::Foundation::IInspectable const& target)
+        {
+            this->target = winrt::make_weak(target);
+        }
+
+        winrt::Windows::Foundation::IInspectable Target()
+        {
+            return target.get();
+        }
+    
+    private:
+        winrt::weak_ref<winrt::Windows::Foundation::IInspectable> target;
+    };
 }
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct WeakReferencer : WeakReferencerT<WeakReferencer, implementation::WeakReferencer>
+    {
+    };
+}
+
+#include "WeakReferencer.g.cpp"
