@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Events.g.h"
-#include "Events.g.cpp"
 #include <unordered_map>
 
 namespace
@@ -76,3 +75,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Events.g.cpp"

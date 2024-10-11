@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ObjectReferencer.g.h"
-#include "ObjectReferencer.g.cpp"
 #include <inspectable.h>
 
 namespace winrt::WinRTComponent::implementation
@@ -36,3 +35,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "ObjectReferencer.g.cpp"

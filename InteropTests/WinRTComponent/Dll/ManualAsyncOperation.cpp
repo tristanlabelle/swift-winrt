@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ManualAsyncOperation.g.h"
-#include "ManualAsyncOperation.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -77,3 +76,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "ManualAsyncOperation.g.cpp"

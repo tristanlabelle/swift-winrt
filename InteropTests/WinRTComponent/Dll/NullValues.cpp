@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "NullValues.g.h"
-#include "NullValues.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -25,3 +24,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "NullValues.g.cpp"

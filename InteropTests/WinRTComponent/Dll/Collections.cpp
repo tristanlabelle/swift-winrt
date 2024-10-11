@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Collections.g.h"
-#include "Collections.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -32,3 +31,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Collections.g.cpp"

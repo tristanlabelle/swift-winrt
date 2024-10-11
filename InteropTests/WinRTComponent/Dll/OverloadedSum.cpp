@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "OverloadedSum.g.h"
-#include "OverloadedSum.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -27,3 +26,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "OverloadedSum.g.cpp"

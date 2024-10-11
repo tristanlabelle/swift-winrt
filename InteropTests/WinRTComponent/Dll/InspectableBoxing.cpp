@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "InspectableBoxing.g.h"
-#include "InspectableBoxing.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -64,3 +63,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "InspectableBoxing.g.cpp"

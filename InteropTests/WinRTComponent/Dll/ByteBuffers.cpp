@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ByteBuffers.g.h"
-#include "ByteBuffers.g.cpp"
 #include <winrt/Windows.Storage.Streams.h>
 
 namespace winrt::WinRTComponent::implementation
@@ -44,3 +43,4 @@ namespace winrt::WinRTComponent::factory_implementation
     };
 }
 
+#include "ByteBuffers.g.cpp"

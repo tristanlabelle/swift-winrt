@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Structs.g.h"
-#include "Structs.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -34,3 +33,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Structs.g.cpp"

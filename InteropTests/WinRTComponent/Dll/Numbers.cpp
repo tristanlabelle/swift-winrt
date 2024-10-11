@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Numbers.g.h"
-#include "Numbers.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -26,3 +25,4 @@ namespace winrt::WinRTComponent::factory_implementation
     };
 }
 
+#include "Numbers.g.cpp"

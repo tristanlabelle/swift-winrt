@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "DateTimes.g.h"
-#include "DateTimes.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -45,3 +44,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "DateTimes.g.cpp"

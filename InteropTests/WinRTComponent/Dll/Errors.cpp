@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Errors.g.h"
-#include "Errors.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -48,3 +47,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Errors.g.cpp"

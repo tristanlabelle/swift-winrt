@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "SwiftAttributes.g.h"
-#include "SwiftAttributes.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -18,3 +17,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "SwiftAttributes.g.cpp"

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Int32Wrapper.g.h"
-#include "Int32Wrapper.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -21,3 +20,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Int32Wrapper.g.cpp"

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "OutputArgument.g.h"
-#include "OutputArgument.g.cpp"
 
 namespace
 {
@@ -62,3 +61,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "OutputArgument.g.cpp"

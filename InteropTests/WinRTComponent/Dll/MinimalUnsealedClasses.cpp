@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "MinimalBaseClass.g.h"
 #include "MinimalDerivedClass.g.h"
-#include "MinimalBaseClass.g.cpp"
-#include "MinimalDerivedClass.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -77,3 +75,6 @@ namespace winrt::WinRTComponent::implementation
         return winrt::make<MinimalDerivedClass>();
     }
 }
+
+#include "MinimalBaseClass.g.cpp"
+#include "MinimalDerivedClass.g.cpp"

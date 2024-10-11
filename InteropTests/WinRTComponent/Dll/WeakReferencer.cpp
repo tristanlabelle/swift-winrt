@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "WeakReferencer.g.h"
-#include "WeakReferencer.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -27,3 +26,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "WeakReferencer.g.cpp"

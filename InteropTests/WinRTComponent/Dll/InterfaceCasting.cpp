@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "InterfaceCasting.g.h"
-#include "InterfaceCasting.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -19,3 +18,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "InterfaceCasting.g.cpp"

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Strings.g.h"
-#include "Strings.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -33,3 +32,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Strings.g.cpp"

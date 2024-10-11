@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ForCustomActivationFactoryResolution.g.h"
-#include "ForCustomActivationFactoryResolution.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -16,3 +15,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "ForCustomActivationFactoryResolution.g.cpp"

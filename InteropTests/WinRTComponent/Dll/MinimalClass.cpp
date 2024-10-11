@@ -1,8 +1,5 @@
 #include "pch.h"
 #include "MinimalClass.g.h"
-#include "MinimalInterfaceFactory.g.h"
-#include "MinimalClass.g.cpp"
-#include "MinimalInterfaceFactory.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -18,3 +15,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "MinimalClass.g.cpp"

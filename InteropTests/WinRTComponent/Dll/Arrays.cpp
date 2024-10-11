@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Arrays.g.h"
-#include "Arrays.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -35,3 +34,4 @@ namespace winrt::WinRTComponent::factory_implementation
     };
 }
 
+#include "Arrays.g.cpp"

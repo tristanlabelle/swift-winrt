@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ReferenceBoxing.g.h"
-#include "ReferenceBoxing.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -47,3 +46,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "ReferenceBoxing.g.cpp"

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Int32Global.g.h"
-#include "Int32Global.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -23,3 +22,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "Int32Global.g.cpp"
