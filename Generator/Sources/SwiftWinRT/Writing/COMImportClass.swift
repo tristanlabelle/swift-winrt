@@ -41,26 +41,45 @@ internal func writeCOMImportClass(
             projection: projection, to: writer)
 
         // Secondary interface implementations
-        if type.definition is InterfaceDefinition {
-            let secondaryInterfaces = try type.definition.baseInterfaces.map {
-                try $0.interface.bindGenericParams(typeArgs: type.genericArgs)
+        if let interfaceDefinition = type.definition as? InterfaceDefinition {
+            // Midlrt.exe generates WinMD files where the list of base interfaces are already a transitive closure.
+            // For example, Windows.Foundation.Diagnostics.ILoggingActivity2 declares ILoggingActivity and IClosable as bases,
+            // even though IClosable would come transitively from ILoggingActivity.
+            // But Windows.Foundation.Collections.IObservableVector<T> and IObservableMap<Key, Value> do not honor this;
+            // they only declare their direct IVector/IMap bases and not IIterable.
+            // This is presumably an error in their authoring since they are not defined in idl.
+            var secondaryInterfaces: [BoundInterface] = []
+            try gatherTransitiveBaseInterfaces(
+                of: BoundInterface(interfaceDefinition, genericArgs: type.genericArgs),
+                into: &secondaryInterfaces)
+
+            for secondaryInterface in secondaryInterfaces {
+                let secondaryInterfaceName = try WinRTTypeName.from(type: secondaryInterface.asBoundType).description
+                writer.writeMarkComment("\(secondaryInterfaceName) members")
+                try writeInterfaceImplementation(
+                    abiType: secondaryInterface.asBoundType, documentation: false,
+                    thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface), lazy: true),
+                    projection: projection, to: writer)
             }
 
             if !secondaryInterfaces.isEmpty {
-                for secondaryInterface in secondaryInterfaces {
-                    let secondaryInterfaceName = try WinRTTypeName.from(type: secondaryInterface.asBoundType).description
-                    writer.writeMarkComment("\(secondaryInterfaceName) members")
-                    try writeInterfaceImplementation(
-                        abiType: secondaryInterface.asBoundType, documentation: false,
-                        thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface), lazy: true),
-                        projection: projection, to: writer)
-                }
+                writer.writeMarkComment("Implementation boilerplate")
+            }
 
-                for secondaryInterface in secondaryInterfaces {
-                    try SecondaryInterfaces.writeDeclaration(secondaryInterface, static: false, projection: projection, to: writer)
-                }
+            for secondaryInterface in secondaryInterfaces {
+                try SecondaryInterfaces.writeDeclaration(secondaryInterface, static: false, projection: projection, to: writer)
             }
         }
+    }
+}
+
+fileprivate func gatherTransitiveBaseInterfaces(of boundInterface: BoundInterface, into bases: inout [BoundInterface]) throws {
+    for baseDeclaration in boundInterface.definition.baseInterfaces {
+        let boundBase = try baseDeclaration.interface.bindGenericParams(typeArgs: boundInterface.genericArgs)
+        guard !bases.contains(boundBase) else { continue }
+
+        bases.append(boundBase)
+        try gatherTransitiveBaseInterfaces(of: boundBase, into: &bases)
     }
 }
 

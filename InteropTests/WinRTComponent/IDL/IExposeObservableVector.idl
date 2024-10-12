@@ -1,0 +1,11 @@
+namespace WinRTComponent
+{
+    // Regression test for https://github.com/tristanlabelle/swift-winrt/issues/343
+    // where IObservableVector/IObservableMap only declare IVector/IMap and not IIterable as base interfaces,
+    // whereas everywhere else the base interface list includes the transitive closure.
+    // This resulted in IObservableVectorBinding.*.Import to not implement the First() method.
+    interface IExposeObservableVector
+    {
+        IObservableVector<Int32> HereItIs { get; };
+    }
+}
