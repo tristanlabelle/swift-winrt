@@ -11,6 +11,7 @@
 #include "InspectableBoxing.idl"
 #include "Int32Wrapper.idl"
 #include "InterfaceCasting.idl"
+#include "IExposeObservableVector.idl"
 #include "IMultiOutParams.idl"
 #include "ManualAsyncOperation.idl"
 #include "MinimalTypes.idl"
