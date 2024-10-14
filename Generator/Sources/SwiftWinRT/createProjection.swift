@@ -38,6 +38,7 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         guard !typeFilter.matchesNothing else { continue }
 
         for typeDefinition in assembly.typeDefinitions {
+            guard typeDefinition.isPublic else { continue } // WinRT types should be public, but avoid the dummy "<Module>" type
             guard try !typeDefinition.hasAttribute(WindowsMetadata.AttributeUsageAttribute.self) else { continue }
             guard try !typeDefinition.hasAttribute(ApiContractAttribute.self) else { continue }
             guard typeFilter.matches(typeDefinition.fullName) else { continue }

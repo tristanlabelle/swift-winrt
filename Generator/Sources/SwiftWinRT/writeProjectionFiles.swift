@@ -54,40 +54,55 @@ fileprivate func writeModuleFiles(
 }
 
 fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
-    for typeDefinition in module.typeDefinitions + Array(module.genericInstantiationsByDefinition.keys) {
-        // All WinRT types should have namespaces
-        guard let namespace = typeDefinition.namespace else { continue }
+    // We lazily create a single COMInterop extensions file per module.
+    // Previously, we created one per type, but the Swift compiler runs into issues with large number of files.
+    // See https://github.com/swiftlang/swift/issues/76994
+    var comInteropFileWriter: SwiftSourceFileWriter! = nil
 
-        let compactNamespace = Projection.toCompactNamespace(namespace)
-        let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
-        let typeName = try module.projection.toTypeName(typeDefinition)
+    for (compactNamespace, typeDefinitions) in module.getTypeDefinitionsByCompactNamespace(includeGenericInstantiations: true) {
+        for typeDefinition in typeDefinitions {
+            let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
+            let typeName = try module.projection.toTypeName(typeDefinition)
 
-        // Write the COM interop extensions
-        if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
-            let fileName = "SWRT_\(typeName).swift"
-            _ = try writeCOMInteropExtensionFile(typeDefinition: typeDefinition, module: module,
-                    toPath: "\(directoryPath)\\\(compactNamespace)\\COMInterop\\\(fileName)")
-        }
+            // Write the COM interop extensions
+            let comInteropableTypes = try getCOMInteropableTypes(typeDefinition: typeDefinition, module: module)
+            if !comInteropableTypes.isEmpty {
+                // Lazy initialize the COM interop file writer
+                if comInteropFileWriter == nil {
+                    let filePath = "\(directoryPath)\\COMInterop+Extensions.swift"
+                    comInteropFileWriter = SwiftSourceFileWriter(
+                        output: FileTextOutputStream(path: filePath, directoryCreation: .ancestors))
+                    writeGeneratedCodePreamble(to: comInteropFileWriter)
+                    writeModulePreamble(module, to: comInteropFileWriter)
+                }
 
-        guard try hasSwiftDefinition(typeDefinition) else { continue }
-
-        if module.hasTypeDefinition(typeDefinition) {
-            try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
-
-            if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
-                try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
-                    "\(namespaceDirectoryPath)\\\(typeName)+extras.swift",
-                    isDirectory: false))
+                for comInteropableType in comInteropableTypes {
+                    comInteropFileWriter.writeMarkComment(try WinRTTypeName.from(type: comInteropableType).description)
+                    try writeCOMInteropExtension(abiType: comInteropableType, projection: module.projection, to: comInteropFileWriter)
+                }
             }
-        }
 
-        if (typeDefinition as? ClassDefinition)?.isStatic != true,
-                !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndBinding {
-            // Avoid toBindingTypeName because structs/enums have no -Binding suffix,
-            // which would result in two files with the same name in the project, which SPM does not support.
-            let fileName = "\(typeName)Binding.swift"
-            try writeABIBindingConformanceFile(typeDefinition, module: module,
-                toPath: "\(namespaceDirectoryPath)\\Bindings\\\(fileName)")
+            // Write the type definition and binding type
+            guard try hasSwiftDefinition(typeDefinition) else { continue }
+
+            if module.hasTypeDefinition(typeDefinition) {
+                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
+
+                if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
+                    try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
+                        "\(namespaceDirectoryPath)\\\(typeName)+extras.swift",
+                        isDirectory: false))
+                }
+            }
+
+            if (typeDefinition as? ClassDefinition)?.isStatic != true,
+                    !typeDefinition.isValueType || SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) != .definitionAndBinding {
+                // Avoid toBindingTypeName because structs/enums have no -Binding suffix,
+                // which would result in two files with the same name in the project, which SPM does not support.
+                let fileName = "\(typeName)Binding.swift"
+                try writeABIBindingConformanceFile(typeDefinition, module: module,
+                    toPath: "\(namespaceDirectoryPath)\\Bindings\\\(fileName)")
+            }
         }
     }
 
@@ -223,26 +238,11 @@ fileprivate func getExtensionFileBytes(typeDefinition: TypeDefinition) throws ->
     }
 }
 
-fileprivate func writeCOMInteropExtensionFile(typeDefinition: TypeDefinition, module: Module, toPath path: String) throws -> Bool {
+fileprivate func getCOMInteropableTypes(typeDefinition: TypeDefinition, module: Module) throws -> [BoundType] {
+    guard typeDefinition.kind == .interface || typeDefinition.kind == .delegate else { return [] }
     // IReference<T> is implemented generically in the support module.
-    if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return false }
-
-    let instantiations = typeDefinition.genericArity == 0 ? [[]] : (module.genericInstantiationsByDefinition[typeDefinition] ?? [])
-    guard !instantiations.isEmpty else { return false }
-
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    writeGeneratedCodePreamble(to: writer)
-    writeModulePreamble(module, to: writer)
-
-    for genericArgs in instantiations {
-        let boundType = typeDefinition.bindType(genericArgs: genericArgs)
-        if instantiations.count > 1 {
-            writer.writeMarkComment(try WinRTTypeName.from(type: boundType).description)
-        }
-        try writeCOMInteropExtension(abiType: boundType, projection: module.projection, to: writer)
-    }
-
-    return true
+    if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return [] }
+    return module.getTypeInstantiations(definition: typeDefinition)
 }
 
 internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: Module, toPath path: String) throws {

@@ -58,6 +58,40 @@ public final class Module {
         weakReferences.insert(Unowned(other))
     }
 
+    public func getTypeDefinitionsByCompactNamespace(includeGenericInstantiations: Bool) -> OrderedDictionary<String, [TypeDefinition]> {
+        var result = OrderedDictionary<String, [TypeDefinition]>()
+
+        for typeDefinition in typeDefinitions {
+            let compactNamespace = Projection.toCompactNamespace(typeDefinition.namespace!)
+            result[compactNamespace, default: []].append(typeDefinition)
+        }
+
+        for typeDefinition in genericInstantiationsByDefinition.keys {
+            guard !typeDefinitions.contains(typeDefinition) else { continue } // Don't add twice
+            let compactNamespace = Projection.toCompactNamespace(typeDefinition.namespace!)
+            result[compactNamespace, default: []].append(typeDefinition)
+        }
+
+        result.sort { $0.key < $1.key }
+
+        return result
+    }
+
+    public func getTypeInstantiations(definition: TypeDefinition) -> [BoundType] {
+        if definition.genericArity == 0 {
+            if lazySortedTypeDefinitions.contains(definition) {
+                return [ definition.bindType() ]
+            }
+            else {
+                return []
+            }
+        }
+        else {
+            let genericInstantiations = genericInstantiationsByDefinition[definition] ?? []
+            return genericInstantiations.map { BoundType(definition, genericArgs: $0) }
+        }
+    }
+
     public func getNamespaceModuleName(namespace: String) -> String {
         precondition(!flattenNamespaces)
         return "\(name)_\(Projection.toCompactNamespace(namespace))"
