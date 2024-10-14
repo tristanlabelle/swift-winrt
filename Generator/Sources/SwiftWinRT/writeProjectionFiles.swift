@@ -54,22 +54,22 @@ fileprivate func writeModuleFiles(
 }
 
 fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
-    for (compactNamespace, typeDefinitions) in module.getTypeDefinitionsByCompactNamespace(includeGenericInstantiations: true) {
-        // We lazily create a single COMInterop extensions file per namespace.
-        // Previously, we created one per type, but the Swift compiler runs into issues with large number of files.
-        // See https://github.com/swiftlang/swift/issues/76994
-        var comInteropFileWriter: SwiftSourceFileWriter! = nil
+    // We lazily create a single COMInterop extensions file per module.
+    // Previously, we created one per type, but the Swift compiler runs into issues with large number of files.
+    // See https://github.com/swiftlang/swift/issues/76994
+    var comInteropFileWriter: SwiftSourceFileWriter! = nil
 
+    for (compactNamespace, typeDefinitions) in module.getTypeDefinitionsByCompactNamespace(includeGenericInstantiations: true) {
         for typeDefinition in typeDefinitions {
             let namespaceDirectoryPath = "\(directoryPath)\\\(compactNamespace)"
             let typeName = try module.projection.toTypeName(typeDefinition)
 
             // Write the COM interop extensions
-            let comInteropableTypes = try getCOMInteropTypes(typeDefinition: typeDefinition, module: module)
+            let comInteropableTypes = try getCOMInteropableTypes(typeDefinition: typeDefinition, module: module)
             if !comInteropableTypes.isEmpty {
                 // Lazy initialize the COM interop file writer
                 if comInteropFileWriter == nil {
-                    let filePath = "\(directoryPath)\\\(compactNamespace)\\_COMInterop+SWRT_\(compactNamespace).swift"
+                    let filePath = "\(directoryPath)\\COMInterop+Extensions.swift"
                     comInteropFileWriter = SwiftSourceFileWriter(
                         output: FileTextOutputStream(path: filePath, directoryCreation: .ancestors))
                     writeGeneratedCodePreamble(to: comInteropFileWriter)
@@ -238,7 +238,7 @@ fileprivate func getExtensionFileBytes(typeDefinition: TypeDefinition) throws ->
     }
 }
 
-fileprivate func getCOMInteropTypes(typeDefinition: TypeDefinition, module: Module) throws -> [BoundType] {
+fileprivate func getCOMInteropableTypes(typeDefinition: TypeDefinition, module: Module) throws -> [BoundType] {
     guard typeDefinition.kind == .interface || typeDefinition.kind == .delegate else { return [] }
     // IReference<T> is implemented generically in the support module.
     if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return [] }

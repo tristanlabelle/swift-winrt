@@ -62,13 +62,12 @@ public final class Module {
         var result = OrderedDictionary<String, [TypeDefinition]>()
 
         for typeDefinition in typeDefinitions {
-            let fullName = typeDefinition.fullName + typeDefinition.assembly.name
             let compactNamespace = Projection.toCompactNamespace(typeDefinition.namespace!)
-            print(fullName)
             result[compactNamespace, default: []].append(typeDefinition)
         }
 
         for typeDefinition in genericInstantiationsByDefinition.keys {
+            guard !typeDefinitions.contains(typeDefinition) else { continue } // Don't add twice
             let compactNamespace = Projection.toCompactNamespace(typeDefinition.namespace!)
             result[compactNamespace, default: []].append(typeDefinition)
         }
