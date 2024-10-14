@@ -69,7 +69,7 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
             if !comInteropableTypes.isEmpty {
                 // Lazy initialize the COM interop file writer
                 if comInteropFileWriter == nil {
-                    let filePath = "\(directoryPath)\\\(compactNamespace)\\_COMInterop+Extensions.swift"
+                    let filePath = "\(directoryPath)\\\(compactNamespace)\\_COMInterop+SWRT_\(compactNamespace).swift"
                     comInteropFileWriter = SwiftSourceFileWriter(
                         output: FileTextOutputStream(path: filePath, directoryCreation: .ancestors))
                     writeGeneratedCodePreamble(to: comInteropFileWriter)
