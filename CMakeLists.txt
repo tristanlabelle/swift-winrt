@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.21.0)
 
 project(SwiftWinRT LANGUAGES C Swift)
 
+if("${CMAKE_EXPORT_COMPILE_COMMANDS}" STREQUAL "")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
 # Building InteropTests will require running the code generator,
 # so we configure and build it as a subproject.
 message(STATUS "Configuring Generator as subproject...")
@@ -13,6 +17,7 @@ execute_process(
         -D "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         -D "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
         -D "CMAKE_Swift_COMPILER=${CMAKE_Swift_COMPILER}"
+        -D "CMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}"
     COMMAND_ERROR_IS_FATAL ANY)
 
 message(STATUS "Building Generator as subproject...")
