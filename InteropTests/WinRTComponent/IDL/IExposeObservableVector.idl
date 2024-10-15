@@ -6,6 +6,6 @@ namespace WinRTComponent
     // This resulted in IObservableVectorBinding.*.Import to not implement the First() method.
     interface IExposeObservableVector
     {
-        IObservableVector<Int32> HereItIs { get; };
+        Windows.Foundation.Collections.IObservableVector<Int32> HereItIs { get; };
     }
 }
