@@ -1,0 +1,16 @@
+namespace WinRTComponent
+{
+    // Regression test for https://github.com/tristanlabelle/swift-winrt/issues/350
+    // where two ABI modules would contain the same generic instantiation,
+    // resulting in a multiply defined C symbol.
+    interface IMultiGenericInstantiation
+    {
+        // Force multiple instantiations of TypedEventHandler<IMemoryBufferReference, IInspectable>
+
+        // 1. In the UWP module via IMemoryBufferReference.Closed
+        Windows.Foundation.IMemoryBufferReference GetMemoryBufferReference();
+
+        // 2. In the WinRTComponement module via the method below
+        Windows.Foundation.TypedEventHandler<Windows.Foundation.IMemoryBufferReference, IInspectable> GetTypedEventHandler();
+    }
+}
