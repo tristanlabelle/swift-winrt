@@ -37,7 +37,7 @@ do {
             targetPrefix: commandLineArguments.cmakeTargetPrefix,
             targetSuffix: commandLineArguments.cmakeTargetSuffix,
             dynamicLibraries: commandLineArguments.dynamicLibraries),
-        directoryPath: commandLineArguments.outputDirectoryPath,)
+        directoryPath: commandLineArguments.outputDirectoryPath)
 
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(
