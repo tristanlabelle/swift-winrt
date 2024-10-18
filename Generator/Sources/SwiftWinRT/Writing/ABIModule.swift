@@ -4,7 +4,7 @@ import DotNetMetadata
 import ProjectionModel
 import WindowsMetadata
 
-internal func writeABIModule(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
+internal func writeABIModule(_ module: Module, cmakeOptions: CMakeOptions?, directoryPath: String) throws {
     let includeDirectoryPath = "\(directoryPath)\\include"
     let includeSWRTDirectoryPath = "\(includeDirectoryPath)\\SWRT"
 

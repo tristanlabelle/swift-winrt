@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.21.0)
+project(ImportTypealiasCorrectness LANGUAGES Swift)
+add_library(Definition STATIC Definition.swift)
+add_library(Import STATIC Import.swift)
+target_link_libraries(Import PRIVATE Definition)
