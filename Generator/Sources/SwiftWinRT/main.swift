@@ -32,11 +32,12 @@ do {
         winMDLoadContext: context)
 
     try writeProjectionFiles(projection,
-        directoryPath: commandLineArguments.outputDirectoryPath,
+        swiftBug72724: commandLineArguments.swiftBug72724.asBool,
         cmakeOptions: !commandLineArguments.generateCMakeLists ? nil : CMakeOptions(
             targetPrefix: commandLineArguments.cmakeTargetPrefix,
             targetSuffix: commandLineArguments.cmakeTargetSuffix,
-            dynamicLibraries: commandLineArguments.dynamicLibraries))
+            dynamicLibraries: commandLineArguments.dynamicLibraries),
+        directoryPath: commandLineArguments.outputDirectoryPath)
 
     if commandLineArguments.generatePackageDotSwift {
         writeSwiftPackageFile(

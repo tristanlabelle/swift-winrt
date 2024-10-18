@@ -14,16 +14,26 @@ import WindowsMetadata
 // This provides a more natural (C#-like) syntax when using those types:
 //
 //     var foo: IFoo? = getFoo()
-internal func writeInterfaceDefinition(_ interface: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
+internal func writeInterfaceDefinition(
+        _ interface: InterfaceDefinition,
+        projection: Projection,
+        swiftBug72724: Bool?,
+        to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(interface) != nil {
         // Defined in WindowsRuntime, merely reexport it here.
         let protocolName = try projection.toProtocolName(interface)
         writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: protocolName)
 
-        // Import the existential typealias as a protocol to work around compiler bug https://github.com/apple/swift/issues/72724:
-        // "'IFoo' was imported as 'typealias', but is a protocol"
+        // Workaround for compiler bug https://github.com/apple/swift/issues/72724.
+        // Old versions of the compiler will fail to when using "import typealias" for a typealias of an existential protocol.
+        // This will be fixed with the Swift 6.1 compiler, but we can't detect it from the language mode in use.
+        // So by default we assume correct behavior iff building for swift >= 6.1, but also allow the user to override it.
         let typeName = try projection.toTypeName(interface)
-        writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: typeName)
+        if swiftBug72724 == nil { writer.output.writeFullLine("#if swift(>=6.1)", groupWithNext: true) }
+        if swiftBug72724 != true { writer.writeImport(exported: true, kind: .typealias, module: SupportModules.WinRT.moduleName, symbolName: typeName) }
+        if swiftBug72724 == nil { writer.output.writeFullLine("#else", groupWithNext: true) }
+        if swiftBug72724 != false { writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: typeName) }
+        if swiftBug72724 == nil { writer.output.writeFullLine("#endif") }
     }
     else {
         try writeProtocolTypeAlias(interface, projection: projection, to: writer)

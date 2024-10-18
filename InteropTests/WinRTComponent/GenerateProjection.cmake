@@ -58,11 +58,21 @@ function(generate_projection)
     cmake_path(CONVERT "${ARG_WINRTCOMPONENT_WINMD}" TO_NATIVE_PATH_LIST WINRTCOMPONENT_WINMD_NATIVE)
     cmake_path(CONVERT "${SPM_SUPPORT_PACKAGE_DIR}" TO_NATIVE_PATH_LIST SPM_SUPPORT_PACKAGE_DIR_NATIVE)
     cmake_path(CONVERT "${ARG_PROJECTION_DIR}" TO_NATIVE_PATH_LIST PROJECTION_DIR_NATIVE)
+
+    if(DEFINED SWIFT_BUG_72724)
+        if(${SWIFT_BUG_72724})
+            set(SWIFT_BUG_72724_ARG "--swift-bug-72724=yes")
+        else()
+            set(SWIFT_BUG_72724_ARG "--swift-bug-72724=no")
+        endif()
+    endif()
+
     execute_process(
         COMMAND "${ARG_SWIFTWINRT_EXE}"
             --config "${PROJECTION_JSON_NATIVE}"
             --winsdk "${WINDOWS_SDK_VERSION}"
             --reference "${WINRTCOMPONENT_WINMD_NATIVE}"
+            ${SWIFT_BUG_72724_ARG} # No quoting, may expand to nothing
             --spm
             --spm-support-package "${SPM_SUPPORT_PACKAGE_DIR_NATIVE}"
             --spm-library-prefix "Swift"

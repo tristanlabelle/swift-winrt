@@ -2,7 +2,10 @@ import CodeWriters
 import DotNetMetadata
 import ProjectionModel
 
-internal func writeNamespaceAlias(_ typeDefinition: TypeDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
+internal func writeNamespaceAlias(
+        _ typeDefinition: TypeDefinition,
+        projection: Projection,
+        to writer: SwiftSourceFileWriter) throws {
     try writer.writeTypeAlias(
         visibility: Projection.toVisibility(typeDefinition.visibility),
         name: projection.toTypeName(typeDefinition, namespaced: false),

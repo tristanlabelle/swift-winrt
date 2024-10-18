@@ -8,14 +8,16 @@ import WindowsMetadata
 
 internal func writeProjectionFiles(
         _ projection: Projection,
-        directoryPath: String,
-        cmakeOptions: CMakeOptions?) throws {
+        swiftBug72724: Bool?,
+        cmakeOptions: CMakeOptions?,
+        directoryPath: String) throws {
     for module in projection.modulesByName.values {
         guard !module.isEmpty else { continue }
         print("Generating projection for \(module.name)...")
         try writeModuleFiles(module,
-            directoryPath: "\(directoryPath)\\\(module.name)",
-            cmakeOptions: cmakeOptions)
+            swiftBug72724: swiftBug72724,
+            cmakeOptions: cmakeOptions,
+            directoryPath: "\(directoryPath)\\\(module.name)")
     }
 
     if cmakeOptions != nil {
@@ -31,14 +33,17 @@ internal func writeProjectionFiles(
 
 fileprivate func writeModuleFiles(
         _ module: Module,
-        directoryPath: String,
-        cmakeOptions: CMakeOptions?) throws {
-    try writeABIModule(module, directoryPath: "\(directoryPath)\\ABI", cmakeOptions: cmakeOptions)
+        swiftBug72724: Bool?,
+        cmakeOptions: CMakeOptions?,
+        directoryPath: String) throws {
+    try writeABIModule(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\ABI")
 
-    try writeSwiftModuleFiles(module, directoryPath: "\(directoryPath)\\Projection", cmakeOptions: cmakeOptions)
+    try writeSwiftModuleFiles(module,
+        swiftBug72724: swiftBug72724, cmakeOptions: cmakeOptions,
+        directoryPath: "\(directoryPath)\\Projection")
 
     if !module.flattenNamespaces {
-        try writeNamespaceModuleFiles(module, directoryPath: "\(directoryPath)\\Namespaces", cmakeOptions: cmakeOptions)
+        try writeNamespaceModuleFiles(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
     }
 
     if cmakeOptions != nil {
@@ -53,7 +58,11 @@ fileprivate func writeModuleFiles(
     }
 }
 
-fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
+fileprivate func writeSwiftModuleFiles(
+        _ module: Module,
+        swiftBug72724: Bool?,
+        cmakeOptions: CMakeOptions?,
+        directoryPath: String) throws {
     // We lazily create a single COMInterop extensions file per module.
     // Previously, we created one per type, but the Swift compiler runs into issues with large number of files.
     // See https://github.com/swiftlang/swift/issues/76994
@@ -86,7 +95,11 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
             guard try hasSwiftDefinition(typeDefinition) else { continue }
 
             if module.hasTypeDefinition(typeDefinition) {
-                try writeTypeDefinitionFile(typeDefinition, module: module, toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
+                try writeTypeDefinitionFile(
+                    typeDefinition,
+                    module: module,
+                    swiftBug72724: swiftBug72724,
+                    toPath: "\(namespaceDirectoryPath)\\\(typeName).swift")
 
                 if let extensionFileBytes = try getExtensionFileBytes(typeDefinition: typeDefinition) {
                     try Data(extensionFileBytes).write(to: URL(fileURLWithPath:
@@ -138,7 +151,10 @@ fileprivate func writeSwiftModuleFiles(_ module: Module, directoryPath: String, 
     }
 }
 
-fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: String, cmakeOptions: CMakeOptions?) throws {
+fileprivate func writeNamespaceModuleFiles(
+        _ module: Module,
+        cmakeOptions: CMakeOptions?,
+        directoryPath: String) throws {
     let typeDefinitionsByNamespace = Dictionary(grouping: module.typeDefinitions, by: { $0.namespace })
 
     var compactNamespaces: [String] = [] 
@@ -150,7 +166,10 @@ fileprivate func writeNamespaceModuleFiles(_ module: Module, directoryPath: Stri
         let compactNamespace = Projection.toCompactNamespace(namespace)
         compactNamespaces.append(compactNamespace)
         let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
-        try writeNamespaceAliasesFile(typeDefinitions: typeDefinitions, module: module, toPath: namespaceAliasesPath)
+        try writeNamespaceAliasesFile(
+            typeDefinitions: typeDefinitions,
+            module: module,
+            toPath: namespaceAliasesPath)
 
         if let cmakeOptions {
             let writer = CMakeListsWriter(output: FileTextOutputStream(
@@ -184,11 +203,19 @@ fileprivate func hasSwiftDefinition(_ typeDefinition: TypeDefinition) throws -> 
         && typeDefinition.isPublic
 }
 
-fileprivate func writeTypeDefinitionFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
+fileprivate func writeTypeDefinitionFile(
+        _ typeDefinition: TypeDefinition,
+        module: Module,
+        swiftBug72724: Bool?,
+        toPath path: String) throws {
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
-    try writeTypeDefinition(typeDefinition, projection: module.projection, to: writer)
+    try writeTypeDefinition(
+        typeDefinition,
+        projection: module.projection,
+        swiftBug72724: swiftBug72724,
+        to: writer)
 }
 
 fileprivate func writeABIBindingConformanceFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {

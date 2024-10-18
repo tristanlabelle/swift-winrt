@@ -6,6 +6,8 @@ if("${CMAKE_EXPORT_COMPILE_COMMANDS}" STREQUAL "")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
+add_subdirectory(CompilerCheck)
+
 # Building InteropTests will require running the code generator,
 # so we configure and build it as a subproject.
 message(STATUS "Configuring Generator as subproject...")
