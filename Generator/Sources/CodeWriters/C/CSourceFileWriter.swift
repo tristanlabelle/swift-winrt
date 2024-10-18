@@ -1,5 +1,5 @@
 public class CSourceFileWriter {
-    private let output: IndentedTextOutputStream
+    public let output: IndentedTextOutputStream
 
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
