@@ -1,17 +1,17 @@
 extension SwiftPackage {
     public func write<Stream>(version: String, to output: Stream) where Stream: AnyObject & TextOutputStream {
-        let writer = IndentedTextOutputStream(inner: output)
+        let writer = LineBasedTextOutputStream(inner: output)
 
-        writer.writeFullLine(grouping: .never, "// swift-tools-version: \(version)")
-        writer.writeFullLine(grouping: .never, "import PackageDescription")
+        writer.writeFullLine(group: .none, "// swift-tools-version: \(version)")
+        writer.writeFullLine(group: .none, "import PackageDescription")
 
-        writer.writeIndentedBlock(header: "let package = Package(", footer: ")") {
+        writer.writeLineBlock(header: "let package = Package(", footer: ")") {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             // products:
             if !products.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "products: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "products: [", footer: "]", endFooterLine: false) {
                     for (index, product) in products.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         product.write(to: writer)
@@ -22,7 +22,7 @@ extension SwiftPackage {
             // dependencies:
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
@@ -33,7 +33,7 @@ extension SwiftPackage {
             // targets:
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         target.write(to: writer)
@@ -45,8 +45,8 @@ extension SwiftPackage {
 }
 
 extension SwiftPackage.Product {
-    fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".library(", footer: ")", endFooterLine: false) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
+        writer.writeLineBlock(header: ".library(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             if let type {
@@ -56,7 +56,7 @@ extension SwiftPackage.Product {
 
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         writer.write("\"\(escapeStringLiteral(target))\"")
@@ -68,8 +68,8 @@ extension SwiftPackage.Product {
 }
 
 extension SwiftPackage.Dependency {
-    fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".package(", footer: ")", endFooterLine: false) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
+        writer.writeLineBlock(header: ".package(", footer: ")", endFooterLine: false) {
             switch self {
                 case .fileSystem(let name, let path):
                     if let name { writer.write("name: \"\(name)\",", endLine: true) }
@@ -83,13 +83,13 @@ extension SwiftPackage.Dependency {
 }
 
 extension SwiftPackage.Target {
-    fileprivate func write(to writer: IndentedTextOutputStream) {
-        writer.writeIndentedBlock(header: ".target(", footer: ")", endFooterLine: false) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
+        writer.writeLineBlock(header: ".target(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
@@ -104,7 +104,7 @@ extension SwiftPackage.Target {
 
             if !exclude.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "exclude: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "exclude: [", footer: "]", endFooterLine: false) {
                     for (index, path) in exclude.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -116,8 +116,8 @@ extension SwiftPackage.Target {
 
             if !cUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
-                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
+                writer.writeLineBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeLineBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
                         for (index, flag) in cUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -130,8 +130,8 @@ extension SwiftPackage.Target {
 
             if !swiftUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
-                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
+                writer.writeLineBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeLineBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
                         for (index, flag) in swiftUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -146,7 +146,7 @@ extension SwiftPackage.Target {
 }
 
 extension SwiftPackage.Target.Dependency {
-    fileprivate func write(to writer: IndentedTextOutputStream) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
         switch self {
             case .target(let name):
                 writer.write("\"\(name)\"")

@@ -1,19 +1,19 @@
 public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
-    public let output: IndentedTextOutputStream
+    public let output: LineBasedTextOutputStream
 
     public init(output: some TextOutputStream, indent: String = "    ") {
-        self.output = IndentedTextOutputStream(inner: output, indent: indent)
+        self.output = LineBasedTextOutputStream(inner: output, defaultBlockLinePrefix: indent)
     }
 
     public func writeImport(exported: Bool = false, module: String) {
-        output.beginLine(grouping: .withName("import"))
+        output.beginLine(group: .named("import"))
         if exported { output.write("@_exported ") }
         output.write("import ")
         output.write(module, endLine: true)
     }
 
     public func writeImport(exported: Bool = false, kind: SwiftImportKind, module: String, symbolName: String) {
-        output.beginLine(grouping: .withName("import"))
+        output.beginLine(group: .named("import"))
         if exported { output.write("@_exported ") }
         output.write("import ")
         output.write(String(describing: kind))
@@ -30,7 +30,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
         members: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         output.write("extension ")
         type.write(to: &output)
         writeInheritanceClause(protocolConformances)

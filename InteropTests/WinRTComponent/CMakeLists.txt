@@ -20,6 +20,13 @@ generate_winrtcomponent_winmd(
     IDL "${CMAKE_CURRENT_SOURCE_DIR}/IDL/WinRTComponent.idl"
     WINMD "${WINRTCOMPONENT_WINMD}")
 
+# Copy the documentation xml file next to it
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.xml"
+        "${CMAKE_CURRENT_BINARY_DIR}/"
+    COMMAND_ERROR_IS_FATAL ANY)
+
 # Generate Swift projection
 message(STATUS "Generating Swift projection for WinRTComponent...")
 include(GenerateProjection.cmake)

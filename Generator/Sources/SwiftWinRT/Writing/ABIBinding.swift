@@ -135,7 +135,7 @@ fileprivate func writeStructBindingExtension(
             }
 
             let output = writer.output
-            try output.writeIndentedBlock(header: ".init(") {
+            try output.writeLineBlock(header: ".init(") {
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructABIToSwiftInitializerParam(
@@ -158,7 +158,7 @@ fileprivate func writeStructBindingExtension(
             }
 
             let output = writer.output
-            try output.writeIndentedBlock(header: ".init(") {
+            try output.writeLineBlock(header: ".init(") {
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructSwiftToABIInitializerParam(
@@ -187,7 +187,7 @@ fileprivate func writeStructBindingExtension(
 
 fileprivate func writeStructABIToSwiftInitializerParam(
         abiValueName: String, abiFieldName: String, swiftFieldName: String,
-        typeProjection: TypeProjection, to output: IndentedTextOutputStream) throws {
+        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(swiftFieldName, to: &output)
     output.write(": ")
@@ -208,7 +208,7 @@ fileprivate func writeStructABIToSwiftInitializerParam(
 
 fileprivate func writeStructSwiftToABIInitializerParam(
         swiftValueName: String, swiftFieldName: String, abiFieldName: String,
-        typeProjection: TypeProjection, to output: IndentedTextOutputStream) throws {
+        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(abiFieldName, to: &output)
     output.write(": ")

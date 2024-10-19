@@ -9,13 +9,13 @@ extension SwiftDeclarationWriter {
         name: String,
         type: SwiftType? = nil,
         initialValue: String? = nil,
-        initializer: ((IndentedTextOutputStream) throws -> Void)? = nil) rethrows {
+        initializer: ((LineBasedTextOutputStream) throws -> Void)? = nil) rethrows {
 
         precondition(initialValue == nil || initializer == nil)
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName("storedProperty"))
+        output.beginLine(group: .named("storedProperty"))
         visibility.write(to: &output, trailingSpace: true)
         if setVisibility != .implicit {
             setVisibility.write(to: &output, trailingSpace: false)
@@ -55,7 +55,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
@@ -104,7 +104,7 @@ extension SwiftDeclarationWriter {
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         writeFuncHeader(
             attributes: attributes,
             visibility: visibility,
@@ -131,7 +131,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName("case"))
+        output.beginLine(group: .named("case"))
         output.write("case ")
         SwiftIdentifier.write(name, to: &output)
 
@@ -157,7 +157,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         visibility.write(to: &output, trailingSpace: true)
         if `required` { output.write("required ") }
         if `convenience` { output.write("convenience ") }
@@ -181,7 +181,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeDeinit(body: (inout SwiftStatementWriter) throws -> Void) rethrows {
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         output.write("deinit")
         try output.writeBracedIndentedBlock() {
             var statementWriter = SwiftStatementWriter(output: output)

@@ -33,12 +33,12 @@ internal func writeProjectionFiles(
         // Whole module optimization uses a single swift-frontend process and reads every file only once,
         // but does not allow incremental compilation.
         // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
-        let grouping = writer.output.allocateVerticalGrouping()
-        writer.writeSingleLineCommand(grouping: grouping, "if", "POLICY", "CMP0157") // Swift_COMPILATION_MODE support
-        writer.writeSingleLineCommand(grouping: grouping, "set_directory_properties", "PROPERTIES", "Swift_COMPILATION_MODE", "wholemodule")
-        writer.writeSingleLineCommand(grouping: grouping, "elseif", .quoted("${CMAKE_BUILD_TYPE}"), "STREQUAL", "Debug")
-        writer.writeSingleLineCommand(grouping: grouping, "add_compile_options", "-whole-module-optimization")
-        writer.writeSingleLineCommand(grouping: grouping, "endif")
+        let lineGroup = writer.output.createLineGroup()
+        writer.writeSingleLineCommand(lineGroup: lineGroup, "if", "POLICY", "CMP0157") // Swift_COMPILATION_MODE support
+        writer.writeSingleLineCommand(lineGroup: lineGroup, "set_directory_properties", "PROPERTIES", "Swift_COMPILATION_MODE", "wholemodule")
+        writer.writeSingleLineCommand(lineGroup: lineGroup, "elseif", .quoted("${CMAKE_BUILD_TYPE}"), "STREQUAL", "Debug")
+        writer.writeSingleLineCommand(lineGroup: lineGroup, "add_compile_options", "-whole-module-optimization")
+        writer.writeSingleLineCommand(lineGroup: lineGroup, "endif")
 
         // Workaround for https://github.com/swiftlang/swift-driver/issues/1477
         // The threshold value has to be real high because the driver multiplies the number of input files by ~50.

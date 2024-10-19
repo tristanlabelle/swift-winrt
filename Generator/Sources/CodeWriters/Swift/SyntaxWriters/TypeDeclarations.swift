@@ -1,10 +1,10 @@
 public struct SwiftTypeDefinitionWriter: SwiftDeclarationWriter {
-    public let output: IndentedTextOutputStream
+    public let output: LineBasedTextOutputStream
 }
 
 extension SwiftDeclarationWriter {
     public func writeMarkComment(_ text: String) {
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         output.write("// MARK: ")
         output.write(text)
         output.endLine()
@@ -22,7 +22,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -46,7 +46,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -70,7 +70,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -92,7 +92,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName("typealias"))
+        output.beginLine(group: .named("typealias"))
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
         SwiftIdentifier.write(name, to: &output)

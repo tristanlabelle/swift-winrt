@@ -13,9 +13,9 @@ internal func writeVirtualTableProperty(
 
 fileprivate func writeVirtualTable(
         abiType: BoundType, swiftType: BoundType,
-        projection: Projection, to output: IndentedTextOutputStream) throws {
+        projection: Projection, to output: LineBasedTextOutputStream) throws {
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
-    try output.writeIndentedBlock(header: "\(vtableStructType)(", footer: ")") {
+    try output.writeLineBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
         output.writeFullLine("QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },")
         output.writeFullLine("AddRef: { IUnknownVirtualTable.AddRef($0) },")
@@ -47,7 +47,7 @@ fileprivate func writeVirtualTable(
             }
 
             output.write(" in _implement(this)")
-            try output.writeIndentedBlock(header: " { this in") {
+            try output.writeLineBlock(header: " { this in") {
                 try writeVirtualTableFunc(
                     params: params, returnParam: returnParam,
                     swiftMemberName: Projection.toMemberName(method),
@@ -74,7 +74,7 @@ fileprivate func getABIParamNames(_ params: [ParamProjection], returnParam: Para
 
 fileprivate func writeVirtualTableFunc(
         params: [ParamProjection], returnParam: ParamProjection?,
-        swiftMemberName: String, methodKind: WinRTMethodKind, to output: IndentedTextOutputStream) throws {
+        swiftMemberName: String, methodKind: WinRTMethodKind, to output: LineBasedTextOutputStream) throws {
     // Ensure non-optional by reference params are non-null pointers
     for param in params {
         guard case .reference(in: _, out: _, optional: false) = param.passBy else { continue }
@@ -154,18 +154,18 @@ fileprivate func writeVirtualTableFunc(
     if epilogueRequiresCleanup { output.writeFullLine("_success = true") }
 }
 
-fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [String], to output: IndentedTextOutputStream, body: () throws -> Void) rethrows {
+fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [String], to output: LineBasedTextOutputStream, body: () throws -> Void) rethrows {
     output.write(name)
     output.write(": ")
     output.write("{ this")
     for paramName in paramNames {
         output.write(", \(paramName)")
     }
-    try output.writeIndentedBlock(header: " in _implement(this) { this in", body: body)
+    try output.writeLineBlock(header: " in _implement(this) { this in", body: body)
     output.write("} }")
 }
 
-fileprivate func writePrologueForParam(_ param: ParamProjection, to output: IndentedTextOutputStream) throws {
+fileprivate func writePrologueForParam(_ param: ParamProjection, to output: LineBasedTextOutputStream) throws {
     if param.passBy.isInput {
         let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
         output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).fromABI")
@@ -183,7 +183,7 @@ fileprivate func writePrologueForParam(_ param: ParamProjection, to output: Inde
     output.endLine()
 }
 
-fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: IndentedTextOutputStream) throws {
+fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: LineBasedTextOutputStream) throws {
     precondition(param.passBy.isOutput)
 
     if param.typeProjection.kind == .array {

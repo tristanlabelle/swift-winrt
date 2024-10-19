@@ -306,7 +306,7 @@ fileprivate func writeComposableInitializers(
                 throws: true) { writer in
             let output = writer.output
             let composeCondition = "Self.self != \(try projection.toTypeName(classDefinition)).self"
-            try output.writeIndentedBlock(header: "try super.init(_compose: \(composeCondition)) {", footer: "}") {
+            try output.writeLineBlock(header: "try super.init(_compose: \(composeCondition)) {", footer: "}") {
                 let outerObjectParamName = params[params.count - 2].name
                 let innerObjectParamName = params[params.count - 1].name
                 output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")

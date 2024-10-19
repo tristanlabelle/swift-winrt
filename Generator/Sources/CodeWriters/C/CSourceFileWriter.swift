@@ -1,17 +1,17 @@
 public class CSourceFileWriter {
-    public let output: IndentedTextOutputStream
+    public let output: LineBasedTextOutputStream
 
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
         if pragmaOnce {
-            self.output.writeFullLine(grouping: .never, "#pragma once")
+            self.output.writeFullLine(group: .none, "#pragma once")
         }
     }
 
     public enum IncludeKind { case doubleQuotes; case angleBrackets }
 
     public func writeInclude(pathSpec: String, kind: IncludeKind) {
-        output.beginLine(grouping: .withName("include"))
+        output.beginLine(group: .named("include"))
         switch kind {
             case .doubleQuotes: output.write("#include \"\(pathSpec)\"", endLine: true)
             case .angleBrackets: output.write("#include <\(pathSpec)>", endLine: true)
@@ -19,8 +19,8 @@ public class CSourceFileWriter {
     }
 
     public func writeForwardDecl(comment: String? = nil, typedef: Bool = false, kind: CTypeDeclKind, name: String) {
-        if let comment { output.writeFullLine(grouping: .withName("forwardDecl"), "// \(comment)") }
-        output.beginLine(grouping: .withName("forwardDecl"))
+        if let comment { output.writeFullLine(group: .named("forwardDecl"), "// \(comment)") }
+        output.beginLine(group: .named("forwardDecl"))
         if typedef { output.write("typedef ") }
         switch kind {
             case .struct: output.write("struct ")
@@ -36,8 +36,8 @@ public class CSourceFileWriter {
     }
 
     public func writeTypedef(comment: String? = nil, type: CType, name: String) {
-        if let comment { output.writeFullLine(grouping: .withName("typedef"), "// \(comment)") }
-        output.beginLine(grouping: .withName("typedef"))
+        if let comment { output.writeFullLine(group: .named("typedef"), "// \(comment)") }
+        output.beginLine(group: .named("typedef"))
         output.write("typedef ")
         if !writeType(type, variableName: name) {
             output.write(" ")
@@ -47,15 +47,15 @@ public class CSourceFileWriter {
     }
 
     public func writeEnum(comment: String? = nil, typedef: Bool = false, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil) {
-        let lineGrouping = output.allocateVerticalGrouping()
+        let lineGrouping = output.createLineGroup()
 
-        if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
+        if let comment { output.writeFullLine(group: lineGrouping, "// \(comment)") }
 
-        output.beginLine(grouping: lineGrouping)
+        output.beginLine(group: lineGrouping)
         if typedef { output.write("typedef ") }
         output.write("enum ")
         output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLineBlock(group: lineGrouping, header: "{") {
             for (index, enumerant) in enumerants.enumerated() {
                 if let enumerantPrefix { output.write(enumerantPrefix) }
                 output.write(enumerant.name)
@@ -67,7 +67,7 @@ public class CSourceFileWriter {
                 output.endLine()
             }
         }
-        output.beginLine(grouping: lineGrouping)
+        output.beginLine(group: lineGrouping)
         output.write("}")
         if typedef {
             output.write(" ")
@@ -77,20 +77,20 @@ public class CSourceFileWriter {
     }
 
     public func writeStruct(comment: String? = nil, typedef: Bool = false, name: String, members: [CVariableDecl]) {
-        let lineGrouping = output.allocateVerticalGrouping()
+        let lineGrouping = output.createLineGroup()
 
-        if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
+        if let comment { output.writeFullLine(group: lineGrouping, "// \(comment)") }
 
-        output.beginLine(grouping: lineGrouping)
+        output.beginLine(group: lineGrouping)
         if typedef { output.write("typedef ") }
         output.write("struct ")
         output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLineBlock(group: lineGrouping, header: "{") {
             for member in members {
                 writeVariableDecl(member)
             }
         }
-        output.beginLine(grouping: lineGrouping)
+        output.beginLine(group: lineGrouping)
         output.write("}")
         if typedef {
             output.write(" ")
@@ -100,7 +100,7 @@ public class CSourceFileWriter {
     }
 
     private func writeVariableDecl(_ member: CVariableDecl) {
-        output.beginLine(grouping: .withName("variableDecl"))
+        output.beginLine(group: .named("variableDecl"))
         if !writeType(member.type, variableName: member.name) {
             output.write(" ")
             output.write(member.name)

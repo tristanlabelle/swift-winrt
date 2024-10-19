@@ -1,5 +1,5 @@
 public struct SwiftStatementWriter: SwiftSyntaxWriter {
-    public let output: IndentedTextOutputStream
+    public let output: LineBasedTextOutputStream
 
     public func writeVariableDeclaration(
         declarator: SwiftVariableDeclarator, name: String, type: SwiftType? = nil, initializer: String? = nil) {
@@ -49,7 +49,7 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
         let lines = code.split(separator: "\n")
         output.write(String(lines[0]), endLine: true)
         if lines.count == 1 { return }
-        output.writeIndentedBlock {
+        output.writeLineBlock {
             for line in lines.dropFirst() {
                 output.write(String(line), endLine: true)
             }
@@ -73,12 +73,12 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
             output.write(condition)
         }
         output.write(" {", endLine: true)
-        try output.writeIndentedBlock { try then(SwiftStatementWriter(output: output)) }
+        try output.writeLineBlock { try then(SwiftStatementWriter(output: output)) }
         output.endLine()
         output.write("}")
         if let `else` {
             output.write(" else {", endLine: true)
-            try output.writeIndentedBlock { try `else`(SwiftStatementWriter(output: output)) }
+            try output.writeLineBlock { try `else`(SwiftStatementWriter(output: output)) }
             output.endLine()
             output.write("}")
         }

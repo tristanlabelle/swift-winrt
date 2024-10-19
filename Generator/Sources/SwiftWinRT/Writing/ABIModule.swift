@@ -132,8 +132,8 @@ fileprivate func getSortedInterfaces(module: Module) throws -> [BoundType] {
 }
 
 fileprivate func writeModulemapFile(module: Module, toPath path: String) throws {
-    let output = IndentedTextOutputStream(inner: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    output.writeIndentedBlock(header: "module \(module.abiModuleName) {", footer: "}") {
+    let output = LineBasedTextOutputStream(inner: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    output.writeLineBlock(header: "module \(module.abiModuleName) {", footer: "}") {
         output.writeFullLine("header \"SWRT/\(module.name).h\"")
         output.writeFullLine("export *")
     }

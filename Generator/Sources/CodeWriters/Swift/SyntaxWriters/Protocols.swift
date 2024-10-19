@@ -10,7 +10,7 @@ extension SwiftSourceFileWriter {
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         if let documentation = documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -29,7 +29,7 @@ extension SwiftSourceFileWriter {
 }
 
 public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
-    public let output: IndentedTextOutputStream
+    public let output: LineBasedTextOutputStream
 
     public func writeAssociatedType(
         documentation: SwiftDocumentationComment? = nil,
@@ -37,7 +37,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName("associatedtype"))
+        output.beginLine(group: .named("associatedtype"))
         output.write("associatedtype ")
         SwiftIdentifier.write(name, to: &output)
         output.endLine()
@@ -55,7 +55,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName("protocolProperty"))
+        output.beginLine(group: .named("protocolProperty"))
         if `static` { output.write("static ") }
         output.write("var ")
         SwiftIdentifier.write(name, to: &output)
@@ -82,7 +82,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         returnType: SwiftType? = nil) {
 
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(grouping: .withName(isPropertySetter ? "protocolProperty" : "protocolFunc"))
+        output.beginLine(group: .named(isPropertySetter ? "protocolProperty" : "protocolFunc"))
         writeFuncHeader(
             attributes: attributes,
             visibility: .implicit,

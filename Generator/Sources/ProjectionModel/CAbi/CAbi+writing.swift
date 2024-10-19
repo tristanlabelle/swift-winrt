@@ -67,9 +67,9 @@ extension CAbi {
 
         if !genericArgs.isEmpty {
             // No module owns a generic type instantiation, so use #define guards to prevent multiple definitions.
-            let grouping = writer.output.allocateVerticalGrouping()
-            writer.output.writeFullLine(grouping: grouping, "#ifndef \(mangledName)")
-            writer.output.writeFullLine(grouping: grouping, "#define \(mangledName) \(mangledName)", groupWithNext: true)
+            let lineGroup = writer.output.createLineGroup()
+            writer.output.writeFullLine(group: lineGroup, "#ifndef \(mangledName)")
+            writer.output.writeFullLine(group: lineGroup, "#define \(mangledName) \(mangledName)", groupWithNext: true)
         }
 
         decl.write(
@@ -79,7 +79,7 @@ extension CAbi {
 
         if !genericArgs.isEmpty {
             writer.output.endLine(groupWithNext: true)
-            writer.output.writeFullLine(grouping: .never, "#endif")
+            writer.output.writeFullLine(group: .none, "#endif")
         }
     }
 

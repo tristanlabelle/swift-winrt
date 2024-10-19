@@ -157,7 +157,7 @@ fileprivate func writeInterfaceMethodImplementation(
 
 internal func writeInteropMethodCall(
         name: String, params: [ParamProjection], returnParam: ParamProjection?, thisPointer: ThisPointer,
-        projection: Projection, to output: IndentedTextOutputStream) throws {
+        projection: Projection, to output: LineBasedTextOutputStream) throws {
 
     let nullReturnAsError = {
         if let returnParam, case .return(nullAsError: true) = returnParam.passBy { return true }
