@@ -135,11 +135,12 @@ public class IndentedTextOutputStream: TextOutputStream {
     }
 
     public func writeIndentedBlock(
-        grouping: VerticalGrouping? = nil,
-        header: String? = nil,
-        footer: String? = nil,
-        endFooterLine: Bool = true,
-        body: () throws -> Void) rethrows {
+            grouping: VerticalGrouping? = nil,
+            header: String? = nil,
+            indentation: Int = 1,
+            footer: String? = nil,
+            endFooterLine: Bool = true,
+            body: () throws -> Void) rethrows {
 
         if let grouping {
             beginLine(grouping: grouping)
@@ -156,11 +157,11 @@ public class IndentedTextOutputStream: TextOutputStream {
         // Force the indented body to be grouped with the previous line
         self.lineGrouping = nil
 
-        indentLevel += 1
+        indentLevel += indentation
         try body()
         if case .end = lineState {}
         else { endLine() }
-        indentLevel -= 1
+        indentLevel -= indentation
 
         if let footer {
             // Force the footer to be grouped with the line above

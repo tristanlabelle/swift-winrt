@@ -65,10 +65,22 @@ extension CAbi {
                 params: params)
         }
 
+        if !genericArgs.isEmpty {
+            // No module owns a generic type instantiation, so use #define guards to prevent multiple definitions.
+            let grouping = writer.output.allocateVerticalGrouping()
+            writer.output.writeFullLine(grouping: grouping, "#ifndef \(mangledName)")
+            writer.output.writeFullLine(grouping: grouping, "#define \(mangledName) \(mangledName)", groupWithNext: true)
+        }
+
         decl.write(
             comment: try WinRTTypeName.from(type: boundType).description,
             forwardDeclared: true,
             to: writer)
+
+        if !genericArgs.isEmpty {
+            writer.output.endLine(groupWithNext: true)
+            writer.output.writeFullLine(grouping: .never, "#endif")
+        }
     }
 
     private static func appendCOMParams(name: String?, type: TypeNode, genericArgs: [TypeNode], isByRef: Bool, to comParams: inout [CParamDecl]) throws {
