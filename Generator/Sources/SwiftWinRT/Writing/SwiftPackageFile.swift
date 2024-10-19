@@ -20,7 +20,7 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
         var projectionModuleTarget: SwiftPackage.Target = .target(name: module.name)
         projectionModuleTarget.path = "\(module.name)/Projection"
         projectionModuleTarget.dependencies.append(.product(name: "WindowsRuntime", package: "Support"))
-        projectionModuleTarget.swiftUnsafeFlags.append("-whole-module-optimization") // See equivalent CMake-writing code
+        // Cannot add -whole-module-optimization like the CMake code because SPM already adds -enable-batch-mode
 
         for referencedModule in module.references {
             guard !referencedModule.isEmpty else { continue }
