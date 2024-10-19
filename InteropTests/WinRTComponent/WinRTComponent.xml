@@ -1,0 +1,11 @@
+<doc>
+    <assembly>
+        <name>WinRTComponent</name>
+    </assembly>
+    <members>
+        <member name="F:WinRTComponent.DocumentationComments.NewLineInSummary">
+            <summary>First line
+Second line</summary>
+        </member>
+    </members>
+</doc>

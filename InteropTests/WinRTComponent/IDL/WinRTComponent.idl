@@ -4,6 +4,7 @@
 #include "ByteBuffers.idl"
 #include "Collections.idl"
 #include "DateTimes.idl"
+#include "DocumentationComments.idl"
 #include "Enums.idl"
 #include "Errors.idl"
 #include "Events.idl"
