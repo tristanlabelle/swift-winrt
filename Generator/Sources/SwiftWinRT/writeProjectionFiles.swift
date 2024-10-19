@@ -138,11 +138,13 @@ fileprivate func writeSwiftModuleFiles(
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
 
-        // The generated modules can be very large and are not manually edited.
+        // The generated modules can have a large number of files and are not manually edited
+        // so do not benefit from incremental compilation.
         // By default, the Swift compiler launches one swift-frontend process per input file,
-        // each of which reads every file in the module, resulting in quadratic compilation time.
-        // Whole module optimization prevents incremental compilation but uses a single swift-frontend process,
-        // and reads every file only once.
+        // each of which reads every file in the module, a mode which enables incremental compilation
+        // but can result in quadratic compilation time.
+        // Whole module optimization uses a single swift-frontend process and reads every file only once,
+        // but does not allow incremental compilation.
         // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
         writer.writeSingleLineCommand(
             "target_compile_options", .autoquote(targetName),

@@ -127,6 +127,20 @@ extension SwiftPackage.Target {
                     }
                 }
             }
+
+            if !swiftUnsafeFlags.isEmpty {
+                writer.write(",", endLine: true)
+                writer.writeIndentedBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "]", endFooterLine: false) {
+                        for (index, flag) in swiftUnsafeFlags.enumerated() {
+                            if index > 0 { writer.write(", ", endLine: true) }
+                            writer.write("\"")
+                            writer.write(flag)
+                            writer.write("\"")
+                        }
+                    }
+                }
+            }
         }
     }
 }
