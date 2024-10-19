@@ -1,9 +1,9 @@
 extension SwiftPackage {
     public func write<Stream>(version: String, to output: Stream) where Stream: AnyObject & TextOutputStream {
-        let writer = TextDocumentOutputStream(inner: output)
+        let writer = LineBasedTextOutputStream(inner: output)
 
-        writer.writeFullLine(grouping: .never, "// swift-tools-version: \(version)")
-        writer.writeFullLine(grouping: .never, "import PackageDescription")
+        writer.writeFullLine(group: .none, "// swift-tools-version: \(version)")
+        writer.writeFullLine(group: .none, "import PackageDescription")
 
         writer.writeLineBlock(header: "let package = Package(", footer: ")") {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
@@ -45,7 +45,7 @@ extension SwiftPackage {
 }
 
 extension SwiftPackage.Product {
-    fileprivate func write(to writer: TextDocumentOutputStream) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
         writer.writeLineBlock(header: ".library(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
@@ -68,7 +68,7 @@ extension SwiftPackage.Product {
 }
 
 extension SwiftPackage.Dependency {
-    fileprivate func write(to writer: TextDocumentOutputStream) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
         writer.writeLineBlock(header: ".package(", footer: ")", endFooterLine: false) {
             switch self {
                 case .fileSystem(let name, let path):
@@ -83,7 +83,7 @@ extension SwiftPackage.Dependency {
 }
 
 extension SwiftPackage.Target {
-    fileprivate func write(to writer: TextDocumentOutputStream) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
         writer.writeLineBlock(header: ".target(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
@@ -146,7 +146,7 @@ extension SwiftPackage.Target {
 }
 
 extension SwiftPackage.Target.Dependency {
-    fileprivate func write(to writer: TextDocumentOutputStream) {
+    fileprivate func write(to writer: LineBasedTextOutputStream) {
         switch self {
             case .target(let name):
                 writer.write("\"\(name)\"")

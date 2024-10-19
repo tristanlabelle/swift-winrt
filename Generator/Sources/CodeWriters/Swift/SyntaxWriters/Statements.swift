@@ -1,5 +1,5 @@
 public struct SwiftStatementWriter: SwiftSyntaxWriter {
-    public let output: TextDocumentOutputStream
+    public let output: LineBasedTextOutputStream
 
     public func writeVariableDeclaration(
         declarator: SwiftVariableDeclarator, name: String, type: SwiftType? = nil, initializer: String? = nil) {

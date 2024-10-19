@@ -1,17 +1,17 @@
 public final class CMakeListsWriter {
-    public let output: TextDocumentOutputStream
+    public let output: LineBasedTextOutputStream
 
     public init(output: some TextOutputStream) {
         self.output = .init(inner: output)
     }
 
     public func writeCommand(
-            grouping: TextDocumentOutputStream.LineGrouping? = nil,
+            lineGroup: LineBasedTextOutputStream.LineGroup? = nil,
             _ command: String,
             headerArguments: [CMakeCommandArgument] = [],
             multilineArguments: [CMakeCommandArgument] = []) {
-        var output = output // Safe because TextDocumentOutputStream is a class
-        output.beginLine(grouping: grouping ?? .withName(command))
+        var output = output // Safe because LineBasedTextOutputStream is a class
+        output.beginLine(group: lineGroup ?? .named(command))
         output.write(command)
         output.write("(")
         for (index, argument) in headerArguments.enumerated() {
@@ -33,17 +33,17 @@ public final class CMakeListsWriter {
     }
 
     public func writeSingleLineCommand(
-            grouping: TextDocumentOutputStream.LineGrouping? = nil,
+            lineGroup: LineBasedTextOutputStream.LineGroup? = nil,
             _ command: String,
             _ arguments: [CMakeCommandArgument]) {
-        writeCommand(grouping: grouping, command, headerArguments: arguments)
+        writeCommand(lineGroup: lineGroup, command, headerArguments: arguments)
     }
 
     public func writeSingleLineCommand(
-            grouping: TextDocumentOutputStream.LineGrouping? = nil,
+            lineGroup: LineBasedTextOutputStream.LineGroup? = nil,
             _ command: String,
             _ arguments: CMakeCommandArgument...) {
-        writeCommand(grouping: grouping, command, headerArguments: arguments)
+        writeCommand(lineGroup: lineGroup, command, headerArguments: arguments)
     }
 
     public func writeAddLibrary(_ name: String, _ type: CMakeLibraryType? = nil, _ sources: [String] = []) {

@@ -187,7 +187,7 @@ fileprivate func writeStructBindingExtension(
 
 fileprivate func writeStructABIToSwiftInitializerParam(
         abiValueName: String, abiFieldName: String, swiftFieldName: String,
-        typeProjection: TypeProjection, to output: TextDocumentOutputStream) throws {
+        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(swiftFieldName, to: &output)
     output.write(": ")
@@ -208,7 +208,7 @@ fileprivate func writeStructABIToSwiftInitializerParam(
 
 fileprivate func writeStructSwiftToABIInitializerParam(
         swiftValueName: String, swiftFieldName: String, abiFieldName: String,
-        typeProjection: TypeProjection, to output: TextDocumentOutputStream) throws {
+        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(abiFieldName, to: &output)
     output.write(": ")

@@ -1,8 +1,9 @@
 import struct Foundation.UUID
 
 /// A TextOutputStream implementation with additional functionality
-/// for indentation (line prefixes) and vertical grouping of lines.
-public class TextDocumentOutputStream: TextOutputStream {
+/// for prefixing lines (for indendation) and inserting blank lines
+/// between logical groups of lines. Used to write code.
+public class LineBasedTextOutputStream: TextOutputStream {
     private enum LineState {
         case unprefixed
         case prefixed
@@ -11,11 +12,11 @@ public class TextDocumentOutputStream: TextOutputStream {
 
     // Classifies lines as to automatically insert blank lines
     // between lines of different groups.
-    public enum LineGrouping {
-        case never
-        case withDefault
-        case withName(String)
-        case withGroup(Anonymous)
+    public enum LineGroup {
+        case none
+        case `default`
+        case named(String)
+        case anonymous(Anonymous)
 
         public struct Anonymous: Equatable {
             fileprivate let id: Int
@@ -25,7 +26,7 @@ public class TextDocumentOutputStream: TextOutputStream {
 
     public private(set) var inner: any TextOutputStream
     private var lineState: LineState = .unprefixed
-    private var lineGrouping: LineGrouping? = nil
+    private var lineGroup: LineGroup? = nil
     private var lastAnonymousLineGroupID = 0
     public let defaultBlockLinePrefix: String
     public let lineEnding: String
@@ -46,7 +47,7 @@ public class TextDocumentOutputStream: TextOutputStream {
             endLine()
 
             let secondLineStart = str.index(after: firstLineEnd)
-            beginLine(grouping: self.lineGrouping ?? .withDefault)
+            beginLine(group: self.lineGroup ?? .default)
             write(str[secondLineStart...])
         }
         else {
@@ -60,15 +61,15 @@ public class TextDocumentOutputStream: TextOutputStream {
         if endLine { self.endLine() }
     }
 
-    public func createLineGrouping() -> LineGrouping {
+    public func createLineGroup() -> LineGroup {
         lastAnonymousLineGroupID += 1
-        return .withGroup(.init(id: lastAnonymousLineGroupID))
+        return .anonymous(.init(id: lastAnonymousLineGroupID))
     }
 
-    public func writeFullLine(grouping: LineGrouping = .withDefault, _ str: String = "", groupWithNext: Bool = false) {
-        beginLine(grouping: grouping)
+    public func writeFullLine(group: LineGroup = .default, _ str: String = "", groupWithNext: Bool = false) {
+        beginLine(group: group)
         write(str, endLine: true)
-        if groupWithNext { lineGrouping = nil }
+        if groupWithNext { self.lineGroup = nil }
     }
 
     private func write(_ str: Substring) {
@@ -79,7 +80,7 @@ public class TextDocumentOutputStream: TextOutputStream {
 
         if lineEnd != str.endIndex {
             let nextLineStart = str.index(after: lineEnd)
-            beginLine(grouping: self.lineGrouping ?? .withDefault)
+            beginLine(group: self.lineGroup ?? .default)
             write(str[nextLineStart...])
         }
     }
@@ -87,7 +88,7 @@ public class TextDocumentOutputStream: TextOutputStream {
     // Writes a string known to not contain newlines
     private func writeInline(_ str: String) {
         if lineState == .end {
-            beginLine(grouping: .withDefault)
+            beginLine(group: .default)
         }
 
         guard !str.isEmpty else { return }
@@ -100,29 +101,29 @@ public class TextDocumentOutputStream: TextOutputStream {
         inner.write(str)
     }
 
-    public func beginLine(grouping: LineGrouping = .withDefault) {
+    public func beginLine(group: LineGroup = .default) {
         if lineState != .unprefixed {
             inner.write(lineEnding)
         }
 
-        if let previousGrouping = self.lineGrouping,
-            !Self.shouldGroup(previousGrouping, grouping) {
+        if let previousGroup = self.lineGroup,
+            !Self.keepTogether(previousGroup, group) {
             inner.write(lineEnding)
         }
 
-        self.lineGrouping = grouping
+        self.lineGroup = group
         lineState = .unprefixed
     }
 
-    private static func shouldGroup(_ lhs: LineGrouping, _ rhs: LineGrouping) -> Bool {
+    private static func keepTogether(_ lhs: LineGroup, _ rhs: LineGroup) -> Bool {
         switch (lhs, rhs) {
-            case (.never, _), (_, .never):
+            case (.none, _), (_, .none):
                 return false
-            case (.withDefault, .withDefault):
+            case (.default, .default):
                 return true
-            case let (.withName(lhs), .withName(rhs)):
+            case let (.named(lhs), .named(rhs)):
                 return lhs == rhs
-            case let (.withGroup(lhs), .withGroup(rhs)):
+            case let (.anonymous(lhs), .anonymous(rhs)):
                 return lhs == rhs
             default:
                 return false
@@ -131,21 +132,21 @@ public class TextDocumentOutputStream: TextOutputStream {
 
     public func endLine(groupWithNext: Bool = false) {
         lineState = .end
-        if groupWithNext { lineGrouping = nil }
+        if groupWithNext { lineGroup = nil }
     }
 
     public func writeLineBlock(
-            grouping: LineGrouping? = nil,
+            group: LineGroup? = nil,
             header: String? = nil,
             prefix: String? = nil,
             footer: String? = nil,
             endFooterLine: Bool = true,
             body: () throws -> Void) rethrows {
 
-        if let grouping {
-            beginLine(grouping: grouping)
+        if let group {
+            beginLine(group: group)
         }
-        let grouping = grouping ?? self.lineGrouping ?? .withDefault
+        let group = group ?? self.lineGroup ?? .default
 
         if let header {
             write(header, endLine: true)
@@ -155,7 +156,7 @@ public class TextDocumentOutputStream: TextOutputStream {
         }
 
         // Force the indented body to be grouped with the previous line
-        self.lineGrouping = nil
+        self.lineGroup = nil
 
         let originalLinePrefixEndIndex = self.linePrefix.endIndex
         self.linePrefix += `prefix` ?? defaultBlockLinePrefix
@@ -166,10 +167,10 @@ public class TextDocumentOutputStream: TextOutputStream {
 
         if let footer {
             // Force the footer to be grouped with the line above
-            self.lineGrouping = nil
+            self.lineGroup = nil
             write(footer, endLine: endFooterLine)
         }
 
-        self.lineGrouping = grouping
+        self.lineGroup = group
     }
 }

@@ -13,7 +13,7 @@ internal func writeVirtualTableProperty(
 
 fileprivate func writeVirtualTable(
         abiType: BoundType, swiftType: BoundType,
-        projection: Projection, to output: TextDocumentOutputStream) throws {
+        projection: Projection, to output: LineBasedTextOutputStream) throws {
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
     try output.writeLineBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
@@ -74,7 +74,7 @@ fileprivate func getABIParamNames(_ params: [ParamProjection], returnParam: Para
 
 fileprivate func writeVirtualTableFunc(
         params: [ParamProjection], returnParam: ParamProjection?,
-        swiftMemberName: String, methodKind: WinRTMethodKind, to output: TextDocumentOutputStream) throws {
+        swiftMemberName: String, methodKind: WinRTMethodKind, to output: LineBasedTextOutputStream) throws {
     // Ensure non-optional by reference params are non-null pointers
     for param in params {
         guard case .reference(in: _, out: _, optional: false) = param.passBy else { continue }
@@ -154,7 +154,7 @@ fileprivate func writeVirtualTableFunc(
     if epilogueRequiresCleanup { output.writeFullLine("_success = true") }
 }
 
-fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [String], to output: TextDocumentOutputStream, body: () throws -> Void) rethrows {
+fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [String], to output: LineBasedTextOutputStream, body: () throws -> Void) rethrows {
     output.write(name)
     output.write(": ")
     output.write("{ this")
@@ -165,7 +165,7 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
     output.write("} }")
 }
 
-fileprivate func writePrologueForParam(_ param: ParamProjection, to output: TextDocumentOutputStream) throws {
+fileprivate func writePrologueForParam(_ param: ParamProjection, to output: LineBasedTextOutputStream) throws {
     if param.passBy.isInput {
         let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
         output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).fromABI")
@@ -183,7 +183,7 @@ fileprivate func writePrologueForParam(_ param: ParamProjection, to output: Text
     output.endLine()
 }
 
-fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: TextDocumentOutputStream) throws {
+fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: LineBasedTextOutputStream) throws {
     precondition(param.passBy.isOutput)
 
     if param.typeProjection.kind == .array {

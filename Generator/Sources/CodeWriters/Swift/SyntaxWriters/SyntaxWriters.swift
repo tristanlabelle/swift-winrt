@@ -1,5 +1,5 @@
 public protocol SwiftSyntaxWriter {
-    var output: TextDocumentOutputStream { get }
+    var output: LineBasedTextOutputStream { get }
 }
 
 public enum SwiftVariableDeclarator: Hashable {
@@ -9,7 +9,7 @@ public enum SwiftVariableDeclarator: Hashable {
 
 public protocol SwiftDeclarationWriter: SwiftSyntaxWriter {}
 
-extension TextDocumentOutputStream {
+extension LineBasedTextOutputStream {
     internal func writeBracedIndentedBlock(_ str: String = "", body: () throws -> Void) rethrows {
         try self.writeLineBlock(header: str + " {", footer: "}") {
             try body()
@@ -19,7 +19,7 @@ extension TextDocumentOutputStream {
 
 extension SwiftSyntaxWriter {
     public func writeCommentLine(_ comment: String, groupWithNext: Bool = true) {
-        output.beginLine(grouping: .never)
+        output.beginLine(group: .none)
         output.write("// ")
         output.write(comment)
         output.endLine(groupWithNext: groupWithNext)
