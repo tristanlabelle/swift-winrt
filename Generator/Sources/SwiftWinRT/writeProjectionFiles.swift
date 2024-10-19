@@ -138,6 +138,16 @@ fileprivate func writeSwiftModuleFiles(
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
 
+        // The generated modules can be very large and are not manually edited.
+        // By default, the Swift compiler launches one swift-frontend process per input file,
+        // each of which reads every file in the module, resulting in quadratic compilation time.
+        // Whole module optimization prevents incremental compilation but uses a single swift-frontend process,
+        // and reads every file only once.
+        // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
+        writer.writeSingleLineCommand(
+            "target_compile_options", .autoquote(targetName),
+            "PRIVATE", .unquoted("-whole-module-optimization"))
+
         // Workaround for https://github.com/swiftlang/swift-driver/issues/1477
         // The threshold value has to be real high because the driver multiplies the number of input files by ~50.
         // See https://github.com/swiftlang/swift-driver/blob/6af4c7dbc0559694578e5221d49970f94603b9e5/Sources/SwiftDriver/Jobs/FrontendJobHelpers.swift#L714
