@@ -33,7 +33,7 @@ internal func writeProjectionFiles(
         // Whole module optimization uses a single swift-frontend process and reads every file only once,
         // but does not allow incremental compilation.
         // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
-        let grouping = writer.output.allocateVerticalGrouping()
+        let grouping = writer.output.createLineGrouping()
         writer.writeSingleLineCommand(grouping: grouping, "if", "POLICY", "CMP0157") // Swift_COMPILATION_MODE support
         writer.writeSingleLineCommand(grouping: grouping, "set_directory_properties", "PROPERTIES", "Swift_COMPILATION_MODE", "wholemodule")
         writer.writeSingleLineCommand(grouping: grouping, "elseif", .quoted("${CMAKE_BUILD_TYPE}"), "STREQUAL", "Debug")

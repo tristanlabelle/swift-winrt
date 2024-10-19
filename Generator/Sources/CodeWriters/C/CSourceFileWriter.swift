@@ -47,7 +47,7 @@ public class CSourceFileWriter {
     }
 
     public func writeEnum(comment: String? = nil, typedef: Bool = false, name: String, enumerants: [CEnumerant], enumerantPrefix: String? = nil) {
-        let lineGrouping = output.allocateVerticalGrouping()
+        let lineGrouping = output.createLineGrouping()
 
         if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
 
@@ -55,7 +55,7 @@ public class CSourceFileWriter {
         if typedef { output.write("typedef ") }
         output.write("enum ")
         output.write(name, endLine: true)
-        output.writeLinePrefixedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLineBlock(grouping: lineGrouping, header: "{") {
             for (index, enumerant) in enumerants.enumerated() {
                 if let enumerantPrefix { output.write(enumerantPrefix) }
                 output.write(enumerant.name)
@@ -77,7 +77,7 @@ public class CSourceFileWriter {
     }
 
     public func writeStruct(comment: String? = nil, typedef: Bool = false, name: String, members: [CVariableDecl]) {
-        let lineGrouping = output.allocateVerticalGrouping()
+        let lineGrouping = output.createLineGrouping()
 
         if let comment { output.writeFullLine(grouping: lineGrouping, "// \(comment)") }
 
@@ -85,7 +85,7 @@ public class CSourceFileWriter {
         if typedef { output.write("typedef ") }
         output.write("struct ")
         output.write(name, endLine: true)
-        output.writeLinePrefixedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLineBlock(grouping: lineGrouping, header: "{") {
             for member in members {
                 writeVariableDecl(member)
             }

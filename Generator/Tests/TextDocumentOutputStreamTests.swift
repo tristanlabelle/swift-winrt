@@ -14,14 +14,16 @@ class TextDocumentOutputStreamTests: XCTestCase {
         XCTAssertEqual(stream.inner as? String, "Hello, world!")
     }
 
-    func testMultipleLines() {
+    func testMultipleLines() throws {
         let stream = TextDocumentOutputStream(inner: "")
         stream.writeFullLine("foo")
         stream.writeFullLine("bar")
-        XCTAssertEqual(stream.inner as? String, "foo\nbar")
+        XCTAssertEqual(
+            try XCTUnwrap(stream.inner as? String).split(separator: "\n", omittingEmptySubsequences: false),
+            [ "foo", "bar" ])
     }
 
-    func testLineGrouping() {
+    func testLineGrouping() throws {
         let stream = TextDocumentOutputStream(inner: "")
         stream.writeFullLine("d")
         stream.writeFullLine("d")
@@ -35,29 +37,71 @@ class TextDocumentOutputStreamTests: XCTestCase {
         stream.writeFullLine(grouping: .never, "n")
         stream.writeFullLine("d")
         stream.writeFullLine("d")
-        XCTAssertEqual(stream.inner as? String, [ "d\nd", "a\na", "b\nb", "d\nd", "n", "n", "d\nd" ].joined(separator: "\n\n"))
+        XCTAssertEqual(
+            try XCTUnwrap(stream.inner as? String).split(separator: "\n", omittingEmptySubsequences: false),
+            [
+                "d",
+                "d",
+                "",
+                "a",
+                "a",
+                "",
+                "b",
+                "b",
+                "",
+                "d",
+                "d",
+                "",
+                "n",
+                "",
+                "n",
+                "",
+                "d",
+                "d"
+            ])
     }
 
-    func testIndentedBlock() {
-        let stream = TextDocumentOutputStream(inner: "", defaultLinePrefixIncrement: "  ")
-        stream.writeLinePrefixedBlock(header: "{", footer: "}") {
+    func testLineBlock() throws {
+        let stream = TextDocumentOutputStream(inner: "", defaultBlockLinePrefix: "  ")
+        stream.writeLineBlock(header: "{", footer: "}") {
             stream.writeFullLine("foo")
             stream.writeFullLine(grouping: .withName("b"), "bar")
         }
-        XCTAssertEqual(stream.inner as? String, "{\n  foo\n\n  bar\n}")
+        XCTAssertEqual(
+            try XCTUnwrap(stream.inner as? String).split(separator: "\n", omittingEmptySubsequences: false),
+            [
+                "{",
+                "  foo",
+                "",
+                "  bar",
+                "}"
+            ])
     }
 
-    func testIndentedBlockGrouping() {
-        let stream = TextDocumentOutputStream(inner: "", defaultLinePrefixIncrement: "  ")
-        stream.writeLinePrefixedBlock(grouping: .withName("1"), header: "{", footer: "}") {
+    func testLineBlockGrouping() throws {
+        let stream = TextDocumentOutputStream(inner: "", defaultBlockLinePrefix: "  ")
+        stream.writeLineBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeFullLine("a")
         }
-        stream.writeLinePrefixedBlock(grouping: .withName("1"), header: "{", footer: "}") {
+        stream.writeLineBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeFullLine("b")
         }
-        stream.writeLinePrefixedBlock(grouping: .withName("2"), header: "{", footer: "}") {
+        stream.writeLineBlock(grouping: .withName("2"), header: "{", footer: "}") {
             stream.writeFullLine("c")
         }
-        XCTAssertEqual(stream.inner as? String, "{\n  a\n}\n{\n  b\n}\n\n{\n  c\n}")
+        XCTAssertEqual(
+            try XCTUnwrap(stream.inner as? String).split(separator: "\n", omittingEmptySubsequences: false),
+            [
+                "{",
+                "  a",
+                "}",
+                "{",
+                "  b",
+                "}",
+                "",
+                "{",
+                "  c",
+                "}"
+            ])
     }
 }

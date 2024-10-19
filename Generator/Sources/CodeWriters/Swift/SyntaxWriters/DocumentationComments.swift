@@ -1,7 +1,7 @@
 
 extension SwiftSyntaxWriter {
     internal func writeDocumentationComment(_ documentationComment: SwiftDocumentationComment) {
-        output.writeLinePrefixedBlock(prefixIncrement: "/// ") {
+        output.writeLineBlock(prefix: "/// ") {
             if let summary = documentationComment.summary {
                 for block in summary { writeDocumentationCommentBlock(block) }
             }

@@ -6,7 +6,7 @@ public final class CMakeListsWriter {
     }
 
     public func writeCommand(
-            grouping: TextDocumentOutputStream.VerticalGrouping? = nil,
+            grouping: TextDocumentOutputStream.LineGrouping? = nil,
             _ command: String,
             headerArguments: [CMakeCommandArgument] = [],
             multilineArguments: [CMakeCommandArgument] = []) {
@@ -22,7 +22,7 @@ public final class CMakeListsWriter {
             output.write(")", endLine: true)
         }
         else {
-            output.writeLinePrefixedBlock {
+            output.writeLineBlock {
                 for argument in multilineArguments {
                     output.beginLine()
                     argument.write(to: &output)
@@ -33,14 +33,14 @@ public final class CMakeListsWriter {
     }
 
     public func writeSingleLineCommand(
-            grouping: IndentedTextOutputStream.VerticalGrouping? = nil,
+            grouping: TextDocumentOutputStream.LineGrouping? = nil,
             _ command: String,
             _ arguments: [CMakeCommandArgument]) {
         writeCommand(grouping: grouping, command, headerArguments: arguments)
     }
 
     public func writeSingleLineCommand(
-            grouping: IndentedTextOutputStream.VerticalGrouping? = nil,
+            grouping: TextDocumentOutputStream.LineGrouping? = nil,
             _ command: String,
             _ arguments: CMakeCommandArgument...) {
         writeCommand(grouping: grouping, command, headerArguments: arguments)

@@ -67,7 +67,7 @@ extension CAbi {
 
         if !genericArgs.isEmpty {
             // No module owns a generic type instantiation, so use #define guards to prevent multiple definitions.
-            let grouping = writer.output.allocateVerticalGrouping()
+            let grouping = writer.output.createLineGrouping()
             writer.output.writeFullLine(grouping: grouping, "#ifndef \(mangledName)")
             writer.output.writeFullLine(grouping: grouping, "#define \(mangledName) \(mangledName)", groupWithNext: true)
         }

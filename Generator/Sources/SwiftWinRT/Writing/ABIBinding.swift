@@ -135,7 +135,7 @@ fileprivate func writeStructBindingExtension(
             }
 
             let output = writer.output
-            try output.writeLinePrefixedBlock(header: ".init(") {
+            try output.writeLineBlock(header: ".init(") {
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructABIToSwiftInitializerParam(
@@ -158,7 +158,7 @@ fileprivate func writeStructBindingExtension(
             }
 
             let output = writer.output
-            try output.writeLinePrefixedBlock(header: ".init(") {
+            try output.writeLineBlock(header: ".init(") {
                 for (index, field) in fields.enumerated() {
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructSwiftToABIInitializerParam(

@@ -49,7 +49,7 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
         let lines = code.split(separator: "\n")
         output.write(String(lines[0]), endLine: true)
         if lines.count == 1 { return }
-        output.writeLinePrefixedBlock {
+        output.writeLineBlock {
             for line in lines.dropFirst() {
                 output.write(String(line), endLine: true)
             }
@@ -73,12 +73,12 @@ public struct SwiftStatementWriter: SwiftSyntaxWriter {
             output.write(condition)
         }
         output.write(" {", endLine: true)
-        try output.writeLinePrefixedBlock { try then(SwiftStatementWriter(output: output)) }
+        try output.writeLineBlock { try then(SwiftStatementWriter(output: output)) }
         output.endLine()
         output.write("}")
         if let `else` {
             output.write(" else {", endLine: true)
-            try output.writeLinePrefixedBlock { try `else`(SwiftStatementWriter(output: output)) }
+            try output.writeLineBlock { try `else`(SwiftStatementWriter(output: output)) }
             output.endLine()
             output.write("}")
         }

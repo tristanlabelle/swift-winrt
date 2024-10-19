@@ -5,13 +5,13 @@ extension SwiftPackage {
         writer.writeFullLine(grouping: .never, "// swift-tools-version: \(version)")
         writer.writeFullLine(grouping: .never, "import PackageDescription")
 
-        writer.writeLinePrefixedBlock(header: "let package = Package(", footer: ")") {
+        writer.writeLineBlock(header: "let package = Package(", footer: ")") {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             // products:
             if !products.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "products: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "products: [", footer: "]", endFooterLine: false) {
                     for (index, product) in products.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         product.write(to: writer)
@@ -22,7 +22,7 @@ extension SwiftPackage {
             // dependencies:
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
@@ -33,7 +33,7 @@ extension SwiftPackage {
             // targets:
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         target.write(to: writer)
@@ -46,7 +46,7 @@ extension SwiftPackage {
 
 extension SwiftPackage.Product {
     fileprivate func write(to writer: TextDocumentOutputStream) {
-        writer.writeLinePrefixedBlock(header: ".library(", footer: ")", endFooterLine: false) {
+        writer.writeLineBlock(header: ".library(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             if let type {
@@ -56,7 +56,7 @@ extension SwiftPackage.Product {
 
             if !targets.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "targets: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "targets: [", footer: "]", endFooterLine: false) {
                     for (index, target) in targets.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         writer.write("\"\(escapeStringLiteral(target))\"")
@@ -69,7 +69,7 @@ extension SwiftPackage.Product {
 
 extension SwiftPackage.Dependency {
     fileprivate func write(to writer: TextDocumentOutputStream) {
-        writer.writeLinePrefixedBlock(header: ".package(", footer: ")", endFooterLine: false) {
+        writer.writeLineBlock(header: ".package(", footer: ")", endFooterLine: false) {
             switch self {
                 case .fileSystem(let name, let path):
                     if let name { writer.write("name: \"\(name)\",", endLine: true) }
@@ -84,12 +84,12 @@ extension SwiftPackage.Dependency {
 
 extension SwiftPackage.Target {
     fileprivate func write(to writer: TextDocumentOutputStream) {
-        writer.writeLinePrefixedBlock(header: ".target(", footer: ")", endFooterLine: false) {
+        writer.writeLineBlock(header: ".target(", footer: ")", endFooterLine: false) {
             writer.write("name: \"\(escapeStringLiteral(name))\"")
 
             if !dependencies.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "dependencies: [", footer: "]", endFooterLine: false) {
                     for (index, dependency) in dependencies.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                         dependency.write(to: writer)
@@ -104,7 +104,7 @@ extension SwiftPackage.Target {
 
             if !exclude.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "exclude: [", footer: "]", endFooterLine: false) {
+                writer.writeLineBlock(header: "exclude: [", footer: "]", endFooterLine: false) {
                     for (index, path) in exclude.enumerated() {
                         if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -116,8 +116,8 @@ extension SwiftPackage.Target {
 
             if !cUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeLinePrefixedBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
-                    writer.writeLinePrefixedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
+                writer.writeLineBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeLineBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
                         for (index, flag) in cUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
@@ -130,8 +130,8 @@ extension SwiftPackage.Target {
 
             if !swiftUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
-                writer.writeIndentedBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
-                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
+                writer.writeLineBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeLineBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
                         for (index, flag) in swiftUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")

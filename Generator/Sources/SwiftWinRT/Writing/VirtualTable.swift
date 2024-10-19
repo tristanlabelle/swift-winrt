@@ -15,7 +15,7 @@ fileprivate func writeVirtualTable(
         abiType: BoundType, swiftType: BoundType,
         projection: Projection, to output: TextDocumentOutputStream) throws {
     let vtableStructType: SwiftType = try projection.toABIVirtualTableType(abiType)
-    try output.writeLinePrefixedBlock(header: "\(vtableStructType)(", footer: ")") {
+    try output.writeLineBlock(header: "\(vtableStructType)(", footer: ")") {
         // IUnknown methods
         output.writeFullLine("QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },")
         output.writeFullLine("AddRef: { IUnknownVirtualTable.AddRef($0) },")
@@ -47,7 +47,7 @@ fileprivate func writeVirtualTable(
             }
 
             output.write(" in _implement(this)")
-            try output.writeLinePrefixedBlock(header: " { this in") {
+            try output.writeLineBlock(header: " { this in") {
                 try writeVirtualTableFunc(
                     params: params, returnParam: returnParam,
                     swiftMemberName: Projection.toMemberName(method),
@@ -161,7 +161,7 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
     for paramName in paramNames {
         output.write(", \(paramName)")
     }
-    try output.writeLinePrefixedBlock(header: " in _implement(this) { this in", body: body)
+    try output.writeLineBlock(header: " in _implement(this) { this in", body: body)
     output.write("} }")
 }
 

@@ -11,29 +11,29 @@ public class TextDocumentOutputStream: TextOutputStream {
 
     // Classifies lines as to automatically insert blank lines
     // between lines of different groups.
-    public enum VerticalGrouping {
+    public enum LineGrouping {
         case never
         case withDefault
         case withName(String)
-        case withGroup(AnonymousVerticalGroup)
-    }
+        case withGroup(Anonymous)
 
-    public struct AnonymousVerticalGroup: Equatable {
-        fileprivate let id: Int
-        fileprivate init(id: Int) { self.id = id }
+        public struct Anonymous: Equatable {
+            fileprivate let id: Int
+            fileprivate init(id: Int) { self.id = id }
+        }
     }
 
     public private(set) var inner: any TextOutputStream
     private var lineState: LineState = .unprefixed
-    private var lineGrouping: VerticalGrouping? = nil
-    private var lastAllocatedGroupID = 0
-    public let defaultLinePrefixIncrement: String
+    private var lineGrouping: LineGrouping? = nil
+    private var lastAnonymousLineGroupID = 0
+    public let defaultBlockLinePrefix: String
     public let lineEnding: String
     public private(set) var linePrefix = "" // Used for indentation
 
-    public init(inner: some TextOutputStream, defaultLinePrefixIncrement: String = "    ", lineEnding: String = "\n") {
+    public init(inner: some TextOutputStream, defaultBlockLinePrefix: String = "    ", lineEnding: String = "\n") {
         self.inner = inner
-        self.defaultLinePrefixIncrement = defaultLinePrefixIncrement
+        self.defaultBlockLinePrefix = defaultBlockLinePrefix
         self.lineEnding = lineEnding
     }
 
@@ -60,12 +60,12 @@ public class TextDocumentOutputStream: TextOutputStream {
         if endLine { self.endLine() }
     }
 
-    public func allocateVerticalGrouping() -> VerticalGrouping {
-        lastAllocatedGroupID += 1
-        return .withGroup(AnonymousVerticalGroup(id: lastAllocatedGroupID))
+    public func createLineGrouping() -> LineGrouping {
+        lastAnonymousLineGroupID += 1
+        return .withGroup(.init(id: lastAnonymousLineGroupID))
     }
 
-    public func writeFullLine(grouping: VerticalGrouping = .withDefault, _ str: String = "", groupWithNext: Bool = false) {
+    public func writeFullLine(grouping: LineGrouping = .withDefault, _ str: String = "", groupWithNext: Bool = false) {
         beginLine(grouping: grouping)
         write(str, endLine: true)
         if groupWithNext { lineGrouping = nil }
@@ -100,7 +100,7 @@ public class TextDocumentOutputStream: TextOutputStream {
         inner.write(str)
     }
 
-    public func beginLine(grouping: VerticalGrouping = .withDefault) {
+    public func beginLine(grouping: LineGrouping = .withDefault) {
         if lineState != .unprefixed {
             inner.write(lineEnding)
         }
@@ -114,7 +114,7 @@ public class TextDocumentOutputStream: TextOutputStream {
         lineState = .unprefixed
     }
 
-    private static func shouldGroup(_ lhs: VerticalGrouping, _ rhs: VerticalGrouping) -> Bool {
+    private static func shouldGroup(_ lhs: LineGrouping, _ rhs: LineGrouping) -> Bool {
         switch (lhs, rhs) {
             case (.never, _), (_, .never):
                 return false
@@ -134,10 +134,10 @@ public class TextDocumentOutputStream: TextOutputStream {
         if groupWithNext { lineGrouping = nil }
     }
 
-    public func writeLinePrefixedBlock(
-            grouping: VerticalGrouping? = nil,
+    public func writeLineBlock(
+            grouping: LineGrouping? = nil,
             header: String? = nil,
-            prefixIncrement: String? = nil,
+            prefix: String? = nil,
             footer: String? = nil,
             endFooterLine: Bool = true,
             body: () throws -> Void) rethrows {
@@ -157,12 +157,12 @@ public class TextDocumentOutputStream: TextOutputStream {
         // Force the indented body to be grouped with the previous line
         self.lineGrouping = nil
 
-        let originalLinePrefixEndIndex = linePrefix.endIndex
-        linePrefix += prefixIncrement ?? defaultLinePrefixIncrement
+        let originalLinePrefixEndIndex = self.linePrefix.endIndex
+        self.linePrefix += `prefix` ?? defaultBlockLinePrefix
         try body()
         if case .end = lineState {}
         else { endLine() }
-        linePrefix.removeSubrange(originalLinePrefixEndIndex...)
+        self.linePrefix.removeSubrange(originalLinePrefixEndIndex...)
 
         if let footer {
             // Force the footer to be grouped with the line above

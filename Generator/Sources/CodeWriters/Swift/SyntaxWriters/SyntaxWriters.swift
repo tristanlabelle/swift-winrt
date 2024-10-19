@@ -11,7 +11,7 @@ public protocol SwiftDeclarationWriter: SwiftSyntaxWriter {}
 
 extension TextDocumentOutputStream {
     internal func writeBracedIndentedBlock(_ str: String = "", body: () throws -> Void) rethrows {
-        try self.writeLinePrefixedBlock(header: str + " {", footer: "}") {
+        try self.writeLineBlock(header: str + " {", footer: "}") {
             try body()
         }
     }
