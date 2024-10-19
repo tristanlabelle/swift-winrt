@@ -117,8 +117,22 @@ extension SwiftPackage.Target {
             if !cUnsafeFlags.isEmpty {
                 writer.write(",", endLine: true)
                 writer.writeIndentedBlock(header: "cSettings: [", footer: "]", endFooterLine: false) {
-                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "]", endFooterLine: false) {
+                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
                         for (index, flag) in cUnsafeFlags.enumerated() {
+                            if index > 0 { writer.write(", ", endLine: true) }
+                            writer.write("\"")
+                            writer.write(flag)
+                            writer.write("\"")
+                        }
+                    }
+                }
+            }
+
+            if !swiftUnsafeFlags.isEmpty {
+                writer.write(",", endLine: true)
+                writer.writeIndentedBlock(header: "swiftSettings: [", footer: "]", endFooterLine: false) {
+                    writer.writeIndentedBlock(header: ".unsafeFlags([", footer: "])", endFooterLine: false) {
+                        for (index, flag) in swiftUnsafeFlags.enumerated() {
                             if index > 0 { writer.write(", ", endLine: true) }
                             writer.write("\"")
                             writer.write(flag)

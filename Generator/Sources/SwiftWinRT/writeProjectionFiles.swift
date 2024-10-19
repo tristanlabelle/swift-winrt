@@ -24,6 +24,27 @@ internal func writeProjectionFiles(
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
+
+        // Generated modules can have a large number of files and are not manually edited
+        // so do not benefit from incremental compilation.
+        // By default, when building in debug mode, the Swift driver launches multiple swift-frontend processes,
+        // each of which reads every file in the module, a mode which enables incremental compilation
+        // but can result in quadratic compilation time.
+        // Whole module optimization uses a single swift-frontend process and reads every file only once,
+        // but does not allow incremental compilation.
+        // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
+        let grouping = writer.output.allocateVerticalGrouping()
+        writer.writeSingleLineCommand(grouping: grouping, "if", "POLICY", "CMP0157") // Swift_COMPILATION_MODE support
+        writer.writeSingleLineCommand(grouping: grouping, "set_directory_properties", "PROPERTIES", "Swift_COMPILATION_MODE", "wholemodule")
+        writer.writeSingleLineCommand(grouping: grouping, "elseif", .quoted("${CMAKE_BUILD_TYPE}"), "STREQUAL", "Debug")
+        writer.writeSingleLineCommand(grouping: grouping, "add_compile_options", "-whole-module-optimization")
+        writer.writeSingleLineCommand(grouping: grouping, "endif")
+
+        // Workaround for https://github.com/swiftlang/swift-driver/issues/1477
+        // The threshold value has to be real high because the driver multiplies the number of input files by ~50.
+        // See https://github.com/swiftlang/swift-driver/blob/6af4c7dbc0559694578e5221d49970f94603b9e5/Sources/SwiftDriver/Jobs/FrontendJobHelpers.swift#L714
+        writer.writeSingleLineCommand("add_compile_options", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
+
         for module in projection.modulesByName.values {
             guard !module.isEmpty else { continue }
             writer.writeAddSubdirectory(module.name)
@@ -137,6 +158,24 @@ fileprivate func writeSwiftModuleFiles(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
+
+        // The generated modules can have a large number of files and are not manually edited
+        // so do not benefit from incremental compilation.
+        // By default, when building in debug mode, the Swift driver launches multiple swift-frontend processes,
+        // each of which reads every file in the module, a mode which enables incremental compilation
+        // but can result in quadratic compilation time.
+        // Whole module optimization uses a single swift-frontend process and reads every file only once,
+        // but does not allow incremental compilation.
+        // See: https://github.com/swiftlang/swift/blob/main/docs/CompilerPerformance.md#compilation-modes
+        writer.writeSingleLineCommand("if", "POLICY", "CMP0157") // Swift_COMPILATION_MODE support
+        writer.writeSingleLineCommand(
+            "set_target_properties", .autoquote(targetName),
+            "PROPERTIES", "Swift_COMPILATION_MODE", "wholemodule")
+        writer.writeSingleLineCommand("elseif", .quoted("${CMAKE_BUILD_TYPE}"), "STREQUAL", "Debug")
+        writer.writeSingleLineCommand(
+            "target_compile_options", .autoquote(targetName),
+            "PRIVATE", .unquoted("-whole-module-optimization"))
+        writer.writeSingleLineCommand("endif")
 
         // Workaround for https://github.com/swiftlang/swift-driver/issues/1477
         // The threshold value has to be real high because the driver multiplies the number of input files by ~50.
