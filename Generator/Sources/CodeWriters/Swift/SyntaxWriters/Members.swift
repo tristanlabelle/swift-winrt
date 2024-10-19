@@ -9,7 +9,7 @@ extension SwiftDeclarationWriter {
         name: String,
         type: SwiftType? = nil,
         initialValue: String? = nil,
-        initializer: ((IndentedTextOutputStream) throws -> Void)? = nil) rethrows {
+        initializer: ((TextDocumentOutputStream) throws -> Void)? = nil) rethrows {
 
         precondition(initialValue == nil || initializer == nil)
 

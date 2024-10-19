@@ -1,5 +1,5 @@
 public protocol SwiftSyntaxWriter {
-    var output: IndentedTextOutputStream { get }
+    var output: TextDocumentOutputStream { get }
 }
 
 public enum SwiftVariableDeclarator: Hashable {
@@ -9,9 +9,9 @@ public enum SwiftVariableDeclarator: Hashable {
 
 public protocol SwiftDeclarationWriter: SwiftSyntaxWriter {}
 
-extension IndentedTextOutputStream {
+extension TextDocumentOutputStream {
     internal func writeBracedIndentedBlock(_ str: String = "", body: () throws -> Void) rethrows {
-        try self.writeIndentedBlock(header: str + " {", footer: "}") {
+        try self.writeLinePrefixedBlock(header: str + " {", footer: "}") {
             try body()
         }
     }

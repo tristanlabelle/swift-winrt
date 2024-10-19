@@ -1,9 +1,11 @@
 import struct Foundation.UUID
 
-public class IndentedTextOutputStream: TextOutputStream {
+/// A TextOutputStream implementation with additional functionality
+/// for indentation (line prefixes) and vertical grouping of lines.
+public class TextDocumentOutputStream: TextOutputStream {
     private enum LineState {
-        case preIndent
-        case postIndent
+        case unprefixed
+        case prefixed
         case end
     }
 
@@ -22,16 +24,16 @@ public class IndentedTextOutputStream: TextOutputStream {
     }
 
     public private(set) var inner: any TextOutputStream
-    private var lineState: LineState = .preIndent
+    private var lineState: LineState = .unprefixed
     private var lineGrouping: VerticalGrouping? = nil
     private var lastAllocatedGroupID = 0
-    public let indentToken: String
+    public let defaultLinePrefixIncrement: String
     public let lineEnding: String
-    public private(set) var indentLevel = 0
+    public private(set) var linePrefix = "" // Used for indentation
 
-    public init(inner: some TextOutputStream, indent: String = "    ", lineEnding: String = "\n") {
+    public init(inner: some TextOutputStream, defaultLinePrefixIncrement: String = "    ", lineEnding: String = "\n") {
         self.inner = inner
-        self.indentToken = indent
+        self.defaultLinePrefixIncrement = defaultLinePrefixIncrement
         self.lineEnding = lineEnding
     }
 
@@ -90,18 +92,16 @@ public class IndentedTextOutputStream: TextOutputStream {
 
         guard !str.isEmpty else { return }
 
-        if lineState == .preIndent {
-            for _ in 0..<indentLevel {
-                inner.write(indentToken)
-            }
-            lineState = .postIndent
+        if lineState == .unprefixed {
+            inner.write(linePrefix)
+            lineState = .prefixed
         }
 
         inner.write(str)
     }
 
     public func beginLine(grouping: VerticalGrouping = .withDefault) {
-        if lineState != .preIndent {
+        if lineState != .unprefixed {
             inner.write(lineEnding)
         }
 
@@ -111,7 +111,7 @@ public class IndentedTextOutputStream: TextOutputStream {
         }
 
         self.lineGrouping = grouping
-        lineState = .preIndent
+        lineState = .unprefixed
     }
 
     private static func shouldGroup(_ lhs: VerticalGrouping, _ rhs: VerticalGrouping) -> Bool {
@@ -134,10 +134,10 @@ public class IndentedTextOutputStream: TextOutputStream {
         if groupWithNext { lineGrouping = nil }
     }
 
-    public func writeIndentedBlock(
+    public func writeLinePrefixedBlock(
             grouping: VerticalGrouping? = nil,
             header: String? = nil,
-            indentation: Int = 1,
+            prefixIncrement: String? = nil,
             footer: String? = nil,
             endFooterLine: Bool = true,
             body: () throws -> Void) rethrows {
@@ -150,18 +150,19 @@ public class IndentedTextOutputStream: TextOutputStream {
         if let header {
             write(header, endLine: true)
         }
-        else if lineState != .preIndent {
+        else if lineState != .unprefixed {
             endLine()
         }
 
         // Force the indented body to be grouped with the previous line
         self.lineGrouping = nil
 
-        indentLevel += indentation
+        let originalLinePrefixEndIndex = linePrefix.endIndex
+        linePrefix += prefixIncrement ?? defaultLinePrefixIncrement
         try body()
         if case .end = lineState {}
         else { endLine() }
-        indentLevel -= indentation
+        linePrefix.removeSubrange(originalLinePrefixEndIndex...)
 
         if let footer {
             // Force the footer to be grouped with the line above

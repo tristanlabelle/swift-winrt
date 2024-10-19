@@ -1,8 +1,8 @@
 public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
-    public let output: IndentedTextOutputStream
+    public let output: TextDocumentOutputStream
 
     public init(output: some TextOutputStream, indent: String = "    ") {
-        self.output = IndentedTextOutputStream(inner: output, indent: indent)
+        self.output = TextDocumentOutputStream(inner: output, defaultLinePrefixIncrement: indent)
     }
 
     public func writeImport(exported: Bool = false, module: String) {

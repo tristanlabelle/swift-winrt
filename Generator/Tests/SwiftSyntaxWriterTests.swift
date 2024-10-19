@@ -3,7 +3,7 @@ import XCTest
 
 class SwiftSyntaxWriterTests: XCTestCase {
     func testNewLineInDocumentationComment() throws {
-        let stream = IndentedTextOutputStream(inner: "")
+        let stream = TextDocumentOutputStream(inner: "")
         let writer = SwiftSourceFileWriter(output: stream)
 
         var docs = SwiftDocumentationComment()

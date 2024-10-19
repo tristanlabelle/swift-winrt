@@ -1,16 +1,16 @@
 public final class CMakeListsWriter {
-    public let output: IndentedTextOutputStream
+    public let output: TextDocumentOutputStream
 
     public init(output: some TextOutputStream) {
         self.output = .init(inner: output)
     }
 
     public func writeCommand(
-            grouping: IndentedTextOutputStream.VerticalGrouping? = nil,
+            grouping: TextDocumentOutputStream.VerticalGrouping? = nil,
             _ command: String,
             headerArguments: [CMakeCommandArgument] = [],
             multilineArguments: [CMakeCommandArgument] = []) {
-        var output = output // Safe because IndentedTextOutputStream is a class
+        var output = output // Safe because TextDocumentOutputStream is a class
         output.beginLine(grouping: grouping ?? .withName(command))
         output.write(command)
         output.write("(")
@@ -22,7 +22,7 @@ public final class CMakeListsWriter {
             output.write(")", endLine: true)
         }
         else {
-            output.writeIndentedBlock {
+            output.writeLinePrefixedBlock {
                 for argument in multilineArguments {
                     output.beginLine()
                     argument.write(to: &output)

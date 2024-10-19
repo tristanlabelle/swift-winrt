@@ -1,5 +1,5 @@
 public struct SwiftTypeDefinitionWriter: SwiftDeclarationWriter {
-    public let output: IndentedTextOutputStream
+    public let output: TextDocumentOutputStream
 }
 
 extension SwiftDeclarationWriter {

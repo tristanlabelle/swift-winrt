@@ -1,28 +1,28 @@
 import XCTest
 @testable import CodeWriters
 
-class IndentedTextOutputStreamTests: XCTestCase {
+class TextDocumentOutputStreamTests: XCTestCase {
     func testSingleNonEndedLine() {
-        let stream = IndentedTextOutputStream(inner: "")
+        let stream = TextDocumentOutputStream(inner: "")
         stream.write("Hello, world!")
         XCTAssertEqual(stream.inner as? String, "Hello, world!")
     }
 
     func testSingleEndedLine() {
-        let stream = IndentedTextOutputStream(inner: "")
+        let stream = TextDocumentOutputStream(inner: "")
         stream.write("Hello, world!", endLine: true)
         XCTAssertEqual(stream.inner as? String, "Hello, world!")
     }
 
     func testMultipleLines() {
-        let stream = IndentedTextOutputStream(inner: "")
+        let stream = TextDocumentOutputStream(inner: "")
         stream.writeFullLine("foo")
         stream.writeFullLine("bar")
         XCTAssertEqual(stream.inner as? String, "foo\nbar")
     }
 
     func testLineGrouping() {
-        let stream = IndentedTextOutputStream(inner: "")
+        let stream = TextDocumentOutputStream(inner: "")
         stream.writeFullLine("d")
         stream.writeFullLine("d")
         stream.writeFullLine(grouping: .withName("a"), "a")
@@ -39,8 +39,8 @@ class IndentedTextOutputStreamTests: XCTestCase {
     }
 
     func testIndentedBlock() {
-        let stream = IndentedTextOutputStream(inner: "", indent: "  ")
-        stream.writeIndentedBlock(header: "{", footer: "}") {
+        let stream = TextDocumentOutputStream(inner: "", defaultLinePrefixIncrement: "  ")
+        stream.writeLinePrefixedBlock(header: "{", footer: "}") {
             stream.writeFullLine("foo")
             stream.writeFullLine(grouping: .withName("b"), "bar")
         }
@@ -48,14 +48,14 @@ class IndentedTextOutputStreamTests: XCTestCase {
     }
 
     func testIndentedBlockGrouping() {
-        let stream = IndentedTextOutputStream(inner: "", indent: "  ")
-        stream.writeIndentedBlock(grouping: .withName("1"), header: "{", footer: "}") {
+        let stream = TextDocumentOutputStream(inner: "", defaultLinePrefixIncrement: "  ")
+        stream.writeLinePrefixedBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeFullLine("a")
         }
-        stream.writeIndentedBlock(grouping: .withName("1"), header: "{", footer: "}") {
+        stream.writeLinePrefixedBlock(grouping: .withName("1"), header: "{", footer: "}") {
             stream.writeFullLine("b")
         }
-        stream.writeIndentedBlock(grouping: .withName("2"), header: "{", footer: "}") {
+        stream.writeLinePrefixedBlock(grouping: .withName("2"), header: "{", footer: "}") {
             stream.writeFullLine("c")
         }
         XCTAssertEqual(stream.inner as? String, "{\n  a\n}\n{\n  b\n}\n\n{\n  c\n}")

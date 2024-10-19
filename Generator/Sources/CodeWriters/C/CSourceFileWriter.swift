@@ -1,5 +1,5 @@
 public class CSourceFileWriter {
-    public let output: IndentedTextOutputStream
+    public let output: TextDocumentOutputStream
 
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
@@ -55,7 +55,7 @@ public class CSourceFileWriter {
         if typedef { output.write("typedef ") }
         output.write("enum ")
         output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLinePrefixedBlock(grouping: lineGrouping, header: "{") {
             for (index, enumerant) in enumerants.enumerated() {
                 if let enumerantPrefix { output.write(enumerantPrefix) }
                 output.write(enumerant.name)
@@ -85,7 +85,7 @@ public class CSourceFileWriter {
         if typedef { output.write("typedef ") }
         output.write("struct ")
         output.write(name, endLine: true)
-        output.writeIndentedBlock(grouping: lineGrouping, header: "{") {
+        output.writeLinePrefixedBlock(grouping: lineGrouping, header: "{") {
             for member in members {
                 writeVariableDecl(member)
             }
