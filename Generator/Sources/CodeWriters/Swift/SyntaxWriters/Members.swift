@@ -55,7 +55,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         if `override` { output.write("override ") }
@@ -104,7 +104,7 @@ extension SwiftDeclarationWriter {
         body: (inout SwiftStatementWriter) throws -> Void) rethrows {
 
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         writeFuncHeader(
             attributes: attributes,
             visibility: visibility,
@@ -157,7 +157,7 @@ extension SwiftDeclarationWriter {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         visibility.write(to: &output, trailingSpace: true)
         if `required` { output.write("required ") }
         if `convenience` { output.write("convenience ") }
@@ -181,7 +181,7 @@ extension SwiftDeclarationWriter {
     }
 
     public func writeDeinit(body: (inout SwiftStatementWriter) throws -> Void) rethrows {
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         output.write("deinit")
         try output.writeBracedIndentedBlock() {
             var statementWriter = SwiftStatementWriter(output: output)

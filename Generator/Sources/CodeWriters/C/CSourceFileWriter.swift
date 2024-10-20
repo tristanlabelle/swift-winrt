@@ -4,7 +4,7 @@ public class CSourceFileWriter {
     public init(output: some TextOutputStream, pragmaOnce: Bool = true) {
         self.output = .init(inner: output)
         if pragmaOnce {
-            self.output.writeFullLine(group: .none, "#pragma once")
+            self.output.writeFullLine(group: .alone, "#pragma once")
         }
     }
 

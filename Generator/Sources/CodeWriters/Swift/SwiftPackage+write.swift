@@ -2,8 +2,8 @@ extension SwiftPackage {
     public func write<Stream>(version: String, to output: Stream) where Stream: AnyObject & TextOutputStream {
         let writer = LineBasedTextOutputStream(inner: output)
 
-        writer.writeFullLine(group: .none, "// swift-tools-version: \(version)")
-        writer.writeFullLine(group: .none, "import PackageDescription")
+        writer.writeFullLine(group: .alone, "// swift-tools-version: \(version)")
+        writer.writeFullLine(group: .alone, "import PackageDescription")
 
         writer.writeLineBlock(header: "let package = Package(", footer: ")") {
             writer.write("name: \"\(escapeStringLiteral(name))\"")

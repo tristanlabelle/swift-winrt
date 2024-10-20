@@ -79,7 +79,7 @@ extension CAbi {
 
         if !genericArgs.isEmpty {
             writer.output.endLine(groupWithNext: true)
-            writer.output.writeFullLine(group: .none, "#endif")
+            writer.output.writeFullLine(group: .alone, "#endif")
         }
     }
 

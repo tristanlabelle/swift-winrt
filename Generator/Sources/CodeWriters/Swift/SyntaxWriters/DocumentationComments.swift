@@ -1,7 +1,7 @@
 
 extension SwiftSyntaxWriter {
     internal func writeDocumentationComment(_ documentationComment: SwiftDocumentationComment) {
-        output.writeLineBlock(prefix: "/// ") {
+        output.writeLineBlock(group: .alone, prefix: "/// ") {
             if let summary = documentationComment.summary {
                 for block in summary { writeDocumentationCommentBlock(block) }
             }
@@ -20,6 +20,7 @@ extension SwiftSyntaxWriter {
                 output.endLine(groupWithNext: true)
             }
         }
+        output.endLine(groupWithNext: true)
     }
 
     fileprivate func writeDocumentationCommentBlock(_ block: SwiftDocumentationComment.Block) {
