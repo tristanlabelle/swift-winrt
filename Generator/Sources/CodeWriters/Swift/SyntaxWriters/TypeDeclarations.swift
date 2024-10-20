@@ -4,7 +4,7 @@ public struct SwiftTypeDefinitionWriter: SwiftDeclarationWriter {
 
 extension SwiftDeclarationWriter {
     public func writeMarkComment(_ text: String) {
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         output.write("// MARK: ")
         output.write(text)
         output.endLine()
@@ -22,7 +22,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -46,7 +46,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
@@ -70,7 +70,7 @@ extension SwiftDeclarationWriter {
         definition: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         if let documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)

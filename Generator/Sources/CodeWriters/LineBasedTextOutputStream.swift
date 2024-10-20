@@ -13,7 +13,7 @@ public class LineBasedTextOutputStream: TextOutputStream {
     // Classifies lines as to automatically insert blank lines
     // between lines of different groups.
     public enum LineGroup {
-        case none
+        case alone
         case `default`
         case named(String)
         case anonymous(Anonymous)
@@ -117,8 +117,6 @@ public class LineBasedTextOutputStream: TextOutputStream {
 
     private static func keepTogether(_ lhs: LineGroup, _ rhs: LineGroup) -> Bool {
         switch (lhs, rhs) {
-            case (.none, _), (_, .none):
-                return false
             case (.default, .default):
                 return true
             case let (.named(lhs), .named(rhs)):

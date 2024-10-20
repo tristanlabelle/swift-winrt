@@ -30,7 +30,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
         members: (SwiftTypeDefinitionWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         output.write("extension ")
         type.write(to: &output)
         writeInheritanceClause(protocolConformances)

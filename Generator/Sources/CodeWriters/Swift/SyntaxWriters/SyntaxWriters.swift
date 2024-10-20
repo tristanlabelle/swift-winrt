@@ -19,7 +19,7 @@ extension LineBasedTextOutputStream {
 
 extension SwiftSyntaxWriter {
     public func writeCommentLine(_ comment: String, groupWithNext: Bool = true) {
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         output.write("// ")
         output.write(comment)
         output.endLine(groupWithNext: groupWithNext)

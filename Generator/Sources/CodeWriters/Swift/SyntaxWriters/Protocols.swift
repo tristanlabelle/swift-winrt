@@ -10,7 +10,7 @@ extension SwiftSourceFileWriter {
         members: (SwiftProtocolBodyWriter) throws -> Void) rethrows {
 
         var output = output
-        output.beginLine(group: .none)
+        output.beginLine(group: .alone)
         if let documentation = documentation { writeDocumentationComment(documentation) }
         writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)

@@ -33,8 +33,8 @@ class LineBasedTextOutputStreamTests: XCTestCase {
         stream.writeFullLine(group: .named("b"), "b")
         stream.writeFullLine("d")
         stream.writeFullLine("d")
-        stream.writeFullLine(group: .none, "n")
-        stream.writeFullLine(group: .none, "n")
+        stream.writeFullLine(group: .alone, "n")
+        stream.writeFullLine(group: .alone, "n")
         stream.writeFullLine("d")
         stream.writeFullLine("d")
         XCTAssertEqual(
