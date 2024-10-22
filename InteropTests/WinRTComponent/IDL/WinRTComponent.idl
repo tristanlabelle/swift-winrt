@@ -25,6 +25,7 @@
 #include "OverloadedSum.idl"
 #include "ReferenceBoxing.idl"
 #include "ReturnArgument.idl"
+#include "ShadowingConstructors.idl"
 #include "Strings.idl"
 #include "Structs.idl"
 #include "SwiftAttributes.idl"

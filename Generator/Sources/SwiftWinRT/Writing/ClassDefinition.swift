@@ -296,12 +296,14 @@ fileprivate func writeComposableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     for method in factoryInterface.methods {
+        // Swift requires "override" on initializers iff the same initializer is defined in the direct base class
+        let `override` = try base != nil && hasComposableConstructor(classDefinition: base!, paramTypes: method.params.map { try $0.type })
         // The last 2 params should be the IInspectable outer and inner pointers
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .composableFactory)
         try writer.writeInit(
                 documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
                 visibility: .public,
-                override: params.count == 2 && base != nil, // Hack: assume all base classes have a default initializer we are overriding
+                override: `override`,
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
                 throws: true) { writer in
             let output = writer.output
@@ -317,6 +319,21 @@ fileprivate func writeComposableInitializers(
             }
         }
     }
+}
+
+fileprivate func hasComposableConstructor(classDefinition: ClassDefinition, paramTypes: [TypeNode]) throws -> Bool {
+    if classDefinition.fullName == "System.Object" {
+        return paramTypes.count == 2 // Default composable constructor with Inner and Outer pointers
+    }
+
+    for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
+        for composableConstructor in composableAttribute.factory.methods {
+            guard try composableConstructor.arity == paramTypes.count else { continue }
+            if try composableConstructor.params.map({ try $0.type }) == paramTypes { return true }
+        }
+    }
+
+    return false
 }
 
 fileprivate func writeDefaultActivatableInitializer(

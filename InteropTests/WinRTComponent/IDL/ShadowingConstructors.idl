@@ -1,0 +1,14 @@
+namespace WinRTComponent
+{
+    unsealed runtimeclass ShadowingConstructorsBase
+    {
+        ShadowingConstructorsBase(Int32 param); // "value" name is reserved (due to generated COM code?)
+    };
+
+    unsealed runtimeclass ShadowingConstructorsDerived : ShadowingConstructorsBase
+    {
+        // Regression test for https://github.com/tristanlabelle/swift-winrt/issues/360
+        ShadowingConstructorsDerived(); // Does not directly shadow
+        ShadowingConstructorsDerived(Int32 param); // Shadows
+    };
+}
