@@ -19,7 +19,7 @@ namespace winrt::WinRTComponent::factory_implementation
 
 namespace winrt::WinRTComponent::implementation
 {
-    struct ShadowingConstructorsDerived : ShadowingConstructorsDerivedT<ShadowingConstructorsDerived>
+    struct ShadowingConstructorsDerived : ShadowingConstructorsDerivedT<ShadowingConstructorsDerived, WinRTComponent::implementation::ShadowingConstructorsBase>
     {
         ShadowingConstructorsBase() {}
         ShadowingConstructorsBase(int32_t) {}
@@ -28,7 +28,7 @@ namespace winrt::WinRTComponent::implementation
 
 namespace winrt::WinRTComponent::factory_implementation
 {
-    struct ShadowingConstructorsDerived : ShadowingConstructorsDerivedT<ShadowingConstructorsDerived, implementation::ShadowingConstructorsBase>
+    struct ShadowingConstructorsDerived : ShadowingConstructorsDerivedT<ShadowingConstructorsDerived, implementation::ShadowingConstructorsDerived>
     {
     };
 }
