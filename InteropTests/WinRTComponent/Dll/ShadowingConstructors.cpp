@@ -22,7 +22,7 @@ namespace winrt::WinRTComponent::implementation
     struct ShadowingConstructorsDerived : ShadowingConstructorsDerivedT<ShadowingConstructorsDerived, WinRTComponent::implementation::ShadowingConstructorsBase>
     {
         ShadowingConstructorsDerived(): ShadowingConstructorsDerivedT(42) {}
-        ShadowingConstructorsDerived(int32_t value): ShadowingConstructorsDerivedT(value) {}
+        ShadowingConstructorsDerived(int32_t param): ShadowingConstructorsDerivedT(param) {}
     };
 }
 
