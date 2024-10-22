@@ -166,7 +166,11 @@ fileprivate func writeClassInterfaceImplementations(
 
     for factoryInterface in interfaces.factories {
         if factoryInterface.methods.isEmpty { continue }
-        try writeMarkComment(forInterface: factoryInterface.bind(), to: writer)
+
+        if try factoryInterface.findAttribute(ExclusiveToAttribute.self) == nil {
+            try writeMarkComment(forInterface: factoryInterface.bind(), to: writer)
+        }
+
         if case .composable(base: let base) = kind {
             try writeComposableInitializers(classDefinition, factoryInterface: factoryInterface, base: base, projection: projection, to: writer)
         }
@@ -176,7 +180,10 @@ fileprivate func writeClassInterfaceImplementations(
     }
 
     if let defaultInterface = interfaces.default, !defaultInterface.definition.methods.isEmpty {
-        try writeMarkComment(forInterface: defaultInterface, to: writer)
+        if try defaultInterface.definition.findAttribute(ExclusiveToAttribute.self) == nil {
+            try writeMarkComment(forInterface: defaultInterface, to: writer)
+        }
+        
         let thisPointer: ThisPointer = kind.isComposable
             ? .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
             : .init(name: "_interop")
@@ -187,7 +194,11 @@ fileprivate func writeClassInterfaceImplementations(
 
     for secondaryInterface in interfaces.secondary {
         if secondaryInterface.interface.definition.methods.isEmpty { continue }
-        try writeMarkComment(forInterface: secondaryInterface.interface, to: writer)
+
+        if try secondaryInterface.interface.definition.findAttribute(ExclusiveToAttribute.self) == nil {
+            try writeMarkComment(forInterface: secondaryInterface.interface, to: writer)
+        }
+
         try writeInterfaceImplementation(
             abiType: secondaryInterface.interface.asBoundType,
             classDefinition: classDefinition,
@@ -198,7 +209,11 @@ fileprivate func writeClassInterfaceImplementations(
 
     for staticInterface in interfaces.static {
         if staticInterface.methods.isEmpty { continue }
-        try writeMarkComment(forInterface: staticInterface.bind(), to: writer)
+
+        if try staticInterface.findAttribute(ExclusiveToAttribute.self) == nil {
+            try writeMarkComment(forInterface: staticInterface.bind(), to: writer)
+        }
+
         try writeInterfaceImplementation(
             abiType: staticInterface.bindType(), classDefinition: classDefinition, static: true,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(staticInterface.bind()), lazy: true),
