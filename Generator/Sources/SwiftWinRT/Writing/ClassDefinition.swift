@@ -300,8 +300,10 @@ fileprivate func writeComposableInitializers(
         let `override` = try base != nil && hasComposableConstructor(classDefinition: base!, paramTypes: method.params.map { try $0.type })
         // The last 2 params should be the IInspectable outer and inner pointers
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .composableFactory)
+        let docs = try projection.getDocumentationComment(
+            abiMember: method, factoryKind: .composable, classDefinition: classDefinition)
         try writer.writeInit(
-                documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
+                documentation: docs,
                 visibility: .public,
                 override: `override`,
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
@@ -361,8 +363,10 @@ fileprivate func writeActivatableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
+        let docs = try projection.getDocumentationComment(
+            abiMember: method, factoryKind: .activatable, classDefinition: classDefinition)
         try writer.writeInit(
-                documentation: try projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition),
+                documentation: docs,
                 visibility: .public,
                 convenience: true,
                 params: params.map { $0.toSwiftParam() },
