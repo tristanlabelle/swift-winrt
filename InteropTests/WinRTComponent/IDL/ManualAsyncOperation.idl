@@ -1,6 +1,7 @@
 namespace WinRTComponent
 {
-    runtimeclass ManualAsyncOperation : Windows.Foundation.IAsyncOperation<Int32> {
+    runtimeclass ManualAsyncOperation : Windows.Foundation.IAsyncOperation<Int32>
+    {
         ManualAsyncOperation(Int32 id);
         void Complete(Int32 result);
         void CompleteWithError(HRESULT errorCode);
