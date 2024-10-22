@@ -297,7 +297,7 @@ fileprivate func writeComposableInitializers(
 
     for method in factoryInterface.methods {
         // Swift requires "override" on initializers iff the same initializer is defined in the direct base class
-        let `override` = base != nil && try hasComposableConstructor(classDefinition: base!, paramTypes: method.params.map { try $0.type })
+        let `override` = try base != nil && hasComposableConstructor(classDefinition: base!, paramTypes: method.params.map { try $0.type })
         // The last 2 params should be the IInspectable outer and inner pointers
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .composableFactory)
         try writer.writeInit(
