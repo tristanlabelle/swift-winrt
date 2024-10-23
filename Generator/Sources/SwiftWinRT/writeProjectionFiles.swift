@@ -184,9 +184,15 @@ fileprivate func writeSwiftModuleFiles(
             "target_compile_options", .autoquote(targetName),
             "PRIVATE", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
 
-        writer.writeTargetLinkLibraries(targetName, .public,
-            [ cmakeOptions.getTargetName(moduleName: module.abiModuleName), SupportModules.WinRT.moduleName ]
-                + module.references.map { cmakeOptions.getTargetName(moduleName: $0.name) })
+        var linkLibraries: [String] = [
+            cmakeOptions.getTargetName(moduleName: module.abiModuleName),
+            SupportModules.WinRT.moduleName
+        ]
+        for reference in module.references {
+            guard !reference.isEmpty else { continue }
+            linkLibraries.append(cmakeOptions.getTargetName(moduleName: reference.name))
+        }
+        writer.writeTargetLinkLibraries(targetName, .public, linkLibraries)
     }
 }
 
