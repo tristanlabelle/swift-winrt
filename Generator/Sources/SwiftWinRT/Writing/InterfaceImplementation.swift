@@ -51,14 +51,15 @@ fileprivate func writeInterfacePropertyImplementation(
         // from an interface that would an extension property.
         // public static var myProperty: MyPropertyType { ... }
         try writeNonthrowingPropertyImplementation(
-            property: property, static: `static`, projection: projection, to: writer)
+            property: property, static: `static`, classDefinition: classDefinition,
+            projection: projection, to: writer)
     }
 
     // public [static] func _myProperty() throws -> MyPropertyType { ... }
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamBinding = try projection.getParamBinding(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: documentation ? projection.getDocumentationComment(property, classDefinition: classDefinition) : nil,
+                documentation: documentation ? projection.getDocumentationComment(property, accessor: .getter, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: Projection.toMemberName(getter),
@@ -75,7 +76,7 @@ fileprivate func writeInterfacePropertyImplementation(
         guard let newValueParam = try setter.params.first else { fatalError() }
         let newValueParamBinding = try projection.getParamBinding(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: documentation ? projection.getDocumentationComment(property, classDefinition: classDefinition) : nil,
+                documentation: documentation ? projection.getDocumentationComment(property, accessor: .setter, classDefinition: classDefinition) : nil,
                 visibility: .public,
                 static: `static`,
                 name: Projection.toMemberName(setter),

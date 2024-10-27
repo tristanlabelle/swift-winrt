@@ -21,6 +21,7 @@ internal func writeExtensionProperties(
             for property in interface.properties {
                 try writeNonthrowingPropertyImplementation(
                     property: property, static: `static`,
+                    classDefinition: typeDefinition as? ClassDefinition,
                     projection: projection, to: writer)
             }
         }
@@ -28,7 +29,7 @@ internal func writeExtensionProperties(
 }
 
 internal func writeNonthrowingPropertyImplementation(
-        property: Property, static: Bool,
+        property: Property, static: Bool, classDefinition: ClassDefinition?,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     guard let getter = try property.getter else { return }
 
@@ -51,7 +52,7 @@ internal func writeNonthrowingPropertyImplementation(
     }
 
     try writer.writeComputedProperty(
-        documentation: projection.getDocumentationComment(property),
+        documentation: projection.getDocumentationComment(property, classDefinition: classDefinition),
         visibility: .public,
         static: `static`,
         name: Projection.toMemberName(property),
