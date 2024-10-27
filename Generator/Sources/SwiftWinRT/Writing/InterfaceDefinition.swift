@@ -60,10 +60,9 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 
     if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
 
-    let documentation = projection.getDocumentation(interfaceDefinition)
     let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
-            documentation: documentation.map { projection.toDocumentationComment($0) },
+            documentation: projection.getDocumentationComment(interfaceDefinition),
             visibility: Projection.toVisibility(interfaceDefinition.visibility),
             name: protocolName,
             typeParams: interfaceDefinition.genericParams.map { $0.name },
@@ -71,10 +70,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             whereClauses: whereGenericConstraints.map { "\($0.key) == \($0.value)" }) { writer throws in
         for genericParam in interfaceDefinition.genericParams {
             writer.writeAssociatedType(
-                documentation: documentation?.typeParams
-                    .first { $0.name == genericParam.name }
-                    .flatMap { $0.description }
-                    .map { projection.toDocumentationComment($0) },
+                documentation: projection.getDocumentationComment(genericParam, typeDefinition: interfaceDefinition),
                 name: genericParam.name)
         }
 
