@@ -1,7 +1,7 @@
 FetchContent_Declare(
     swift-dotnetmetadata
     GIT_REPOSITORY https://github.com/tristanlabelle/swift-dotnetmetadata.git
-    GIT_TAG 64cdfb5e3d730599fd741474c42716051f0f4780
+    GIT_TAG 6660d389541d37172999478d626e62cea037dc68
     SOURCE_SUBDIR "don't use cmakelists")
 FetchContent_MakeAvailable(swift-dotnetmetadata)
 
@@ -19,6 +19,9 @@ target_link_libraries(DotNetMetadata PUBLIC DotNetMetadataFormat)
 
 file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetXMLDocs/*.swift)
 add_library(DotNetXMLDocs STATIC ${SOURCES})
+
+file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/DotNetXMLDocsFromMetadata/*.swift)
+add_library(DotNetXMLDocsFromMetadata STATIC ${SOURCES})
 
 file(GLOB_RECURSE SOURCES ${swift-dotnetmetadata_SOURCE_DIR}/Sources/WindowsMetadata/*.swift)
 add_library(WindowsMetadata STATIC ${SOURCES})

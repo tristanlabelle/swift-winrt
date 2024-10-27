@@ -8,10 +8,18 @@ public struct SwiftDocumentationComment {
     public enum Block: Hashable {
         case paragraph([Span])
         case code(String)
-        case list([Span])
+        case list([ListItem])
 
         public static func paragraph(_ span: Span) -> Block { .paragraph([span]) }
         public static func paragraph(_ text: String) -> Block { .paragraph(.text(text)) }
+
+        public struct ListItem: Hashable {
+            public var text: [Span]
+
+            public init(text: [Span]) {
+                self.text = text
+            }
+        }
     }
 
     public enum Span: Hashable {

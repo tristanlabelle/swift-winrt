@@ -58,7 +58,7 @@ fileprivate func writeInterfacePropertyImplementation(
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamBinding = try projection.getParamBinding(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
+                documentation: documentation ? projection.getDocumentationComment(property, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: Projection.toMemberName(getter),
@@ -75,7 +75,7 @@ fileprivate func writeInterfacePropertyImplementation(
         guard let newValueParam = try setter.params.first else { fatalError() }
         let newValueParamBinding = try projection.getParamBinding(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                documentation: documentation ? projection.getDocumentationComment(abiMember: property, classDefinition: classDefinition) : nil,
+                documentation: documentation ? projection.getDocumentationComment(property, classDefinition: classDefinition) : nil,
                 visibility: .public,
                 static: `static`,
                 name: Projection.toMemberName(setter),
@@ -100,7 +100,7 @@ fileprivate func writeInterfaceEventImplementation(
         let handlerParamBinding = try projection.getParamBinding(handlerParameter, genericTypeArgs: typeGenericArgs)
         let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
-                documentation: documentation ? projection.getDocumentationComment(abiMember: event, classDefinition: classDefinition) : nil,
+                documentation: documentation ? projection.getDocumentationComment(event, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public, static: `static`, name: name,
                 params: [ handlerParamBinding.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
@@ -140,7 +140,7 @@ fileprivate func writeInterfaceMethodImplementation(
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
-            documentation: documentation ? projection.getDocumentationComment(abiMember: method, classDefinition: classDefinition) : nil,
+            documentation: documentation ? projection.getDocumentationComment(method, classDefinition: classDefinition) : nil,
             attributes: Projection.getSwiftAttributes(method),
             visibility: overridable ? .open : .public,
             static: `static`,

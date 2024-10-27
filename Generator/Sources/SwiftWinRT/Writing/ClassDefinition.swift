@@ -316,7 +316,7 @@ fileprivate func writeComposableInitializers(
         // The last 2 params should be the IInspectable outer and inner pointers
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .composableFactory)
         let docs = try projection.getDocumentationComment(
-            abiMember: method, factoryKind: .composable, classDefinition: classDefinition)
+            method, classFactoryKind: .composable, classDefinition: classDefinition)
         try writer.writeInit(
                 documentation: docs,
                 visibility: .public,
@@ -379,7 +379,7 @@ fileprivate func writeActivatableInitializers(
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
         let docs = try projection.getDocumentationComment(
-            abiMember: method, factoryKind: .activatable, classDefinition: classDefinition)
+            method, classFactoryKind: .activatable, classDefinition: classDefinition)
         try writer.writeInit(
                 documentation: docs,
                 visibility: .public,
