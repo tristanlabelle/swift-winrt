@@ -110,7 +110,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
         for property in interfaceDefinition.properties {
             if let getter = try property.getter {
                 try writer.writeFunc(
-                    documentation: projection.getDocumentationComment(property),
+                    documentation: projection.getDocumentationComment(property, accessor: .getter),
                     name: Projection.toMemberName(getter),
                     throws: true,
                     returnType: projection.toReturnType(property.type))
@@ -118,7 +118,8 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 
             if let setter = try property.setter {
                 try writer.writeFunc(
-                    isPropertySetter: true,
+                    groupAsProperty: true,
+                    documentation: projection.getDocumentationComment(property, accessor: .setter),
                     name: Projection.toMemberName(setter),
                     params: setter.params.map { try projection.toParameter($0) },
                     throws: true)

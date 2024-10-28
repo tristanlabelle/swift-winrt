@@ -68,8 +68,8 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
     }
 
     public func writeFunc(
+        groupAsProperty: Bool = false,
         documentation: SwiftDocumentationComment? = nil,
-        isPropertySetter: Bool = false,
         attributes: [SwiftAttribute] = [],
         static: Bool = false,
         mutating: Bool = false,
@@ -82,7 +82,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         returnType: SwiftType? = nil) {
 
         if let documentation { writeDocumentationComment(documentation) }
-        output.beginLine(group: .named(isPropertySetter ? "protocolProperty" : "protocolFunc"))
+        output.beginLine(group: .named(groupAsProperty ? "protocolProperty" : "protocolFunc"))
         writeFuncHeader(
             attributes: attributes,
             visibility: .implicit,

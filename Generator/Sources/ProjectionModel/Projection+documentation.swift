@@ -10,16 +10,26 @@ extension Projection {
     }
 
     public func getDocumentationComment(_ member: Member, classFactoryKind: ClassFactoryKind? = nil, classDefinition: ClassDefinition? = nil) throws -> SwiftDocumentationComment? {
-        // Prefer the documentation comment from the class member over the abi member.
-        if let classDefinition,
-                member.definingType != classDefinition,
-                let classMember = try Self.findClassMember(classDefinition: classDefinition, abiMember: member, classFactoryKind: classFactoryKind),
-                let documentationComment = try getDocumentationComment(classMember) {
-            return documentationComment
+        try getMemberDocumentation(member, classFactoryKind: classFactoryKind, classDefinition: classDefinition)
+            .map(toDocumentationComment)
+    }
+
+    public enum PropertyAccessor {
+        case getter
+        case setter
+    }
+
+    public func getDocumentationComment(_ property: Property, accessor: PropertyAccessor, classDefinition: ClassDefinition? = nil) throws -> SwiftDocumentationComment? {
+        guard var propertyDocumentation = try getMemberDocumentation(property, classDefinition: classDefinition) else { return nil }
+
+        switch accessor {
+            case .getter:
+                propertyDocumentation.params = []
+            case .setter:
+                propertyDocumentation.returns = nil
         }
 
-        guard let assemblyDocumentation = assembliesToModules[member.assembly]?.documentation else { return nil }
-        return try? assemblyDocumentation.lookup(member: member).map(toDocumentationComment)
+        return toDocumentationComment(propertyDocumentation)
     }
 
     public func getDocumentationComment(_ genericParam: GenericParam, typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
@@ -32,6 +42,19 @@ extension Projection {
                 documentationComment.summary = toBlocks($0)
                 return documentationComment
             }
+    }
+
+    private func getMemberDocumentation(_ member: Member, classFactoryKind: ClassFactoryKind? = nil, classDefinition: ClassDefinition? = nil) throws -> MemberDocumentation? {
+        // Prefer the documentation comment from the class member over the abi member.
+        if let classDefinition,
+                member.definingType != classDefinition,
+                let classMember = try Self.findClassMember(classDefinition: classDefinition, abiMember: member, classFactoryKind: classFactoryKind),
+                let documentation = try getMemberDocumentation(classMember) {
+            return documentation
+        }
+
+        guard let assemblyDocumentation = assembliesToModules[member.assembly]?.documentation else { return nil }
+        return try assemblyDocumentation.lookup(member: member)
     }
 
     private static func findClassMember(classDefinition: ClassDefinition, abiMember: Member, classFactoryKind: ClassFactoryKind? = nil) throws -> Member? {
