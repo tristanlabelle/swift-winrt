@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "MinimalBaseClass.g.h"
-#include "MinimalDerivedClass.g.h"
+#include "MinimalUnsealedDerivedClass.g.h"
+#include "MinimalSealedDerivedClass.g.h"
 #include "MinimalBaseClassHierarchy.g.h"
 
 // MinimalBaseClass
@@ -19,18 +20,34 @@ namespace winrt::WinRTComponent::factory_implementation
     };
 }
 
-// MinimalDerivedClass
+// MinimalUnsealedDerivedClass
 namespace winrt::WinRTComponent::implementation
 {
-    struct MinimalDerivedClass : MinimalDerivedClassT<MinimalDerivedClass, WinRTComponent::implementation::MinimalBaseClass>
+    struct MinimalUnsealedDerivedClass : MinimalUnsealedDerivedClassT<MinimalUnsealedDerivedClass, WinRTComponent::implementation::MinimalBaseClass>
     {
-        virtual winrt::hstring TypeName() override { return L"MinimalDerivedClass"; }
+        virtual winrt::hstring TypeName() override { return L"MinimalUnsealedDerivedClass"; }
     };
 }
 
 namespace winrt::WinRTComponent::factory_implementation
 {
-    struct MinimalDerivedClass : MinimalDerivedClassT<MinimalDerivedClass, implementation::MinimalDerivedClass>
+    struct MinimalUnsealedDerivedClass : MinimalUnsealedDerivedClassT<MinimalUnsealedDerivedClass, implementation::MinimalUnsealedDerivedClass>
+    {
+    };
+}
+
+// MinimalSealedDerivedClass
+namespace winrt::WinRTComponent::implementation
+{
+    struct MinimalSealedDerivedClass : MinimalSealedDerivedClassT<MinimalSealedDerivedClass, WinRTComponent::implementation::MinimalSealedDerivedClass>
+    {
+        virtual winrt::hstring TypeName() override { return L"MinimalSealedDerivedClass"; }
+    };
+}
+
+namespace winrt::WinRTComponent::factory_implementation
+{
+    struct MinimalSealedDerivedClass : MinimalSealedDerivedClassT<MinimalSealedDerivedClass, implementation::MinimalSealedDerivedClass>
     {
     };
 }
@@ -53,14 +70,24 @@ namespace winrt::WinRTComponent::implementation
             return winrt::make<MinimalBaseClass>();
         }
 
-        static winrt::WinRTComponent::MinimalDerivedClass CreateDerived()
+        static winrt::WinRTComponent::MinimalUnsealedDerivedClass CreateUnsealedDerived()
         {
-            return winrt::make<MinimalDerivedClass>();
+            return winrt::make<MinimalUnsealedDerivedClass>();
         }
 
-        static winrt::WinRTComponent::MinimalBaseClass CreateDerivedAsBase()
+        static winrt::WinRTComponent::MinimalBaseClass CreateUnsealedDerivedAsBase()
         {
-            return winrt::make<MinimalDerivedClass>();
+            return winrt::make<MinimalUnsealedDerivedClass>();
+        }
+
+        static winrt::WinRTComponent::MinimalSealedDerivedClass CreateSealedDerived()
+        {
+            return winrt::make<MinimalSealedDerivedClass>();
+        }
+
+        static winrt::WinRTComponent::MinimalBaseClass CreateSealedDerivedAsBase()
+        {
+            return winrt::make<MinimalSealedDerivedClass>();
         }
 
         static winrt::WinRTComponent::MinimalBaseClass CreatePrivateDerived()
