@@ -61,6 +61,10 @@ fileprivate func getRuntimeClassBase(_ classDefinition: ClassDefinition) throws 
     return baseClassDefinition
 }
 
+fileprivate func hasComposableBase(_ classDefinition: ClassDefinition) throws -> Bool {
+    try !classDefinition.isSealed || getRuntimeClassBase(classDefinition) != nil
+}
+
 fileprivate struct ClassInterfaces {
     var hasDefaultFactory = false
     var factories: [InterfaceDefinition] = []
@@ -111,25 +115,37 @@ fileprivate func writeClassMembers(
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     try writeGenericTypeAliases(interfaces: classDefinition.baseInterfaces.map { try $0.interface }, projection: projection, to: writer)
 
-    try writeClassInterfaceImplementations(
+    try writeInterfaceImplementations(
         classDefinition, interfaces: interfaces,
         projection: projection, to: writer)
 
     writer.writeMarkComment("Implementation details")
-    try writeClassInterfaceProperties(
-        classDefinition, interfaces: interfaces,
-        projection: projection, to: writer)
+
+    if let defaultInterface = interfaces.default {
+        // init(_wrapping:)
+        if try hasComposableBase(classDefinition) {
+            try writeDelegatingWrappingInitializer(defaultInterface: defaultInterface, projection: projection, to: writer)
+        }
+
+        // Composable initializers
+        if !classDefinition.isSealed {
+            try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
+        }
+    }
+
+    // var _lazyFoo: COM.COMReference<SWRT_IFoo>.Optional = .none
+    try writeSecondaryInterfaces(classDefinition, interfaces: interfaces, projection: projection, to: writer)
 
     if !classDefinition.isSealed { // Composable
         let overridableInterfaces = interfaces.secondary.compactMap { $0.overridable ? $0.interface : nil }
         if !overridableInterfaces.isEmpty {
             writer.writeMarkComment("Override support")
-            try writeClassOverrideSupport(classDefinition, interfaces: overridableInterfaces, projection: projection, to: writer)
+            try writeOverrideSupport(classDefinition, interfaces: overridableInterfaces, projection: projection, to: writer)
         }
     }
 }
 
-fileprivate func writeClassInterfaceImplementations(
+fileprivate func writeInterfaceImplementations(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     if interfaces.hasDefaultFactory {
@@ -193,16 +209,11 @@ fileprivate func writeClassInterfaceImplementations(
     }
 }
 
-fileprivate func writeClassInterfaceProperties(
+fileprivate func writeSecondaryInterfaces(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    // Composable initializers
-    if !classDefinition.isSealed, let defaultInterface = interfaces.default {
-        try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
-    }
-
-    // Instance properties, initializers and deinit
-    if try !classDefinition.isSealed ||  getRuntimeClassBase(classDefinition) != nil, let defaultInterface = interfaces.default {
+    // Instance properties
+    if let defaultInterface = interfaces.default, try hasComposableBase(classDefinition) {
         // Inheriting from ComposableClass, we need a property for the default interface
         try SecondaryInterfaces.writeDeclaration(
             defaultInterface, static: false, composable: !classDefinition.isSealed,
@@ -228,7 +239,7 @@ fileprivate func writeClassInterfaceProperties(
     }
 }
 
-fileprivate func writeClassOverrideSupport(
+fileprivate func writeOverrideSupport(
         _ classDefinition: ClassDefinition, interfaces: [BoundInterface],
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let outerPropertySuffix = "outer"
@@ -343,7 +354,16 @@ fileprivate func writeDefaultActivatableInitializer(
         documentationComment = nil
     }
 
-    try writer.writeInit(documentation: documentationComment, visibility: .public, convenience: true, throws: true) { writer in
+    let baseClassDefinition = try getRuntimeClassBase(classDefinition)
+
+    try writer.writeInit(
+            documentation: documentationComment,
+            visibility: .public,
+            convenience: baseClassDefinition == nil,
+            override: baseClassDefinition.map {
+                try hasComposableConstructor(classDefinition: $0, paramTypes: [])
+            } ?? false,
+            throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
         let projectionClassName = try projection.toBindingTypeName(classDefinition)
         writer.writeStatement("self.init(_wrapping: \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
@@ -356,6 +376,9 @@ fileprivate func writeActivatableInitializers(
         activationFactory: InterfaceDefinition,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
+
+    let baseClassDefinition = try getRuntimeClassBase(classDefinition)
+
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
         let docs = try projection.getDocumentationComment(
@@ -363,7 +386,10 @@ fileprivate func writeActivatableInitializers(
         try writer.writeInit(
                 documentation: docs,
                 visibility: .public,
-                convenience: true,
+                convenience: baseClassDefinition == nil,
+                override: baseClassDefinition.map {
+                    try hasComposableConstructor(classDefinition: $0, paramTypes: method.params.map { try $0.type })
+                } ?? false,
                 params: params.map { $0.toSwiftParam() },
                 throws: true) { writer in
 
@@ -381,7 +407,8 @@ fileprivate func writeActivatableInitializers(
     }
 }
 
-fileprivate func writeSupportComposableInitializers(
+/// Writes the initializer wraps a COM reference and delegates to the base composable initializer.
+fileprivate func writeDelegatingWrappingInitializer(
         defaultInterface: BoundInterface, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     // public init(_wrapping inner: COMReference<CWinRTComponent.SWRT_IFoo>) {
     //     super.init(_wrapping: inner.cast())
@@ -391,7 +418,10 @@ fileprivate func writeSupportComposableInitializers(
     writer.writeInit(visibility: .public, params: [param]) { writer in
         writer.writeStatement("super.init(_wrapping: inner.cast()) // Transitively casts down to IInspectable")
     }
+}
 
+fileprivate func writeSupportComposableInitializers(
+        defaultInterface: BoundInterface, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     // public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
     writer.writeInit(visibility: .public,
             override: true,
