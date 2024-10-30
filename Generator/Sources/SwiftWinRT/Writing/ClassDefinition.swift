@@ -367,7 +367,7 @@ fileprivate func writeDefaultActivatableInitializer(
         let projectionClassName = try projection.toBindingTypeName(classDefinition)
         writer.writeStatement("let _instance = \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
             + ".activateInstance(binding: \(projectionClassName).self))")
-        if try hasComposableBase(baseClassDefinition) {
+        if try hasComposableBase(classDefinition) {
             writer.writeStatement("super.init(_wrapping: _instance.cast()) // Transitively casts down to IInspectable")
         }
         else {
@@ -383,7 +383,7 @@ fileprivate func writeActivatableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(activationFactory.bind())
 
     let baseClassDefinition = try getRuntimeClassBase(classDefinition)
-    let hasComposableBase = baseClassDefinition != nil || !classDefinition.isSealed
+    let hasComposableBase = try hasComposableBase(classDefinition)
 
     for method in activationFactory.methods {
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
@@ -428,6 +428,7 @@ fileprivate func writeDelegatingWrappingInitializer(
     // }
     let comReferenceType: SwiftType = SupportModules.COM.comReference(to: try projection.toABIType(defaultInterface.asBoundType))
     let param = SwiftParam(label: "_wrapping", name: "inner", consuming: true, type: comReferenceType)
+    let hasComposableBase = try hasComposableBase(classDefinition)
     writer.writeInit(
             visibility: .public,
             required: hasComposableBase, // use the 'required' modifier to override a required initializer
