@@ -123,7 +123,8 @@ fileprivate func writeClassMembers(
 
     if let defaultInterface = interfaces.default {
         // init(_wrapping:)
-        try writeDelegatingWrappingInitializer(defaultInterface: defaultInterface, projection: projection, to: writer)
+        try writeDelegatingWrappingInitializer(
+            classDefinition: classDefinition, defaultInterface: defaultInterface, projection: projection, to: writer)
 
         // Composable initializers
         if !classDefinition.isSealed {
