@@ -42,6 +42,7 @@ namespace winrt::WinRTComponent::implementation
     struct MinimalSealedDerivedClass : MinimalSealedDerivedClassT<MinimalSealedDerivedClass, MinimalBaseClass>
     {
         virtual winrt::hstring TypeName() override { return L"MinimalSealedDerivedClass"; }
+        void Dummy() {}
     };
 }
 
