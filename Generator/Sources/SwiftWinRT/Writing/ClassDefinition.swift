@@ -410,10 +410,10 @@ fileprivate func writeActivatableInitializers(
                 projection: projection, to: writer.output)
             output.endLine()
             if hasComposableBase {
-                output.writeLine("super.init(_wrapping: _instance.cast()) // Transitively casts down to IInspectable")
+                writer.writeStatement("super.init(_wrapping: _instance.cast()) // Transitively casts down to IInspectable")
             }
             else {
-                output.writeLine("super.init(_wrapping: consume _instance)")
+                writer.writeStatement("super.init(_wrapping: consume _instance)")
             }
         }
     }
@@ -434,7 +434,7 @@ fileprivate func writeDelegatingWrappingInitializer(
             required: hasComposableBase, // use the 'required' modifier to override a required initializer
             override: !hasComposableBase,
             params: [param]) { writer in
-        if try hasComposableBase(classDefinition) {
+        if hasComposableBase {
             writer.writeStatement("super.init(_wrapping: inner.cast()) // Transitively casts down to IInspectable")
         }
         else {
