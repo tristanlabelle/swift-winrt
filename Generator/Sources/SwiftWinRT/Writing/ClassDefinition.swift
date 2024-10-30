@@ -196,8 +196,14 @@ fileprivate func writeClassInterfaceImplementations(
 fileprivate func writeClassInterfaceProperties(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    // Instance properties, initializers and deinit
+    // Composable initializers
     if !classDefinition.isSealed, let defaultInterface = interfaces.default {
+        try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
+    }
+
+    // Instance properties, initializers and deinit
+    if !classDefinition.isSealed || try getRuntimeClassBase(classDefinition) != nil, let defaultInterface = interfaces.default {
+        // Inheriting from ComposableClass, we need a property for the default interface
         try SecondaryInterfaces.writeDeclaration(
             defaultInterface, static: false, composable: !classDefinition.isSealed,
             projection: projection, to: writer)
@@ -207,10 +213,6 @@ fileprivate func writeClassInterfaceProperties(
         try SecondaryInterfaces.writeDeclaration(
             secondaryInterface.interface, static: false, composable: !classDefinition.isSealed,
             projection: projection, to: writer)
-    }
-
-    if !classDefinition.isSealed, let defaultInterface = interfaces.default {
-        try writeSupportComposableInitializers(defaultInterface: defaultInterface, projection: projection, to: writer)
     }
 
     // Static properties

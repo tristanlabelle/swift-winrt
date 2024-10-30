@@ -23,7 +23,7 @@ namespace winrt::WinRTComponent::factory_implementation
 // MinimalUnsealedDerivedClass
 namespace winrt::WinRTComponent::implementation
 {
-    struct MinimalUnsealedDerivedClass : MinimalUnsealedDerivedClassT<MinimalUnsealedDerivedClass, WinRTComponent::implementation::MinimalBaseClass>
+    struct MinimalUnsealedDerivedClass : MinimalUnsealedDerivedClassT<MinimalUnsealedDerivedClass, MinimalBaseClass>
     {
         virtual winrt::hstring TypeName() override { return L"MinimalUnsealedDerivedClass"; }
     };
@@ -39,7 +39,7 @@ namespace winrt::WinRTComponent::factory_implementation
 // MinimalSealedDerivedClass
 namespace winrt::WinRTComponent::implementation
 {
-    struct MinimalSealedDerivedClass : MinimalSealedDerivedClassT<MinimalSealedDerivedClass, WinRTComponent::implementation::MinimalSealedDerivedClass>
+    struct MinimalSealedDerivedClass : MinimalSealedDerivedClassT<MinimalSealedDerivedClass, MinimalBaseClass>
     {
         virtual winrt::hstring TypeName() override { return L"MinimalSealedDerivedClass"; }
     };
