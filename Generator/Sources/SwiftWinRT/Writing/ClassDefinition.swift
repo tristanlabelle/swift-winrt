@@ -202,7 +202,7 @@ fileprivate func writeClassInterfaceProperties(
     }
 
     // Instance properties, initializers and deinit
-    if !classDefinition.isSealed || try getRuntimeClassBase(classDefinition) != nil, let defaultInterface = interfaces.default {
+    if try !classDefinition.isSealed ||  getRuntimeClassBase(classDefinition) != nil, let defaultInterface = interfaces.default {
         // Inheriting from ComposableClass, we need a property for the default interface
         try SecondaryInterfaces.writeDeclaration(
             defaultInterface, static: false, composable: !classDefinition.isSealed,
