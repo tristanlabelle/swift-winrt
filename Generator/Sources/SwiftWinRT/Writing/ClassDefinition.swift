@@ -352,7 +352,7 @@ fileprivate func writeDefaultActivatableInitializer(
         documentationComment = nil
     }
 
-    let isOverriding = getRuntimeClassBase(classDefinition).map {
+    let isOverriding = try getRuntimeClassBase(classDefinition).map {
             try hasComposableConstructor(classDefinition: $0, paramTypes: [])
         } ?? false
 
@@ -380,7 +380,7 @@ fileprivate func writeActivatableInitializers(
         let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: [], abiKind: .activationFactory)
         let docs = try projection.getDocumentationComment(
             method, classFactoryKind: .activatable, classDefinition: classDefinition)
-        let isOverriding = baseClassDefinition.map {
+        let isOverriding = try baseClassDefinition.map {
                 try hasComposableConstructor(classDefinition: $0, paramTypes: method.params.map { try $0.type })
             } ?? false
 
