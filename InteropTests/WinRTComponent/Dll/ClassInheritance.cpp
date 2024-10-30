@@ -63,7 +63,7 @@ namespace winrt::WinRTComponent::implementation
         };
     }
 
-    struct MinimalBaseClassHierarchy : MinimalBaseClassHierarchyT<MinimalBaseClass>
+    struct MinimalBaseClassHierarchy
     {
         static winrt::WinRTComponent::MinimalBaseClass CreateBase()
         {
@@ -115,5 +115,6 @@ namespace winrt::WinRTComponent::factory_implementation
 }
 
 #include "MinimalBaseClass.g.cpp"
-#include "MinimalDerivedClass.g.cpp"
+#include "MinimalUnsealedDerivedClass.g.cpp"
+#include "MinimalSealedDerivedClass.g.cpp"
 #include "MinimalBaseClassHierarchy.g.cpp"
