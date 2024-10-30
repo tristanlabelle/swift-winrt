@@ -431,8 +431,7 @@ fileprivate func writeDelegatingWrappingInitializer(
     let hasComposableBase = try hasComposableBase(classDefinition)
     writer.writeInit(
             visibility: .public,
-            required: hasComposableBase, // use the 'required' modifier to override a required initializer
-            override: !hasComposableBase,
+            required: !hasComposableBase, // use the 'required' modifier to override a required initializer
             params: [param]) { writer in
         if hasComposableBase {
             writer.writeStatement("super.init(_wrapping: inner.cast()) // Transitively casts down to IInspectable")
