@@ -299,7 +299,7 @@ fileprivate func writeComposableInitializers(
     for method in factoryInterface.methods {
         // Swift requires "override" on initializers iff the same initializer is defined in the direct base class
         let `override` = try baseClassDefinition.map {
-            try hasComposableConstructor(classDefinition: $0, paramTypes: method.params.map { try $0.type })
+            try hasComposableConstructor(classDefinition: $0, paramTypes: method.params.dropLast(2).map { try $0.type })
         } ?? false
 
         // The last 2 params should be the IInspectable outer and inner pointers
@@ -329,14 +329,11 @@ fileprivate func writeComposableInitializers(
 }
 
 fileprivate func hasComposableConstructor(classDefinition: ClassDefinition, paramTypes: [TypeNode]) throws -> Bool {
-    if classDefinition.fullName == "System.Object" {
-        return paramTypes.count == 2 // Default composable constructor with Inner and Outer pointers
-    }
-
     for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
         for composableConstructor in composableAttribute.factory.methods {
-            guard try composableConstructor.arity == paramTypes.count else { continue }
-            if try composableConstructor.params.map({ try $0.type }) == paramTypes { return true }
+            // Ignore the last 2 parameters (IInspectable outer and inner pointers)
+            guard try composableConstructor.arity == (paramTypes.count - 2) else { continue }
+            if try composableConstructor.params.dropLast(2).map({ try $0.type }) == paramTypes { return true }
         }
     }
 
