@@ -332,7 +332,7 @@ fileprivate func hasComposableConstructor(classDefinition: ClassDefinition, para
     for composableAttribute in try classDefinition.getAttributes(ComposableAttribute.self) {
         for composableConstructor in composableAttribute.factory.methods {
             // Ignore the last 2 parameters (IInspectable outer and inner pointers)
-            guard try composableConstructor.arity == (paramTypes.count - 2) else { continue }
+            guard try composableConstructor.arity == (paramTypes.count + 2) else { continue }
             if try composableConstructor.params.dropLast(2).map({ try $0.type }) == paramTypes { return true }
         }
     }
