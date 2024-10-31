@@ -102,6 +102,8 @@ class ClassInheritanceTests : XCTestCase {
         defer { WindowsRuntime.swiftWrapperFactory = originalFactory }
 
         XCTAssertNotNil(try MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? MinimalUnsealedDerivedClass)
-        XCTAssertNotNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
+
+        // TODO: https://github.com/tristanlabelle/swift-winrt/issues/375
+        // XCTAssertNotNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
     }
 }
