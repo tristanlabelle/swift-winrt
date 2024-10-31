@@ -80,17 +80,17 @@ Given a `getObject() -> Base` that actually returns a `Derived`, there is opt-in
 
 ## Members
 ### Properties and accessors
-Properties are generated as both throwing accessors methods and nonthrowing properties (returning implicitly unwrapped optionals).
+Properties are generated one throwing getter-only property, one throwing setter func, and one suffixed nonthrowing get-set property (when relevant).
 
-**Rationale**: Swift does not support throwing property setters. This is a compromise between exposing errors from property accessors and supporting the convenient property syntax.
+**Rationale**: Swift does not support throwing property setters. This compromise supports a natural syntax for reading properties while handling errors, a reasonable way for writing properties while handling errors, and a way to use the property setter syntax (with some friction to point out that exceptions cannot be handled).
 
 **Example**:
 ```swift 
-func _myProperty() throws -> IClosable // Getter
-func _myProperty(_ value: IClosable) throws // Setter
+var myProperty: IClosable { get throws } // Getter
+func myProperty(_ value: IClosable) throws // Setter
 
 extension {
-    var myProperty: IClosable! { get set } // Nonthrowing property
+    var myProperty_: IClosable! { get set } // Nonthrowing property
 }
 ```
 

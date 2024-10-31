@@ -8,20 +8,21 @@ internal class ReferenceArrayImpl<TBinding: IReferenceableBinding>
 
     public override class var _runtimeClassName: String { "Windows.Foundation.IReferenceArray`1<\(TBinding.typeName)>" }
 
-    private let value: [TBinding.SwiftValue]
+    private let _value: [TBinding.SwiftValue]
 
     init(_ value: [TBinding.SwiftValue]) {
-        self.value = value
+        self._value = value
         super.init()
     }
 
     // IPropertyValue members
-    public func _type() throws -> WindowsFoundation_PropertyType { .otherTypeArray }
-    public func _isNumericScalar() throws -> Bool { false }
+    public var type: WindowsFoundation_PropertyType { get throws { .otherTypeArray } }
+    public var isNumericScalar: Bool { get throws { false } }
 
-    public func _value() throws -> [T] { value }
+    public var value: [T] { get throws { _value } }
+
     public func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws {
-        let abiValue = try ArrayBinding<TBinding>.toABI(self.value)
+        let abiValue = try ArrayBinding<TBinding>.toABI(self._value)
         length = abiValue.count
         pointer = abiValue.pointer.map { UnsafeMutableRawPointer($0) }
     }

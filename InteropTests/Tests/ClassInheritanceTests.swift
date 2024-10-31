@@ -6,36 +6,36 @@ import WinRTComponent
 class ClassInheritanceTests : XCTestCase {
     public func testOverridableMemberOnBaseClass() throws {
         // Created from Swift
-        XCTAssertEqual(try MinimalBaseClass()._typeName(), "MinimalBaseClass")
+        XCTAssertEqual(try MinimalBaseClass().typeName, "MinimalBaseClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClass()), "MinimalBaseClass")
 
         // Created from WinRT
-        XCTAssertEqual(try MinimalBaseClassHierarchy.createBase()._typeName(), "MinimalBaseClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createBase().typeName, "MinimalBaseClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createBase()), "MinimalBaseClass")
     }
 
     public func testOverridenMemberInUnsealedDerivedClass() throws {
         // Created from Swift
-        XCTAssertEqual(try MinimalUnsealedDerivedClass()._typeName(), "MinimalUnsealedDerivedClass")
+        XCTAssertEqual(try MinimalUnsealedDerivedClass().typeName, "MinimalUnsealedDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalUnsealedDerivedClass()), "MinimalUnsealedDerivedClass")
 
         // Created from WinRT
-        XCTAssertEqual(try MinimalBaseClassHierarchy.createUnsealedDerived()._typeName(), "MinimalUnsealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createUnsealedDerived().typeName, "MinimalUnsealedDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createUnsealedDerived()), "MinimalUnsealedDerivedClass")
     }
 
     public func testOverridenMemberInSealedDerivedClass() throws {
         // Created from Swift
-        XCTAssertEqual(try MinimalSealedDerivedClass()._typeName(), "MinimalSealedDerivedClass")
+        XCTAssertEqual(try MinimalSealedDerivedClass().typeName, "MinimalSealedDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalSealedDerivedClass()), "MinimalSealedDerivedClass")
 
         // Created from WinRT
-        XCTAssertEqual(try MinimalBaseClassHierarchy.createSealedDerived()._typeName(), "MinimalSealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createSealedDerived().typeName, "MinimalSealedDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createSealedDerived()), "MinimalSealedDerivedClass")
     }
 
     public func testOverridenMemberInPrivateDerivedClass() throws {
-        XCTAssertEqual(try MinimalBaseClassHierarchy.createPrivateDerived()._typeName(), "PrivateDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createPrivateDerived().typeName, "PrivateDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createPrivateDerived()), "PrivateDerivedClass")
     }
 
@@ -45,7 +45,7 @@ class ClassInheritanceTests : XCTestCase {
             public override func _typeName() throws -> String { "SwiftDerivedClass" }
         }
 
-        XCTAssertEqual(try SwiftDerivedClass()._typeName(), "SwiftDerivedClass")
+        XCTAssertEqual(try SwiftDerivedClass().typeName, "SwiftDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedClass()), "SwiftDerivedClass")
     }
 
@@ -55,7 +55,7 @@ class ClassInheritanceTests : XCTestCase {
             public override func _typeName() throws -> String { "SwiftDerivedDerivedClass" }
         }
 
-        XCTAssertEqual(try SwiftDerivedDerivedClass()._typeName(), "SwiftDerivedDerivedClass")
+        XCTAssertEqual(try SwiftDerivedDerivedClass().typeName, "SwiftDerivedDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedDerivedClass()), "SwiftDerivedDerivedClass")
     }
 

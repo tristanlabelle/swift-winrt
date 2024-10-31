@@ -13,7 +13,7 @@ internal struct ThisPointer {
     }
 }
 
-internal func writeInterfaceImplementation(
+internal func writeMemberDefinitions(
         abiType: BoundType, classDefinition: ClassDefinition? = nil, documentation: Bool = true,
         overridable: Bool = false, static: Bool = false, thisPointer: ThisPointer,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
@@ -21,56 +21,50 @@ internal func writeInterfaceImplementation(
         guard method.isPublic && !(method is Constructor) else { continue }
         // Generate Delegate.Invoke as a regular method
         guard method.nameKind == .regular || abiType.definition is DelegateDefinition else { continue }
-        try writeInterfaceMethodImplementation(
+        try writeMethodDefinition(
             method, typeGenericArgs: abiType.genericArgs, classDefinition: classDefinition,
             documentation: documentation, overridable: overridable, static: `static`,
             thisPointer: thisPointer, projection: projection, to: writer)
     }
 
     for event in abiType.definition.events {
-        try writeInterfaceEventImplementation(
+        try writeEventDefinition(
             event, typeGenericArgs: abiType.genericArgs, classDefinition: classDefinition,
             documentation: documentation, overridable: overridable, static: `static`,
             thisPointer: thisPointer, projection: projection, to: writer)
     }
 
     for property in abiType.definition.properties {
-        try writeInterfacePropertyImplementation(
+        try writePropertyDefinition(
             property, typeGenericArgs: abiType.genericArgs, classDefinition: classDefinition,
             documentation: documentation, overridable: overridable, static: `static`,
             thisPointer: thisPointer, projection: projection, to: writer)
     }
 }
 
-fileprivate func writeInterfacePropertyImplementation(
+fileprivate func writePropertyDefinition(
         _ property: Property, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    if try property.definingType.hasAttribute(ExclusiveToAttribute.self) {
-        // The property is exclusive to this class so it doesn't come
-        // from an interface that would an extension property.
-        // public static var myProperty: MyPropertyType { ... }
-        try writeNonthrowingPropertyImplementation(
-            property: property, static: `static`, classDefinition: classDefinition,
-            projection: projection, to: writer)
-    }
-
-    // public [static] func _myProperty() throws -> MyPropertyType { ... }
+    // Write getter as get-only computed property, which supports throwing
+    // public [static] var myProperty: MyPropertyType { get throws { ... } }
     if let getter = try property.getter, try getter.hasReturnValue {
         let returnParamBinding = try projection.getParamBinding(getter.returnParam, genericTypeArgs: typeGenericArgs)
-        try writer.writeFunc(
+        try writer.writeComputedProperty(
                 documentation: documentation ? projection.getDocumentationComment(property, accessor: .getter, classDefinition: classDefinition) : nil,
                 visibility: overridable ? .open : .public,
                 static: `static`,
-                name: Projection.toMemberName(getter),
+                name: Projection.toMemberName(property),
+                type: returnParamBinding.swiftType,
                 throws: true,
-                returnType: returnParamBinding.swiftType) { writer throws in
+                get: { writer throws in
             try writeInteropMethodCall(
                 name: Projection.toInteropMethodName(getter), params: [], returnParam: returnParamBinding,
                 thisPointer: thisPointer, projection: projection, to: writer.output)
-        }
+        })
     }
 
+    // Write setter as a method because settable properties do not support throwing
     // public [static] func myProperty(_ newValue: MyPropertyType) throws { ... }
     if let setter = try property.setter {
         guard let newValueParam = try setter.params.first else { fatalError() }
@@ -79,7 +73,7 @@ fileprivate func writeInterfacePropertyImplementation(
                 documentation: documentation ? projection.getDocumentationComment(property, accessor: .setter, classDefinition: classDefinition) : nil,
                 visibility: .public,
                 static: `static`,
-                name: Projection.toMemberName(setter),
+                name: Projection.toMemberName(property),
                 params: [ newValueParamBinding.toSwiftParam() ],
                 throws: true) { writer throws in
             try writeInteropMethodCall(
@@ -88,9 +82,19 @@ fileprivate func writeInterfacePropertyImplementation(
                 thisPointer: thisPointer, projection: projection, to: writer.output)
         }
     }
+
+    // For convenience, define a get-set property, though this cannot be throwing so it must fatal error.
+    if try property.definingType.hasAttribute(ExclusiveToAttribute.self), try property.getter != nil && property.setter != nil {
+        // The property is exclusive to this class so it doesn't come
+        // from an interface that would declare an extension property.
+        // public static var myProperty: MyPropertyType { ... }
+        try writeNonthrowingPropertyImplementation(
+            property: property, static: `static`, classDefinition: classDefinition,
+            projection: projection, to: writer)
+    }
 }
 
-fileprivate func writeInterfaceEventImplementation(
+fileprivate func writeEventDefinition(
         _ event: Event, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
@@ -102,7 +106,8 @@ fileprivate func writeInterfaceEventImplementation(
         let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(event, classDefinition: classDefinition) : nil,
-                visibility: overridable ? .open : .public, static: `static`, name: name,
+                visibility: overridable ? .open : .public, static: `static`,
+                name: name,
                 params: [ handlerParamBinding.toSwiftParam(label: "adding") ], throws: true,
                 returnType: eventRegistrationType) { writer throws in
             // Convert the return token into an EventRegistration type for ease of unregistering
@@ -135,7 +140,7 @@ fileprivate func writeInterfaceEventImplementation(
     }
 }
 
-fileprivate func writeInterfaceMethodImplementation(
+fileprivate func writeMethodDefinition(
         _ method: Method, typeGenericArgs: [TypeNode], classDefinition: ClassDefinition?,
         documentation: Bool, overridable: Bool, static: Bool, thisPointer: ThisPointer,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {

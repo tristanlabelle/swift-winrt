@@ -8,19 +8,19 @@ internal class ReferenceImpl<TBinding: IReferenceableBinding>
 
     public override class var _runtimeClassName: String { "Windows.Foundation.IReference`1<\(TBinding.typeName)>" }
 
-    private let value: TBinding.SwiftValue
+    private let _value: TBinding.SwiftValue
 
     init(_ value: TBinding.SwiftValue) {
-        self.value = value
+        self._value = value
         super.init()
     }
 
     // IPropertyValue members
-    public func _type() throws -> WindowsFoundation_PropertyType { .otherType }
-    public func _isNumericScalar() throws -> Bool { false }
+    public var type: WindowsFoundation_PropertyType { get throws { .otherType } }
+    public var isNumericScalar: Bool { get throws { false } }
+    public var value: T { get throws { _value } }
 
-    public func _value() throws -> T { value }
     public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
-        pointer.bindMemory(to: TBinding.ABIValue.self, capacity: 1).pointee = try TBinding.toABI(value)
+        pointer.bindMemory(to: TBinding.ABIValue.self, capacity: 1).pointee = try TBinding.toABI(_value)
     }
 }

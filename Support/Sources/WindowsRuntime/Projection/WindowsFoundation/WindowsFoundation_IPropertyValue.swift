@@ -4,10 +4,10 @@ public typealias WindowsFoundation_IPropertyValue = any WindowsFoundation_IPrope
 /// Represents a value in a property store. You can't implement this interface, see Remarks.
 public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
     /// Returns the type stored in the property value.
-    func _type() throws -> WindowsFoundation_PropertyType
+    var type: WindowsFoundation_PropertyType { get throws }
 
     /// Gets a value that indicates whether the property value is a scalar value.
-    func _isNumericScalar() throws -> Bool
+    var isNumericScalar: Bool { get throws }
 
     func getUInt8() throws -> UInt8
     func getInt16() throws -> Int16
@@ -49,9 +49,6 @@ public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
 }
 
 extension WindowsFoundation_IPropertyValueProtocol {
-    public var type: WindowsFoundation_PropertyType { try! _type() }
-    public var isNumericScalar: Bool { try! _isNumericScalar() }
-
     public func getUInt8() throws -> UInt8 { throw COMError.notImpl }
     public func getInt16() throws -> Int16 { throw COMError.notImpl }
     public func getUInt16() throws -> UInt16 { throw COMError.notImpl }

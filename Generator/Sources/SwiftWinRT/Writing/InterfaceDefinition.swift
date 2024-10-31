@@ -104,33 +104,31 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             }
         }
 
-        // Write properties as "_getFoo() throws -> T" and "_setFoo(newValue: T) throws",
-        // to provide a way to handle errors.
-        // We'll generate non-throwing "var foo: T { get set }" as an extension.
+        // Write properties as "var foo: T { get throws}" and "func setFoo(_ newValue: T) throws",
+        // to provide a way to handle errors (Swift does not support throwing settable properties)
+        // We'll generate non-throwing "var foo_: T! { get set }" as an extension.
         for property in interfaceDefinition.properties {
             if let getter = try property.getter {
-                try writer.writeFunc(
+                try writer.writeProperty(
                     documentation: projection.getDocumentationComment(property, accessor: .getter),
-                    name: Projection.toMemberName(getter),
-                    throws: true,
-                    returnType: projection.toReturnType(property.type))
+                    name: Projection.toMemberName(property),
+                    type: projection.toReturnType(getter.returnType),
+                    throws: true)
             }
 
             if let setter = try property.setter {
                 try writer.writeFunc(
                     groupAsProperty: true,
                     documentation: projection.getDocumentationComment(property, accessor: .setter),
-                    name: Projection.toMemberName(setter),
+                    name: Projection.toMemberName(property),
                     params: setter.params.map { try projection.toParameter($0) },
                     throws: true)
             }
         }
     }
 
-    // Write fatalError'ing properties as an extension
-    try writeExtensionProperties(
-        typeDefinition: interfaceDefinition, interfaces: [interfaceDefinition], static: false,
-        projection: projection, to: writer)
+    // Write non-throwing properties as an extension
+    try writeNonthrowingPropertiesExtension(interfaceDefinition, projection: projection, to: writer)
 }
 
 fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
@@ -143,4 +141,19 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
             protocolModifier: .any,
             name: try projection.toProtocolName(interfaceDefinition),
             genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
+}
+
+fileprivate func writeNonthrowingPropertiesExtension(
+        _ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
+    // Only write the extension if we have at least one property having both a getter and setter
+    let getSetProperties = try interfaceDefinition.properties.filter { try $0.getter != nil && $0.setter != nil }
+    guard !getSetProperties.isEmpty else { return }
+
+    let typeName: String = try projection.toProtocolName(interfaceDefinition)
+    try writer.writeExtension(type: .identifier(typeName)) { writer in
+        for property in getSetProperties {
+            try writeNonthrowingPropertyImplementation(
+                property: property, static: false, projection: projection, to: writer)
+        }
+    }
 }

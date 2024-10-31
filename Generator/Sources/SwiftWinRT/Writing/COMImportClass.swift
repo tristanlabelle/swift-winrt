@@ -36,7 +36,7 @@ internal func writeCOMImportClass(
         try writeGenericTypeAliases(interfaces: interfaces, projection: projection, to: writer)
 
         // Primary interface implementation
-        try writeInterfaceImplementation(
+        try writeMemberDefinitions(
             abiType: type, documentation: false, thisPointer: .init(name: "_interop"),
             projection: projection, to: writer)
 
@@ -56,7 +56,7 @@ internal func writeCOMImportClass(
             for secondaryInterface in secondaryInterfaces {
                 let secondaryInterfaceName = try WinRTTypeName.from(type: secondaryInterface.asBoundType).description
                 writer.writeMarkComment("\(secondaryInterfaceName) members")
-                try writeInterfaceImplementation(
+                try writeMemberDefinitions(
                     abiType: secondaryInterface.asBoundType, documentation: false,
                     thisPointer: .init(name: SecondaryInterfaces.getPropertyName(secondaryInterface), lazy: true),
                     projection: projection, to: writer)

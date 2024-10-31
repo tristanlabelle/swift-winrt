@@ -27,23 +27,25 @@ internal class SequenceIterator<I: IteratorProtocol>: WinRTPrimaryExport<IInspec
     typealias T = I.Element
 
     private var iterator: I
-    private var current: T?
+    private var _current: T?
 
     init(_ iterator: I) {
         self.iterator = iterator
-        self.current = self.iterator.next()
+        self._current = self.iterator.next()
     }
 
-    func _hasCurrent() throws -> Bool { current != nil }
+    var hasCurrent: Bool { get throws { _current != nil } }
 
-    func _current() throws -> T {
-        guard let current else { throw COMError.illegalMethodCall }
-        return current
+    var current: T {
+        get throws {
+            guard let _current else { throw COMError.illegalMethodCall }
+            return _current
+        }
     }
 
     func moveNext() throws -> Bool {
-        current = iterator.next()
-        return current != nil
+        _current = iterator.next()
+        return _current != nil
     }
 
     func getMany(_ items: [I.Element]) throws -> UInt32 {

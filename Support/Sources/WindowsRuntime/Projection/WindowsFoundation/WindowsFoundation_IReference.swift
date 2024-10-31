@@ -15,12 +15,7 @@ public protocol WindowsFoundation_IReferenceProtocol<T>: WindowsFoundation_IProp
     associatedtype T
 
     /// Gets the type that is represented as an IPropertyValue.
-    func _value() throws -> T
-}
-
-extension WindowsFoundation_IReferenceProtocol {
-    /// Gets the type that is represented as an IPropertyValue.
-    var value: T { try! _value() }
+    var value: T { get throws }
 }
 
 import SWRT_WindowsFoundation
@@ -60,20 +55,22 @@ public enum WindowsFoundation_IReferenceBinding<TBinding: IReferenceableBinding>
             }
         }
 
-        public func _type() throws -> WindowsFoundation_PropertyType {
-            try _ipropertyValue.get_Type()
+        public var type: WindowsFoundation_PropertyType {
+            get throws { try _ipropertyValue.get_Type() }
         }
 
-        public func _isNumericScalar() throws -> Bool {
-            try _ipropertyValue.get_IsNumericScalar()
+        public var isNumericScalar: Bool {
+            get throws { try _ipropertyValue.get_IsNumericScalar() }
         }
 
-        public func _value() throws -> T {
-            var abiValue = TBinding.abiDefaultValue
-            try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
-                try _interop.get_Value(abiValuePointer)
+        public var value: T {
+            get throws {
+                var abiValue = TBinding.abiDefaultValue
+                try withUnsafeMutablePointer(to: &abiValue) { abiValuePointer in
+                    try _interop.get_Value(abiValuePointer)
+                }
+                return TBinding.fromABI(consuming: &abiValue)
             }
-            return TBinding.fromABI(consuming: &abiValue)
         }
 
         public func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws {
