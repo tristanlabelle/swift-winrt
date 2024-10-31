@@ -18,12 +18,12 @@ class WeakReferenceTests: WinRTTestCase {
         target = nil
 
         XCTAssertNotNil(try NullResult.catch(strongReferencer.target))
-        XCTAssertNotNil(try NullResult.catch(weakReference.resolve()))
+        XCTAssertNotNil(try weakReference.resolve())
 
         try strongReferencer.clear()
 
         XCTAssertNil(try NullResult.catch(strongReferencer.target))
-        XCTAssertNil(try NullResult.catch(weakReference.resolve()))
+        XCTAssertNil(try weakReference.resolve())
     }
 
     func testThroughIWeakReferenceSource() throws {
