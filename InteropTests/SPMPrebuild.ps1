@@ -19,12 +19,20 @@ if (-not $SwiftWinRT) {
     $SwiftConfiguration = "debug"
     $RepoRoot = (& git.exe -C "$PSScriptRoot" rev-parse --path-format=absolute --show-toplevel).Trim()
     $GeneratorProjectDir = "$RepoRoot\Generator"
+
     & swift.exe build `
         --package-path $GeneratorProjectDir `
         --configuration $SwiftConfiguration `
         --build-path "$GeneratorProjectDir\.build"
     if ($LASTEXITCODE -ne 0) { throw "Failed to build SwiftWinRT.exe" }
-    $SwiftWinRT = "$GeneratorProjectDir\.build\$SwiftConfiguration\SwiftWinRT.exe"
+
+    $TargetTripleArch = switch ($Env:PROCESSOR_ARCHITECTURE) {
+        "amd64" { "x86_64" }
+        "arm64" { "aarch64" }
+        "x86" { "i686" }
+        default { throw "Unsupported architecture: $Env:PROCESSOR_ARCHITECTURE" }
+    }
+    $SwiftWinRT = "$GeneratorProjectDir\.build\$TargetTripleArch-unknown-windows-msvc\$SwiftConfiguration\SwiftWinRT.exe"
 }
 else {
     $SwiftWinRT = [IO.Path]::GetFullPath($SwiftWinRT)

@@ -1,0 +1,33 @@
+namespace WinRTComponent
+{
+    unsealed runtimeclass MinimalBaseClass
+    {
+        MinimalBaseClass();
+        overridable String TypeName { get; };
+    };
+
+    unsealed runtimeclass MinimalUnsealedDerivedClass : MinimalBaseClass
+    {
+        MinimalUnsealedDerivedClass();
+    };
+
+    runtimeclass MinimalSealedDerivedClass : MinimalBaseClass
+    {
+        MinimalSealedDerivedClass();
+
+        // Avoids error MIDL5053 : [msg]empty runtime class cannot have the [composable] or [activatable] attribute [context]
+        void Dummy();
+    };
+
+    static runtimeclass MinimalBaseClassHierarchy
+    {
+        static MinimalBaseClass CreateBase();
+        static MinimalUnsealedDerivedClass CreateUnsealedDerived();
+        static MinimalBaseClass CreateUnsealedDerivedAsBase();
+        static MinimalSealedDerivedClass CreateSealedDerived();
+        static MinimalBaseClass CreateSealedDerivedAsBase();
+        static MinimalBaseClass CreatePrivateDerived();
+        static MinimalBaseClass Passthrough(MinimalBaseClass value);
+        static String GetTypeName(MinimalBaseClass value);
+    };
+}

@@ -7,50 +7,61 @@ class ClassInheritanceTests : XCTestCase {
     public func testOverridableMemberOnBaseClass() throws {
         // Created from Swift
         XCTAssertEqual(try MinimalBaseClass()._typeName(), "MinimalBaseClass")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(MinimalBaseClass()), "MinimalBaseClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClass()), "MinimalBaseClass")
 
         // Created from WinRT
-        XCTAssertEqual(try MinimalBaseClass.createBase()._typeName(), "MinimalBaseClass")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(MinimalBaseClass.createBase()), "MinimalBaseClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createBase()._typeName(), "MinimalBaseClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createBase()), "MinimalBaseClass")
     }
 
-    public func testOverridenMemberInWinRTDerivedClass() throws {
+    public func testOverridenMemberInUnsealedDerivedClass() throws {
         // Created from Swift
-        XCTAssertEqual(try MinimalDerivedClass()._typeName(), "MinimalDerivedClass")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(MinimalDerivedClass()), "MinimalDerivedClass")
+        XCTAssertEqual(try MinimalUnsealedDerivedClass()._typeName(), "MinimalUnsealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalUnsealedDerivedClass()), "MinimalUnsealedDerivedClass")
 
         // Created from WinRT
-        XCTAssertEqual(try MinimalDerivedClass.createDerived()._typeName(), "MinimalDerivedClass")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(MinimalDerivedClass.createDerived()), "MinimalDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createUnsealedDerived()._typeName(), "MinimalUnsealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createUnsealedDerived()), "MinimalUnsealedDerivedClass")
     }
 
-    public func testOverridenMemberInWinRTPrivateClass() throws {
-        XCTAssertEqual(try MinimalBaseClass.createPrivate()._typeName(), "PrivateClass")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(MinimalBaseClass.createPrivate()), "PrivateClass")
+    public func testOverridenMemberInSealedDerivedClass() throws {
+        // Created from Swift
+        XCTAssertEqual(try MinimalSealedDerivedClass()._typeName(), "MinimalSealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalSealedDerivedClass()), "MinimalSealedDerivedClass")
+
+        // Created from WinRT
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createSealedDerived()._typeName(), "MinimalSealedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createSealedDerived()), "MinimalSealedDerivedClass")
     }
 
-    public func testOverridenMemberInSwiftClass() throws {
-        class SwiftDerived: MinimalBaseClass, @unchecked Sendable {
+    public func testOverridenMemberInPrivateDerivedClass() throws {
+        XCTAssertEqual(try MinimalBaseClassHierarchy.createPrivateDerived()._typeName(), "PrivateDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(MinimalBaseClassHierarchy.createPrivateDerived()), "PrivateDerivedClass")
+    }
+
+    public func testOverridenMemberInSwiftDerivedClass() throws {
+        class SwiftDerivedClass: MinimalBaseClass, @unchecked Sendable {
             public override init() throws { try super.init() }
-            public override func _typeName() throws -> String { "SwiftDerived" }
+            public override func _typeName() throws -> String { "SwiftDerivedClass" }
         }
 
-        XCTAssertEqual(try SwiftDerived()._typeName(), "SwiftDerived")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(SwiftDerived()), "SwiftDerived")
+        XCTAssertEqual(try SwiftDerivedClass()._typeName(), "SwiftDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedClass()), "SwiftDerivedClass")
     }
 
-    public func testOverridenMemberInSwiftClassDerivedFromWinRTDerivedClass() throws {
-        class SwiftDerived2: MinimalDerivedClass, @unchecked Sendable {
+    public func testOverridenMemberInSwiftClassDerivedFromUnsealedDerivedClass() throws {
+        class SwiftDerivedDerivedClass: MinimalUnsealedDerivedClass, @unchecked Sendable {
             public override init() throws { try super.init() }
-            public override func _typeName() throws -> String { "SwiftDerived2" }
+            public override func _typeName() throws -> String { "SwiftDerivedDerivedClass" }
         }
 
-        XCTAssertEqual(try SwiftDerived2()._typeName(), "SwiftDerived2")
-        XCTAssertEqual(try MinimalBaseClass.getTypeName(SwiftDerived2()), "SwiftDerived2")
+        XCTAssertEqual(try SwiftDerivedDerivedClass()._typeName(), "SwiftDerivedDerivedClass")
+        XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedDerivedClass()), "SwiftDerivedDerivedClass")
     }
 
     public func testNoUpcasting() throws {
-        XCTAssertNil(try MinimalBaseClass.createDerivedAsBase() as? MinimalDerivedClass)
+        XCTAssertNil(try MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? MinimalUnsealedDerivedClass)
+        XCTAssertNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
     }
 
     public func testWithUpcasting() throws {
@@ -90,6 +101,9 @@ class ClassInheritanceTests : XCTestCase {
         WindowsRuntime.swiftWrapperFactory = UpcastingSwiftWrapperFactory()
         defer { WindowsRuntime.swiftWrapperFactory = originalFactory }
 
-        XCTAssertNotNil(try MinimalBaseClass.createDerivedAsBase() as? MinimalDerivedClass)
+        XCTAssertNotNil(try MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? MinimalUnsealedDerivedClass)
+
+        // TODO: https://github.com/tristanlabelle/swift-winrt/issues/375
+        // XCTAssertNotNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
     }
 }

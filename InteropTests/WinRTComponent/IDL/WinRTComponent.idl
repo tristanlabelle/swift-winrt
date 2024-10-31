@@ -2,6 +2,7 @@
 // This speeds up the build by avoiding multiple midlrt calls followed by an mdmerge step.
 #include "Arrays.idl"
 #include "ByteBuffers.idl"
+#include "ClassInheritance.idl"
 #include "Collections.idl"
 #include "DateTimes.idl"
 #include "DocumentationComments.idl"
@@ -17,7 +18,6 @@
 #include "IMultiOutParams.idl"
 #include "ManualAsyncOperation.idl"
 #include "MinimalTypes.idl"
-#include "MinimalUnsealedClasses.idl"
 #include "NullValues.idl"
 #include "Numbers.idl"
 #include "ObjectReferencer.idl"
