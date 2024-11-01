@@ -82,7 +82,7 @@ class ClassInheritanceTests : XCTestCase {
                 guard let runtimeClassName = try? COMInterop(inspectable).getRuntimeClassName() else { return nil }
                 let swiftBindingQualifiedName = toBindingQualifiedName(runtimeClassName: consume runtimeClassName)
                 guard let bindingType = NSClassFromString(swiftBindingQualifiedName) as? any RuntimeClassBinding.Type else { return nil }
-                return bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
+                return try? bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
             }
 
             func toBindingQualifiedName(runtimeClassName: String) -> String {
