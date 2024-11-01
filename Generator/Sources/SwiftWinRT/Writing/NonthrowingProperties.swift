@@ -33,7 +33,7 @@ internal func writeNonthrowingPropertyImplementation(
             output.write("\(selfKeyword).\(Projection.toMemberName(property))")
             if catchNullResult { output.write(")") }
         },
-        set: { writer in
+        set: try property.setter == nil ? nil : { writer in
             writer.writeStatement("try! \(selfKeyword).\(Projection.toMemberName(property))(newValue)")
         })
 }
