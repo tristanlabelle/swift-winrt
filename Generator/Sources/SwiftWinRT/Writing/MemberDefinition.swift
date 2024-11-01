@@ -100,12 +100,14 @@ fileprivate func writeEventDefinition(
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let name = Projection.toMemberName(event)
 
+    // @discardableResult
     // public [static] func myEvent(adding handler: @escaping MyEventHandler) throws -> EventRegistration { ... }
     if let addAccessor = try event.addAccessor, let handlerParameter = try addAccessor.params.first {
         let handlerParamBinding = try projection.getParamBinding(handlerParameter, genericTypeArgs: typeGenericArgs)
         let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(event, classDefinition: classDefinition) : nil,
+                attributes: [ .discardableResult ],
                 visibility: overridable ? .open : .public, static: `static`,
                 name: name,
                 params: [ handlerParamBinding.toSwiftParam(label: "adding") ], throws: true,
