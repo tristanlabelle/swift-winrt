@@ -46,9 +46,9 @@ class ObjectExportingTests: WinRTTestCase {
 
         var instance: Exported? = Exported()
         let weakReferencer = try WeakReferencer(XCTUnwrap(instance))
-        XCTAssertNotNil(try NullResult.catch(weakReferencer._target()))
+        XCTAssertNotNil(try NullResult.catch(weakReferencer.target))
 
         instance = withExtendedLifetime(instance) { nil }
-        XCTAssertNil(try NullResult.catch(weakReferencer._target()))
+        XCTAssertNil(try NullResult.catch(weakReferencer.target))
     }
 }

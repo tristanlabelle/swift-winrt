@@ -5,7 +5,7 @@ import XCTest
 extension IInspectableProtocol {
     fileprivate func unbox<Binding: IReferenceableBinding>(_: Binding.Type) throws -> Binding.SwiftValue {
         let ireference = try self.queryInterface(WindowsFoundation_IReferenceBinding<Binding>.self)
-        return try ireference._value()
+        return try ireference.value
     }
 }
 
@@ -46,7 +46,7 @@ class InspectableBoxingTests: WinRTTestCase {
 
         try assertRoundTrip {
             let ireference = try createIReference($0, binding: MinimalDelegateBinding.self)
-            return try XCTUnwrap(ireference._value())
+            return try XCTUnwrap(ireference.value)
         }
 
         try assertRoundTrip {

@@ -11,12 +11,7 @@ public protocol WindowsFoundation_IReferenceArrayProtocol<T>: WindowsFoundation_
     associatedtype T
 
     /// Gets the type that is represented as an IPropertyValue.
-    func _value() throws -> [T]
-}
-
-extension WindowsFoundation_IReferenceArrayProtocol {
-    /// Gets the type that is represented as an IPropertyValue.
-    var value: [T] { try! _value() }
+    var value: [T] { get throws }
 }
 
 import SWRT_WindowsFoundation
@@ -53,24 +48,26 @@ public enum WindowsFoundation_IReferenceArrayBinding<TBinding: IReferenceableBin
             }
         }
 
-        public func _type() throws -> WindowsFoundation_PropertyType {
-            try _ipropertyValue.get_Type()
+        public var type: WindowsFoundation_PropertyType {
+            get throws { try _ipropertyValue.get_Type() }
         }
 
-        public func _isNumericScalar() throws -> Bool {
-            try _ipropertyValue.get_IsNumericScalar()
+        public var isNumericScalar: Bool {
+            get throws { try _ipropertyValue.get_IsNumericScalar() }
         }
 
-        public func _value() throws -> [T] {
-            var length: UInt32 = 0
-            var pointer: UnsafeMutableRawPointer? = nil
-            try _interop.get_Value(&length, &pointer)
-            guard let pointer else { return [] }
+        public var value: [T] {
+            get throws {
+                var length: UInt32 = 0
+                var pointer: UnsafeMutableRawPointer? = nil
+                try _interop.get_Value(&length, &pointer)
+                guard let pointer else { return [] }
 
-            var abiValue = COMArray<TBinding.ABIValue>(
-                pointer: pointer.bindMemory(to: TBinding.ABIValue.self, capacity: Int(length)),
-                count: length)
-            return ArrayBinding<TBinding>.fromABI(consuming: &abiValue)
+                var abiValue = COMArray<TBinding.ABIValue>(
+                    pointer: pointer.bindMemory(to: TBinding.ABIValue.self, capacity: Int(length)),
+                    count: length)
+                return ArrayBinding<TBinding>.fromABI(consuming: &abiValue)
+            }
         }
 
         public func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws {

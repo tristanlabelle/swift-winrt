@@ -8,36 +8,34 @@ class PropertyTests: WinRTTestCase {
         let wrapper = try Int32Wrapper()
 
         func assertGet(expected: Int32) throws {
-            XCTAssertEqual(wrapper.getOnly, expected)
-            XCTAssertEqual(try wrapper._getOnly(), expected)
-            XCTAssertEqual(wrapper.getSet, expected)
-            XCTAssertEqual(try wrapper._getSet(), expected)
+            XCTAssertEqual(try wrapper.getOnly, expected)
+            XCTAssertEqual(try wrapper.getSet, expected)
+            XCTAssertEqual(wrapper.getSet_, expected)
         }
 
         try assertGet(expected: 0)
 
-        wrapper.getSet = 1
+        try wrapper.getSet(1)
         try assertGet(expected: 1)
 
-        try wrapper._getSet(2)
+        wrapper.getSet_ = 2
         try assertGet(expected: 2)
     }
 
     func testStatic() throws {
         func assertGet(expected: Int32) throws {
-            XCTAssertEqual(Int32Global.getOnly, expected)
-            XCTAssertEqual(try Int32Global._getOnly(), expected)
-            XCTAssertEqual(Int32Global.getSet, expected)
-            XCTAssertEqual(try Int32Global._getSet(), expected)
+            XCTAssertEqual(try Int32Global.getOnly, expected)
+            XCTAssertEqual(try Int32Global.getSet, expected)
+            XCTAssertEqual(Int32Global.getSet_, expected)
         }
 
-        Int32Global.getSet = 0
+        try Int32Global.getSet(0)
         try assertGet(expected: 0)
 
-        Int32Global.getSet = 1
+        try Int32Global.getSet(1)
         try assertGet(expected: 1)
 
-        try Int32Global._getSet(2)
+        Int32Global.getSet_ = 2
         try assertGet(expected: 2)
     }
 }

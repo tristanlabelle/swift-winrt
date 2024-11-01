@@ -26,8 +26,8 @@ class ErrorTests: WinRTTestCase {
     }
 
     func testCallThrowingProperty() throws {
-        XCTAssertThrowsError(try Errors._notImplementedProperty())
-        XCTAssertThrowsError(try Errors._notImplementedProperty("foo"))
+        XCTAssertThrowsError(try Errors.notImplementedProperty)
+        XCTAssertThrowsError(try Errors.notImplementedProperty("foo"))
     }
 
     func testThrowWithHResult() throws {

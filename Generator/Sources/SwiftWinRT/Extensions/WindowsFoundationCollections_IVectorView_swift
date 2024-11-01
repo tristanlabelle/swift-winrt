@@ -25,9 +25,7 @@ fileprivate class CollectionVectorView<C: Collection>: WinRTPrimaryExport<IInspe
         self.elementEquals = elementEquals
     }
 
-    public func _size() throws -> UInt32 {
-        UInt32(collection.count)
-    }
+    public var size: UInt32 { get throws { UInt32(collection.count) } }
 
     public func first() throws -> WindowsFoundationCollections_IIterator<T> {
         SequenceIterator(collection.makeIterator())

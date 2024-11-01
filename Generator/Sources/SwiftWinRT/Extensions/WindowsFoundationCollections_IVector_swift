@@ -23,9 +23,7 @@ public class ArrayVector<T>: WinRTPrimaryExport<IInspectableBinding>,
         self.elementEquals = elementEquals
     }
 
-    public func _size() throws -> UInt32 {
-        UInt32(array.count)
-    }
+    public var size: UInt32 { get throws { UInt32(array.count) } }
 
     public func first() throws -> WindowsFoundationCollections_IIterator<T> {
         SequenceIterator(array.makeIterator())

@@ -174,7 +174,7 @@ fileprivate func writeInterfaceImplementations(
         let thisPointer: ThisPointer = try classDefinition.isSealed && getRuntimeClassBase(classDefinition) == nil
             ? .init(name: "_interop")
             : .init(name: SecondaryInterfaces.getPropertyName(defaultInterface), lazy: true)
-        try writeInterfaceImplementation(
+        try writeMemberDefinitions(
             abiType: defaultInterface.asBoundType, classDefinition: classDefinition,
             thisPointer: thisPointer, projection: projection, to: writer)
     }
@@ -186,7 +186,7 @@ fileprivate func writeInterfaceImplementations(
             try writeMarkComment(forInterface: secondaryInterface.interface, to: writer)
         }
 
-        try writeInterfaceImplementation(
+        try writeMemberDefinitions(
             abiType: secondaryInterface.interface.asBoundType,
             classDefinition: classDefinition,
             overridable: secondaryInterface.overridable,
@@ -201,7 +201,7 @@ fileprivate func writeInterfaceImplementations(
             try writeMarkComment(forInterface: staticInterface.bind(), to: writer)
         }
 
-        try writeInterfaceImplementation(
+        try writeMemberDefinitions(
             abiType: staticInterface.bindType(), classDefinition: classDefinition, static: true,
             thisPointer: .init(name: SecondaryInterfaces.getPropertyName(staticInterface.bind()), lazy: true),
             projection: projection, to: writer)

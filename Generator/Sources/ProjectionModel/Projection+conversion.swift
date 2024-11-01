@@ -88,13 +88,12 @@ extension Projection {
 
     public static func toMemberName(_ member: Member) -> String {
         let name = member.name
-        
         if member is Method, member.nameKind == .special {
             if let prefixEndIndex = name.findPrefixEndIndex("get_")
                     ?? name.findPrefixEndIndex("set_")
                     ?? name.findPrefixEndIndex("put_") {
-                // get_Foo() -> _foo()
-                return "_" + Casing.pascalToCamel(String(name[prefixEndIndex...]))
+                // get_Foo() -> foo
+                return Casing.pascalToCamel(String(name[prefixEndIndex...]))
             }
             else if let prefixEndIndex = name.findPrefixEndIndex("add_")
                     ?? name.findPrefixEndIndex("remove_") {

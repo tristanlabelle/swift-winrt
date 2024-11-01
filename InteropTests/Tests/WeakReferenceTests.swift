@@ -17,12 +17,12 @@ class WeakReferenceTests: WinRTTestCase {
         let weakReference = try WeakReference<MinimalClassBinding>(target)
         target = nil
 
-        XCTAssertNotNil(try strongReferencer._target())
+        XCTAssertNotNil(try NullResult.catch(strongReferencer.target))
         XCTAssertNotNil(try weakReference.resolve())
 
         try strongReferencer.clear()
 
-        XCTAssertNil(try NullResult.catch(strongReferencer._target()))
+        XCTAssertNil(try NullResult.catch(strongReferencer.target))
         XCTAssertNil(try weakReference.resolve())
     }
 
