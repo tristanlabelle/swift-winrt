@@ -98,7 +98,7 @@ extension COMInterop where ABIStruct == SWRT_WindowsFoundation_IPropertyValue {
     internal func get_Type() throws -> WindowsFoundation_PropertyType {
         var abi_value: SWRT_WindowsFoundation_PropertyType = .init()
         try WinRTError.fromABI(this.pointee.VirtualTable.pointee.get_Type(this, &abi_value))
-        fatalError("Not implemented")
+        return WindowsFoundation_PropertyType.fromABI(abi_value)
     }
 
     internal func get_IsNumericScalar() throws -> Bool {
