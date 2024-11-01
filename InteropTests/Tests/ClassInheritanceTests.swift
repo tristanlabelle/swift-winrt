@@ -65,17 +65,24 @@ class ClassInheritanceTests : XCTestCase {
     }
 
     public func testWithUpcasting() throws {
-        struct UpcastingSwiftWrapperFactory: SwiftWrapperFactory {
-            func create<Binding: COMBinding>(
-                    _ reference: consuming Binding.ABIReference,
-                    binding: Binding.Type) -> Binding.SwiftObject {
+        struct UpcastableSwiftWrapperFactory: SwiftWrapperFactory {
+            func create<StaticBinding: COMBinding>(
+                    _ reference: consuming StaticBinding.ABIReference,
+                    staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject {
                 // Try from the runtime type first, then fall back to the statically known binding
-                if let object: Binding.SwiftObject = fromRuntimeType(
+                if let object: StaticBinding.SwiftObject = fromRuntimeType(
                         inspectable: IInspectablePointer(OpaquePointer(reference.pointer))) {
                     return object
                 } else {
-                    return Binding._wrap(consume reference)
+                    return StaticBinding._wrap(consume reference)
                 }
+            }
+
+            func fromRuntimeType<SwiftObject>(inspectable: IInspectablePointer) -> SwiftObject? {
+                guard let runtimeClassName = try? COMInterop(inspectable).getRuntimeClassName() else { return nil }
+                let swiftBindingQualifiedName = toBindingQualifiedName(runtimeClassName: consume runtimeClassName)
+                guard let bindingType = NSClassFromString(swiftBindingQualifiedName) as? any RuntimeClassBinding.Type else { return nil }
+                return try? bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
             }
 
             func toBindingQualifiedName(runtimeClassName: String) -> String {
@@ -88,22 +95,13 @@ class ClassInheritanceTests : XCTestCase {
                 result += "Binding"
                 return result
             }
-
-            func fromRuntimeType<SwiftObject>(inspectable: IInspectablePointer) -> SwiftObject? {
-                guard let runtimeClassName = try? COMInterop(inspectable).getRuntimeClassName() else { return nil }
-                let swiftBindingQualifiedName = toBindingQualifiedName(runtimeClassName: consume runtimeClassName)
-                guard let bindingType = NSClassFromString(swiftBindingQualifiedName) as? any ComposableClassBinding.Type else { return nil }
-                return bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
-            }
         }
 
         let originalFactory = WindowsRuntime.swiftWrapperFactory
-        WindowsRuntime.swiftWrapperFactory = UpcastingSwiftWrapperFactory()
+        WindowsRuntime.swiftWrapperFactory = UpcastableSwiftWrapperFactory()
         defer { WindowsRuntime.swiftWrapperFactory = originalFactory }
 
         XCTAssertNotNil(try MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? MinimalUnsealedDerivedClass)
-
-        // TODO: https://github.com/tristanlabelle/swift-winrt/issues/375
-        // XCTAssertNotNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
+        XCTAssertNotNil(try MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? MinimalSealedDerivedClass)
     }
 }

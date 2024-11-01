@@ -39,11 +39,12 @@ public protocol InterfaceBinding: ReferenceTypeBinding, COMTwoWayBinding {} // w
 /// Protocol for bindings of WinRT delegates into Swift.
 public protocol DelegateBinding: ReferenceTypeBinding, IReferenceableBinding, COMTwoWayBinding {}
 
-/// Protocol for bindings of WinRT activatable classes into Swift.
-public protocol ActivatableClassBinding: ReferenceTypeBinding {} // where SwiftObject: IInspectable
+/// Protocol for bindings of non-static WinRT runtime classes into Swift.
+/// Allows for dynamic instantiation of wrappers for WinRT objects.
+/// Conforms to AnyObject so that conforming types must be classes, which can be looked up using NSClassFromString.
+public protocol RuntimeClassBinding: ReferenceTypeBinding, AnyObject { // where SwiftObject: IInspectable
+    static func _wrapObject(_ reference: consuming IInspectableReference) throws -> IInspectable
+}
 
 /// Protocol for bindings of WinRT composable classes into Swift.
-/// Conforms to AnyObject so that conforming types must be classes, which can be looked up using NSClassFromString.
-public protocol ComposableClassBinding: ReferenceTypeBinding, AnyObject { // where SwiftObject: IInspectable
-    static func _wrapObject(_ reference: consuming IInspectableReference) -> IInspectable
-}
+public protocol ComposableClassBinding: RuntimeClassBinding {}

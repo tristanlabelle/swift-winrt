@@ -1,16 +1,16 @@
 public protocol SwiftWrapperFactory {
-    func create<Binding: COMBinding>(
-        _ reference: consuming Binding.ABIReference,
-        binding: Binding.Type) -> Binding.SwiftObject
+    func create<StaticBinding: COMBinding>(
+        _ reference: consuming StaticBinding.ABIReference,
+        staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject
 }
 
 public struct DefaultSwiftWrapperFactory: SwiftWrapperFactory {
     public init() {}
 
-    public func create<Binding: COMBinding>(
-            _ reference: consuming Binding.ABIReference,
-            binding: Binding.Type) -> Binding.SwiftObject {
-        Binding._wrap(consume reference)
+    public func create<StaticBinding: COMBinding>(
+            _ reference: consuming StaticBinding.ABIReference,
+            staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject {
+        StaticBinding._wrap(consume reference)
     }
 }
 

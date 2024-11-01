@@ -258,7 +258,7 @@ fileprivate func writeClassBindingType(
 
     let projectionProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
         ? SupportModules.WinRT.composableClassBinding
-        : SupportModules.WinRT.activatableClassBinding
+        : SupportModules.WinRT.runtimeClassBinding
 
     let bindingTypeName = try projection.toBindingTypeName(classDefinition)
     try writer.writeClass(

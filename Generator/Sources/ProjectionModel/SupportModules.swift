@@ -73,7 +73,7 @@ extension SupportModules.WinRT {
     public static var structBinding: SwiftType { .chain(moduleName, "StructBinding") }
     public static var interfaceBinding: SwiftType { .chain(moduleName, "InterfaceBinding") }
     public static var delegateBinding: SwiftType { .chain(moduleName, "DelegateBinding") }
-    public static var activatableClassBinding: SwiftType { .chain(moduleName, "ActivatableClassBinding") }
+    public static var runtimeClassBinding: SwiftType { .chain(moduleName, "RuntimeClassBinding") }
     public static var composableClassBinding: SwiftType { .chain(moduleName, "ComposableClassBinding") }
 
     public static var composableClass: SwiftType { .chain(moduleName, "ComposableClass") }
