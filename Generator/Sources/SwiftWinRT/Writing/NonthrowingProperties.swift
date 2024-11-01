@@ -8,9 +8,8 @@ import ProjectionModel
 internal func writeNonthrowingPropertyImplementation(
         property: Property, static: Bool, classDefinition: ClassDefinition? = nil,
         documentation: Bool = true, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    // Nonthrowing properties are useful for the assignment syntax, so only relevant if we have a setter,
-    // and Swift does not support set-only properties, so we require both accessors.
-    guard try property.getter != nil, try property.setter != nil else { return }
+    // Swift does not support set-only properties, so we require a setter
+    guard try property.getter != nil else { return }
 
     // Convert nullability representation from NullResult errors to implicitly unwrapped optionals (T!)
     var propertyType = try projection.toReturnType(property.type)
@@ -34,7 +33,7 @@ internal func writeNonthrowingPropertyImplementation(
             output.write("\(selfKeyword).\(Projection.toMemberName(property))")
             if catchNullResult { output.write(")") }
         },
-        set: { writer in
+        set: try property.setter == nil ? nil : { writer in
             writer.writeStatement("try! \(selfKeyword).\(Projection.toMemberName(property))(newValue)")
         })
 }

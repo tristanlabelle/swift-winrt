@@ -9,6 +9,10 @@ public protocol WindowsFoundation_IReferenceArrayProtocol<T>: WindowsFoundation_
     var value: [T] { get throws }
 }
 
+extension WindowsFoundation_IReferenceArrayProtocol {
+    var value_: [T] { try! self.value }
+}
+
 /// Allows nongeneric uses of the IReferenceArray protocol.
 public protocol WindowsFoundation_IReferenceArrayProtocolABI {
     func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws

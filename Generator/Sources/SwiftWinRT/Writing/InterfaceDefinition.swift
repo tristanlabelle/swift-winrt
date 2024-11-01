@@ -147,7 +147,7 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
 fileprivate func writeNonthrowingPropertiesExtension(
         _ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     // Only write the extension if we have at least one property having both a getter and setter
-    let getSetProperties = try interfaceDefinition.properties.filter { try $0.getter != nil && $0.setter != nil }
+    let getSetProperties = try interfaceDefinition.properties.filter { try $0.getter != nil }
     guard !getSetProperties.isEmpty else { return }
 
     let typeName: String = try projection.toProtocolName(interfaceDefinition)
