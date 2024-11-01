@@ -31,6 +31,7 @@ class EventTests: WinRTTestCase {
         class EventSource: WinRTPrimaryExport<IEventSourceBinding>, IEventSourceProtocol {
             private var invocationList: EventInvocationList<MinimalDelegate> = .init()
 
+            @discardableResult
             func event(adding handler: MinimalDelegate?) throws -> EventRegistration {
                 try invocationList.add(handler)
             }
@@ -43,5 +44,10 @@ class EventTests: WinRTTestCase {
                 try invocationList.invoke { try $0() }
             }
         }
+    }
+
+    func testDiscardableResult() throws {
+        let eventSource = try XCTUnwrap(Events.createSource())
+        try eventSource.event { } // Should not produce a warning/error
     }
 }

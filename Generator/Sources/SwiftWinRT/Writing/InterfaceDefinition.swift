@@ -90,6 +90,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let addAccessor = try event.addAccessor {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(event),
+                    attributes: [ .discardableResult ],
                     name: Projection.toMemberName(event),
                     params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                     throws: true,
