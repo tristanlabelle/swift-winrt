@@ -5,17 +5,17 @@
 /// - Providing a representation for nullable primitives, value types and delegates (since reference types can be null).
 public typealias WindowsFoundation_IReference<T> = any WindowsFoundation_IReferenceProtocol<T>
 
-/// Allows nongeneric uses of the IReference protocol.
-public protocol WindowsFoundation_IReferenceProtocolABI {
-    func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws
-}
-
 /// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public protocol WindowsFoundation_IReferenceProtocol<T>: WindowsFoundation_IPropertyValueProtocol, WindowsFoundation_IReferenceProtocolABI {
     associatedtype T
 
     /// Gets the type that is represented as an IPropertyValue.
     var value: T { get throws }
+}
+
+/// Allows nongeneric uses of the IReference protocol.
+public protocol WindowsFoundation_IReferenceProtocolABI {
+    func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws
 }
 
 import SWRT_WindowsFoundation

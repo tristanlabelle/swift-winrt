@@ -1,17 +1,17 @@
 /// Enables arrays of arbitrary enumerations, structures, and delegate types to be used as property values.
 public typealias WindowsFoundation_IReferenceArray<T> = any WindowsFoundation_IReferenceArrayProtocol<T>
 
-/// Allows nongeneric uses of the IReferenceArray protocol.
-public protocol WindowsFoundation_IReferenceArrayProtocolABI {
-    func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws
-}
-
 /// Enables arbitrary enumerations, structures, and delegate types to be used as property values.
 public protocol WindowsFoundation_IReferenceArrayProtocol<T>: WindowsFoundation_IPropertyValueProtocol, WindowsFoundation_IReferenceArrayProtocolABI {
     associatedtype T
 
     /// Gets the type that is represented as an IPropertyValue.
     var value: [T] { get throws }
+}
+
+/// Allows nongeneric uses of the IReferenceArray protocol.
+public protocol WindowsFoundation_IReferenceArrayProtocolABI {
+    func _getABIValue(_ length: inout UInt32, _ pointer: inout UnsafeMutableRawPointer?) throws
 }
 
 import SWRT_WindowsFoundation
