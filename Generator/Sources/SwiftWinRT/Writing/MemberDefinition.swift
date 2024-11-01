@@ -90,7 +90,7 @@ fileprivate func writePropertyDefinition(
         // public static var myProperty: MyPropertyType { ... }
         try writeNonthrowingPropertyImplementation(
             property: property, static: `static`, classDefinition: classDefinition,
-            projection: projection, to: writer)
+            documentation: documentation, projection: projection, to: writer)
     }
 }
 

@@ -7,7 +7,7 @@ import ProjectionModel
 /// The fatalerror'ing version exposes null results through implicitly unwrapped optionals.
 internal func writeNonthrowingPropertyImplementation(
         property: Property, static: Bool, classDefinition: ClassDefinition? = nil,
-        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
+        documentation: Bool = true, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     // Nonthrowing properties are useful for the assignment syntax, so only relevant if we have a setter,
     // and Swift does not support set-only properties, so we require both accessors.
     guard try property.getter != nil, try property.setter != nil else { return }
@@ -22,7 +22,7 @@ internal func writeNonthrowingPropertyImplementation(
     let selfKeyword = `static` ? "Self" : "self"
 
     try writer.writeComputedProperty(
-        documentation: projection.getDocumentationComment(property, classDefinition: classDefinition),
+        documentation: documentation ? projection.getDocumentationComment(property, accessor: .nonthrowingGetterSetter, classDefinition: classDefinition) : nil,
         visibility: .public,
         static: `static`,
         name: Projection.toMemberName(property) + "_", // Disambiguate from throwing accessors

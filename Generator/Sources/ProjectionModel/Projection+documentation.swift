@@ -17,31 +17,72 @@ extension Projection {
     public enum PropertyAccessor {
         case getter
         case setter
+        case nonthrowingGetterSetter
     }
 
     public func getDocumentationComment(_ property: Property, accessor: PropertyAccessor, classDefinition: ClassDefinition? = nil) throws -> SwiftDocumentationComment? {
         guard var propertyDocumentation = try getMemberDocumentation(property, classDefinition: classDefinition) else { return nil }
 
+        // Properties' values are supposed to be documented using <value>, but WinRT docs use <returns>.
+        let valueDocumentation = propertyDocumentation.value ?? propertyDocumentation.returns
+
+        propertyDocumentation.value = nil
+        propertyDocumentation.returns = nil
+        propertyDocumentation.params = [] // WinRT doesn't support indexers
+
+        /// Replaces the prefix of a documentation text node
+        func replacePrefix(_ text: DocumentationText, prefix: String, replacement: String) -> DocumentationText {
+            guard let firstNode = text.nodes.first,
+                    case .plain(let str) = firstNode,
+                    str.hasPrefix(prefix) else { return text }
+
+            let newStr = replacement + str.dropFirst(prefix.count)
+            return DocumentationText(nodes: [.plain(newStr)] + text.nodes.dropFirst())
+        }
+
         switch accessor {
             case .getter:
-                propertyDocumentation.params = []
+                // Prefer the <value> tag (describes the data)
+                propertyDocumentation.summary = (valueDocumentation ?? propertyDocumentation.summary)
+                    .map { replacePrefix($0, prefix: "Gets or sets ", replacement: "Gets ") }
             case .setter:
-                propertyDocumentation.returns = nil
+                // Prefer the <summary> tag (describes the operation)
+                propertyDocumentation.summary = (propertyDocumentation.summary ?? valueDocumentation)
+                    .map { replacePrefix($0, prefix: "Gets or sets ", replacement: "Sets ") }
+                propertyDocumentation.params = valueDocumentation.map {
+                    [ .init(name: "newValue", description:$0) ]
+                } ?? []
+            case .nonthrowingGetterSetter:
+                // Prefer the <summary> tag (describes the operation)
+                propertyDocumentation.summary = propertyDocumentation.summary ?? valueDocumentation
+
+                if propertyDocumentation.remarks == nil {
+                    propertyDocumentation.remarks = DocumentationText.plain("Treats exceptions as fatal errors.")
+                }
         }
 
         return toDocumentationComment(propertyDocumentation)
     }
 
     public func getDocumentationComment(_ genericParam: GenericParam, typeDefinition: TypeDefinition) -> SwiftDocumentationComment? {
-        guard let assemblyDocumentation = assembliesToModules[genericParam.assembly]?.documentation else { return nil }
-        return assemblyDocumentation.lookup(typeDefinition: typeDefinition)?.typeParams
+        let genericParamDocumentation = assembliesToModules[genericParam.assembly]?
+            .documentation?
+            .lookup(typeDefinition: typeDefinition)?
+            .typeParams
             .first { $0.name == genericParam.name }
             .map { $0.description }
-            .map {
-                var documentationComment = SwiftDocumentationComment()
-                documentationComment.summary = toBlocks($0)
-                return documentationComment
-            }
+        guard let genericParamDocumentation, !genericParamDocumentation.nodes.isEmpty else { return nil }
+
+        // Ignore if all whitespace
+        if genericParamDocumentation.nodes.count == 1,
+                case .plain(let text) = genericParamDocumentation.nodes[0],
+                text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return nil
+        }
+
+        var documentationComment = SwiftDocumentationComment()
+        documentationComment.summary = toBlocks(genericParamDocumentation)
+        return documentationComment
     }
 
     private func getMemberDocumentation(_ member: Member, classFactoryKind: ClassFactoryKind? = nil, classDefinition: ClassDefinition? = nil) throws -> MemberDocumentation? {
