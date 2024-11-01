@@ -13,6 +13,10 @@ public protocol WindowsFoundation_IReferenceProtocol<T>: WindowsFoundation_IProp
     var value: T { get throws }
 }
 
+extension WindowsFoundation_IReferenceProtocol {
+    var value_: T { try! self.value }
+}
+
 /// Allows nongeneric uses of the IReference protocol.
 public protocol WindowsFoundation_IReferenceProtocolABI {
     func _getABIValue(_ pointer: UnsafeMutableRawPointer) throws

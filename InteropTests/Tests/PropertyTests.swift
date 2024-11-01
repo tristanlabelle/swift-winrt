@@ -9,6 +9,7 @@ class PropertyTests: WinRTTestCase {
 
         func assertGet(expected: Int32) throws {
             XCTAssertEqual(try wrapper.getOnly, expected)
+            XCTAssertEqual(wrapper.getOnly_, expected)
             XCTAssertEqual(try wrapper.getSet, expected)
             XCTAssertEqual(wrapper.getSet_, expected)
         }
@@ -25,6 +26,7 @@ class PropertyTests: WinRTTestCase {
     func testStatic() throws {
         func assertGet(expected: Int32) throws {
             XCTAssertEqual(try Int32Global.getOnly, expected)
+            XCTAssertEqual(Int32Global.getOnly_, expected)
             XCTAssertEqual(try Int32Global.getSet, expected)
             XCTAssertEqual(Int32Global.getSet_, expected)
         }

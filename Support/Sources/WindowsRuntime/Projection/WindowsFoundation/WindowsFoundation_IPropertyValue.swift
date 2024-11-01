@@ -49,6 +49,12 @@ public protocol WindowsFoundation_IPropertyValueProtocol: IInspectableProtocol {
 }
 
 extension WindowsFoundation_IPropertyValueProtocol {
+    /// Returns the type stored in the property value.
+    var type_: WindowsFoundation_PropertyType { try! self.type }
+
+    /// Gets a value that indicates whether the property value is a scalar value.
+    var isNumericScalar_: Bool { try! self.isNumericScalar }
+
     public func getUInt8() throws -> UInt8 { throw COMError.notImpl }
     public func getInt16() throws -> Int16 { throw COMError.notImpl }
     public func getUInt16() throws -> UInt16 { throw COMError.notImpl }

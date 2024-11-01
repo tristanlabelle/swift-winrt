@@ -83,8 +83,8 @@ fileprivate func writePropertyDefinition(
         }
     }
 
-    // For convenience, define a get-set property, though this cannot be throwing so it must fatal error.
-    if try property.definingType.hasAttribute(ExclusiveToAttribute.self), try property.getter != nil && property.setter != nil {
+    // For convenience, define a nonthrowing version of the property.
+    if try property.definingType.hasAttribute(ExclusiveToAttribute.self), try property.getter != nil {
         // The property is exclusive to this class so it doesn't come
         // from an interface that would declare an extension property.
         // public static var myProperty: MyPropertyType { ... }
