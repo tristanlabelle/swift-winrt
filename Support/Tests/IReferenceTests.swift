@@ -19,7 +19,7 @@ internal final class IReferenceTests: WinRTTestCase {
     func testEnum() throws {
         let ireference = try createIReference(WindowsFoundation_PropertyType.boolean)
         XCTAssertEqual(try ireference.getRuntimeClassName(), "Windows.Foundation.IReference`1<Windows.Foundation.PropertyType>")
-        XCTAssertEqual(try ireference.type, .other)
+        XCTAssertEqual(try ireference.type, .otherType)
         XCTAssertEqual(try ireference.value, WindowsFoundation_PropertyType.boolean)
     }
 
@@ -47,7 +47,7 @@ internal final class IReferenceTests: WinRTTestCase {
     func testEnumArray() throws {
         let ireferenceArray = try createIReferenceArray([WindowsFoundation_PropertyType.boolean])
         XCTAssertEqual(try ireferenceArray.getRuntimeClassName(), "Windows.Foundation.IReferenceArray`1<Windows.Foundation.PropertyType>")
-        XCTAssertEqual(try ireferenceArray.type, .otherArray)
+        XCTAssertEqual(try ireferenceArray.type, .otherTypeArray)
         XCTAssertEqual(try ireferenceArray.value, [WindowsFoundation_PropertyType.boolean])
     }
 
