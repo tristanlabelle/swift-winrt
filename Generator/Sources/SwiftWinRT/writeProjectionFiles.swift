@@ -45,7 +45,7 @@ internal func writeProjectionFiles(
         // See https://github.com/swiftlang/swift-driver/blob/6af4c7dbc0559694578e5221d49970f94603b9e5/Sources/SwiftDriver/Jobs/FrontendJobHelpers.swift#L714
         writer.writeSingleLineCommand("add_compile_options", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
 
-        for module in projection.modulesByName.values {
+        for module in projection.modulesByName.values.sorted(by: { $0.name < $1.name }) {
             guard !module.isEmpty else { continue }
             writer.writeAddSubdirectory(module.name)
         }
@@ -236,6 +236,7 @@ fileprivate func writeNamespaceModuleFiles(
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
+        compactNamespaces.sort()
         for compactNamespace in compactNamespaces {
             writer.writeAddSubdirectory(compactNamespace)
         }
