@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.21.0)
 
 project(SwiftWinRT LANGUAGES C Swift)
 
+if("$ENV{WindowsSDKVersion}" STREQUAL "" OR "$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "")
+    message(FATAL_ERROR "The CMake build requires the environment from a Visual Studio Developer Command Prompt.")
+endif()
+
 if("${CMAKE_EXPORT_COMPILE_COMMANDS}" STREQUAL "")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
