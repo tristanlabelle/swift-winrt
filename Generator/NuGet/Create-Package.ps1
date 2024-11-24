@@ -2,10 +2,12 @@
 .SYNOPSIS
 Creates the Swift/WinRT nuget package, including the code generator executable and support module sources.
 #>
+[CmdletBinding(PositionalBinding=$false)]
 param(
     [string] $NativeExe = $null,
     [string] $X64BinPath = $null,
     [string] $Arm64BinPath = $null,
+    [string] $MscorlibPath = $null,
     [string] $Version = $null,
     [string] $StagingDir = $null,
     [string] $NuGetExe = "nuget.exe",
@@ -31,6 +33,15 @@ if (!$StagingDir) {
 }
 
 Write-Host "Staging files to $StagingDir..."
+function StageMscorlib([string] $TargetDir) {
+    if (!$MscorlibPath) {
+        return
+    }
+
+    Write-Host "  mscorlib..."
+    Copy-Item -Path $MscorlibPath -Destination $TargetDir -Force | Out-Null
+}
+
 if ($NativeExe) {
     Write-Host "  native executable..."
     $Arch = $Env:PROCESSOR_ARCHITECTURE
@@ -45,18 +56,22 @@ if ($NativeExe) {
     $SwiftVersion = $PathMatch.Groups["version"].Value
     $SwiftRuntimeDir = "$SwiftRoot\Runtimes\$SwiftVersion\usr\bin"
     Copy-Item -Path $SwiftRuntimeDir\*.dll -Destination $StagingDir\tools\$Arch\ -Force | Out-Null
+
+    StageMscorlib "$StagingDir\tools\$Arch\"
 }
 
 if ($X64BinPath) {
     Write-Host "  x64 binaries..."
     New-Item -ItemType Directory -Path $StagingDir\tools\x64 -Force | Out-Null
     Copy-Item -Path $X64BinPath -Destination $StagingDir\tools\x64\ -Recurse -Force | Out-Null
+    StageMscorlib "$StagingDir\tools\x64\"
 }
 
 if ($Arm64BinPath) {
     Write-Host "  arm64 binaries..."
     New-Item -ItemType Directory -Path $StagingDir\tools\arm64 -Force | Out-Null
     Copy-Item -Path $Arm64BinPath -Destination $StagingDir\tools\arm64\ -Recurse -Force | Out-Null
+    StageMscorlib "$StagingDir\tools\arm64\"
 }
 
 Write-Host "  support module sources..."
@@ -81,7 +96,7 @@ Copy-Item -Path $RepoRoot\Support\Sources\* -Destination $StagingDir\swift\ -Rec
 
 Write-Host "  json schema..."
 New-Item -ItemType Directory $StagingDir\json -Force | Out-Null
-Copy-Item -Path $PSScriptRoot\Projection.schema.json -Destination $StagingDir\json\ -Force | Out-Null
+Copy-Item -Path $PSScriptRoot\..\Projection.schema.json -Destination $StagingDir\json\ -Force | Out-Null
 
 Write-Host "  readme..."
 Copy-Item -Path $RepoRoot\Readme.md -Destination $StagingDir\ -Force | Out-Null

@@ -7,3 +7,4 @@ add_compile_options(
 add_subdirectory(swift-argument-parser)
 add_subdirectory(swift-collections)
 add_subdirectory(swift-dotnetmetadata)
+set(WINMDCORLIB_DIR "${WINMDCORLIB_DIR}" PARENT_SCOPE)
