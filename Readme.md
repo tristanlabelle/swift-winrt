@@ -2,6 +2,9 @@
 
 ![Build & test workflow status](https://github.com/tristanlabelle/swift-winrt/actions/workflows/build-and-test.yml/badge.svg?branch=main)
 
+> [!WARNING]  
+> Swift/WinRT is not ready for external usage. It will be when [swift-winui-sample](https://github.com/tristanlabelle/swift-winui-sample) demonstrates so. Reach out by email if you're interested in trying it early.
+
 A Swift projection for WinRT APIs, written in pure Swift, for consuming modern Windows Runtime APIs, the Windows App SDK, WinUI and arbitrary WinRT components.
 
 Swift/WinRT includes:
