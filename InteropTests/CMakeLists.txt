@@ -17,7 +17,7 @@ if(NOT TARGET WindowsRuntime)
         OUTPUT_VARIABLE REPO_ROOT
         OUTPUT_STRIP_TRAILING_WHITESPACE
         COMMAND_ERROR_IS_FATAL ANY)
-    add_subdirectory("${REPO_ROOT}/Sources" "${CMAKE_CURRENT_BINARY_DIR}/Support")
+    add_subdirectory("${REPO_ROOT}/Support/Sources" "${CMAKE_CURRENT_BINARY_DIR}/Support")
 endif()
 
 add_subdirectory(WinRTComponent)
