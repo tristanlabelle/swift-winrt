@@ -29,7 +29,7 @@ internal func writeInterfaceDefinition(
         // This will be fixed with the Swift 6.1 compiler, but we can't detect it from the language mode in use.
         // So by default we assume correct behavior iff building for swift >= 6.1, but also allow the user to override it.
         let typeName = try projection.toTypeName(interface)
-        if swiftBug72724 == nil { writer.output.writeFullLine("#if swift(>=6.1)", groupWithNext: true) }
+        if swiftBug72724 == nil { writer.output.writeFullLine("#if compiler(>=6.1)", groupWithNext: true) }
         if swiftBug72724 != true { writer.writeImport(exported: true, kind: .typealias, module: SupportModules.WinRT.moduleName, symbolName: typeName) }
         if swiftBug72724 == nil { writer.output.writeFullLine("#else", groupWithNext: true) }
         if swiftBug72724 != false { writer.writeImport(exported: true, kind: .protocol, module: SupportModules.WinRT.moduleName, symbolName: typeName) }
