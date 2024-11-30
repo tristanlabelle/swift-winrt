@@ -3,13 +3,41 @@ import WindowsRuntime
 
 internal final class WinRTExportTests: XCTestCase {
     func testIInspectableIdentityRule() throws {
-        let swiftObject = SwiftObject()
-        let comTest = try swiftObject.queryInterface(ICOMTestBinding.self)
-        let winRTTest = try swiftObject.queryInterface(IWinRTTestBinding.self)
+        final class TestObject: WinRTPrimaryExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
+            override class var implements: [COMImplements] { [
+                .init(ICOMTestBinding.self),
+                .init(IWinRTTestBinding.self)
+            ] }
+
+            func comTest() throws {}
+            func winRTTest() throws {}
+        }
+
+        let testObject = TestObject()
+        let comTest = try testObject.queryInterface(ICOMTestBinding.self)
+        let winRTTest = try testObject.queryInterface(IWinRTTestBinding.self)
 
         let inspectableReference1 = try comTest._queryInterface(IInspectableBinding.self)
         let inspectableReference2 = try winRTTest._queryInterface(IInspectableBinding.self)
         XCTAssertEqual(inspectableReference1.pointer, inspectableReference2.pointer)
+    }
+
+    func testGetIids() throws {
+        final class TestObject: WinRTPrimaryExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
+            override class var implements: [COMImplements] { [
+                .init(ICOMTestBinding.self),
+                .init(IWinRTTestBinding.self)
+            ] }
+
+            func comTest() throws {}
+            func winRTTest() throws {}
+        }
+
+        let iids = try TestObject().getIids()
+        // https://learn.microsoft.com/en-us/windows/win32/api/inspectable/nf-inspectable-iinspectable-getiids:
+        // "The IUnknown and IInspectable interfaces are excluded."
+        XCTAssertTrue(iids.contains(ICOMTestBinding.interfaceID), "ICOMTest")
+        XCTAssertTrue(iids.contains(IWinRTTestBinding.interfaceID), "IWinRTTest")
     }
 
     func testIStringable() throws {
