@@ -4,11 +4,11 @@ import WindowsRuntime
 internal final class WinRTExportTests: XCTestCase {
     func testIInspectableIdentityRule() throws {
         let swiftObject = SwiftObject()
-        let unknown2 = try swiftObject.queryInterface(IUnknown2Binding.self)
-        let inspectable2 = try swiftObject.queryInterface(IInspectable2Binding.self)
+        let comTest = try swiftObject.queryInterface(ICOMTestBinding.self)
+        let winRTTest = try swiftObject.queryInterface(IWinRTTestBinding.self)
 
-        let inspectableReference1 = try unknown2._queryInterface(IInspectableBinding.self)
-        let inspectableReference2 = try inspectable2._queryInterface(IInspectableBinding.self)
+        let inspectableReference1 = try comTest._queryInterface(IInspectableBinding.self)
+        let inspectableReference2 = try winRTTest._queryInterface(IInspectableBinding.self)
         XCTAssertEqual(inspectableReference1.pointer, inspectableReference2.pointer)
     }
 
