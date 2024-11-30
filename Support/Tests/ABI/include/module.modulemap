@@ -1,0 +1,5 @@
+module TestsABI {
+    header "SWRT_ICOMTest.h"
+    header "SWRT_IWinRTTest.h"
+    export *
+}

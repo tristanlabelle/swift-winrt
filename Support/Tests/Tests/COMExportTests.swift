@@ -4,11 +4,11 @@ import WindowsRuntime
 internal final class COMExportTests: XCTestCase {
     func testIUnknownIdentityRule() throws {
         let swiftObject = SwiftObject()
-        let unknown2 = try swiftObject.queryInterface(IUnknown2Binding.self)
-        let inspectable2 = try swiftObject.queryInterface(IInspectable2Binding.self)
+        let comTest = try swiftObject.queryInterface(ICOMTestBinding.self)
+        let winRTTest = try swiftObject.queryInterface(IWinRTTestBinding.self)
 
-        let unknownReference1 = try unknown2._queryInterface(IUnknownBinding.self)
-        let unknownReference2 = try inspectable2._queryInterface(IUnknownBinding.self)
+        let unknownReference1 = try comTest._queryInterface(IUnknownBinding.self)
+        let unknownReference2 = try winRTTest._queryInterface(IUnknownBinding.self)
         XCTAssertEqual(unknownReference1.pointer, unknownReference2.pointer)
     }
 
@@ -16,16 +16,16 @@ internal final class COMExportTests: XCTestCase {
         let swiftObject = SwiftObject()
         let unknown = try swiftObject.queryInterface(IUnknownBinding.self)
         let inspectable = try swiftObject.queryInterface(IInspectableBinding.self)
-        let unknown2 = try swiftObject.queryInterface(IUnknown2Binding.self)
-        let inspectable2 = try swiftObject.queryInterface(IInspectable2Binding.self)
+        let comTest = try swiftObject.queryInterface(ICOMTestBinding.self)
+        let winRTTest = try swiftObject.queryInterface(IWinRTTestBinding.self)
 
         // QueryInterface should succeed from/to any pair of implemented interfaces
-        let objects: [any IUnknownProtocol] = [unknown, inspectable, unknown2, inspectable2]
+        let objects: [any IUnknownProtocol] = [unknown, inspectable, comTest, winRTTest]
         for object in objects {
             _ = try object.queryInterface(IUnknownBinding.self)
             _ = try object.queryInterface(IInspectableBinding.self)
-            _ = try object.queryInterface(IUnknown2Binding.self)
-            _ = try object.queryInterface(IInspectable2Binding.self)
+            _ = try object.queryInterface(ICOMTestBinding.self)
+            _ = try object.queryInterface(IWinRTTestBinding.self)
         }
     }
 

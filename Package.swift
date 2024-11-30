@@ -41,10 +41,14 @@ let package = Package(
                 "Projection/Readme.md",
                 "Projection/WindowsFoundation/Readme.md",
             ]),
+        .target(
+            name: "TestsABI",
+            dependencies: ["COM_ABI", "WindowsRuntime_ABI"],
+            path: "Support/Tests/ABI"),
         .testTarget(
             name: "Tests",
-            dependencies: ["COM", "WindowsRuntime"],
-            path: "Support/Tests",
+            dependencies: ["COM", "WindowsRuntime", "TestsABI"],
+            path: "Support/Tests/Tests",
             // Workaround for SPM library support limitations causing "LNK4217: locally defined symbol imported" spew
             linkerSettings: [ .unsafeFlags(["-Xlinker", "-ignore:4217"]) ]),
     ]
