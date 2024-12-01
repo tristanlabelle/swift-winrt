@@ -5,8 +5,8 @@ import WinRTComponent
 class InterfaceImplementationTests: WinRTTestCase {
     func testWithSwiftObject() throws {
         class Exported: WinRTPrimaryExport<IInspectableBinding>, IMinimalInterfaceProtocol {
-            override class var implements: [COMImplements] { [
-                .init(IMinimalInterfaceBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                IMinimalInterfaceBinding.self
             ] }
 
             func method() throws {}
@@ -17,8 +17,8 @@ class InterfaceImplementationTests: WinRTTestCase {
 
     func testWithDerivedClass() throws {
         class Derived: MinimalBaseClass, IMinimalInterfaceProtocol, @unchecked Sendable {
-            override class var implements: [COMImplements] { [
-                .init(IMinimalInterfaceBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                IMinimalInterfaceBinding.self
             ] }
 
             func method() throws {}
