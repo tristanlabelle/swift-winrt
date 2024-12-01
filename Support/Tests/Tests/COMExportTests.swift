@@ -82,4 +82,39 @@ internal final class COMExportTests: XCTestCase {
         }
         XCTAssertEqual(callCounter.count, 1)
     }
+
+    func testEmbeddedSecondaryInterface() throws {
+        final class CallCounter: COMPrimaryExport<IUnknownBinding>, ICOMTestProtocol {
+            override class var implements: [COMImplements] { [
+                .init(ICOMTestBinding.self)
+            ] }
+
+            var embedding: COMEmbedding = .uninitialized
+
+            override init() {
+                super.init()
+                embedding.initialize(embedder: self, virtualTable: ICOMTestBinding.virtualTablePointer)
+            }
+
+            override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
+                switch id {
+                case ICOMTestBinding.interfaceID:
+                    return embedding.toCOM()
+                default:
+                    return try super._queryInterface(id)
+                }
+            }
+
+            var count: Int = 0
+            func comTest() throws { count += 1 }
+        }
+
+        let callCounter = CallCounter()
+        do {
+            let comTestReference = try callCounter._queryInterface(ICOMTestBinding.self)
+            XCTAssertEqual(callCounter.count, 0)
+            try comTestReference.interop.comTest()
+        }
+        XCTAssertEqual(callCounter.count, 1)
+    }
 }
