@@ -35,7 +35,7 @@ open class WinRTPrimaryExport<Binding: InterfaceBinding>: COMPrimaryExport<Bindi
     }
 
     open func _appendIids(_ iids: inout [COMInterfaceID]) throws {
-        for implement in Self.implements { iids.append(implement.id) }
+        for interfaceBinding in Self.queriableInterfaces { iids.append(interfaceBinding.interfaceID) }
         if Self.implementIAgileObject { iids.append(IAgileObjectBinding.interfaceID) }
         if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceBinding.interfaceID) }
         if Self.implementIStringable, self is CustomStringConvertible { iids.append(WindowsFoundation_IStringableBinding.interfaceID) }

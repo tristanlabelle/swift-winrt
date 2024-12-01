@@ -12,14 +12,21 @@ open class COMSecondaryExport<Binding: COMTwoWayBinding>: COMExportBase<Binding>
             default: return try identity._queryInterface(id)
         }
     }
-
-    public static func delegating(to target: IUnknown) -> COMSecondaryExport<Binding> {
-        precondition(target is Binding.SwiftObject)
-        return COMDelegatingExport<Binding>(target: target)
-    }
 }
 
-fileprivate class COMDelegatingExport<Binding: COMTwoWayBinding>: COMSecondaryExport<Binding>, COMEmbedderWithDelegatedImplementation {
-    init(target: IUnknown) { super.init(identity: target) }
-    var delegatedImplementation: AnyObject { identity }
+public class COMDelegatingExport: COMEmbedderWithDelegatedImplementation {
+    private var comEmbedding: COMEmbedding
+    public let delegatedImplementation: AnyObject
+
+    public init(virtualTable: UnsafeRawPointer, implementer: IUnknown) {
+        comEmbedding = .uninitialized
+        delegatedImplementation = implementer
+        comEmbedding.initialize(embedder: self, virtualTable: virtualTable)
+    }
+
+    public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, implementer: Binding.SwiftObject) {
+        self.init(virtualTable: Binding.virtualTablePointer, implementer: implementer as! IUnknown)
+    }
+
+    public func toCOM() -> IUnknownReference { comEmbedding.toCOM() }
 }

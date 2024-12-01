@@ -3,9 +3,9 @@ import WindowsRuntime
 
 internal final class COMExportTests: XCTestCase {
     final class TestObject: COMPrimaryExport<IUnknownBinding>, ICOMTestProtocol, ICOMTest2Protocol {
-        override class var implements: [COMImplements] { [
-            .init(ICOMTestBinding.self),
-            .init(ICOMTest2Binding.self)
+        override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+            ICOMTestBinding.self,
+            ICOMTest2Binding.self
         ] }
 
         func comTest() throws {}
@@ -66,8 +66,8 @@ internal final class COMExportTests: XCTestCase {
 
     func testImplementsSecondaryInterface() throws {
         final class CallCounter: COMPrimaryExport<IUnknownBinding>, ICOMTestProtocol {
-            override class var implements: [COMImplements] { [
-                .init(ICOMTestBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                ICOMTestBinding.self
             ] }
 
             var count: Int = 0
@@ -85,8 +85,8 @@ internal final class COMExportTests: XCTestCase {
 
     func testEmbeddedSecondaryInterface() throws {
         final class CallCounter: COMPrimaryExport<IUnknownBinding>, ICOMTestProtocol {
-            override class var implements: [COMImplements] { [
-                .init(ICOMTestBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                ICOMTestBinding.self
             ] }
 
             var embedding: COMEmbedding = .uninitialized

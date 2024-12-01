@@ -4,9 +4,9 @@ import WindowsRuntime
 internal final class WinRTExportTests: XCTestCase {
     func testIInspectableIdentityRule() throws {
         final class TestObject: WinRTPrimaryExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
-            override class var implements: [COMImplements] { [
-                .init(ICOMTestBinding.self),
-                .init(IWinRTTestBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                ICOMTestBinding.self,
+                IWinRTTestBinding.self
             ] }
 
             func comTest() throws {}
@@ -24,9 +24,9 @@ internal final class WinRTExportTests: XCTestCase {
 
     func testGetIids() throws {
         final class TestObject: WinRTPrimaryExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
-            override class var implements: [COMImplements] { [
-                .init(ICOMTestBinding.self),
-                .init(IWinRTTestBinding.self)
+            override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
+                ICOMTestBinding.self,
+                IWinRTTestBinding.self
             ] }
 
             func comTest() throws {}

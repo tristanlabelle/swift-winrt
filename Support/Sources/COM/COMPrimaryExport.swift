@@ -2,7 +2,8 @@
 /// meaning that they own the object returned when using QueryInterface for IUnknown.
 /// The generic Binding parameter determines the virtual table of the identity object.
 open class COMPrimaryExport<Binding: COMTwoWayBinding>: COMExportBase<Binding> {
-    open class var implements: [COMImplements] { [] }
+    /// Gets the interfaces that can be queried for using queryInterface.
+    open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
     open class var implementIAgileObject: Bool { true }
     open class var implementFreeThreadedMarshaling: Bool { implementIAgileObject }
 
@@ -21,34 +22,10 @@ open class COMPrimaryExport<Binding: COMTwoWayBinding>: COMExportBase<Binding> {
             case FreeThreadedMarshalBinding.interfaceID where Self.implementFreeThreadedMarshaling:
                 return try FreeThreadedMarshal(self).toCOM().cast()
             default:
-                if let interface = Self.implements.first(where: { $0.id == id }) {
-                    return interface.createCOM(identity: self)
+                if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
+                    return COMDelegatingExport(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
                 }
                 throw COMError.noInterface
         }
-    }
-}
-
-/// Declares an implemented COM interface for COMPrimaryExport-derived classes.
-public struct COMImplements {
-    public typealias Factory = (_ identity: IUnknown) -> IUnknownReference
-
-    public let id: COMInterfaceID
-    private let factory: Factory
-
-    public init(id: COMInterfaceID, factory: @escaping Factory) {
-        self.id = id
-        self.factory = factory
-    }
-
-    public init<Binding: COMTwoWayBinding>(_: Binding.Type) {
-        self.id = Binding.interfaceID
-        self.factory = { identity in
-            COMSecondaryExport<Binding>.delegating(to: identity).toCOM().cast()
-        }
-    }
-
-    public func createCOM(identity: IUnknown) -> IUnknownReference {
-        factory(identity)
     }
 }

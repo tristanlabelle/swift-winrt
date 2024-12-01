@@ -2,7 +2,7 @@ import COM_ABI
 import COM_PrivateABI
 
 /// Protocol for Swift objects which embed COM interfaces.
-public protocol COMEmbedderWithDelegatedImplementation: IUnknownProtocol {
+public protocol COMEmbedderWithDelegatedImplementation: AnyObject {
     /// Gets the Swift object implementating the COM interface (often the same as self)
     var delegatedImplementation: AnyObject { get }
 }
@@ -22,12 +22,12 @@ public struct COMEmbedding: ~Copyable {
         comObject = .init()
     }
 
-    public mutating func initialize<Embedder: IUnknownProtocol>(embedder: Embedder, virtualTable: UnsafeRawPointer) {
+    public mutating func initialize(embedder: AnyObject, virtualTable: UnsafeRawPointer) {
         comObject.virtualTable = virtualTable
-        comObject.swiftObject = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
+        comObject.swiftSelf = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
     }
 
-    public var isInitialized: Bool { comObject.swiftObject != nil }
+    public var isInitialized: Bool { comObject.swiftSelf != nil }
 
     public var unknownPointer: IUnknownPointer {
         mutating get {
@@ -41,7 +41,7 @@ public struct COMEmbedding: ~Copyable {
 
     fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: SWRT_SwiftCOMObject.self, capacity: 1) {
-            Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftObject)
+            Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftSelf)
         }
     }
 

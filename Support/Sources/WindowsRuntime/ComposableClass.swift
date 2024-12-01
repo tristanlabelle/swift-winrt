@@ -61,7 +61,7 @@ open class ComposableClass: IInspectableProtocol {
         COMInterop(innerWithRef).release()
     }
 
-    open class var implements: [COMImplements] { [] }
+    open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
 
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
@@ -83,8 +83,8 @@ open class ComposableClass: IInspectableProtocol {
             }
 
             // Check for additional implemented interfaces.
-            if let interface = Self.implements.first(where: { $0.id == id }) {
-                return interface.createCOM(identity: self)
+            if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
+                return COMDelegatingExport(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
             }
         }
 
@@ -97,7 +97,7 @@ open class ComposableClass: IInspectableProtocol {
     open func getIids() throws -> [COM.COMInterfaceID] {
         // Workaround for 5.9 compiler bug when using inner.interop directly:
         // "error: copy of noncopyable typed value. This is a compiler bug"
-        try COMInterop(innerWithRef).getIids() + Self.implements.map { $0.id }
+        try COMInterop(innerWithRef).getIids() + Self.queriableInterfaces.map { $0.interfaceID }
     }
 
     open func getRuntimeClassName() throws -> String {
