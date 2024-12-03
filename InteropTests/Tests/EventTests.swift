@@ -28,7 +28,7 @@ class EventTests: WinRTTestCase {
         try eventSource.fire()
         XCTAssertEqual(try counter.count, 1)
 
-        class EventSource: WinRTPrimaryExport<IEventSourceBinding>, IEventSourceProtocol {
+        class EventSource: WinRTExport<IEventSourceBinding>, IEventSourceProtocol {
             private var invocationList: EventInvocationList<MinimalDelegate> = .init()
 
             @discardableResult

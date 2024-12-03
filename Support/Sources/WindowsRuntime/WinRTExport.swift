@@ -1,21 +1,17 @@
 import COM
 
 /// Base for classes exported to WinRT and COM consumers.
-open class WinRTPrimaryExport<Binding: InterfaceBinding>: COMPrimaryExport<Binding>, IInspectableProtocol {
+open class WinRTExport<PrimaryInterfaceBinding: InterfaceBinding>: COMExport<PrimaryInterfaceBinding>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
     open class var implementIStringable: Bool { true }
     open class var implementIWeakReferenceSource: Bool { true }
 
-    public var inspectablePointer: IInspectableBinding.ABIPointer {
-        unknownPointer.withMemoryRebound(to: IInspectableBinding.ABIStruct.self, capacity: 1) { $0 }
-    }
-
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
             // QI for IInspectable should return the identity interface just like IUnknown.
             case IInspectableBinding.interfaceID:
-                return .init(addingRef: unknownPointer)
+                return toCOM().cast()
             case IWeakReferenceSourceBinding.interfaceID where Self.implementIWeakReferenceSource:
                 return ExportedWeakReferenceSource(target: self).toCOM().cast()
             case WindowsFoundation_IStringableBinding.interfaceID where Self.implementIStringable:
@@ -29,16 +25,11 @@ open class WinRTPrimaryExport<Binding: InterfaceBinding>: COMPrimaryExport<Bindi
     }
 
     open func getIids() throws -> [COMInterfaceID] {
-        var iids = [COMInterfaceID]()
-        try _appendIids(&iids)
-        return iids
-    }
-
-    open func _appendIids(_ iids: inout [COMInterfaceID]) throws {
-        for interfaceBinding in Self.queriableInterfaces { iids.append(interfaceBinding.interfaceID) }
+        var iids = Self.queriableInterfaces.map { $0.interfaceID }
         if Self.implementIAgileObject { iids.append(IAgileObjectBinding.interfaceID) }
         if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceBinding.interfaceID) }
         if Self.implementIStringable, self is CustomStringConvertible { iids.append(WindowsFoundation_IStringableBinding.interfaceID) }
+        return iids
     }
 
     public final func getRuntimeClassName() throws -> String { Self._runtimeClassName }
@@ -72,7 +63,7 @@ fileprivate class ExportedWeakReferenceSource: COMSecondaryExport<IWeakReference
     func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: identity as! IInspectable) }
 }
 
-fileprivate class ExportedWeakReference: COMPrimaryExport<IWeakReferenceBinding>, IWeakReferenceProtocol {
+fileprivate class ExportedWeakReference: COMExport<IWeakReferenceBinding>, IWeakReferenceProtocol {
     weak var target: IInspectable?
     init(target: IInspectable) { self.target = target }
     func resolve() throws -> IInspectable? { target }
