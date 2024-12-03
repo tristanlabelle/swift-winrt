@@ -12,11 +12,9 @@ open class COMExport<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownProtoco
 
     public init() {}
 
-    public func toCOM<InterfaceBinding: COMTwoWayBinding>(_ implements: UnsafeMutablePointer<COMImplements<InterfaceBinding>>) -> InterfaceBinding.ABIReference {
-        implements.pointee.toCOM(embedder: self)
+    public func toCOM() -> PrimaryInterfaceBinding.ABIReference {
+        primaryImplements.toCOM(embedder: self)
     }
-
-    public func toCOM() -> PrimaryInterfaceBinding.ABIReference { toCOM(&primaryImplements) }
 
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
