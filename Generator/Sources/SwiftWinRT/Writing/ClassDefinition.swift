@@ -260,20 +260,13 @@ fileprivate func writeOverrideSupport(
             // if id == uuidof(SWRT_IFoo.self) {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
             try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
-                // if !_ifooOverrides_outer.isInitialized {
-                //     _ifooOverrides_outer = COMEmbedding(
-                //         swiftObject: self, virtualTable: &FooBinding.VirtualTables.ifooOverrides)
-                // }
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
-                try writer.writeBracedBlock("if !\(outerPropertyName).isInitialized") { writer in
-                    let bindingTypeName = try projection.toBindingTypeName(classDefinition)
-                    let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
-                    writer.writeStatement("\(outerPropertyName).initialize(embedder: self,\n"
-                        + "virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName))")
-                }
+                let bindingTypeName = try projection.toBindingTypeName(classDefinition)
+                let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
 
-                // return .init(_iminimalUnsealedClassOverrides_outer.toCOM())
-                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
+                // return .init(_iminimalUnsealedClassOverrides_outer.toCOM(embedder: self, virtualTable: ))
+                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM(embedder: self"
+                    + ", virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName)))")
             }
         }
         writer.writeReturnStatement(value: ".none")

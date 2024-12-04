@@ -16,57 +16,70 @@ public struct COMEmbedding: ~Copyable {
     // Instead, it is initialized in two steps: first to an invalid value, and then to a valid value.
     public static var uninitialized: COMEmbedding { .init() }
 
-    private var comObject: SWRT_SwiftCOMObject
+    private var abi: SWRT_SwiftCOMEmbedding
 
     private init() {
-        comObject = .init()
+        abi = .init()
     }
 
     public mutating func initialize(embedder: AnyObject, virtualTable: UnsafeRawPointer) {
-        comObject.virtualTable = virtualTable
-        comObject.swiftEmbedder = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
+        assert(abi.virtualTable == nil, "COM object already initialized")
+        abi.virtualTable = virtualTable
+        abi.swiftEmbedder = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
     }
 
-    public var isInitialized: Bool { comObject.swiftEmbedder != nil }
+    public var isInitialized: Bool { abi.swiftEmbedder != nil }
 
-    public var embedder: AnyObject? { comObject.swiftEmbedder == nil ? nil : Unmanaged<AnyObject>.fromOpaque(comObject.swiftEmbedder).takeUnretainedValue() }
+    public var embedder: AnyObject? { abi.swiftEmbedder == nil ? nil : Unmanaged<AnyObject>.fromOpaque(abi.swiftEmbedder).takeUnretainedValue() }
 
     public var unknownPointer: IUnknownPointer {
         mutating get {
-            withUnsafeMutablePointer(to: &comObject) {
+            withUnsafeMutablePointer(to: &abi) {
                 IUnknownPointer(OpaquePointer($0))
             }
         }
     }
 
+    public mutating func toCOM(embedder: AnyObject, virtualTable: UnsafeRawPointer) -> IUnknownReference {
+        if abi.swiftEmbedder == nil {
+            initialize(embedder: embedder, virtualTable: virtualTable)
+        } else {
+            assert(abi.virtualTable == virtualTable, "COM object already initialized with a different virtual table")
+            assert(abi.swiftEmbedder == Unmanaged<AnyObject>.passUnretained(embedder).toOpaque(),
+                "COM object already initialized with a different embedder")
+        }
+
+        return toCOM()
+    }
+
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: unknownPointer) }
 
-    fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
-        this.withMemoryRebound(to: SWRT_SwiftCOMObject.self, capacity: 1) {
+    fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
+        this.withMemoryRebound(to: SWRT_SwiftCOMEmbedding.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftEmbedder)
         }
     }
 
     public static func test<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Bool {
-        do { _ = try COMInterop(this).queryInterface(uuidof(SWRT_SwiftCOMObject.self)) } catch { return false }
+        do { _ = try COMInterop(this).queryInterface(uuidof(SWRT_SwiftCOMEmbedding.self)) } catch { return false }
         return true
     }
 
     /// Gets the Swift object that embeds a given COM interface, 
     /// assuming that it is an embedded COM interface, and otherwise crashes.
-    public static func getEmbedderObjectOrCrash<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject {
-        toUnmanagedUnsafe(this).takeUnretainedValue()
+    public static func getEmbedderOrCrash<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject {
+        getUnmanagedEmbedderUnsafe(this).takeUnretainedValue()
     }
 
-    public static func getEmbedderObject<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject? {
-        test(this) ? getEmbedderObjectOrCrash(this) : nil
+    public static func getEmbedder<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject? {
+        test(this) ? getEmbedderOrCrash(this) : nil
     }
 
     /// Gets the Swift object that provides the implementation for the given COM interface,
     /// assuming that it is an embedded COM interface, and otherwise crashes.
     public static func getImplementationOrCrash<ABIStruct, Implementation>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementation.Type = Implementation.self) -> Implementation {
-        let embedderObject = toUnmanagedUnsafe(this).takeUnretainedValue()
+        let embedderObject = getUnmanagedEmbedderUnsafe(this).takeUnretainedValue()
         // Typical case: the embedder provides the implementation
         if let implementation = embedderObject as? Implementation { return implementation }
         // Less common case: the embedder delegates the implementation
@@ -80,7 +93,7 @@ public struct COMEmbedding: ~Copyable {
     public static func getImplementation<ABIStruct, Implementation>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementation.Type = Implementation.self) -> Implementation? {
         guard test(this) else { return nil }
-        let embedderObject = toUnmanagedUnsafe(this).takeUnretainedValue()
+        let embedderObject = getUnmanagedEmbedderUnsafe(this).takeUnretainedValue()
         // Typical case: the embedder provides the implementation
         if let implementation = embedderObject as? Implementation { return implementation }
         // Less common case: the embedder delegates the implementation
@@ -92,7 +105,7 @@ public struct COMEmbedding: ~Copyable {
     }
 }
 
-internal func uuidof(_: SWRT_SwiftCOMObject.Type) -> COMInterfaceID {
+internal func uuidof(_: SWRT_SwiftCOMEmbedding.Type) -> COMInterfaceID {
     .init(0x33934271, 0x7009, 0x4EF3, 0x90F1, 0x02090D7EBD64)
 }
 
@@ -102,7 +115,7 @@ public enum IUnknownVirtualTable {
             assertionFailure("COM this pointer was null")
             return 0
         }
-        let unmanaged = COMEmbedding.toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
+        let unmanaged = COMEmbedding.getUnmanagedEmbedderUnsafe(this)
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
@@ -113,7 +126,7 @@ public enum IUnknownVirtualTable {
             assertionFailure("COM this pointer was null")
             return 0
         }
-        let unmanaged = COMEmbedding.toUnmanagedUnsafe(IUnknownPointer(OpaquePointer(this)))
+        let unmanaged = COMEmbedding.getUnmanagedEmbedderUnsafe(this)
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
         // Best effort refcount
@@ -130,9 +143,9 @@ public enum IUnknownVirtualTable {
         return COMError.toABI {
             let id = GUIDBinding.fromABI(iid.pointee)
             let this = IUnknownPointer(OpaquePointer(this))
-            let reference = id == uuidof(SWRT_SwiftCOMObject.self)
+            let reference = id == uuidof(SWRT_SwiftCOMEmbedding.self)
                 ? IUnknownReference(addingRef: this)
-                : try (COMEmbedding.getEmbedderObjectOrCrash(this) as! IUnknown)._queryInterface(id)
+                : try (COMEmbedding.getEmbedderOrCrash(this) as! IUnknown)._queryInterface(id)
             ppvObject.pointee = UnsafeMutableRawPointer(reference.detach())
         }
     }
