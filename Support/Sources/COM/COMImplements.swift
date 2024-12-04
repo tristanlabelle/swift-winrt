@@ -14,7 +14,8 @@ public struct COMImplements<InterfaceBinding: COMTwoWayBinding>: ~Copyable {
             assert(embedding.embedder === embedder, "COM object already embedded in another object.")
         } else {
             // Thread safe since every initialization will produce the same state and has no side-effects.
-            assert(embedder is InterfaceBinding.SwiftObject, "Embedder does not conform to the expected interface.")
+            assert(embedder is InterfaceBinding.SwiftObject || embedder is COMEmbedderWithDelegatedImplementation,
+                "Embedder \(type(of: embedder)) does not conform to the expected interface \(InterfaceBinding.self).")
             embedding.initialize(embedder: embedder, virtualTable: InterfaceBinding.virtualTablePointer)
         }
 
