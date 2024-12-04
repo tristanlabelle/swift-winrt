@@ -12,6 +12,6 @@ module COM_ABI {
 }
 
 module COM_PrivateABI {
-    header "SwiftCOMObject.h"
+    header "SwiftCOMEmbedding.h"
     export *
 }

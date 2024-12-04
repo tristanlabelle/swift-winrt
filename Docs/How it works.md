@@ -149,17 +149,17 @@ class MyFoo: COMExport<IFooBinding>, IFooProtocol {
 }
 
 // COMExport has a field that looks like a COM object:
-// typedef struct SWRT_SwiftCOMObject {
+// typedef struct SWRT_SwiftCOMEmbedding {
 //     const void* virtualTable;
-//     void* swiftObject; // Will point back to MyFoo
-// } SWRT_SwiftCOMObject;
+//     void* swiftEmbedder; // Will point back to MyFoo
+// } SWRT_SwiftCOMEmbedding;
 
 enum IFooBinding {
     private static var virtualTable: SWRT_IFoo_VirtualTable = .init(
         QueryInterface: { IUnknownVirtualTable.QueryInterface($0, $1, $2) },
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
-        // _implement casts "this" to SWRT_SwiftCOMObject and resolves swiftObject to an IFoo for the closure
+        // _implement casts "this" to SWRT_SwiftCOMEmbedding and resolves swiftEmbedder to an IFoo for the closure
         GetName: { this, value in _implement(this) { try $0.getName() } })
 }
 ```

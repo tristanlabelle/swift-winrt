@@ -36,7 +36,7 @@ open class ComposableClass: IInspectableProtocol {
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
             self.outer = .uninitialized
-            self.innerWithRef = IInspectablePointer(OpaquePointer(outer.unknownPointer)) // We need to assign inner to something, it doesn't matter what.
+            self.innerWithRef = IInspectablePointer(OpaquePointer(bitPattern: 0xDEADBEEF)!) // We need to assign inner to something, it doesn't matter what.
             self.outer.initialize(embedder: self, virtualTable: IInspectableBinding.virtualTablePointer)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
