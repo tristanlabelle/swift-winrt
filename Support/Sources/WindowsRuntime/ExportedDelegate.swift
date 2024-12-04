@@ -1,6 +1,6 @@
 
 /// A COM-exported object delegating its implementation to a Swift object.
-public class ExportedDelegate<Binding: DelegateBinding>: COMPrimaryExport<Binding>, COMEmbedderWithDelegatedImplementation {
+public class ExportedDelegate<Binding: DelegateBinding>: COMExport<Binding>, COMEmbedderWithDelegatedImplementation {
     public let closure: Binding.SwiftObject
 
     public init(_ closure: Binding.SwiftObject) {

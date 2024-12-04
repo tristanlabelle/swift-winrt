@@ -9,5 +9,5 @@ typedef struct SWRT_SwiftCOMObject {
     const void* virtualTable;
     // The Unmanaged<AnyObject> pointer to the Swift object that embeds this structure.
     // This object is retained and released by AddRef/Release calls.
-    void* swiftSelf;
+    void* swiftEmbedder;
 } SWRT_SwiftCOMObject;

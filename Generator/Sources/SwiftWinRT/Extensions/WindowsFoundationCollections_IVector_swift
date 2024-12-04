@@ -13,7 +13,7 @@ extension Array where Element: Equatable {
 }
 
 /// Wraps a Swift array into a type implementing WinRT's Windows.Foundation.Collections.IVector<T>.
-public class ArrayVector<T>: WinRTPrimaryExport<IInspectableBinding>,
+public class ArrayVector<T>: WinRTExport<IInspectableBinding>,
         WindowsFoundationCollections_IVectorProtocol, WindowsFoundationCollections_IVectorViewProtocol {
     public var array: [T]
     public var elementEquals: (T, T) -> Bool

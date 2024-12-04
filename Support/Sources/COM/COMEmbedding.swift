@@ -24,10 +24,12 @@ public struct COMEmbedding: ~Copyable {
 
     public mutating func initialize(embedder: AnyObject, virtualTable: UnsafeRawPointer) {
         comObject.virtualTable = virtualTable
-        comObject.swiftSelf = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
+        comObject.swiftEmbedder = Unmanaged<AnyObject>.passUnretained(embedder).toOpaque()
     }
 
-    public var isInitialized: Bool { comObject.swiftSelf != nil }
+    public var isInitialized: Bool { comObject.swiftEmbedder != nil }
+
+    public var embedder: AnyObject? { comObject.swiftEmbedder == nil ? nil : Unmanaged<AnyObject>.fromOpaque(comObject.swiftEmbedder).takeUnretainedValue() }
 
     public var unknownPointer: IUnknownPointer {
         mutating get {
@@ -41,7 +43,7 @@ public struct COMEmbedding: ~Copyable {
 
     fileprivate static func toUnmanagedUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: SWRT_SwiftCOMObject.self, capacity: 1) {
-            Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftSelf)
+            Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftEmbedder)
         }
     }
 

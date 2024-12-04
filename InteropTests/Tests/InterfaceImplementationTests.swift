@@ -4,7 +4,7 @@ import WinRTComponent
 
 class InterfaceImplementationTests: WinRTTestCase {
     func testWithSwiftObject() throws {
-        class Exported: WinRTPrimaryExport<IInspectableBinding>, IMinimalInterfaceProtocol {
+        class Exported: WinRTExport<IInspectableBinding>, IMinimalInterfaceProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 IMinimalInterfaceBinding.self
             ] }

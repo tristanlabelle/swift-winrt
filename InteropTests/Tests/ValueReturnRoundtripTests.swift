@@ -86,7 +86,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         XCTAssertNil(try twoWay.reference(nil))
     }
 
-    class ReturnArgumentImplementation: WinRTPrimaryExport<IReturnArgumentBinding>, IReturnArgumentProtocol {
+    class ReturnArgumentImplementation: WinRTExport<IReturnArgumentBinding>, IReturnArgumentProtocol {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
         func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable { try NullResult.unwrap(value) }
