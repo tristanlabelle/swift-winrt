@@ -1,5 +1,5 @@
 module WindowsRuntime_ABI {
-    header "SWRT/WindowsRuntime.h"
+    header "SWRT/modules/WindowsRuntime.h"
     header "SWRT/windows/activation.h"
     header "SWRT/windows/eventtoken.h"
     header "SWRT/windows/inspectable.h"

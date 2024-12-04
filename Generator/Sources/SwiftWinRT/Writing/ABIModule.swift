@@ -8,7 +8,7 @@ internal func writeABIModule(_ module: Module, cmakeOptions: CMakeOptions?, dire
     let includeDirectoryPath = "\(directoryPath)\\include"
     let includeSWRTDirectoryPath = "\(includeDirectoryPath)\\SWRT"
 
-    try writeABIFile(module: module, toPath: "\(includeSWRTDirectoryPath)\\\(module.name).h")
+    try writeABIFile(module: module, toPath: "\(includeSWRTDirectoryPath)\\modules\\\(module.name).h")
 
     try writeModulemapFile(module: module, toPath: "\(includeDirectoryPath)\\module.modulemap")
 
@@ -32,11 +32,11 @@ fileprivate func writeABIFile(module: Module, toPath path: String) throws {
     let cHeaderWriter = CSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
 
     // Write includes
-    cHeaderWriter.writeInclude(pathSpec: "SWRT/WindowsRuntime.h", kind: .doubleQuotes)
+    cHeaderWriter.writeInclude(pathSpec: "SWRT/modules/WindowsRuntime.h", kind: .doubleQuotes)
 
     for referencedModule in module.references {
         guard !referencedModule.isEmpty else { continue }
-        cHeaderWriter.writeInclude(pathSpec: "SWRT/\(referencedModule.name).h", kind: .doubleQuotes)
+        cHeaderWriter.writeInclude(pathSpec: "SWRT/modules/\(referencedModule.name).h", kind: .doubleQuotes)
     }
 
     // Declare enums
@@ -138,7 +138,7 @@ fileprivate func getSortedInterfaces(module: Module) throws -> [BoundType] {
 fileprivate func writeModulemapFile(module: Module, toPath path: String) throws {
     let output = LineBasedTextOutputStream(inner: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     output.writeLineBlock(header: "module \(module.abiModuleName) {", footer: "}") {
-        output.writeFullLine("header \"SWRT/\(module.name).h\"")
+        output.writeFullLine("header \"SWRT/modules/\(module.name).h\"")
         output.writeFullLine("export *")
     }
 }

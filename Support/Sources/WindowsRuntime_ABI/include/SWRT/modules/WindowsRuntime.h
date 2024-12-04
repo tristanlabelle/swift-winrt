@@ -1,4 +1,4 @@
-#include "SWRT/COM.h"
+#include "SWRT/modules/COM.h"
 
 #include "windows/activation.h"
 #include "windows/eventtoken.h"
