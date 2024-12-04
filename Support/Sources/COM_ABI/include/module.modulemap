@@ -1,5 +1,5 @@
 module COM_ABI {
-    header "SWRT/COM.h"
+    header "SWRT/modules/COM.h"
     header "SWRT/windows/BaseTsd.h"
     header "SWRT/windows/combaseapi.h"
     header "SWRT/windows/guiddef.h"

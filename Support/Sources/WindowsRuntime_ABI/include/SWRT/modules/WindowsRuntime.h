@@ -1,0 +1,13 @@
+#include "SWRT/modules/COM.h"
+
+#include "SWRT/windows/activation.h"
+#include "SWRT/windows/eventtoken.h"
+#include "SWRT/windows/inspectable.h"
+#include "SWRT/windows/memorybuffer.h"
+#include "SWRT/windows/restrictederrorinfo.h"
+#include "SWRT/windows/roapi.h"
+#include "SWRT/windows/robuffer.h"
+#include "SWRT/windows/roerrorapi.h"
+#include "SWRT/windows/weakreference.h"
+#include "SWRT/windows/winstring.h"
+#include "SWRT/windows/windows.foundation.ireference.h"
