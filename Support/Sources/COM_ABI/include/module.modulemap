@@ -8,10 +8,6 @@ module COM_ABI {
     header "SWRT/winapi/oleauto.h"
     header "SWRT/winapi/unknwn.h"
     header "SWRT/winapi/wtypes.h"
-    export *
-}
-
-module COM_PrivateABI {
-    header "SwiftCOMEmbedding.h"
+    header "SWRT/COMEmbedding.h"
     export *
 }
