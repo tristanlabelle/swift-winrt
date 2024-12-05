@@ -1,4 +1,5 @@
 import COM_ABI
+@_exported import COM_ABI.SWRT_COMEmbedding
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: AnyObject {
@@ -36,9 +37,6 @@ extension SWRT_COMEmbedding {
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: asUnknownPointer()) }
 }
 
-/// Declare as a stored property of a Swift object to embed a COM object representation which shares its reference count.
-/// This allows the embedder object to be referenced both in Swift and in COM.
-/// A Swift object can have multiple COM embeddings if it implements multiple COM interfaces.
 public enum COMEmbedding {
     fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
