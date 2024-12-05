@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/unknwn.h"
+#include "SWRT/winapi/unknwn.h"
 
 // ICOMTest2
 typedef struct SWRT_ICOMTest2 {

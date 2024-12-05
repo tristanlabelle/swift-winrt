@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SWRT/windows/activation.h"
-#include "SWRT/windows/BaseTsd.h"
-#include "SWRT/windows/winstring.h"
+#include "SWRT/winapi/activation.h"
+#include "SWRT/winapi/BaseTsd.h"
+#include "SWRT/winapi/winstring.h"
 
 typedef enum SWRT_RO_INIT_TYPE {
   SWRT_RO_INIT_SINGLETHREADED = 0,

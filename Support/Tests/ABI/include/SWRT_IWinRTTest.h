@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/inspectable.h"
+#include "SWRT/winapi/inspectable.h"
 
 // IWinRTTest
 typedef struct SWRT_IWinRTTest {

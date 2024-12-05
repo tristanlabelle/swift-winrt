@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/inspectable.h"
+#include "SWRT/winapi/inspectable.h"
 
 // Windows.Foundation.PropertyType
 typedef int32_t SWRT_WindowsFoundation_PropertyType;

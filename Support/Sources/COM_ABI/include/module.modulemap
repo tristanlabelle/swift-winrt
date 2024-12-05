@@ -1,13 +1,13 @@
 module COM_ABI {
     header "SWRT/modules/COM.h"
-    header "SWRT/windows/BaseTsd.h"
-    header "SWRT/windows/combaseapi.h"
-    header "SWRT/windows/guiddef.h"
-    header "SWRT/windows/oaidl.h"
-    header "SWRT/windows/objidl.h"
-    header "SWRT/windows/oleauto.h"
-    header "SWRT/windows/unknwn.h"
-    header "SWRT/windows/wtypes.h"
+    header "SWRT/winapi/BaseTsd.h"
+    header "SWRT/winapi/combaseapi.h"
+    header "SWRT/winapi/guiddef.h"
+    header "SWRT/winapi/oaidl.h"
+    header "SWRT/winapi/objidl.h"
+    header "SWRT/winapi/oleauto.h"
+    header "SWRT/winapi/unknwn.h"
+    header "SWRT/winapi/wtypes.h"
     export *
 }
 

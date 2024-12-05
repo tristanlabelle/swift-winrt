@@ -1,19 +1,19 @@
 module WindowsRuntime_ABI {
     header "SWRT/modules/WindowsRuntime.h"
-    header "SWRT/windows/activation.h"
-    header "SWRT/windows/eventtoken.h"
-    header "SWRT/windows/inspectable.h"
-    header "SWRT/windows/memorybuffer.h"
-    header "SWRT/windows/restrictederrorinfo.h"
-    header "SWRT/windows/roapi.h"
-    header "SWRT/windows/robuffer.h"
-    header "SWRT/windows/roerrorapi.h"
-    header "SWRT/windows/weakreference.h"
-    header "SWRT/windows/winstring.h"
+    header "SWRT/winapi/activation.h"
+    header "SWRT/winapi/eventtoken.h"
+    header "SWRT/winapi/inspectable.h"
+    header "SWRT/winapi/memorybuffer.h"
+    header "SWRT/winapi/restrictederrorinfo.h"
+    header "SWRT/winapi/roapi.h"
+    header "SWRT/winapi/robuffer.h"
+    header "SWRT/winapi/roerrorapi.h"
+    header "SWRT/winapi/weakreference.h"
+    header "SWRT/winapi/winstring.h"
     export *
 }
 
 module SWRT_WindowsFoundation {
-    header "SWRT/windows/windows.foundation.h"
+    header "SWRT/winapi/windows.foundation.h"
     export *
 }

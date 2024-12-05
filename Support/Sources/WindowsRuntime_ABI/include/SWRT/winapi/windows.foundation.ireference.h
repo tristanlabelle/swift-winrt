@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/inspectable.h"
+#include "SWRT/winapi/inspectable.h"
 
 // Windows.Foundation.IReference<T>
 typedef struct SWRT_WindowsFoundation_IReference {
