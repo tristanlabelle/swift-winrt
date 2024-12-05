@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "SWRT/windows/wtypes.h"
-#include "SWRT/windows/oaidl.h"
+#include "SWRT/winapi/wtypes.h"
+#include "SWRT/winapi/oaidl.h"
 
 SWRT_HResult SWRT_CreateErrorInfo(SWRT_ICreateErrorInfo ** pperrinfo);
 SWRT_HResult SWRT_GetErrorInfo(uint32_t dwReserved, SWRT_IErrorInfo** pperrinfo);

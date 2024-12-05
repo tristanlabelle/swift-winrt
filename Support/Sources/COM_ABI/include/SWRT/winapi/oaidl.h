@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SWRT/windows/wtypes.h"
-#include "SWRT/windows/unknwn.h"
+#include "SWRT/winapi/wtypes.h"
+#include "SWRT/winapi/unknwn.h"
 
 typedef struct SWRT_ICreateErrorInfo {
     struct SWRT_ICreateErrorInfo_VirtualTable* VirtualTable;

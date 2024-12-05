@@ -1,4 +1,4 @@
-#include "SWRT/windows/oleauto.h"
+#include "SWRT/winapi/oleauto.h"
 
 #include <Windows.h>
 #include <oleauto.h>

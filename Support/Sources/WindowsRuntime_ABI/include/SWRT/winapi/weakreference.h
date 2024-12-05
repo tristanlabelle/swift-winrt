@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SWRT/windows/inspectable.h"
+#include "SWRT/winapi/inspectable.h"
 
 typedef struct SWRT_IWeakReference {
     struct SWRT_IWeakReference_VirtualTable* VirtualTable;

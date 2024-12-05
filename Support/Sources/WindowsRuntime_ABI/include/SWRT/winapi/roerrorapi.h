@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdbool.h>
-#include "SWRT/windows/unknwn.h"
-#include "SWRT/windows/restrictederrorinfo.h"
-#include "SWRT/windows/winstring.h"
+#include "SWRT/winapi/unknwn.h"
+#include "SWRT/winapi/restrictederrorinfo.h"
+#include "SWRT/winapi/winstring.h"
 
 typedef enum {
     SWRT_RO_ERROR_REPORTING_NONE               = 0x00000000,

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SWRT/windows/oleauto.h"
-#include "SWRT/windows/unknwn.h"
+#include "SWRT/winapi/oleauto.h"
+#include "SWRT/winapi/unknwn.h"
 
 typedef struct SWRT_ILanguageExceptionErrorInfo {
     struct SWRT_ILanguageExceptionErrorInfo_VirtualTable* VirtualTable;
