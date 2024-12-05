@@ -1,5 +1,5 @@
 import COM_ABI
-@_exported import COM_ABI.SWRT_COMEmbedding
+@_exported import struct COM_ABI.SWRT_COMEmbedding
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: AnyObject {
