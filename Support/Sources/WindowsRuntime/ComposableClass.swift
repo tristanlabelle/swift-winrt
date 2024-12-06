@@ -1,4 +1,5 @@
 import COM
+import COM_ABI
 import WindowsRuntime_ABI
 
 /// Base class for composable (unsealed) WinRT classes, implemented using COM aggregration.
@@ -13,14 +14,14 @@ open class ComposableClass: IInspectableProtocol {
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
-    private var outer: COMEmbedding
+    private var outer: SWRT_COMEmbedding
 
     /// Initializer for instances created in WinRT
     public init(_wrapping inner: consuming IInspectableReference) {
         innerWithRef = inner.detach()
         // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
         // All methods will delegate to the inner object (in this case the full object).
-        outer = .uninitialized
+        outer = .init()
     }
 
     public typealias ComposableFactory<ABIStruct> = (
@@ -35,20 +36,20 @@ open class ComposableClass: IInspectableProtocol {
             // Workaround Swift initialization rules:
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
-            self.outer = .uninitialized
+            self.outer = .init(virtualTable: IInspectableBinding.virtualTablePointer, swiftEmbedder: nil)
             self.innerWithRef = IInspectablePointer(OpaquePointer(bitPattern: 0xDEADBEEF)!) // We need to assign inner to something, it doesn't matter what.
-            self.outer.initialize(embedder: self, virtualTable: IInspectableBinding.virtualTablePointer)
+            self.outer.initSwiftEmbedder(self)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
             var inner: IInspectablePointer? = nil
-            _ = try _factory(IInspectablePointer(OpaquePointer(outer.unknownPointer)), &inner)
+            _ = try _factory(IInspectablePointer(OpaquePointer(outer.asUnknownPointer())), &inner)
             guard let inner else { throw COMError.fail }
             self.innerWithRef = inner
         }
         else {
             // We're not overriding any methods so we don't need to provide an outer object.
-            outer = .uninitialized
+            outer = .init()
 
             // We don't care about the inner object since WinRT provides us with the composed object.
             var inner: IInspectablePointer? = nil
@@ -70,8 +71,8 @@ open class ComposableClass: IInspectableProtocol {
     }
 
     open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        // If we are a composed object create from Swift, act as such
-        if outer.isInitialized {
+        // If we are a composed object created from Swift, act as such
+        if outer.virtualTable != nil {
             // We own the identity, don't delegate to the inner object.
             if id == IUnknownBinding.interfaceID || id == IInspectableBinding.interfaceID {
                 return outer.toCOM()

@@ -1,7 +1,14 @@
+import COM_ABI
+
 /// Use as a stored property of a class to allow the object to be referenced
 /// as a COM object exposing a given interface.
 public struct COMImplements<InterfaceBinding: COMTwoWayBinding>: ~Copyable {
-    private var embedding: COMEmbedding = .uninitialized
+    private var embedding: SWRT_COMEmbedding = .init()
+
+    public init() {
+        embedding.virtualTable = InterfaceBinding.virtualTablePointer
+        // embedding.swiftEmbedder is lazy initialized
+    }
 
     public mutating func toCOM(embedder: InterfaceBinding.SwiftObject) -> InterfaceBinding.ABIReference {
         // The embedder should conform to IUnknownProtocol and hence be an AnyObject,
@@ -10,15 +17,7 @@ public struct COMImplements<InterfaceBinding: COMTwoWayBinding>: ~Copyable {
     }
 
     internal mutating func toCOM(embedder: AnyObject) -> InterfaceBinding.ABIReference {
-        if embedding.isInitialized {
-            assert(embedding.embedder === embedder, "COM object already embedded in another object.")
-        } else {
-            // Thread safe since every initialization will produce the same state and has no side-effects.
-            assert(embedder is InterfaceBinding.SwiftObject || embedder is COMEmbedderWithDelegatedImplementation,
-                "Embedder \(type(of: embedder)) does not conform to the expected interface \(InterfaceBinding.self).")
-            embedding.initialize(embedder: embedder, virtualTable: InterfaceBinding.virtualTablePointer)
-        }
-
+        embedding.initSwiftEmbedder(embedder)
         return embedding.toCOM().cast()
     }
 }

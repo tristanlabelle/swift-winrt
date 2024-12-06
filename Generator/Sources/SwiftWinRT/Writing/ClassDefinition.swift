@@ -244,11 +244,15 @@ fileprivate func writeOverrideSupport(
     let outerPropertySuffix = "outer"
 
     for interface in interfaces {
-        // private var _istringable_outer: COM.COMEmbedding = .uninitialized
+        // private var _ifoo_outer: COM.SWRT_COMEmbedding = .init(
+        //     virtualTable: &SWRT_IStringable.VirtualTables.IStringable, swiftEmbedder: nil)
+        let bindingTypeName = try projection.toBindingTypeName(classDefinition)
+        let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
         writer.writeStoredProperty(
             visibility: .private, declarator: .var,
             name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
-            type: SupportModules.COM.comEmbedding, initialValue: ".uninitialized")
+            type: SupportModules.COM.comEmbedding,
+            initialValue: ".init(virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName), swiftEmbedder: nil)")
     }
 
     // public override func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional {
@@ -261,12 +265,11 @@ fileprivate func writeOverrideSupport(
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
             try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
-                let bindingTypeName = try projection.toBindingTypeName(classDefinition)
-                let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
 
-                // return .init(_iminimalUnsealedClassOverrides_outer.toCOM(embedder: self, virtualTable: ))
-                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM(embedder: self"
-                    + ", virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName)))")
+                // _ifoo_outer.initSwiftEmbedder(self)
+                // return .init(_ifoo_outer.toCOM())
+                writer.writeStatement("\(outerPropertyName).initSwiftEmbedder(self)")
+                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
             }
         }
         writer.writeReturnStatement(value: ".none")

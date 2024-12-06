@@ -89,17 +89,12 @@ internal final class COMExportTests: XCTestCase {
                 ICOMTestBinding.self
             ] }
 
-            var embedding: COMEmbedding = .uninitialized
-
-            override init() {
-                super.init()
-                embedding.initialize(embedder: self, virtualTable: ICOMTestBinding.virtualTablePointer)
-            }
+            var testImplements: COMImplements<ICOMTestBinding> = .init()
 
             override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
                 switch id {
                 case ICOMTestBinding.interfaceID:
-                    return embedding.toCOM()
+                    return testImplements.toCOM(embedder: self).cast()
                 default:
                     return try super._queryInterface(id)
                 }

@@ -18,20 +18,3 @@ open class COMSecondaryExport<InterfaceBinding: COMTwoWayBinding>: IUnknownProto
         }
     }
 }
-
-public class COMDelegatingExport: COMEmbedderWithDelegatedImplementation {
-    private var comEmbedding: COMEmbedding
-    public let delegatedImplementation: AnyObject
-
-    public init(virtualTable: UnsafeRawPointer, implementer: IUnknown) {
-        comEmbedding = .uninitialized
-        delegatedImplementation = implementer
-        comEmbedding.initialize(embedder: self, virtualTable: virtualTable)
-    }
-
-    public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, implementer: Binding.SwiftObject) {
-        self.init(virtualTable: Binding.virtualTablePointer, implementer: implementer as! IUnknown)
-    }
-
-    public func toCOM() -> IUnknownReference { comEmbedding.toCOM() }
-}
