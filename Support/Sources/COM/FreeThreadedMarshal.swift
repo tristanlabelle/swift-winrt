@@ -1,7 +1,7 @@
 import COM_ABI
 
 /// Provides an implementation of IMarshal based on the COM free-threaded marshaler.
-internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalBinding> {
+public final class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalBinding> {
     private let marshaler: COMReference<SWRT_IMarshal>
 
     public init(_ identity: IUnknown) throws {
@@ -38,11 +38,11 @@ internal class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalBindin
     }
 }
 
-internal func uuidof(_: COM_ABI.SWRT_IMarshal.Type) -> COMInterfaceID {
+public func uuidof(_: COM_ABI.SWRT_IMarshal.Type) -> COMInterfaceID {
     .init(0x00000003, 0x0000, 0x0000, 0xC000, 0x000000000046)
 }
 
-internal enum FreeThreadedMarshalBinding: COMTwoWayBinding {
+public enum FreeThreadedMarshalBinding: COMTwoWayBinding {
     public typealias SwiftObject = FreeThreadedMarshal
     public typealias ABIStruct = COM_ABI.SWRT_IMarshal
 

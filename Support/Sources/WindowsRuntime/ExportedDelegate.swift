@@ -1,11 +1,30 @@
+import COM
 
 /// A COM-exported object delegating its implementation to a Swift object.
-public class ExportedDelegate<Binding: DelegateBinding>: COMExport<Binding>, COMEmbedderWithDelegatedImplementation {
-    public let closure: Binding.SwiftObject
+public final class ExportedDelegate<Binding: DelegateBinding>: IUnknownProtocol {
+    private var comEmbedding: COMEmbeddingEx
 
     public init(_ closure: Binding.SwiftObject) {
-        self.closure = closure
+        self.comEmbedding = .null // Required before referring to self
+        self.comEmbedding = .init(
+            virtualTable: Binding.virtualTablePointer,
+            embedder: self,
+            implementer: closure as AnyObject)
     }
 
-    public var delegatedImplementation: AnyObject { closure as AnyObject }
+    public func toCOM() -> Binding.ABIReference {
+        comEmbedding.toCOM().cast()
+    }
+
+    public func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
+        switch id {
+            // Delegates are always agile and free-threaded.
+            case Binding.interfaceID, IUnknownBinding.interfaceID, IAgileObjectBinding.interfaceID:
+                return toCOM().cast()
+            case FreeThreadedMarshalBinding.interfaceID:
+                return try FreeThreadedMarshal(self).toCOM().cast()
+            default:
+                throw COMError.noInterface
+        }
+    }
 }

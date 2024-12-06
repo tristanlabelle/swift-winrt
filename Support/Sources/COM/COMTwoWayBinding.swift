@@ -8,13 +8,13 @@ public protocol COMTwoWayBinding: COMBinding {
 
 extension COMTwoWayBinding {
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? {
-        COMEmbedding.getImplementation(pointer)
+        COMEmbedding.getImplementer(pointer)
     }
 
     /// Helper for implementing virtual tables
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> COM_ABI.SWRT_HResult {
         guard let this else { return COMError.toABI(hresult: HResult.pointer, description: "COM 'this' pointer was null") }
-        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementerUnsafe(this)
         return COMError.toABI { try body(implementation) }
     }
 

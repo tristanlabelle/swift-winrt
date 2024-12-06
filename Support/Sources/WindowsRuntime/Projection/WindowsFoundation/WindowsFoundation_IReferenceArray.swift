@@ -91,7 +91,7 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReferenceArray_VirtualTabl
     GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
     get_Value: { this, length, pointer in
         guard let this, let length, let pointer else { return WinRTError.toABI(hresult: HResult.invalidArg) }
-        guard let reference: any WindowsFoundation_IReferenceArrayProtocolABI = COMEmbedding.getImplementation(this) else {
+        guard let reference: any WindowsFoundation_IReferenceArrayProtocolABI = COMEmbedding.getImplementer(this) else {
             return WinRTError.toABI(hresult: HResult.fail, message: "Swift object should implement IReferenceArrayProtocolABI")
         }
         return WinRTError.toABI { try reference._getABIValue(&length.pointee, &pointer.pointee) }

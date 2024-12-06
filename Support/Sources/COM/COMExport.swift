@@ -18,9 +18,7 @@ open class COMExport<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownProtoco
 
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
-            case PrimaryInterfaceBinding.interfaceID:
-                return toCOM().cast()
-            case IUnknownBinding.interfaceID:
+            case PrimaryInterfaceBinding.interfaceID, IUnknownBinding.interfaceID:
                 return toCOM().cast()
             case IAgileObjectBinding.interfaceID where Self.implementIAgileObject:
                 return toCOM().cast()

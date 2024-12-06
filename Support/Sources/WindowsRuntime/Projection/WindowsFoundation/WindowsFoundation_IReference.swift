@@ -94,7 +94,7 @@ fileprivate var virtualTable: SWRT_WindowsFoundation_IReference_VirtualTable =  
     GetTrustLevel: { IInspectableVirtualTable.GetTrustLevel($0, $1) },
     get_Value: { this, value in
         guard let this, let value else { return WinRTError.toABI(hresult: HResult.invalidArg) }
-        guard let reference: any WindowsFoundation_IReferenceProtocolABI = COMEmbedding.getImplementation(this) else {
+        guard let reference: any WindowsFoundation_IReferenceProtocolABI = COMEmbedding.getImplementer(this) else {
             return WinRTError.toABI(hresult: HResult.fail, message: "Swift object should implement IReferenceProtocolABI")
         }
         return WinRTError.toABI { try reference._getABIValue(value) }
