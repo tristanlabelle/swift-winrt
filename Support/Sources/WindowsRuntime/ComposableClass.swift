@@ -14,14 +14,14 @@ open class ComposableClass: IInspectableProtocol {
 
     /// The outer object, which brokers QueryInterface calls between the inner object
     /// and any Swift overrides. This is only initialized for derived Swift classes.
-    private var outer: SWRT_COMEmbedding
+    private var outer: COMEmbedding
 
     /// Initializer for instances created in WinRT
     public init(_wrapping inner: consuming IInspectableReference) {
         innerWithRef = inner.detach()
         // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
         // All methods will delegate to the inner object (in this case the full object).
-        outer = .init()
+        outer = .null
     }
 
     public typealias ComposableFactory<ABIStruct> = (
@@ -36,9 +36,9 @@ open class ComposableClass: IInspectableProtocol {
             // Workaround Swift initialization rules:
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
-            self.outer = .init(virtualTable: IInspectableBinding.virtualTablePointer, swiftEmbedder: nil)
+            self.outer = .init(virtualTable: IInspectableBinding.virtualTablePointer, embedder: nil)
             self.innerWithRef = IInspectablePointer(OpaquePointer(bitPattern: 0xDEADBEEF)!) // We need to assign inner to something, it doesn't matter what.
-            self.outer.initSwiftEmbedder(self)
+            self.outer.initEmbedder(self)
 
             // Like C++/WinRT, discard the returned composed object and only use the inner object
             // The composed object is useful only when not providing an outer object.
@@ -49,7 +49,7 @@ open class ComposableClass: IInspectableProtocol {
         }
         else {
             // We're not overriding any methods so we don't need to provide an outer object.
-            outer = .init()
+            outer = .null
 
             // We don't care about the inner object since WinRT provides us with the composed object.
             var inner: IInspectablePointer? = nil

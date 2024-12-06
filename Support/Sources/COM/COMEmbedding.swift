@@ -1,5 +1,5 @@
 import COM_ABI
-@_exported import struct COM_ABI.SWRT_COMEmbedding
+import COM_PrivateABI
 
 /// Protocol for Swift objects which embed COM interfaces.
 public protocol COMEmbedderWithDelegatedImplementation: AnyObject {
@@ -7,24 +7,38 @@ public protocol COMEmbedderWithDelegatedImplementation: AnyObject {
     var delegatedImplementation: AnyObject { get }
 }
 
-/// SWRT_COMEmbedding should be stored as a property of a Swift object
-/// to embed a COM object representation which shares its reference count.
+/// Use as a stored property in a Swift object to embed a COM object
+/// representation which shares its reference count.
 /// In most cases, this is done via the `COMImplements<InterfaceBinding>` struct.
-extension SWRT_COMEmbedding {
-    public init(virtualTable: UnsafeRawPointer, swiftEmbedder: AnyObject) {
-        self.init(
-            virtualTable: virtualTable,
-            swiftEmbedder: Unmanaged<AnyObject>.passUnretained(swiftEmbedder).toOpaque())
+public struct COMEmbedding: ~Copyable {
+    private var abi: SWRT_COMEmbedding
+
+    public static var null: COMEmbedding { .init() }
+
+    private init() {
+        self.abi = SWRT_COMEmbedding(virtualTable: nil, swiftEmbedder: nil)
     }
 
-    public var hasSwiftEmbedder: Bool { swiftEmbedder != nil }
+    /// Initializes an instance with a virtual table,
+    /// but delays setting the embedder since "self" wouldn't be available yet.
+    public init(virtualTable: UnsafeRawPointer, embedder: Never?) {
+        self.abi = SWRT_COMEmbedding(virtualTable: virtualTable, swiftEmbedder: nil)
+    }
 
-    public mutating func initSwiftEmbedder(_ value: AnyObject) {
-        if let currentValue = self.swiftEmbedder {
+    public var virtualTable: UnsafeRawPointer? {
+        get { abi.virtualTable }
+    }
+
+    public var embedder: AnyObject? {
+        get { abi.swiftEmbedder.map { Unmanaged<AnyObject>.fromOpaque($0).takeUnretainedValue() } }
+    }
+
+    public mutating func initEmbedder(_ value: AnyObject) {
+        if let currentValue = abi.swiftEmbedder {
             assert(Unmanaged<AnyObject>.fromOpaque(currentValue).takeUnretainedValue() === value,
                 "COM object already embedded in a different object.")
         } else {
-            self.swiftEmbedder = Unmanaged<AnyObject>.passUnretained(value).toOpaque()
+            abi.swiftEmbedder = Unmanaged<AnyObject>.passUnretained(value).toOpaque()
         }
     }
 
@@ -37,7 +51,7 @@ extension SWRT_COMEmbedding {
     public mutating func toCOM() -> IUnknownReference { .init(addingRef: asUnknownPointer()) }
 }
 
-public enum COMEmbedding {
+extension COMEmbedding {
     fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
             Unmanaged<AnyObject>.fromOpaque($0.pointee.swiftEmbedder)
