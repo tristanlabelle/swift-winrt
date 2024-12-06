@@ -43,7 +43,7 @@ public struct COMEmbedding: ~Copyable {
     }
 
     public mutating func asUnknownPointer() -> IUnknownPointer {
-        withUnsafeMutablePointer(to: &self) {
+        withUnsafeMutablePointer(to: &abi) {
             IUnknownPointer(OpaquePointer($0))
         }
     }
