@@ -31,7 +31,7 @@ extension SupportModules.COM {
     public static var comBinding: SwiftType { .chain(moduleName, "COMBinding") }
     public static var comTwoWayBinding: SwiftType { .chain(moduleName, "COMTwoWayBinding") }
 
-    public static var comEmbedding: SwiftType { .chain(moduleName, "SWRT_COMEmbedding") }
+    public static var comEmbedding: SwiftType { .chain(moduleName, "COMEmbedding") }
 
     public static var comReference: SwiftType { .chain(moduleName, "COMReference") }
     public static func comReference(to type: SwiftType) -> SwiftType {

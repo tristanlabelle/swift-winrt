@@ -244,15 +244,15 @@ fileprivate func writeOverrideSupport(
     let outerPropertySuffix = "outer"
 
     for interface in interfaces {
-        // private var _ifoo_outer: COM.SWRT_COMEmbedding = .init(
-        //     virtualTable: &SWRT_IStringable.VirtualTables.IStringable, swiftEmbedder: nil)
+        // private var _ifoo_outer: COM.COMEmbedding = .init(
+        //     virtualTable: &SWRT_IStringable.VirtualTables.IStringable, embedder: nil)
         let bindingTypeName = try projection.toBindingTypeName(classDefinition)
         let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
         writer.writeStoredProperty(
             visibility: .private, declarator: .var,
             name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
             type: SupportModules.COM.comEmbedding,
-            initialValue: ".init(virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName), swiftEmbedder: nil)")
+            initialValue: ".init(virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName), embedder: nil)")
     }
 
     // public override func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional {
@@ -266,9 +266,9 @@ fileprivate func writeOverrideSupport(
             try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
 
-                // _ifoo_outer.initSwiftEmbedder(self)
+                // _ifoo_outer.initEmbedder(self)
                 // return .init(_ifoo_outer.toCOM())
-                writer.writeStatement("\(outerPropertyName).initSwiftEmbedder(self)")
+                writer.writeStatement("\(outerPropertyName).initEmbedder(self)")
                 writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
             }
         }

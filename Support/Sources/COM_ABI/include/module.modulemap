@@ -11,3 +11,8 @@ module COM_ABI {
     header "SWRT/COMEmbedding.h"
     export *
 }
+
+module COM_PrivateABI {
+    header "SWRT/COMEmbedding.h"
+    export *
+}
