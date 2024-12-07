@@ -9,7 +9,7 @@ public enum IInspectableVirtualTable {
         guard let this, let count, let iids else { return WinRTError.toABI(hresult: HResult.invalidArg) }
         count.pointee = 0
         iids.pointee = nil
-        let object = COMEmbedding.getEmbedderOrCrash(this) as! IInspectable
+        let object: IInspectable = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI {
             let idsArray = try object.getIids()
             let comArray = try ArrayBinding<GUIDBinding>.toABI(idsArray)
@@ -23,7 +23,7 @@ public enum IInspectableVirtualTable {
             _ className: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_HString?>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let className else { return WinRTError.toABI(hresult: HResult.invalidArg) }
         className.pointee = nil
-        let object = COMEmbedding.getEmbedderOrCrash(this) as! IInspectable
+        let object: IInspectable = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI {
             className.pointee = try StringBinding.toABI(object.getRuntimeClassName())
         }
@@ -33,7 +33,7 @@ public enum IInspectableVirtualTable {
             _ this: UnsafeMutablePointer<ABIStruct>?,
             _ trustLevel: UnsafeMutablePointer<WindowsRuntime_ABI.SWRT_TrustLevel>?) -> WindowsRuntime_ABI.SWRT_HResult {
         guard let this, let trustLevel else { return WinRTError.toABI(hresult: HResult.invalidArg) }
-        let object = COMEmbedding.getEmbedderOrCrash(this) as! IInspectable
+        let object: IInspectable = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI {
             trustLevel.pointee = try TrustLevel.toABI(object.getTrustLevel())
         }

@@ -23,7 +23,7 @@ extension ReferenceTypeBinding {
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
-        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI { try body(implementation) }
     }
 
@@ -39,7 +39,7 @@ extension InterfaceBinding {
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
-        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI { try body(implementation) }
     }
 
@@ -55,7 +55,7 @@ extension DelegateBinding {
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
-        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI { try body(implementation) }
     }
 
@@ -75,7 +75,7 @@ extension RuntimeClassBinding {
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
-        let implementation: SwiftObject = COMEmbedding.getImplementationOrCrash(this)
+        let implementation: SwiftObject = COMEmbedding.getImplementerUnsafe(this)
         return WinRTError.toABI { try body(implementation) }
     }
 
@@ -96,6 +96,6 @@ extension ComposableClassBinding {
     }
 
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? {
-        COMEmbedding.getImplementation(pointer, type: SwiftObject.self)
+        COMEmbedding.getImplementer(pointer, type: SwiftObject.self)
     }
 }
