@@ -9,7 +9,7 @@ public final class ExportedDelegate<Binding: DelegateBinding>: IUnknownProtocol 
         self.comEmbedding = .init(
             virtualTable: Binding.virtualTablePointer,
             embedder: self,
-            implementer: closure as AnyObject)
+            externalImplementer: closure as AnyObject)
     }
 
     public func toCOM() -> Binding.ABIReference {

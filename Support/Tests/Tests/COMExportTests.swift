@@ -64,7 +64,7 @@ internal final class COMExportTests: XCTestCase {
         XCTAssertThrowsError(try { _ = try NonMarshalable()._queryInterface(imarshalID) }())
     }
 
-    func testImplementsSecondaryInterface() throws {
+    func testSecondaryInterface() throws {
         final class CallCounter: COMExport<IUnknownBinding>, ICOMTestProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 ICOMTestBinding.self

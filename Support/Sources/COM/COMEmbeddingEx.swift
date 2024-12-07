@@ -12,14 +12,24 @@ public struct COMEmbeddingEx: ~Copyable {
         self.abi = .init()
     }
 
-    public init(virtualTable: UnsafeRawPointer, embedder: AnyObject, implementer: AnyObject) {
+    public init(virtualTable: UnsafeRawPointer, embedder: AnyObject, externalImplementer: AnyObject) {
+        // The don't reference count the embedder since this object is part of it.
+        // Do reference the implementer since it's an object external to the embedder.
+        // They can't be the same or we'd have a reference cycle.
+        assert(externalImplementer !== embedder, "The implementer object should be external to the embedder object.")
         self.abi = .init(
             base: .init(
                 virtualTable: virtualTable,
                 swiftEmbedderAndFlags: UInt(bitPattern: Unmanaged.passUnretained(embedder).toOpaque())
-                    | SWRT_COMEmbeddingFlags_SeparateImplementer
-                    | (embedder is IUnknown ? 0 : SWRT_COMEmbeddingFlags_ImplementerIsIUnknown)),
-            swiftImplementer: Unmanaged<AnyObject>.passUnretained(implementer).toOpaque())
+                    | SWRT_COMEmbeddingFlags_ExternalImplementer
+                    | (embedder is IUnknown ? 0 : SWRT_COMEmbeddingFlags_ExternalImplementerIsIUnknown)),
+            swiftImplementer_retained: Unmanaged<AnyObject>.passRetained(externalImplementer).toOpaque())
+    }
+
+    deinit {
+        if let implementerOpaquePointer = abi.swiftImplementer_retained {
+            Unmanaged<AnyObject>.fromOpaque(implementerOpaquePointer).release()
+        }
     }
 
     public mutating func asUnknownPointer() -> IUnknownPointer {

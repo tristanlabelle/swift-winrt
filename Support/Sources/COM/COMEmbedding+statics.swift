@@ -13,13 +13,13 @@ extension COMEmbedding {
     fileprivate static func getIUnknownUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> IUnknown {
         // IUnknown can either be implemented by the embedder or by a separately stored implementer.
         let opaquePointer = this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_ImplementerIsIUnknown) == 0 {
-                // Not extended: The embedder implements IUnknown.
+            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_ExternalImplementerIsIUnknown) == 0 {
+                // The embedder implements IUnknown.
                 return UnsafeMutableRawPointer(bitPattern: $0.pointee.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
             } else {
-                // Extended: The separately stored implementer implements IUnknown.
+                // The separately stored external implementer implements IUnknown.
                 return $0.withMemoryRebound(to: SWRT_COMEmbeddingEx.self, capacity: 1) {
-                    $0.pointee.swiftImplementer
+                    $0.pointee.swiftImplementer_retained
                 }
             }
         }
@@ -33,13 +33,13 @@ extension COMEmbedding {
     public static func getImplementerUnsafe<ABIStruct, Implementer>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementer.Type = Implementer.self) -> Implementer {
         let opaquePointer = this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_SeparateImplementer) == 0 {
-                // Not extended: The embedder is the implementer.
+            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_ExternalImplementer) == 0 {
+                // The embedder is the implementer.
                 return UnsafeMutableRawPointer(bitPattern: $0.pointee.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
             } else {
-                // Extended: The implementer is stored separately.
+                // An external implementer is stored separately.
                 return $0.withMemoryRebound(to: SWRT_COMEmbeddingEx.self, capacity: 1) {
-                    $0.pointee.swiftImplementer
+                    $0.pointee.swiftImplementer_retained
                 }
             }
         }

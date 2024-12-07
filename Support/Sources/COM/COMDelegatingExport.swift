@@ -6,7 +6,7 @@ public final class COMDelegatingExport {
 
     public init(virtualTable: UnsafeRawPointer, implementer: IUnknown) {
         comEmbedding = .null // Required before referring to self
-        comEmbedding = .init(virtualTable: virtualTable, embedder: self, implementer: implementer)
+        comEmbedding = .init(virtualTable: virtualTable, embedder: self, externalImplementer: implementer)
     }
 
     public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, implementer: Binding.SwiftObject) {
