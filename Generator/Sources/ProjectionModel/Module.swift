@@ -100,13 +100,9 @@ public final class Module {
     internal func getName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
         // Map: Namespace.TypeName
         // To: Namespace_TypeName
-        // Map: Namespace.Subnamespace.TypeName/NestedTypeName
-        // To: NamespaceSubnamespace_TypeName_NestedTypeName
         var result: String = ""
-        if let enclosingType = try typeDefinition.enclosingType {
-            result += try getName(enclosingType, namespaced: namespaced) + "_"
-        }
-        else if namespaced && !flattenNamespaces {
+        assert(try typeDefinition.enclosingType == nil, "Unexpected WinRT nested type")
+        if namespaced && !flattenNamespaces {
             result += typeDefinition.namespace.flatMap { Projection.toCompactNamespace($0) + "_" } ?? ""
         }
 
