@@ -6,7 +6,7 @@ import struct Foundation.Date
 class DateTimeTests: WinRTTestCase {
     func testTimeSpan() throws {
         XCTAssertEqual(try DateTimes.fromSeconds(42).timeInterval.rounded(), 42)
-        XCTAssertEqual(try DateTimes.roundToSeconds(TimeSpan(timeInterval: 42)), 42)
+        XCTAssertEqual(try DateTimes.roundToSeconds(WindowsFoundation_TimeSpan(timeInterval: 42)), 42)
     }
 
     func testDateTime() throws {
