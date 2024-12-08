@@ -101,7 +101,7 @@ public final class Module {
         // Map: Namespace.TypeName
         // To: Namespace_TypeName
         var result: String = ""
-        assert(try typeDefinition.enclosingType == nil, "Unexpected WinRT nested type")
+        assert((try? typeDefinition.enclosingType) == nil, "Unexpected WinRT nested type")
         if namespaced && !flattenNamespaces {
             result += typeDefinition.namespace.flatMap { Projection.toCompactNamespace($0) + "_" } ?? ""
         }
