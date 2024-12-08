@@ -263,7 +263,7 @@ fileprivate func writeOverrideSupport(
         for interface in interfaces {
             // if id == uuidof(SWRT_IFoo.self) {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
-            try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
+            writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
 
                 // _ifoo_outer.initEmbedder(self)
