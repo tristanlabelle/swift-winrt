@@ -49,7 +49,7 @@ fileprivate func writeModuleFiles(
         directoryPath: "\(directoryPath)\\Projection")
 
     if !module.flattenNamespaces {
-        try writeNamespaceModuleFiles(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
+        try writeNamespaceModulesFiles(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
     }
 
     if cmakeOptions != nil {
@@ -163,7 +163,7 @@ fileprivate func writeSwiftModuleFiles(
     }
 }
 
-fileprivate func writeNamespaceModuleFiles(
+fileprivate func writeNamespaceModulesFiles(
         _ module: Module,
         cmakeOptions: CMakeOptions?,
         directoryPath: String) throws {
@@ -199,14 +199,33 @@ fileprivate func writeNamespaceModuleFiles(
         }
     }
 
+    compactNamespaces.sort()
+    let namespaceModuleNames = compactNamespaces.map { module.getNamespaceModuleName(namespace: $0) }
+
+    writeFlatNamespaceFile(namespaceModuleNames: namespaceModuleNames, toPath: "\(directoryPath)\\Flat\\Flat.swift")
+    if let cmakeOptions {
+        let writer = CMakeListsWriter(output: FileTextOutputStream(
+            path: "\(directoryPath)\\Flat\\CMakeLists.txt",
+            directoryCreation: .ancestors))
+        let flatModuleName = module.name + "_Flat"
+        let targetName = cmakeOptions.getTargetName(moduleName: flatModuleName)
+        writer.writeAddLibrary(targetName, .static, ["Flat.swift"])
+        if targetName != flatModuleName {
+            writer.writeSingleLineCommand(
+                "set_target_properties", .autoquote(targetName),
+                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(flatModuleName))
+        }
+        writer.writeTargetLinkLibraries(targetName, .public, namespaceModuleNames.map { cmakeOptions.getTargetName(moduleName: $0) })
+    }
+
     if cmakeOptions != nil, !compactNamespaces.isEmpty {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        compactNamespaces.sort()
         for compactNamespace in compactNamespaces {
             writer.writeAddSubdirectory(compactNamespace)
         }
+        writer.writeAddSubdirectory("Flat")
     }
 }
 
@@ -294,5 +313,14 @@ internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], modul
         guard typeDefinition.isPublic else { continue }
 
         try writeNamespaceAlias(typeDefinition, projection: module.projection, to: writer)
+    }
+}
+
+internal func writeFlatNamespaceFile(namespaceModuleNames: [String], toPath path: String) throws {
+    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
+    writeGeneratedCodePreamble(to: writer)
+
+    for namespaceModuleName in namespaceModuleNames {
+        writer.writeImport(exported: true, module: namespaceModuleName)
     }
 }
