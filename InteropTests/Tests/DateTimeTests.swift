@@ -1,6 +1,6 @@
 import XCTest
+import UWP
 import WinRTComponent
-import UWP_WindowsFoundation
 import struct Foundation.Date
 
 class DateTimeTests: WinRTTestCase {
@@ -14,7 +14,7 @@ class DateTimeTests: WinRTTestCase {
         var year: Int32 = 0
         var month: Int32 = 0
         var day: Int32 = 0
-        try DateTimes.toUTCYearMonthDay(DateTime(foundationDate: Date(timeIntervalSince1970: 0)), &year, &month, &day)
+        try DateTimes.toUTCYearMonthDay(WindowsFoundation_DateTime(foundationDate: Date(timeIntervalSince1970: 0)), &year, &month, &day)
         XCTAssertEqual(year, 1970)
         XCTAssertEqual(month, 1)
         XCTAssertEqual(day, 1)
