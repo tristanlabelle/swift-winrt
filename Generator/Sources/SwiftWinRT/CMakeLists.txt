@@ -4,7 +4,8 @@ file(GLOB_RECURSE SOURCES *.swift)
 add_executable(SwiftWinRT ${SOURCES})
 target_sources(SwiftWinRT PRIVATE "${PACKAGERESOURCES_SWIFT_FILE}")
 target_link_libraries(SwiftWinRT PRIVATE
-    ArgumentParser Collections DotNetMetadata DotNetMetadataFormat WindowsMetadata
+    ArgumentParser Collections
+    DotNetMetadata DotNetMetadataFormat WindowsMetadata
     CodeWriters ProjectionModel)
 
 if(DEFINED SWIFTWINRT_EXE_STAGING_DIR)

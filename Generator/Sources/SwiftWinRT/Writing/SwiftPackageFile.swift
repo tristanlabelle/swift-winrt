@@ -58,6 +58,12 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
                 package.targets.append(namespaceModuleTarget)
                 moduleProduct.targets.append(namespaceModuleTarget.name)
             }
+
+            var flatModuleTarget: SwiftPackage.Target = .target(name: module.name + "_Flat")
+            flatModuleTarget.path = "\(module.name)/Namespaces/Flat"
+            flatModuleTarget.dependencies = namespaces.map { .target(name: module.getNamespaceModuleName(namespace: $0)) }
+            package.targets.append(flatModuleTarget)
+            moduleProduct.targets.append(flatModuleTarget.name)
         }
 
         // Create products for the projections and the ABI

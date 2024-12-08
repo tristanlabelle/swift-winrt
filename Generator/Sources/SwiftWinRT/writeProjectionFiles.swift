@@ -49,7 +49,7 @@ fileprivate func writeModuleFiles(
         directoryPath: "\(directoryPath)\\Projection")
 
     if !module.flattenNamespaces {
-        try writeNamespaceModuleFiles(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
+        try writeNamespaceModules(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
     }
 
     if cmakeOptions != nil {
@@ -163,7 +163,22 @@ fileprivate func writeSwiftModuleFiles(
     }
 }
 
-fileprivate func writeNamespaceModuleFiles(
+/// Writes the directory structure containing namespace modules for a given module.
+///
+/// The structure looks like:
+///
+/// ```
+/// <root module directory>
+/// └── Namespaces
+///     ├── WindowsFoundation
+///     │   ├── Aliases.swift
+///     │   └── CMakeLists.txt
+///     ├── Flat
+///     │   ├── Flat.swift
+///     │   └── CMakeLists.txt
+///     └── CMakeLists.txt
+/// ```
+fileprivate func writeNamespaceModules(
         _ module: Module,
         cmakeOptions: CMakeOptions?,
         directoryPath: String) throws {
@@ -176,37 +191,34 @@ fileprivate func writeNamespaceModuleFiles(
         guard let namespace else { continue }
 
         let compactNamespace = Projection.toCompactNamespace(namespace)
-        compactNamespaces.append(compactNamespace)
-        let namespaceAliasesPath = "\(directoryPath)\\\(compactNamespace)\\Aliases.swift"
-        try writeNamespaceAliasesFile(
+        try writeNamespaceModule(
+            moduleName: module.getNamespaceModuleName(namespace: namespace),
             typeDefinitions: typeDefinitions,
             module: module,
-            toPath: namespaceAliasesPath)
+            cmakeOptions: cmakeOptions,
+            directoryPath: "\(directoryPath)\\\(compactNamespace)")
 
-        if let cmakeOptions {
-            let writer = CMakeListsWriter(output: FileTextOutputStream(
-                path: "\(directoryPath)\\\(compactNamespace)\\CMakeLists.txt",
-                directoryCreation: .ancestors))
-            let namespaceModuleName = module.getNamespaceModuleName(namespace: namespace)
-            let targetName = cmakeOptions.getTargetName(moduleName: namespaceModuleName)
-            writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
-            if targetName != namespaceModuleName {
-                writer.writeSingleLineCommand(
-                    "set_target_properties", .autoquote(targetName),
-                    "PROPERTIES", "Swift_MODULE_NAME", .autoquote(namespaceModuleName))
-            }
-            writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
-        }
+        compactNamespaces.append(compactNamespace)
     }
 
-    if cmakeOptions != nil, !compactNamespaces.isEmpty {
+    guard !compactNamespaces.isEmpty else { return }
+
+    compactNamespaces.sort()
+
+    try writeFlatNamespaceModule(
+        moduleName: module.name + "_Flat",
+        namespaceModuleNames: compactNamespaces.map { module.getNamespaceModuleName(namespace: $0) },
+        cmakeOptions: cmakeOptions,
+        directoryPath: "\(directoryPath)\\Flat")
+
+    if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        compactNamespaces.sort()
         for compactNamespace in compactNamespaces {
             writer.writeAddSubdirectory(compactNamespace)
         }
+        writer.writeAddSubdirectory("Flat")
     }
 }
 
@@ -283,16 +295,4 @@ fileprivate func getCOMInteropableTypes(typeDefinition: TypeDefinition, module: 
     // IReference<T> is implemented generically in the support module.
     if typeDefinition.namespace == "Windows.Foundation", typeDefinition.name == "IReference`1" { return [] }
     return module.getTypeInstantiations(definition: typeDefinition)
-}
-
-internal func writeNamespaceAliasesFile(typeDefinitions: [TypeDefinition], module: Module, toPath path: String) throws {
-    let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
-    writeGeneratedCodePreamble(to: writer)
-    writer.writeImport(module: module.name)
-
-    for typeDefinition in typeDefinitions.sorted(by: { $0.fullName < $1.fullName }) {
-        guard typeDefinition.isPublic else { continue }
-
-        try writeNamespaceAlias(typeDefinition, projection: module.projection, to: writer)
-    }
 }
