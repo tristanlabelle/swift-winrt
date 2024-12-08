@@ -66,7 +66,6 @@ fileprivate func hasComposableBase(_ classDefinition: ClassDefinition) throws ->
 }
 
 fileprivate struct ClassInterfaces {
-    var hasDefaultFactory = false
     var factories: [InterfaceDefinition] = []
     var `default`: BoundInterface? = nil
     var secondary: [Secondary] = []
@@ -83,18 +82,18 @@ fileprivate struct ClassInterfaces {
 
         guard !classDefinition.isStatic else {
             factories = []
-            hasDefaultFactory = false
             return
         }
 
         if classDefinition.isSealed {
-            let activatableAttributes = try classDefinition.getAttributes(ActivatableAttribute.self)
-            factories = activatableAttributes.compactMap { $0.factory }
-            hasDefaultFactory = activatableAttributes.count > factories.count
+            factories = try classDefinition.getAttributes(ActivatableAttribute.self).map {
+                if let factory = $0.factory { return factory }
+                return try classDefinition.context.coreLibrary.assembly.resolveTypeDefinition(
+                    namespace: "System.Runtime.InteropServices.WindowsRuntime", name: "IActivationFactory")
+            }
         }
         else {
             factories = try classDefinition.getAttributes(ComposableAttribute.self).map { $0.factory }
-            hasDefaultFactory = false
         }
 
         for baseInterface in classDefinition.baseInterfaces {
@@ -147,10 +146,6 @@ fileprivate func writeClassMembers(
 fileprivate func writeInterfaceImplementations(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    if interfaces.hasDefaultFactory {
-        try writeDefaultActivatableInitializer(classDefinition, projection: projection, to: writer)
-    }
-
     for factoryInterface in interfaces.factories {
         if factoryInterface.methods.isEmpty { continue }
 
@@ -230,6 +225,7 @@ fileprivate func writeSecondaryInterfaces(
         classDefinition: classDefinition, projection: projection, to: writer)
 
     for factoryInterface in interfaces.factories {
+        if factoryInterface.namespace.starts(with: "System.") { continue }
         try SecondaryInterfaces.writeDeclaration(factoryInterface.bind(), static: true, projection: projection, to: writer)
     }
 
@@ -334,39 +330,6 @@ fileprivate func hasComposableConstructor(classDefinition: ClassDefinition, para
     }
 
     return false
-}
-
-fileprivate func writeDefaultActivatableInitializer(
-        _ classDefinition: ClassDefinition,
-        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    let documentationComment: SwiftDocumentationComment?
-    if let constructor = classDefinition.findConstructor(arity: 0, inherited: false) {
-        documentationComment = try projection.getDocumentationComment(constructor)
-    } else {
-        documentationComment = nil
-    }
-
-    let baseClassDefinition = try getRuntimeClassBase(classDefinition)
-    let isOverriding = try baseClassDefinition.map {
-            try hasComposableConstructor(classDefinition: $0, paramTypes: [])
-        } ?? false
-
-    try writer.writeInit(
-            documentation: documentationComment,
-            visibility: .public,
-            override: isOverriding,
-            throws: true) { writer in
-        let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
-        let projectionClassName = try projection.toBindingTypeName(classDefinition)
-        writer.writeStatement("let _instance = \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
-            + ".activateInstance(binding: \(projectionClassName).self))")
-        if try hasComposableBase(classDefinition) {
-            writer.writeStatement("super.init(_wrapping: _instance.cast()) // Transitively casts down to IInspectable")
-        }
-        else {
-            writer.writeStatement("super.init(_wrapping: consume _instance)")
-        }
-    }
 }
 
 fileprivate func writeActivatableInitializers(
