@@ -61,7 +61,7 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
 
             var flatModuleTarget: SwiftPackage.Target = .target(name: module.name + "_Flat")
             flatModuleTarget.path = "\(module.name)/Namespaces/Flat"
-            flatModuleTarget.dependencies = namespaces.map { module.getNamespaceModuleName(namespace: $0) }
+            flatModuleTarget.dependencies = namespaces.map { .target(name: module.getNamespaceModuleName(namespace: $0)) }
             package.targets.append(flatModuleTarget)
             moduleProduct.targets.append(flatModuleTarget.name)
         }
