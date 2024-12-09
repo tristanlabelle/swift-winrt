@@ -88,8 +88,10 @@ fileprivate struct ClassInterfaces {
         if classDefinition.isSealed {
             factories = try classDefinition.getAttributes(ActivatableAttribute.self).map {
                 if let factory = $0.factory { return factory }
+                // If the factory is not specified, use the default IActivationFactory from mscorlib.winrt
                 return try classDefinition.context.coreLibrary.assembly.resolveTypeDefinition(
-                    namespace: "System.Runtime.InteropServices.WindowsRuntime", name: "IActivationFactory")
+                        namespace: "System.Runtime.InteropServices.WindowsRuntime", name: "IActivationFactory")
+                    as! InterfaceDefinition
             }
         }
         else {
@@ -225,7 +227,7 @@ fileprivate func writeSecondaryInterfaces(
         classDefinition: classDefinition, projection: projection, to: writer)
 
     for factoryInterface in interfaces.factories {
-        if factoryInterface.namespace.starts(with: "System.") { continue }
+        if factoryInterface.namespace?.starts(with: "System.") == true { continue }
         try SecondaryInterfaces.writeDeclaration(factoryInterface.bind(), static: true, projection: projection, to: writer)
     }
 
@@ -259,7 +261,7 @@ fileprivate func writeOverrideSupport(
         for interface in interfaces {
             // if id == uuidof(SWRT_IFoo.self) {
             let abiSwiftType = try projection.toABIType(interface.asBoundType)
-            try writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
+            writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                 let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
 
                 // _ifoo_outer.initEmbedder(self)
