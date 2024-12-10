@@ -12,8 +12,10 @@
         "generator": "Ninja",
         "binaryDir": "${sourceDir}/build/debug",
         "cacheVariables": {
-          "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-          "CMAKE_C_COMPILER": "clang-cl"
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_C_COMPILER": "clang",
+          "CMAKE_C_FLAGS_DEBUG": "-O0 -gdwarf -DNDEBUG",
+          "CMAKE_Swift_FLAGS_DEBUG": "-DDEBUG -Onone -Xfrontend -g -Xfrontend -debug-info-format=dwarf -use-ld=lld -Xlinker -debug:dwarf"
         }
       }
     ],
