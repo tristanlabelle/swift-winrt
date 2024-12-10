@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "MinimalDelegate.g.h"
 #include "DestructionCallback.g.h"
 #include "DestructionCallback.g.cpp"
 
