@@ -4,8 +4,9 @@ import WindowsMetadata
 
 extension Projection {
     public func toABIType(_ type: BoundType) throws -> SwiftType {
-        if let classDefinition = type.definition as? ClassDefinition {
-            // The ABI representation of a (non-static) class is that of its default interface.
+        if let classDefinition = type.definition as? ClassDefinition,
+                classDefinition.namespace?.starts(with: "System") != true {
+            // The ABI representation of a (non-static) WinRT class is that of its default interface.
             precondition(!classDefinition.isStatic)
             guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else {
                 throw WinMDError.missingAttribute
