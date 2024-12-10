@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "DestructionCallback.g.h"
-#include "DestructionCallback.g.cpp"
 
 namespace winrt::WinRTComponent::implementation
 {
@@ -18,3 +17,5 @@ namespace winrt::WinRTComponent::factory_implementation
     {
     };
 }
+
+#include "DestructionCallback.g.cpp"
