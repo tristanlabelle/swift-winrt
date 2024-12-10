@@ -1,0 +1,10 @@
+#include "MinimalTypes.idl"
+
+namespace WinRTComponent
+{
+    [default_interface]
+    unsealed runtimeclass DestructionCallback
+    {
+        DestructionCallback(MinimalDelegate callback);
+    };
+}

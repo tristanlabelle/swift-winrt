@@ -1,10 +1,10 @@
-// Includes all .idl files so we have a single <Midl Include="All.idl"> entry in the vcxproj.
-// This speeds up the build by avoiding multiple midlrt calls followed by an mdmerge step.
+// Includes all .idl files so we can call midlrt only once and avoid slow mdmerge steps.
 #include "Arrays.idl"
 #include "ByteBuffers.idl"
 #include "ClassInheritance.idl"
 #include "Collections.idl"
 #include "DateTimes.idl"
+#include "DestructionCallback.idl"
 #include "DocumentationComments.idl"
 #include "Enums.idl"
 #include "Errors.idl"
