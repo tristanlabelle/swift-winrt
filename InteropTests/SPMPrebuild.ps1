@@ -8,7 +8,9 @@ The path to SwiftWinRT.exe. If not provided, the script will build it with SPM.
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
-    [string] $SwiftWinRT
+    [string] $SwiftWinRT,
+    [ValidateSet("true", "false", "null")]
+    [string] $SwiftBug72724 = $null
 )
 
 Set-StrictMode -Version 3
@@ -38,10 +40,19 @@ else {
     $SwiftWinRT = [IO.Path]::GetFullPath($SwiftWinRT)
 }
 
-Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll & winmd..."
-$CMakePreset = "debug" # Tests are always built in debug mode
+Write-Host -ForegroundColor Cyan "Building WinRTComponent.dll, winmd and projection..."
 Push-Location "$PSScriptRoot\WinRTComponent"
-& cmake.exe --preset $CMakePreset -D "SWIFTWINRT_EXE=$SwiftWinRT" -D "PROJECTION_DIR=$(Get-Location)\Projection"
+$CMakePreset = "debug" # Tests are always built in debug mode
+$Defines = @(
+    "-D", "SWIFTWINRT_EXE=$SwiftWinRT",
+    "-D", "PROJECTION_DIR=$(Get-Location)\Projection"
+)
+switch ($SwiftBug72724) {
+    "true" { $Defines += @("-D", "SWIFT_BUG_72724=ON") }
+    "false" { $Defines += @("-D", "SWIFT_BUG_72724=OFF") }
+    default {}
+}
+& cmake.exe --preset $CMakePreset @Defines
 & cmake.exe --build --preset $CMakePreset --target WinRTComponent
 $WinRTComponentBinDir = "$(Get-Location)\build\$CMakePreset\Dll"
 Pop-Location
