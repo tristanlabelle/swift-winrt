@@ -2,7 +2,8 @@
 
 namespace WinRTComponent
 {
-    unsealed runtimeclass DestructionCallback: [default]IInspectable
+    [default_interface]
+    unsealed runtimeclass DestructionCallback
     {
         DestructionCallback(MinimalDelegate callback);
     };
