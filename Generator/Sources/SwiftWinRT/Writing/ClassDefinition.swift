@@ -179,7 +179,7 @@ fileprivate func writeInterfaceImplementations(
             thisPointer: thisPointer, projection: projection, to: writer)
     }
 
-    if !classDefinition.isSealed, interfaces.secondary.contains(where: { $0.overidable }) {
+    if !classDefinition.isSealed, interfaces.secondary.contains(where: { $0.overridable }) {
         // open override var supportsOverrides: Bool { Self.self != MyClass.self }
         try writer.writeComputedProperty(
             visibility: .open,
