@@ -147,19 +147,6 @@ fileprivate func writeClassMembers(
 fileprivate func writeInterfaceImplementations(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    if !classDefinition.isSealed {
-        // open override var supportsOverrides: Bool { Self.self != MyClass.self }
-        try writer.writeComputedProperty(
-            visibility: .open,
-            class: true,
-            override: true,
-            name: SupportModules.WinRT.composableClass_supportsOverrides,
-            type: .bool,
-            get: {
-                $0.writeStatement("Self.self != \(try projection.toTypeName(classDefinition)).self")
-            })
-    }
-
     if interfaces.hasDefaultFactory {
         try writeDefaultActivatableInitializer(classDefinition, projection: projection, to: writer)
     }
@@ -190,6 +177,19 @@ fileprivate func writeInterfaceImplementations(
         try writeMemberDefinitions(
             abiType: defaultInterface.asBoundType, classDefinition: classDefinition,
             thisPointer: thisPointer, projection: projection, to: writer)
+    }
+
+    if !classDefinition.isSealed, interfaces.secondary.contains(where: { $0.overidable }) {
+        // open override var supportsOverrides: Bool { Self.self != MyClass.self }
+        try writer.writeComputedProperty(
+            visibility: .open,
+            class: true,
+            override: true,
+            name: SupportModules.WinRT.composableClass_supportsOverrides,
+            type: .bool,
+            get: {
+                $0.writeStatement("Self.self != \(try projection.toTypeName(classDefinition)).self")
+            })
     }
 
     for secondaryInterface in interfaces.secondary {

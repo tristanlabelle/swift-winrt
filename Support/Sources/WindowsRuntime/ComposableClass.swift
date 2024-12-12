@@ -10,7 +10,7 @@ import WindowsRuntime_ABI
 /// - Creating a derived Swift class that can override methods
 open class ComposableClass: IInspectableProtocol {
     /// Return true to support overriding WinRT methods in Swift (incurs a size and perf overhead).
-    open class var supportOverrides: Bool { true }
+    open class var supportsOverrides: Bool { true }
 
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
     private var innerWithRef: IInspectablePointer // Strong ref'd (not a COMReference<> because of initialization order issues)
@@ -34,7 +34,7 @@ open class ComposableClass: IInspectableProtocol {
     /// Initializer for instances created in Swift
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
     public init<ABIStruct>(_factory: ComposableFactory<ABIStruct>) throws {
-        if Self.supportOverrides {
+        if Self.supportsOverrides {
             // Workaround Swift initialization rules:
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
