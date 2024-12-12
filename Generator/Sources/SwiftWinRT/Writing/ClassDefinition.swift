@@ -147,6 +147,19 @@ fileprivate func writeClassMembers(
 fileprivate func writeInterfaceImplementations(
         _ classDefinition: ClassDefinition, interfaces: ClassInterfaces,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
+    if !classDefinition.isSealed {
+        // open override var supportsOverrides: Bool { Self.self != MyClass.self }
+        try writer.writeComputedProperty(
+            visibility: .open,
+            class: true,
+            override: true,
+            name: SupportModules.WinRT.composableClass_supportsOverrides,
+            type: .bool,
+            get: {
+                $0.writeStatement("Self.self != \(try projection.toTypeName(classDefinition)).self")
+            })
+    }
+
     if interfaces.hasDefaultFactory {
         try writeDefaultActivatableInitializer(classDefinition, projection: projection, to: writer)
     }
@@ -310,8 +323,7 @@ fileprivate func writeComposableInitializers(
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
                 throws: true) { writer in
             let output = writer.output
-            let composeCondition = "Self.self != \(try projection.toTypeName(classDefinition)).self"
-            try output.writeLineBlock(header: "try super.init(_compose: \(composeCondition)) {", footer: "}") {
+            try output.writeLineBlock(header: "try super.init {", footer: "}") {
                 let outerObjectParamName = params[params.count - 2].name
                 let innerObjectParamName = params[params.count - 1].name
                 output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
@@ -437,13 +449,12 @@ fileprivate func writeDelegatingWrappingInitializer(
 
 fileprivate func writeDelegatingComposableInitializer(
         defaultInterface: BoundInterface, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
+    // public init<ABIStruct>(_factory: ComposableFactory<ABIStruct>) throws {
     writer.writeInit(visibility: .public,
             override: true,
             genericParams: [ "ABIStruct" ],
-            params: [ SwiftParam(name: "_compose", type: .bool),
-                        SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("ABIStruct") ])) ],
+            params: [ SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("ABIStruct") ])) ],
             throws: true) { writer in
-        writer.writeStatement("try super.init(_compose: _compose, _factory: _factory)")
+        writer.writeStatement("try super.init(_factory: _factory)")
     }
 }

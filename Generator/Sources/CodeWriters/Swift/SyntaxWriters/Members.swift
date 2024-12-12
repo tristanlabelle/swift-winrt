@@ -44,6 +44,7 @@ extension SwiftDeclarationWriter {
         documentation: SwiftDocumentationComment? = nil,
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
+        class: Bool = false,
         override: Bool = false,
         name: String,
         type: SwiftType,
@@ -58,6 +59,7 @@ extension SwiftDeclarationWriter {
         output.beginLine(group: .alone)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
+        if `class` { output.write("class ") }
         if `override` { output.write("override ") }
         output.write("var ")
         SwiftIdentifier.write(name, to: &output)
