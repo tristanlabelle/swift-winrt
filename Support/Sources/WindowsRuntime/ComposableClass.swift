@@ -9,6 +9,9 @@ import WindowsRuntime_ABI
 /// - Creating a new WinRT object, which does not need to support method overrides
 /// - Creating a derived Swift class that can override methods
 open class ComposableClass: IInspectableProtocol {
+    /// Return true to support overriding WinRT methods in Swift (incurs a size and perf overhead).
+    open class var supportsOverrides: Bool { true }
+
     /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
     private var innerWithRef: IInspectablePointer // Strong ref'd (not a COMReference<> because of initialization order issues)
 
@@ -29,10 +32,9 @@ open class ComposableClass: IInspectableProtocol {
         _ inner: inout IInspectablePointer?) throws -> COMReference<ABIStruct>
 
     /// Initializer for instances created in Swift
-    /// - Parameter _compose: Whether to create a composed object that supports method overrides in Swift.
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
-    public init<ABIStruct>(_compose: Bool, _factory: ComposableFactory<ABIStruct>) throws {
-        if _compose {
+    public init<ABIStruct>(_factory: ComposableFactory<ABIStruct>) throws {
+        if Self.supportsOverrides {
             // Workaround Swift initialization rules:
             // - Factory needs an initialized outer pointer pointing to self
             // - self.inner needs to be initialized before being able to reference self
@@ -65,8 +67,6 @@ open class ComposableClass: IInspectableProtocol {
     open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
 
     public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        // Workaround for 5.9 compiler bug when using inner.interop directly:
-        // "error: copy of noncopyable typed value. This is a compiler bug"
         try COMInterop(innerWithRef).queryInterface(id)
     }
 
@@ -96,20 +96,14 @@ open class ComposableClass: IInspectableProtocol {
     open func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional { .none }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
-        // Workaround for 5.9 compiler bug when using inner.interop directly:
-        // "error: copy of noncopyable typed value. This is a compiler bug"
         try COMInterop(innerWithRef).getIids() + Self.queriableInterfaces.map { $0.interfaceID }
     }
 
     open func getRuntimeClassName() throws -> String {
-        // Workaround for 5.9 compiler bug when using inner.interop directly:
-        // "error: copy of noncopyable typed value. This is a compiler bug"
         try COMInterop(innerWithRef).getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
-        // Workaround for 5.9 compiler bug when using inner.interop directly:
-        // "error: copy of noncopyable typed value. This is a compiler bug"
         try COMInterop(innerWithRef).getTrustLevel()
     }
 }

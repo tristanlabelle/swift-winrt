@@ -77,6 +77,7 @@ extension SupportModules.WinRT {
     public static var composableClassBinding: SwiftType { .chain(moduleName, "ComposableClassBinding") }
 
     public static var composableClass: SwiftType { .chain(moduleName, "ComposableClass") }
+    public static var composableClass_supportsOverrides: String { "supportsOverrides" }
 
     public static func winRTImport(of type: SwiftType) -> SwiftType {
         .chain([ .init(moduleName), .init("WinRTImport", genericArgs: [type]) ])
