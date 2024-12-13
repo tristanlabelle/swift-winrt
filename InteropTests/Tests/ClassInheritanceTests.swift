@@ -61,7 +61,7 @@ class ClassInheritanceTests : XCTestCase {
 
     public func testOverridenMemberInSwiftDerivedClassWithoutOverrides() throws {
         class SwiftDerivedClass: MinimalBaseClass, @unchecked Sendable {
-            override class var supportOverrides: Bool { false }
+            override class var supportsOverrides: Bool { false }
             public override init() throws { try super.init() }
             public override var typeName: String { get throws { "SwiftDerivedClass" } }
         }
