@@ -59,14 +59,14 @@ class ClassInheritanceTests : XCTestCase {
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedDerivedClass()), "SwiftDerivedDerivedClass")
     }
 
-    public func testOverridenMemberInSwiftDerivedClassWithoutOverrides() throws {
+    public func testOverridenMemberInSwiftDerivedClassWithoutOverrideSupport() throws {
         class SwiftDerivedClass: MinimalBaseClass, @unchecked Sendable {
             override class var supportsOverrides: Bool { false }
             public override init() throws { try super.init() }
             public override var typeName: String { get throws { "SwiftDerivedClass" } }
         }
 
-        XCTAssertEqual(try SwiftDerivedClass().typeName, "MinimalBaseClass")
+        XCTAssertEqual(try SwiftDerivedClass().typeName, "SwiftDerivedClass")
         XCTAssertEqual(try MinimalBaseClassHierarchy.getTypeName(SwiftDerivedClass()), "MinimalBaseClass")
     }
 
