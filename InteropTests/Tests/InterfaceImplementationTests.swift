@@ -17,7 +17,7 @@ class InterfaceImplementationTests: WinRTTestCase {
             let exported = Exported()
             let minimalInterface = try exported.queryInterface(MinimalInterfaceBinding.self)
             XCTAssertEqual(exported.callCount, 0)
-            minimalInterface.method()
+            try minimalInterface.method()
             XCTAssertTrue(exported.callCount, 1)
         }
 
@@ -25,7 +25,7 @@ class InterfaceImplementationTests: WinRTTestCase {
             let exported = Exported()
             let minimalInterface = try InterfaceCasting.asMinimalInterface(exported)
             XCTAssertEqual(exported.callCount, 0)
-            minimalInterface.method()
+            try minimalInterface.method()
             XCTAssertTrue(exported.callCount, 1)
         }
     }
@@ -44,7 +44,7 @@ class InterfaceImplementationTests: WinRTTestCase {
             let derived = Derived()
             let minimalInterface = try derived.queryInterface(MinimalInterfaceBinding.self)
             XCTAssertEqual(derived.callCount, 0)
-            minimalInterface.method()
+            try minimalInterface.method()
             XCTAssertTrue(derived.callCount, 1)
         }
 
@@ -52,7 +52,7 @@ class InterfaceImplementationTests: WinRTTestCase {
             let derived = Derived()
             let minimalInterface = try InterfaceCasting.asMinimalInterface(derived)
             XCTAssertEqual(derived.callCount, 0)
-            minimalInterface.method()
+            try minimalInterface.method()
             XCTAssertTrue(derived.callCount, 1)
         }
     }
