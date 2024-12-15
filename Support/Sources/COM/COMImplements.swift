@@ -13,7 +13,7 @@ public struct COMImplements<InterfaceBinding: COMTwoWayBinding>: ~Copyable {
         toCOM(embedder: embedder as! IUnknown)
     }
 
-    internal mutating func toCOM(embedder: AnyObject) -> InterfaceBinding.ABIReference {
+    internal mutating func toCOM(embedder: IUnknown) -> InterfaceBinding.ABIReference {
         embedding.initEmbedder(embedder)
         return embedding.toCOM().cast()
     }
