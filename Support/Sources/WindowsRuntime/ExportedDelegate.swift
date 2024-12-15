@@ -1,15 +1,13 @@
 import COM
 
 /// A COM-exported object delegating its implementation to a Swift object.
-public final class ExportedDelegate<Binding: DelegateBinding>: IUnknownProtocol {
-    private var comEmbedding: COMEmbeddingEx
+public final class ExportedDelegate<Binding: DelegateBinding>: COMEmbedderEx, IUnknownProtocol {
+    private var comEmbedding: COMEmbedding
 
     public init(_ closure: Binding.SwiftObject) {
-        self.comEmbedding = .null // Required before referring to self
-        self.comEmbedding = .init(
-            virtualTable: Binding.virtualTablePointer,
-            embedder: self,
-            externalImplementer: closure as AnyObject)
+        self.comEmbedding = .init(virtualTable: Binding.virtualTablePointer, embedder: nil)
+        super.init(implementer: closure as AnyObject)
+        self.comEmbedding.initEmbedder(self as COMEmbedderEx)
     }
 
     public func toCOM() -> Binding.ABIReference {

@@ -40,15 +40,13 @@ extension COMExportTests {
     }
 
 
-    fileprivate final class ICOMTestClosureDelegate: IUnknownProtocol {
-        var comEmbedding: COMEmbeddingEx
+    fileprivate final class ICOMTestClosureDelegate: COMEmbedderEx, IUnknownProtocol {
+        var comEmbedding: COMEmbedding
 
         init(_ closure: @escaping () throws -> Void) {
-            comEmbedding = .null
-            comEmbedding = .init(
-                virtualTable: ICOMTestClosureBinding.virtualTablePointer,
-                embedder: self,
-                externalImplementer: closure as AnyObject)
+            comEmbedding = .init(virtualTable: ICOMTestClosureBinding.virtualTablePointer, embedder: nil)
+            super.init(implementer: closure as AnyObject)
+            comEmbedding.initEmbedder(self as COMEmbedderEx)
         }
 
         func toCOM() -> COMReference<SWRT_ICOMTest> {

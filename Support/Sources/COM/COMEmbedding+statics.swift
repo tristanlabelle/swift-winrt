@@ -2,50 +2,63 @@ import COM_ABI
 import COM_PrivateABI
 
 extension COMEmbedding {
-    fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
+    fileprivate static func getEmbedderAndFlagsUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> UInt {
         this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            let opaquePointer = UnsafeMutableRawPointer(bitPattern: $0.pointee.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-            assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
-            return Unmanaged<AnyObject>.fromOpaque(opaquePointer!)
+            $0.pointee.swiftEmbedderAndFlags
         }
     }
 
+    fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
+        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+        return Unmanaged<AnyObject>.fromOpaque(opaquePointer!)
+    }
+
+    fileprivate static func getEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject {
+        getUnmanagedEmbedderUnsafe(this).takeUnretainedValue()
+    }
+
     fileprivate static func getIUnknownUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> IUnknown {
-        // IUnknown can either be implemented by the embedder or by a separately stored implementer.
-        let opaquePointer = this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_ExternalImplementerIsIUnknown) == 0 {
-                // The embedder implements IUnknown.
-                return UnsafeMutableRawPointer(bitPattern: $0.pointee.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-            } else {
-                // The separately stored external implementer implements IUnknown.
-                return $0.withMemoryRebound(to: SWRT_COMEmbeddingEx.self, capacity: 1) {
-                    $0.pointee.swiftImplementer_retained
-                }
-            }
+        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
+
+        // COMEmbedding/COMImplements should guarantee that the embedder is not null,
+        // and that it either implements IUnknown, or derives from COMEmbedderEx to provide an implementation.
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+
+        if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
+            // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
+            return Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue().unknown
         }
 
-        assert(opaquePointer != nil, "Bad COM object embedding. The IUnknown pointer is nil.")
-        return Unmanaged<AnyObject>.fromOpaque(opaquePointer!).takeUnretainedValue() as! IUnknown
+        let unknown =  Unmanaged<AnyObject>.fromOpaque(opaquePointer!).takeUnretainedValue() as? IUnknown
+        assert(unknown != nil, "Bad COM object embedding. Did not implement IUnknown.")
+        return unknown!
     }
 
     /// Gets the Swift object that provides the implementation for the given COM interface,
     /// assuming that it is an embedded COM interface, and otherwise crashes.
     public static func getImplementerUnsafe<ABIStruct, Implementer>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementer.Type = Implementer.self) -> Implementer {
-        let opaquePointer = this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            if ($0.pointee.swiftEmbedderAndFlags & SWRT_COMEmbeddingFlags_ExternalImplementer) == 0 {
-                // The embedder is the implementer.
-                return UnsafeMutableRawPointer(bitPattern: $0.pointee.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-            } else {
-                // An external implementer is stored separately.
-                return $0.withMemoryRebound(to: SWRT_COMEmbeddingEx.self, capacity: 1) {
-                    $0.pointee.swiftImplementer_retained
-                }
-            }
+        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
+
+        // COMEmbedding/COMImplements should guarantee that the embedder is not null,
+        // and that it either implements IUnknown, or derives from COMEmbedderEx to provide an implementation.
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+
+        let implementerObject: AnyObject?
+        if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
+            // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
+            implementerObject = Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue().implementer
+        } else {
+            implementerObject = Unmanaged<AnyObject>.fromOpaque(opaquePointer!).takeUnretainedValue()
         }
 
-        assert(opaquePointer != nil, "Bad COM object embedding. The implementer pointer is nil.")
-        return Unmanaged<AnyObject>.fromOpaque(opaquePointer!).takeUnretainedValue() as! Implementer
+        let implementer = implementerObject as? Implementer
+        assert(implementer != nil, "Bad COM object embedding. Did not provide the expected implementation of \(Implementer.self).")
+        return implementer!
     }
 
     public static func getImplementer<ABIStruct, Implementer>(
