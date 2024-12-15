@@ -1,7 +1,7 @@
 /// Base for Swift classes that implement one or more COM interfaces and owns the COM object identity,
 /// meaning that they own the object returned when using QueryInterface for IUnknown.
 /// The generic Binding parameter determines the virtual table of the identity object.
-open class COMExport<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
+open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
     /// Gets the interfaces that can be queried for using queryInterface.
     open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
     open class var implementIAgileObject: Bool { true }
@@ -26,7 +26,7 @@ open class COMExport<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownProtoco
                 return try FreeThreadedMarshal(self).toCOM().cast()
             default:
                 if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                    return COMDelegatingExport(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
+                    return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
                 }
                 throw COMError.noInterface
         }

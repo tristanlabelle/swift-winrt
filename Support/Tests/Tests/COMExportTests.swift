@@ -2,7 +2,7 @@ import XCTest
 import WindowsRuntime
 
 internal final class COMExportTests: XCTestCase {
-    final class TestObject: COMExport<IUnknownBinding>, ICOMTestProtocol, ICOMTest2Protocol {
+    final class TestObject: COMExportBase<IUnknownBinding>, ICOMTestProtocol, ICOMTest2Protocol {
         override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
             ICOMTestBinding.self,
             ICOMTest2Binding.self
@@ -38,11 +38,11 @@ internal final class COMExportTests: XCTestCase {
     }
 
     func testIAgileObject() throws {
-        final class AgileObject: COMExport<IUnknownBinding> {
+        final class AgileObject: COMExportBase<IUnknownBinding> {
             override class var implementIAgileObject: Bool { true }
         }
 
-        final class NonAgileObject: COMExport<IUnknownBinding> {
+        final class NonAgileObject: COMExportBase<IUnknownBinding> {
             override class var implementIAgileObject: Bool { false }
         }
 
@@ -51,11 +51,11 @@ internal final class COMExportTests: XCTestCase {
     }
 
     func testFreeThreadedMarshalability() throws {
-        final class Marshalable: COMExport<IUnknownBinding> {
+        final class Marshalable: COMExportBase<IUnknownBinding> {
             override class var implementFreeThreadedMarshaling: Bool { true }
         }
 
-        final class NonMarshalable: COMExport<IUnknownBinding> {
+        final class NonMarshalable: COMExportBase<IUnknownBinding> {
             override class var implementFreeThreadedMarshaling: Bool { false }
         }
 
@@ -65,7 +65,7 @@ internal final class COMExportTests: XCTestCase {
     }
 
     func testSecondaryInterface() throws {
-        final class CallCounter: COMExport<IUnknownBinding>, ICOMTestProtocol {
+        final class CallCounter: COMExportBase<IUnknownBinding>, ICOMTestProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 ICOMTestBinding.self
             ] }
@@ -84,7 +84,7 @@ internal final class COMExportTests: XCTestCase {
     }
 
     func testEmbeddedSecondaryInterface() throws {
-        final class CallCounter: COMExport<IUnknownBinding>, ICOMTestProtocol {
+        final class CallCounter: COMExportBase<IUnknownBinding>, ICOMTestProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 ICOMTestBinding.self
             ] }

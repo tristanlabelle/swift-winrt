@@ -85,7 +85,7 @@ open class ComposableClass: IInspectableProtocol {
 
             // Check for additional implemented interfaces.
             if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                return COMDelegatingExport(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
+                return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
             }
         }
 
