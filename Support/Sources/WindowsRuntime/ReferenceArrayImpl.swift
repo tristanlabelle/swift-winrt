@@ -2,7 +2,7 @@ import WindowsRuntime_ABI
 
 /// Implements IReferenceArray<T> for any boxable T not provided by the UWP PropertyValue class (value types and delegates).
 internal class ReferenceArrayImpl<TBinding: IReferenceableBinding>
-        : WinRTExport<WindowsFoundation_IReferenceArrayBinding<TBinding>>,
+        : WinRTExportBase<WindowsFoundation_IReferenceArrayBinding<TBinding>>,
         WindowsFoundation_IReferenceArrayProtocol {
     public typealias T = TBinding.SwiftValue
 

@@ -3,7 +3,7 @@ import WindowsRuntime
 
 internal final class WinRTExportTests: XCTestCase {
     func testIInspectableIdentityRule() throws {
-        final class TestObject: WinRTExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
+        final class TestObject: WinRTExportBase<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 ICOMTestBinding.self,
                 IWinRTTestBinding.self
@@ -23,7 +23,7 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testGetIids() throws {
-        final class TestObject: WinRTExport<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
+        final class TestObject: WinRTExportBase<IInspectableBinding>, ICOMTestProtocol, IWinRTTestProtocol {
             override class var queriableInterfaces: [any COMTwoWayBinding.Type] { [
                 ICOMTestBinding.self,
                 IWinRTTestBinding.self
@@ -41,7 +41,7 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testIStringable() throws {
-        final class Stringable: WinRTExport<IInspectableBinding>, CustomStringConvertible {
+        final class Stringable: WinRTExportBase<IInspectableBinding>, CustomStringConvertible {
             var description: String { "hello" }
         }
 
@@ -49,11 +49,11 @@ internal final class WinRTExportTests: XCTestCase {
     }
 
     func testIWeakReferenceSource() throws {
-        final class WeakReferenceSource: WinRTExport<IInspectableBinding> {
+        final class WeakReferenceSource: WinRTExportBase<IInspectableBinding> {
             override class var implementIWeakReferenceSource: Bool { true }
         }
 
-        final class NonWeakReferenceSource: WinRTExport<IInspectableBinding> {
+        final class NonWeakReferenceSource: WinRTExportBase<IInspectableBinding> {
             override class var implementIWeakReferenceSource: Bool { false }
         }
 

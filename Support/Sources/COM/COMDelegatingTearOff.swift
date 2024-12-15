@@ -1,7 +1,7 @@
 import COM_ABI
 
-/// Exposes a secondary COM interface whose implementation is delegated to a primary Swift exported object.
-public final class COMDelegatingExport: COMEmbedderEx {
+/// A COM tear-off object providing a COM virtual table for an interface implemented by the Swift owner object.
+public final class COMDelegatingTearOff: COMEmbedderEx {
     private var comEmbedding: COMEmbedding
 
     public init(virtualTable: UnsafeRawPointer, implementer: IUnknown) {

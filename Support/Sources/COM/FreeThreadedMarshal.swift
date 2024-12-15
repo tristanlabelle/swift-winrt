@@ -1,7 +1,7 @@
 import COM_ABI
 
 /// Provides an implementation of IMarshal based on the COM free-threaded marshaler.
-public final class FreeThreadedMarshal: COMTearOff<FreeThreadedMarshalBinding> {
+public final class FreeThreadedMarshal: COMTearOffBase<FreeThreadedMarshalBinding> {
     private let marshaler: COMReference<SWRT_IMarshal>
 
     public init(_ owner: IUnknown) throws {

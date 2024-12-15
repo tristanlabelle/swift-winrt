@@ -1,5 +1,5 @@
 /// A COM-exported object providing a secondary interface to a primary exported object.
-open class COMTearOff<InterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
+open class COMTearOffBase<InterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
     private var implements: COMImplements<InterfaceBinding> = .init()
     public let owner: IUnknown
 

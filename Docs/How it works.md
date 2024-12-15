@@ -135,7 +135,7 @@ enum IFooBinding: COMBinding { // COMBinding conforms to ABIBinding
 }
 ```
 
-### COMExport Base Class
+### COMExportBase Base Class
 
 What if we want to implement `IFooProtocol` in Swift and pass it to a COM method?
 
@@ -144,11 +144,11 @@ This is a different problem. Now we have a Swift native object that we must turn
 For example:
 
 ```swift
-class MyFoo: COMExport<IFooBinding>, IFooProtocol {
+class MyFoo: COMExportBase<IFooBinding>, IFooProtocol {
     public func getName() throws -> String { "George" }
 }
 
-// COMExport has a field that looks like a COM object:
+// COMExportBase has a field that looks like a COM object:
 // typedef struct SWRT_COMEmbedding {
 //     const void* virtualTable;
 //     void* swiftEmbedder; // Will point back to MyFoo
