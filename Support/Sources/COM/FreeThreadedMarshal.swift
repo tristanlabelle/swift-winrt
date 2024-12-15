@@ -1,15 +1,15 @@
 import COM_ABI
 
 /// Provides an implementation of IMarshal based on the COM free-threaded marshaler.
-public final class FreeThreadedMarshal: COMSecondaryExport<FreeThreadedMarshalBinding> {
+public final class FreeThreadedMarshal: COMTearOff<FreeThreadedMarshalBinding> {
     private let marshaler: COMReference<SWRT_IMarshal>
 
-    public init(_ identity: IUnknown) throws {
+    public init(_ owner: IUnknown) throws {
         var marshalerUnknown: IUnknownPointer? = nil
         try COMError.fromABI(SWRT_CoCreateFreeThreadedMarshaler(/* pUnkOuter: */ nil, &marshalerUnknown))
         guard let marshalerUnknown else { throw COMError.noInterface }
         self.marshaler = COMReference(transferringRef: marshalerUnknown).cast()
-        super.init(identity: identity)
+        super.init(owner: owner)
     }
 
     func getUnmarshalClass(_ riid: UnsafeMutablePointer<SWRT_Guid>?, _ pv: UnsafeMutableRawPointer?, _ dwDestContext: UInt32, _ pvDestContext: UnsafeMutableRawPointer?, _ mshlflags: UInt32, _ pCid: UnsafeMutablePointer<SWRT_Guid>?) throws {

@@ -1,10 +1,10 @@
 /// A COM-exported object providing a secondary interface to a primary exported object.
-open class COMSecondaryExport<InterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
+open class COMTearOff<InterfaceBinding: COMTwoWayBinding>: IUnknownProtocol {
     private var implements: COMImplements<InterfaceBinding> = .init()
-    public let identity: IUnknown
+    public let owner: IUnknown
 
-    public init(identity: IUnknown) {
-        self.identity = identity
+    public init(owner: IUnknown) {
+        self.owner = owner
     }
 
     public func toCOM() -> InterfaceBinding.ABIReference {
@@ -14,7 +14,7 @@ open class COMSecondaryExport<InterfaceBinding: COMTwoWayBinding>: IUnknownProto
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
             case InterfaceBinding.interfaceID: return toCOM().cast()
-            default: return try identity._queryInterface(id)
+            default: return try owner._queryInterface(id)
         }
     }
 }
