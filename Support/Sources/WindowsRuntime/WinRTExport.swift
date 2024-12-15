@@ -13,10 +13,10 @@ open class WinRTExport<PrimaryInterfaceBinding: InterfaceBinding>: COMExport<Pri
             case IInspectableBinding.interfaceID:
                 return toCOM().cast()
             case IWeakReferenceSourceBinding.interfaceID where Self.implementIWeakReferenceSource:
-                return ExportedWeakReferenceSource(target: self).toCOM().cast()
+                return WeakReferenceSourceTearOff(owner: self).toCOM().cast()
             case WindowsFoundation_IStringableBinding.interfaceID where Self.implementIStringable:
                 if let customStringConvertible = self as? any CustomStringConvertible {
-                    return ExportedStringable(implementation: customStringConvertible, identity: self).toCOM().cast()
+                    return StringableTearOff(owner: self, implementation: customStringConvertible).toCOM().cast()
                 }
                 break
             default: break
@@ -36,31 +36,31 @@ open class WinRTExport<PrimaryInterfaceBinding: InterfaceBinding>: COMExport<Pri
     public final func getTrustLevel() throws -> TrustLevel { Self._trustLevel }
 }
 
-open class WinRTSecondaryExport<Binding: InterfaceBinding>: COMSecondaryExport<Binding>, IInspectableProtocol {
-    public init(identity: IInspectable) {
-        super.init(identity: identity)
+open class WinRTTearOff<Binding: InterfaceBinding>: COMTearOff<Binding>, IInspectableProtocol {
+    public init(owner: IInspectable) {
+        super.init(owner: owner)
     }
 
     // Delegate to the identity object, though we should be using that object's IInspectable implementation in the first place.
-    public func getIids() throws -> [COMInterfaceID] { try (identity as! IInspectable).getIids() }
-    public func getRuntimeClassName() throws -> String { try (identity as! IInspectable).getRuntimeClassName() }
-    public func getTrustLevel() throws -> TrustLevel { try (identity as! IInspectable).getTrustLevel() }
+    public func getIids() throws -> [COMInterfaceID] { try (owner as! IInspectable).getIids() }
+    public func getRuntimeClassName() throws -> String { try (owner as! IInspectable).getRuntimeClassName() }
+    public func getTrustLevel() throws -> TrustLevel { try (owner as! IInspectable).getTrustLevel() }
 }
 
-fileprivate class ExportedStringable: WinRTSecondaryExport<WindowsFoundation_IStringableBinding>, WindowsFoundation_IStringableProtocol {
+fileprivate class StringableTearOff: WinRTTearOff<WindowsFoundation_IStringableBinding>, WindowsFoundation_IStringableProtocol {
     private let implementation: any CustomStringConvertible
 
-    init(implementation: any CustomStringConvertible, identity: IInspectable) {
+    init(owner: IInspectable, implementation: any CustomStringConvertible) {
         self.implementation = implementation
-        super.init(identity: identity)
+        super.init(owner: owner)
     }
 
     func toString() throws -> String { implementation.description }
 }
 
-fileprivate class ExportedWeakReferenceSource: COMSecondaryExport<IWeakReferenceSourceBinding>, IWeakReferenceSourceProtocol {
-    init(target: IInspectable) { super.init(identity: target) }
-    func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: identity as! IInspectable) }
+fileprivate class WeakReferenceSourceTearOff: COMTearOff<IWeakReferenceSourceBinding>, IWeakReferenceSourceProtocol {
+    init(owner: IInspectable) { super.init(owner: owner) }
+    func getWeakReference() throws -> IWeakReference { ExportedWeakReference(target: owner as! IInspectable) }
 }
 
 fileprivate class ExportedWeakReference: COMExport<IWeakReferenceBinding>, IWeakReferenceProtocol {
