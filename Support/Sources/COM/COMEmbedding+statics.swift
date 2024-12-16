@@ -8,15 +8,18 @@ extension COMEmbedding {
         }
     }
 
-    fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
+    fileprivate static func getUnmanagedRefCounteeUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
         let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
         let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
         assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
-        return Unmanaged<AnyObject>.fromOpaque(opaquePointer!)
-    }
 
-    fileprivate static func getEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> AnyObject {
-        getUnmanagedEmbedderUnsafe(this).takeUnretainedValue()
+        if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
+            // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
+            let embedder = Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue()
+            return Unmanaged.passUnretained(embedder.refCountee)
+        } else {
+            return Unmanaged<AnyObject>.fromOpaque(opaquePointer!)
+        }
     }
 
     fileprivate static func getIUnknownUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> IUnknown {
@@ -85,7 +88,7 @@ public enum IUnknownVirtualTable {
             return 0
         }
 
-        let unmanaged = COMEmbedding.getUnmanagedEmbedderUnsafe(this)
+        let unmanaged = COMEmbedding.getUnmanagedRefCounteeUnsafe(this)
         _ = unmanaged.retain()
         // Best effort refcount
         return UInt32(_getRetainCount(unmanaged.takeUnretainedValue()))
@@ -97,7 +100,7 @@ public enum IUnknownVirtualTable {
             return 0
         }
 
-        let unmanaged = COMEmbedding.getUnmanagedEmbedderUnsafe(this)
+        let unmanaged = COMEmbedding.getUnmanagedRefCounteeUnsafe(this)
         let oldRetainCount = _getRetainCount(unmanaged.takeUnretainedValue())
         unmanaged.release()
         // Best effort refcount

@@ -2,11 +2,15 @@ import COM
 
 /// A COM-exported object delegating its implementation to a Swift object.
 public final class ExportedDelegate<Binding: DelegateBinding>: COMEmbedderEx, IUnknownProtocol {
+    private let closureObject: AnyObject
     private var comEmbedding: COMEmbedding
+
+    public override var implementer: AnyObject { closureObject }
 
     public init(_ closure: Binding.SwiftObject) {
         self.comEmbedding = .init(virtualTable: Binding.virtualTablePointer, embedder: nil)
-        super.init(implementer: closure as AnyObject)
+        self.closureObject = closure as AnyObject
+        super.init()
         self.comEmbedding.initEmbedder(self as COMEmbedderEx)
     }
 
