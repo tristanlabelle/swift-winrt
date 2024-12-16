@@ -1,20 +1,18 @@
 
 /// Base class for Swift objects embedding COM interfaces,
-/// but which do not directly provide their implementation.
+/// which need tight control on which object implements
+/// AddRef, Release, QueryInterface and other COM methods.
 /// 
 /// This is a base class and not a protocol for faster upcasting.
 open class COMEmbedderEx {
-    public let implementer: AnyObject
+    public init() {}
 
-    // Either of self or implementer must provide the IUnknown implementation.
-    internal var unknown: IUnknown { (self as? IUnknown) ?? (implementer as! IUnknown) }
+    /// Gets the object whose reference count gets modified by AddRef/Release.
+    open var refCountee: AnyObject { self }
 
-    public init(implementer: IUnknown) {
-        self.implementer = implementer
-    }
+    /// Gets the object that implements QueryInterface.
+    var unknown: IUnknown { (self as? IUnknown) ?? (implementer as! IUnknown) }
 
-    public init(implementer: AnyObject) {
-        self.implementer = implementer
-        assert(self is IUnknown || implementer is IUnknown)
-    }
+    /// Gets the object that implements embedded COM interfaces.
+    open var implementer: AnyObject { self }
 }
