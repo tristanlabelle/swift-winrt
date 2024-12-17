@@ -275,19 +275,73 @@ fileprivate func writeClassBindingType(
             projection: projection,
             to: writer)
 
+        if !classDefinition.isSealed {
+            try writeComposableClassOuterObject(classDefinition, projection: projection, to: writer)
+        }
+    }
+}
+
+fileprivate func writeComposableClassOuterObject(
+        _ classDefinition: ClassDefinition,
+        projection: Projection,
+        to writer: SwiftTypeDefinitionWriter) throws {
+    let baseOuterObject: SwiftType
+    if let base = try classDefinition.base, try base.definition.base != nil {
+        // FIXME: Append .OuterObject
+        baseOuterObject = SwiftType.identifier(try projection.toBindingTypeName(base.definition))
+    } else {
+        // FIXME: Append .OuterObject
+        baseOuterObject = SupportModules.WinRT.composableClass
+    }
+
+    let outerObjectClassName = "OuterObject"
+
+    try writer.writeClass(
+            visibility: .open,
+            name: outerObjectClassName,
+            base: baseOuterObject) { writer in
         let overridableInterfaces = try classDefinition.baseInterfaces.compactMap {
             try $0.hasAttribute(OverridableAttribute.self) ? $0.interface : nil
         }
-        if !overridableInterfaces.isEmpty {
-            try writer.writeEnum(visibility: .internal, name: "VirtualTables") { writer in
-                for interface in overridableInterfaces {
-                    try writeVirtualTableProperty(
-                        visibility: .internal,
-                        name: Casing.pascalToCamel(interface.definition.nameWithoutGenericArity),
-                        abiType: interface.asBoundType, swiftType: classDefinition.bindType(),
-                        projection: projection, to: writer)
+        guard !overridableInterfaces.isEmpty else { return }
+
+        // public override func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
+        try writer.writeFunc(
+                visibility: .public, override: true, name: "_queryInterface",
+                params: [ .init(label: "_", name: "id", type: SupportModules.COM.comInterfaceID) ], throws: true,
+                returnType: SupportModules.COM.iunknownReference) { writer in
+            for interface in overridableInterfaces {
+                // if id == uuidof(SWRT_IFoo.self) {
+                let abiSwiftType = try projection.toABIType(interface.asBoundType)
+                writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
+                    let propertyName = SecondaryInterfaces.getPropertyName(interface)
+
+                    // _ifoo_outer.initEmbedder(self)
+                    // return .init(_ifoo_outer.toCOM())
+                    writer.writeStatement("\(propertyName).initEmbedder(self)")
+                    writer.writeReturnStatement(value: ".init(\(propertyName).toCOM())")
                 }
             }
+
+            writer.writeReturnStatement(value: "try super._queryInterface(id)")
+        }
+
+        for interface in overridableInterfaces {
+            // private var _ifoo: COM.COMEmbedding = .init(virtualTable: &OuterObject.istringable, embedder: nil)
+            let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
+            writer.writeStoredProperty(
+                visibility: .private, declarator: .var,
+                name: SecondaryInterfaces.getPropertyName(interface),
+                type: SupportModules.COM.comEmbedding,
+                initialValue: ".init(virtualTable: &\(outerObjectClassName).\(vtablePropertyName), embedder: nil)")
+        }
+
+        for interface in overridableInterfaces {
+            try writeVirtualTableProperty(
+                visibility: .internal,
+                name: Casing.pascalToCamel(interface.definition.nameWithoutGenericArity),
+                abiType: interface.asBoundType, swiftType: classDefinition.bindType(),
+                projection: projection, to: writer)
         }
     }
 }
