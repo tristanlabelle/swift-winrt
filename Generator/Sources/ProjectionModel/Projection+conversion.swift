@@ -21,7 +21,7 @@ extension Projection {
 
     public func toBaseProtocol(_ interface: InterfaceDefinition) throws -> SwiftType {
         // Protocols have no generic arguments in base type lists
-        .identifier(name: try toProtocolName(interface))
+       .named(try toProtocolName(interface))
     }
 
     public func toBaseType(_ type: BoundType?) throws -> SwiftType? {
@@ -34,7 +34,7 @@ extension Projection {
             return try toBaseProtocol(interfaceDefinition)
         }
         else {
-            return .identifier(name: try toTypeName(type.definition))
+            return .named(try toTypeName(type.definition))
         }
     }
 

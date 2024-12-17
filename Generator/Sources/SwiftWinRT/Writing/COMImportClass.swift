@@ -17,7 +17,7 @@ internal func writeCOMImportClass(
     switch type.definition {
         case let interfaceDefinition as InterfaceDefinition:
             importBaseTypeName = "WinRTImport"
-            protocolConformances = [ .identifier(name: try projection.toProtocolName(interfaceDefinition)) ]
+            protocolConformances = [.named(try projection.toProtocolName(interfaceDefinition)) ]
         case is DelegateDefinition:
             importBaseTypeName = "COMImport"
             protocolConformances = []
@@ -27,7 +27,7 @@ internal func writeCOMImportClass(
     // private final class Import: WinRTImport<IFooBinding>, IFooProtocol {}
     try writer.writeClass(
         visibility: visibility, final: true, name: name,
-        base: .identifier(name: importBaseTypeName, genericArgs: [.identifier(name: projectionName)]),
+        base: .named(importBaseTypeName, genericArgs: [ .named(projectionName) ]),
         protocolConformances: protocolConformances) { writer throws in
 
         let interfaces = try type.definition.baseInterfaces.map {

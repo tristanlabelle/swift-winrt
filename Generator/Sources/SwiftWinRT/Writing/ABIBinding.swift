@@ -30,7 +30,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         let enumBindingProtocol = try projection.isSwiftEnumEligible(enumDefinition)
             ? SupportModules.WinRT.closedEnumBinding : SupportModules.WinRT.openEnumBinding
         try writer.writeExtension(
-                type: .identifier(projection.toTypeName(enumDefinition)),
+                type: .named(projection.toTypeName(enumDefinition)),
                 protocolConformances: [ enumBindingProtocol ]) { writer in
             // public static var typeName: String { "..." }
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
@@ -67,7 +67,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         //     internal final class Boolean: WinRTBinding... {}
         // }
         try writer.writeExtension(
-                type: .identifier(projection.toBindingTypeName(typeDefinition))) { writer in
+                type: .named(projection.toBindingTypeName(typeDefinition))) { writer in
             try writeInterfaceOrDelegateBindingType(
                 typeDefinition.bindType(genericArgs: genericArgs),
                 projectionName: try Projection.toBindingInstantiationTypeName(genericArgs: genericArgs),
@@ -98,7 +98,7 @@ fileprivate func writeStructBindingExtension(
 
     // extension <struct>: IReferenceableBinding[, PODBinding]
     try writer.writeExtension(
-            type: .identifier(projection.toTypeName(structDefinition)),
+            type: .named(projection.toTypeName(structDefinition)),
             protocolConformances: protocolConformances) { writer in
 
         let abiType = try projection.toABIType(structDefinition.bindType())
@@ -341,7 +341,7 @@ fileprivate func writeInterfaceOrDelegateBindingType(
         // public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
         writer.writeComputedProperty(
                 visibility: .public, static: true, name: "virtualTablePointer",
-                type: .identifier("UnsafeRawPointer")) { writer in
+                type: .named("UnsafeRawPointer")) { writer in
             writer.writeStatement(".init(withUnsafePointer(to: &virtualTable) { $0 })")
         }
 
@@ -383,19 +383,19 @@ internal func writeReferenceTypeBindingConformance(
         try writeIReferenceIDProperties(boxableType: apiType, to: writer)
     }
 
-    let abiReferenceType = SwiftType.identifier("ABIReference")
+    let abiReferenceType: SwiftType = .named("ABIReference")
 
     try writer.writeFunc(
             visibility: .public, static: true, name: "_wrap",
             params: [ .init(label: "_", name: "reference", consuming: true, type: abiReferenceType) ],
-            returnType: .identifier("SwiftObject")) { writer in
+            returnType: .named("SwiftObject")) { writer in
         try wrapImpl(&writer, "reference")
     }
 
     if let toCOMImpl {
         try writer.writeFunc(
                 visibility: .public, static: true, name: "toCOM",
-                params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .identifier("SwiftObject")) ],
+                params: [ .init(label: "_", name: "object", escaping: abiType.definition is DelegateDefinition, type: .named("SwiftObject")) ],
                 throws: true, returnType: abiReferenceType) { writer in
             try toCOMImpl(&writer, "object")
         }

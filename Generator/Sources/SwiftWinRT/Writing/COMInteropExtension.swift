@@ -10,16 +10,9 @@ internal func writeCOMInteropExtension(abiType: BoundType, projection: Projectio
     let visibility: SwiftVisibility = abiType.genericArgs.isEmpty ? .public : .internal
 
     // func uuidof(_: SWRT_IFoo.Type) -> COMInterfaceID
-    let abiSwiftMetatype: SwiftType
-    if case let .chain(chain) = abiSwiftType {
-        abiSwiftMetatype = .chain(chain.appending("Type"))
-    } else {
-        fatalError("Can't chain .Type to \(abiSwiftType)")
-    }
-
     try writer.writeFunc(
             visibility: visibility, name: "uuidof",
-            params: [ .init(name: "_", type: abiSwiftMetatype) ],
+            params: [ .init(name: "_", type: abiSwiftType.metatype()) ],
             returnType: SupportModules.COM.comInterfaceID) { writer in
         writer.output.writeFullLine(try toIIDExpression(WindowsMetadata.getInterfaceID(abiType)))
     }
