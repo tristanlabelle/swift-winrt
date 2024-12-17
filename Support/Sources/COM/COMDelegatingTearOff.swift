@@ -4,14 +4,14 @@ import COM_ABI
 public final class COMDelegatingTearOff: COMEmbedderEx {
     private var comEmbedding: COMEmbedding
 
-    public init(virtualTable: UnsafeRawPointer, implementer: IUnknown) {
+    public init(virtualTable: UnsafeRawPointer, owner: IUnknown) {
         comEmbedding = .init(virtualTable: virtualTable, embedder: nil)
-        super.init(implementer: implementer)
+        super.init(implementer: owner)
         comEmbedding.initEmbedder(self)
     }
 
-    public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, implementer: Binding.SwiftObject) {
-        self.init(virtualTable: Binding.virtualTablePointer, implementer: implementer as! IUnknown)
+    public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, owner: Binding.SwiftObject) {
+        self.init(virtualTable: Binding.virtualTablePointer, owner: owner as! IUnknown)
     }
 
     public func toCOM() -> IUnknownReference { comEmbedding.toCOM() }

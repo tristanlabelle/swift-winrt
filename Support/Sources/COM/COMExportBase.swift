@@ -26,7 +26,7 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
                 return try FreeThreadedMarshal(self).toCOM().cast()
             default:
                 if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                    return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, implementer: self).toCOM()
+                    return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, owner: self).toCOM()
                 }
                 throw COMError.noInterface
         }
