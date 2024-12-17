@@ -15,7 +15,7 @@ internal func writeNonthrowingPropertyImplementation(
     var propertyType = try projection.toReturnType(property.type)
     let catchNullResult = projection.isNullAsErrorEligible(try property.type)
     if catchNullResult {
-        propertyType = .optional(wrapped: propertyType, implicitUnwrap: true)
+        propertyType = propertyType.optional(implicitUnwrap: true)
     }
 
     let selfKeyword = `static` ? "Self" : "self"

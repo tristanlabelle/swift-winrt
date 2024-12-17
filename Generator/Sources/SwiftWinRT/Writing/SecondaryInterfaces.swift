@@ -43,7 +43,7 @@ internal enum SecondaryInterfaces {
     internal static func writeActivationFactoryDeclaration(
             classDefinition: ClassDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
         let storedPropertyName = "_lazyIActivationFactory"
-        let abiStructType = SwiftType.identifier("SWRT_IActivationFactory")
+        let abiStructType: SwiftType = .named("SWRT_IActivationFactory")
 
         writer.writeStoredProperty(
             visibility: .private, static: true, declarator: .var, name: storedPropertyName,

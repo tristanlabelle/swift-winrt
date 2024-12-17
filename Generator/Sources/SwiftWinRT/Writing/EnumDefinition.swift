@@ -28,7 +28,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
             documentation: projection.getDocumentationComment(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: structName,
-            protocolConformances: [ .identifier("CStyleEnum") ]) { writer throws in
+            protocolConformances: [.named("CStyleEnum") ]) { writer throws in
 
         let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
         writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
@@ -56,8 +56,8 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
         writer.writeMarkComment("OptionSet and bitwise operators")
 
         writer.writeExtension(
-                type: .identifier(structName),
-                protocolConformances: [ .identifier("OptionSet") ]) { writer in
+                type: .named(structName),
+                protocolConformances: [.named("OptionSet") ]) { writer in
             // Bitwise not
             writer.writeFunc(
                     visibility: .public, static: true, operatorLocation: .prefix, name: "~",
@@ -91,7 +91,7 @@ fileprivate func writeClosedEnumDefinition(_ enumDefinition: EnumDefinition, pro
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
             rawValueType: try projection.toType(enumDefinition.underlyingType.bindNode()),
-            protocolConformances: [ .identifier("ClosedEnum") ]) { writer throws in
+            protocolConformances: [.named("ClosedEnum") ]) { writer throws in
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             try writer.writeEnumCase(
                 documentation: projection.getDocumentationComment(field),

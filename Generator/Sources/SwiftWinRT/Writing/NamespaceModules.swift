@@ -69,9 +69,9 @@ fileprivate func writeShortNameTypeAlias(
         visibility: Projection.toVisibility(typeDefinition.visibility),
         name: projection.toTypeName(typeDefinition, namespaced: false),
         typeParams: typeDefinition.genericParams.map { $0.name },
-        target: SwiftType.identifier(
-            name: projection.toTypeName(typeDefinition),
-            genericArgs: typeDefinition.genericParams.map { SwiftType.identifier(name: $0.name) }))
+        target: .named(
+            projection.toTypeName(typeDefinition),
+            genericArgs: typeDefinition.genericParams.map { .named($0.name) }))
 
     if let interface = typeDefinition as? InterfaceDefinition {
         // We can't typealias protocols, so we define a new one that inherits from the original.
@@ -90,7 +90,6 @@ fileprivate func writeShortNameTypeAlias(
         try writer.writeTypeAlias(
             visibility: Projection.toVisibility(typeDefinition.visibility),
             name: projection.toBindingTypeName(typeDefinition, namespaced: false),
-            target: SwiftType.identifier(
-                name: projection.toBindingTypeName(typeDefinition)))
+            target: .named(projection.toBindingTypeName(typeDefinition)))
     }
 }

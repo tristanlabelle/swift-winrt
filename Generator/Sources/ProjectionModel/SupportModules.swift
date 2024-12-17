@@ -9,97 +9,101 @@ public enum SupportModules {
 
 extension SupportModules.COM {
     public static var moduleName: String { "COM" }
+    public static let moduleType: SwiftType = .named(moduleName)
+
     public static var abiModuleName: String { "COM_ABI" }
 
-    public static var guid: SwiftType { .chain(moduleName, "GUID") }
+    public static var guid: SwiftType { moduleType.member("GUID") }
 
-    public static var iunknownPointer: SwiftType { .chain(moduleName, "IUnknownPointer") }
-    public static var iunknownReference: SwiftType { .chain(moduleName, "IUnknownReference") }
-    public static var iunknownReference_Optional: SwiftType { .chain(moduleName, "IUnknownReference", "Optional") }
-    public static var comInterfaceID: SwiftType { .chain(moduleName, "COMInterfaceID") }
-    public static var nullResult: SwiftType { .chain(moduleName, "NullResult") }
+    public static var iunknownPointer: SwiftType { moduleType.member("IUnknownPointer") }
+    public static var iunknownReference: SwiftType { moduleType.member("IUnknownReference") }
+    public static var iunknownReference_Optional: SwiftType { iunknownReference.member("Optional") }
+    public static var comInterfaceID: SwiftType { moduleType.member("COMInterfaceID") }
+    public static var nullResult: SwiftType { moduleType.member("NullResult") }
 
-    public static var hresult: SwiftType { .chain(moduleName, "HResult") }
+    public static var hresult: SwiftType { moduleType.member("HResult") }
 
-    public static var abiBinding: SwiftType { .chain(moduleName, "ABIBinding") }
-    public static var abiPODBinding: SwiftType { .chain(moduleName, "PODBinding") }
-    public static var boolBinding: SwiftType { .chain(moduleName, "BoolBinding") }
-    public static var wideCharBinding: SwiftType { .chain(moduleName, "WideCharBinding") }
-    public static var guidBinding: SwiftType { .chain(moduleName, "GUIDBinding") }
-    public static var hresultBinding: SwiftType { .chain(moduleName, "HResultBinding") }
+    public static var abiBinding: SwiftType { moduleType.member("ABIBinding") }
+    public static var abiPODBinding: SwiftType { moduleType.member("PODBinding") }
+    public static var boolBinding: SwiftType { moduleType.member("BoolBinding") }
+    public static var wideCharBinding: SwiftType { moduleType.member("WideCharBinding") }
+    public static var guidBinding: SwiftType { moduleType.member("GUIDBinding") }
+    public static var hresultBinding: SwiftType { moduleType.member("HResultBinding") }
 
-    public static var comBinding: SwiftType { .chain(moduleName, "COMBinding") }
-    public static var comTwoWayBinding: SwiftType { .chain(moduleName, "COMTwoWayBinding") }
+    public static var comBinding: SwiftType { moduleType.member("COMBinding") }
+    public static var comTwoWayBinding: SwiftType { moduleType.member("COMTwoWayBinding") }
 
-    public static var comEmbedding: SwiftType { .chain(moduleName, "COMEmbedding") }
+    public static var comEmbedding: SwiftType { moduleType.member("COMEmbedding") }
 
-    public static var comReference: SwiftType { .chain(moduleName, "COMReference") }
+    public static var comReference: SwiftType { moduleType.member("COMReference") }
     public static func comReference(to type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("COMReference", genericArgs: [type]) ])
+        moduleType.member("COMReference", genericArgs: [type])
     }
 
-    public static var comReference_Optional: SwiftType { .chain(moduleName, "COMReference.Optional") }
+    public static var comReference_Optional: SwiftType { moduleType.member("COMReference.Optional") }
     public static func comReference_Optional(to type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("COMReference", genericArgs: [type]), .init("Optional") ])
+        comReference(to: type).member("Optional")
     }
 
     public static var comReference_Optional_lazyInitInterop: String { "lazyInitInterop" }
     public static var comReference_Optional_lazyInitPointer: String { "lazyInitPointer" }
 
-    public static var comInterop: SwiftType { .chain(moduleName, "COMInterop") }
+    public static var comInterop: SwiftType { moduleType.member("COMInterop") }
     public static func comInterop(of type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("COMInterop", genericArgs: [type]) ])
+        moduleType.member("COMInterop", genericArgs: [type])
     }
 
     public static func comArray(of type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("COMArray", genericArgs: [type]) ])
+        moduleType.member("COMArray", genericArgs: [type])
     }
 }
 
 extension SupportModules.WinRT {
     public static var moduleName: String { "WindowsRuntime" }
+    public static let moduleType: SwiftType = .named(moduleName)
+
     public static var abiModuleName: String { "WindowsRuntime_ABI" }
 
-    public static var char16: SwiftType { .chain(moduleName, "Char16") }
+    public static var char16: SwiftType { moduleType.member("Char16") }
 
-    public static var eventRegistration: SwiftType { .chain(moduleName, "EventRegistration") }
-    public static var eventRegistrationToken: SwiftType { .chain(moduleName, "EventRegistrationToken") }
-    public static var iinspectable: SwiftType { .chain(moduleName, "IInspectable") }
-    public static var iinspectablePointer: SwiftType { .chain(moduleName, "IInspectablePointer") }
-    public static var iinspectableBinding: SwiftType { .chain(moduleName, "IInspectableBinding") }
+    public static var eventRegistration: SwiftType { moduleType.member("EventRegistration") }
+    public static var eventRegistrationToken: SwiftType { moduleType.member("EventRegistrationToken") }
+    public static var iinspectable: SwiftType { moduleType.member("IInspectable") }
+    public static var iinspectablePointer: SwiftType { moduleType.member("IInspectablePointer") }
+    public static var iinspectableBinding: SwiftType { moduleType.member("IInspectableBinding") }
 
-    public static var openEnumBinding: SwiftType { .chain(moduleName, "OpenEnumBinding") }
-    public static var closedEnumBinding: SwiftType { .chain(moduleName, "ClosedEnumBinding") }
-    public static var structBinding: SwiftType { .chain(moduleName, "StructBinding") }
-    public static var interfaceBinding: SwiftType { .chain(moduleName, "InterfaceBinding") }
-    public static var delegateBinding: SwiftType { .chain(moduleName, "DelegateBinding") }
-    public static var runtimeClassBinding: SwiftType { .chain(moduleName, "RuntimeClassBinding") }
-    public static var composableClassBinding: SwiftType { .chain(moduleName, "ComposableClassBinding") }
+    public static var openEnumBinding: SwiftType { moduleType.member("OpenEnumBinding") }
+    public static var closedEnumBinding: SwiftType { moduleType.member("ClosedEnumBinding") }
+    public static var structBinding: SwiftType { moduleType.member("StructBinding") }
+    public static var interfaceBinding: SwiftType { moduleType.member("InterfaceBinding") }
+    public static var delegateBinding: SwiftType { moduleType.member("DelegateBinding") }
+    public static var runtimeClassBinding: SwiftType { moduleType.member("RuntimeClassBinding") }
+    public static var composableClassBinding: SwiftType { moduleType.member("ComposableClassBinding") }
 
-    public static var composableClass: SwiftType { .chain(moduleName, "ComposableClass") }
+    public static var composableClass: SwiftType { moduleType.member("ComposableClass") }
     public static var composableClass_supportsOverrides: String { "supportsOverrides" }
 
     public static func winRTImport(of type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("WinRTImport", genericArgs: [type]) ])
+        moduleType.member("WinRTImport", genericArgs: [type])
     }
 
     public static func arrayBinding(of type: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("ArrayBinding", genericArgs: [type]) ])
+        moduleType.member("ArrayBinding", genericArgs: [type])
     }
 
     public static func primitiveBinding(of type: WinRTPrimitiveType) -> SwiftType {
-        .chain([ .init(moduleName), .init(type.name + "Binding") ])
+        moduleType.member(type.name + "Binding")
     }
 
     public static func ireferenceToOptionalBinding(of type: WinRTPrimitiveType) -> SwiftType {
-        .chain([ .init(moduleName), .init(type.name + "Binding"), .init("IReferenceToOptional") ])
+        moduleType.member(type.name + "Binding").member("IReferenceToOptional")
     }
 
     public static func ireferenceToOptionalBinding(of bindingType: SwiftType) -> SwiftType {
-        .chain([ .init(moduleName), .init("IReferenceToOptionalBinding", genericArgs: [ bindingType ]) ])
+        moduleType.member("IReferenceToOptionalBinding", genericArgs: [ bindingType ])
     }
 
-    public static var iactivationFactoryBinding: SwiftType { .chain(moduleName, "IActivationFactoryBinding") }
+    public static var iactivationFactoryBinding: SwiftType { moduleType.member("IActivationFactoryBinding") }
 
     public static var activationFactoryResolverGlobal: String { "\(moduleName).activationFactoryResolver" }
     public static var swiftWrapperFactoryGlobal: String { "\(moduleName).swiftWrapperFactory" }

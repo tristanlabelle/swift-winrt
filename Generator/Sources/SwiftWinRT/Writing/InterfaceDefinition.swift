@@ -46,8 +46,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     var whereGenericConstraints = OrderedDictionary<String, SwiftType>()
     for baseInterface in interfaceDefinition.baseInterfaces {
         let baseInterface = try baseInterface.interface
-        baseProtocols.append(SwiftType.identifier(
-            try projection.toProtocolName(baseInterface.definition)))
+        baseProtocols.append(.named(try projection.toProtocolName(baseInterface.definition)))
         for (i, genericArg) in baseInterface.genericArgs.enumerated() {
             let genericParam = baseInterface.definition.genericParams[i]
             // Ignore generic arguments that are the same as the current interface's generic arguments,
@@ -58,7 +57,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
         }
     }
 
-    if baseProtocols.isEmpty { baseProtocols.append(SwiftType.identifier("IInspectableProtocol")) }
+    if baseProtocols.isEmpty { baseProtocols.append(.named("IInspectableProtocol")) }
 
     let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
@@ -138,10 +137,9 @@ fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefiniti
         visibility: Projection.toVisibility(interfaceDefinition.visibility),
         name: try projection.toTypeName(interfaceDefinition),
         typeParams: interfaceDefinition.genericParams.map { $0.name },
-        target: .identifier(
-            protocolModifier: .any,
-            name: try projection.toProtocolName(interfaceDefinition),
-            genericArgs: interfaceDefinition.genericParams.map { .identifier(name: $0.name) }))
+        target: .named(
+            try projection.toProtocolName(interfaceDefinition),
+            genericArgs: interfaceDefinition.genericParams.map {.named($0.name) }).existential())
 }
 
 fileprivate func writeNonthrowingPropertiesExtension(
@@ -151,7 +149,7 @@ fileprivate func writeNonthrowingPropertiesExtension(
     guard !getSetProperties.isEmpty else { return }
 
     let typeName: String = try projection.toProtocolName(interfaceDefinition)
-    try writer.writeExtension(type: .identifier(typeName)) { writer in
+    try writer.writeExtension(type: .named(typeName)) { writer in
         for property in getSetProperties {
             try writeNonthrowingPropertyImplementation(
                 property: property, static: false, projection: projection, to: writer)

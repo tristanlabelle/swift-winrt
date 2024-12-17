@@ -8,7 +8,7 @@ extension Projection {
             case let .bound(type):
                 return try toType(type)
             case let .genericParam(param):
-                return .identifier(param.name)
+                return .named(param.name)
             case let .array(of: element):
                 return .array(element: try toType(element))
             default:
@@ -21,10 +21,10 @@ extension Projection {
             return specialTypeBinding.swiftType
         }
 
-        let swiftObjectType = SwiftType.identifier(
-            name: try toTypeName(boundType.definition),
+        let swiftObjectType: SwiftType = .named(
+            try toTypeName(boundType.definition),
             genericArgs: try boundType.genericArgs.map { try toType($0) })
-        return boundType.definition.isReferenceType && nullable ? .optional(wrapped: swiftObjectType) : swiftObjectType
+        return boundType.definition.isReferenceType && nullable ? swiftObjectType.optional() : swiftObjectType
     }
 
     public func isPODBinding(_ typeDefinition: TypeDefinition) throws -> Bool {
@@ -98,26 +98,24 @@ extension Projection {
             guard let defaultInterface = try DefaultAttribute.getDefaultInterface(classDefinition) else {
                 throw WinMDError.missingAttribute
             }
-            abiType = SwiftType.identifier(name: try CAbi.mangleName(type: defaultInterface.asBoundType))
+            abiType = .named(try CAbi.mangleName(type: defaultInterface.asBoundType))
         }
         else {
-            abiType = SwiftType.identifier(name: try CAbi.mangleName(type: type))
+            abiType = .named(try CAbi.mangleName(type: type))
         }
 
         if type.definition.isReferenceType {
-            abiType = .optional(wrapped: .unsafeMutablePointer(to: abiType))
+            abiType = .unsafeMutablePointer(pointee: abiType).optional()
         }
 
         let bindingType: SwiftType = try {
             let bindingTypeName = try toBindingTypeName(type.definition)
             if type.genericArgs.isEmpty {
-                return .identifier(bindingTypeName)
+                return .named(bindingTypeName)
             }
             else {
-                return .chain([
-                    .init(bindingTypeName),
-                    .init(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
-                ])
+                return .named(bindingTypeName)
+                    .member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
             }
         }()
 
@@ -151,9 +149,9 @@ extension Projection {
 
         if type.definition.name == "Object" {
             return .init(
-                abiType: .optional(wrapped: SupportModules.WinRT.iinspectablePointer),
+                abiType: SupportModules.WinRT.iinspectablePointer.optional(),
                 abiDefaultValue: .nil,
-                swiftType: .optional(wrapped: SupportModules.WinRT.iinspectable),
+                swiftType: SupportModules.WinRT.iinspectable.optional(),
                 swiftDefaultValue: .nil,
                 bindingType: SupportModules.WinRT.iinspectableBinding,
                 kind: .allocating)
@@ -163,9 +161,10 @@ extension Projection {
         switch primitiveType {
             // Identity projections
             case .boolean, .integer(_), .float(_):
-                let swiftType = primitiveType == .boolean ? SwiftType.bool
-                    : primitiveType == .float(double: false) ? SwiftType.float
-                    : SwiftType.chain("Swift", primitiveType.name)
+                // These have the same name between .NET and Swift, except for Bool and Float
+                let swiftType: SwiftType = primitiveType == .boolean ? .bool
+                    : primitiveType == .float(double: false) ? .float
+                    : .swift(primitiveType.name)
                 return TypeProjection(
                     abiType: swiftType,
                     abiDefaultValue: primitiveType == .boolean ? .`false` : .zero,
@@ -175,7 +174,7 @@ extension Projection {
                     kind: .identity)
             case .char16:
                 return TypeProjection(
-                    abiType: .chain("Swift", "UInt16"),
+                    abiType: .swift("UInt16"),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.WinRT.char16,
                     swiftDefaultValue: ".init(0)",
@@ -183,7 +182,7 @@ extension Projection {
                     kind: .pod)
             case .guid:
                 return TypeProjection(
-                    abiType: .identifier(CAbi.guidName),
+                    abiType: .named(CAbi.guidName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.COM.guid,
                     swiftDefaultValue: .defaultInitializer,
@@ -191,7 +190,7 @@ extension Projection {
                     kind: .pod)
             case .string:
                 return .init(
-                    abiType: .optional(wrapped: .identifier(CAbi.hstringName)),
+                    abiType: .named(CAbi.hstringName).optional(),
                     abiDefaultValue: .nil,
                     swiftType: .string,
                     swiftDefaultValue: .emptyString,
@@ -209,7 +208,7 @@ extension Projection {
 
             case "EventRegistrationToken":
                 return TypeProjection(
-                    abiType: .identifier(CAbi.eventRegistrationTokenName),
+                    abiType: .named(CAbi.eventRegistrationTokenName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.WinRT.eventRegistrationToken,
                     swiftDefaultValue: .defaultInitializer,
@@ -218,7 +217,7 @@ extension Projection {
 
             case "HResult":
                 return TypeProjection(
-                    abiType: .identifier(CAbi.hresultName),
+                    abiType: .named(CAbi.hresultName),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.COM.hresult,
                     swiftDefaultValue: .defaultInitializer,
@@ -245,9 +244,9 @@ extension Projection {
         }
 
         return TypeProjection(
-            abiType: .optional(wrapped: .unsafeMutablePointer(to: .identifier(CAbi.ireferenceName))),
+            abiType: .unsafeMutablePointer(pointee: .named(CAbi.ireferenceName)).optional(),
             abiDefaultValue: .nil,
-            swiftType: .optional(wrapped: typeProjection.swiftType),
+            swiftType: typeProjection.swiftType.optional(),
             swiftDefaultValue: .nil,
             bindingType: bindingType,
             kind: .allocating)

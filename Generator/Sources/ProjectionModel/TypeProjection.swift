@@ -63,7 +63,7 @@ public struct TypeProjection {
             abiDefaultValue: "0",
             swiftType: type,
             swiftDefaultValue: "0",
-            bindingType: .identifier("NumericBinding", genericArgs: [type]),
+            bindingType: .named("NumericBinding", genericArgs: [type]),
             kind: .identity)
     }
 }

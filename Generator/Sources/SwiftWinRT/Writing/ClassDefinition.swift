@@ -31,7 +31,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
         base = try projection.toType(baseClassDefinition.bindType(), nullable: false)
     } else {
         base = classDefinition.isSealed
-            ? SupportModules.WinRT.winRTImport(of: .identifier(bindingTypeName))
+            ? SupportModules.WinRT.winRTImport(of: .named(bindingTypeName))
             : SupportModules.WinRT.composableClass
     }
 
@@ -39,12 +39,12 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
     for baseInterface in classDefinition.baseInterfaces {
         let interfaceDefinition = try baseInterface.interface.definition
         guard interfaceDefinition.isPublic else { continue }
-        protocolConformances.append(.identifier(try projection.toProtocolName(interfaceDefinition)))
+        protocolConformances.append(.named(try projection.toProtocolName(interfaceDefinition)))
     }
 
     if (try? classDefinition.findAttribute(MarshalingBehaviorAttribute.self))?.type == .agile {
         // SwiftType cannot represent attributed types, so abuse the type name string.
-        protocolConformances.append(.identifier("@unchecked Sendable"))
+        protocolConformances.append(.named("@unchecked Sendable"))
     }
 
     try writer.writeClass(
@@ -453,7 +453,7 @@ fileprivate func writeDelegatingComposableInitializer(
     writer.writeInit(visibility: .public,
             override: true,
             genericParams: [ "ABIStruct" ],
-            params: [ SwiftParam(name: "_factory", type: .identifier("ComposableFactory", genericArgs: [ .identifier("ABIStruct") ])) ],
+            params: [ SwiftParam(name: "_factory", type: .named("ComposableFactory", genericArgs: [.named("ABIStruct") ])) ],
             throws: true) { writer in
         writer.writeStatement("try super.init(_factory: _factory)")
     }

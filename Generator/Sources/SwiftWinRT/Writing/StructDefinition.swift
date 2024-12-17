@@ -10,9 +10,9 @@ internal func writeStructDefinition(_ structDefinition: StructDefinition, projec
         writer.writeImport(exported: true, kind: .struct, module: SupportModules.WinRT.moduleName, symbolName: typeName)
     } else {
         let protocolConformances: [SwiftType] = [
-            .identifier("Codable"),
-            .identifier("Hashable"),
-            .identifier("Sendable")
+           .named("Codable"),
+           .named("Hashable"),
+           .named("Sendable")
         ]
         try writer.writeStruct(
                 documentation: projection.getDocumentationComment(structDefinition),

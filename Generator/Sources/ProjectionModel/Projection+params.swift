@@ -67,7 +67,7 @@ extension Projection {
                 returnBinding = ParamProjection(
                     name: "_result",
                     typeProjection: TypeProjection(
-                        abiType: .optional(wrapped: .unsafeMutablePointer(to: abiType)),
+                        abiType: .unsafeMutablePointer(pointee: abiType).optional(),
                         abiDefaultValue: .`nil`,
                         swiftType: SupportModules.COM.comReference(to: abiType),
                         swiftDefaultValue: .`nil`, // No projection needed
