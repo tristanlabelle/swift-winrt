@@ -60,18 +60,12 @@ internal enum SecondaryInterfaces {
         })
     }
 
-    internal static func getPropertyName(_ interface: BoundInterface, suffix: String? = nil) -> String {
-        getPropertyName(interfaceName: interface.definition.nameWithoutGenericArity, suffix: suffix)
+    internal static func getPropertyName(_ interface: BoundInterface) -> String {
+        getPropertyName(interfaceName: interface.definition.nameWithoutGenericArity)
     }
 
-    internal static func getPropertyName(interfaceName: String, suffix: String? = nil) -> String {
-        var name = "_" + Casing.pascalToCamel(interfaceName)
-        if let suffix { name += "_" + suffix }
-        return name
-    }
-
-    internal static func getOverridableOuterName(_ interface: BoundInterface) -> String {
-        "_outer" + interface.definition.nameWithoutGenericArity
+    internal static func getPropertyName(interfaceName: String) -> String {
+        "_" + Casing.pascalToCamel(interfaceName)
     }
 
     fileprivate static func getStoredPropertyName(_ interfaceName: String) -> String {

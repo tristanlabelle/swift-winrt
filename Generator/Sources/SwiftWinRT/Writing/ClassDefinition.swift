@@ -259,7 +259,7 @@ fileprivate func writeComposableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     let baseClassDefinition = try getRuntimeClassBase(classDefinition)
-    let outerObjectType = SwiftType.identifier(try projection.toBindingTypeName(classDefinition))
+    let outerObjectType: SwiftType = .named(try projection.toBindingTypeName(classDefinition)).member("OuterObject")
 
     for method in factoryInterface.methods {
         // Swift requires "override" on initializers iff the same initializer is defined in the direct base class

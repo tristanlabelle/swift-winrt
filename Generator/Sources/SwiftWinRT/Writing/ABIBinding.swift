@@ -285,16 +285,15 @@ fileprivate func writeComposableClassOuterObject(
         _ classDefinition: ClassDefinition,
         projection: Projection,
         to writer: SwiftTypeDefinitionWriter) throws {
+    let outerObjectClassName = SupportModules.WinRT.composableClass_outerObject_shortName
+
     let baseOuterObject: SwiftType
     if let base = try classDefinition.base, try base.definition.base != nil {
-        // FIXME: Append .OuterObject
-        baseOuterObject = SwiftType.identifier(try projection.toBindingTypeName(base.definition))
+        baseOuterObject = .named(try projection.toBindingTypeName(base.definition))
+            .member(outerObjectClassName)
     } else {
-        // FIXME: Append .OuterObject
-        baseOuterObject = SupportModules.WinRT.composableClass
+        baseOuterObject = SupportModules.WinRT.composableClass_outerObject
     }
-
-    let outerObjectClassName = "OuterObject"
 
     try writer.writeClass(
             visibility: .open,
@@ -316,10 +315,10 @@ fileprivate func writeComposableClassOuterObject(
                 writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                     let propertyName = SecondaryInterfaces.getPropertyName(interface)
 
-                    // _ifoo_outer.initEmbedder(self)
-                    // return .init(_ifoo_outer.toCOM())
+                    // _ifoo.initEmbedder(self)
+                    // return _ifoo.toCOM()
                     writer.writeStatement("\(propertyName).initEmbedder(self)")
-                    writer.writeReturnStatement(value: ".init(\(propertyName).toCOM())")
+                    writer.writeReturnStatement(value: "\(propertyName).toCOM()")
                 }
             }
 
@@ -338,7 +337,7 @@ fileprivate func writeComposableClassOuterObject(
 
         for interface in overridableInterfaces {
             try writeVirtualTableProperty(
-                visibility: .internal,
+                visibility: .private,
                 name: Casing.pascalToCamel(interface.definition.nameWithoutGenericArity),
                 abiType: interface.asBoundType, swiftType: classDefinition.bindType(),
                 projection: projection, to: writer)
