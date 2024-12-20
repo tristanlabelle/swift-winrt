@@ -96,6 +96,8 @@ open class ComposableClass: IInspectableProtocol {
         // which transitively keeps us alive.
         fileprivate var comEmbedding: COMEmbedding
 
+        public var owner: ComposableClass { comEmbedding.embedder as! ComposableClass }
+
         public required init(owner: ComposableClass) {
             self.comEmbedding = .init(virtualTable: IInspectableBinding.virtualTablePointer, embedder: nil)
             self.comEmbedding.initEmbedder(owner)
@@ -106,8 +108,6 @@ open class ComposableClass: IInspectableProtocol {
             if id == IUnknownBinding.interfaceID || id == IInspectableBinding.interfaceID {
                 return comEmbedding.toCOM()
             }
-
-            let owner = comEmbedding.embedder as! ComposableClass
 
             // Check for additional implemented interfaces.
             if let interfaceBinding = type(of: owner).queriableInterfaces.first(where: { $0.interfaceID == id }) {

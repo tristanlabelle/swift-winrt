@@ -287,22 +287,31 @@ fileprivate func writeComposableClassOuterObject(
         to writer: SwiftTypeDefinitionWriter) throws {
     let outerObjectClassName = SupportModules.WinRT.composableClass_outerObject_shortName
 
-    let baseOuterObject: SwiftType
+    let baseOuterObjectClass: SwiftType
     if let base = try classDefinition.base, try base.definition.base != nil {
-        baseOuterObject = .named(try projection.toBindingTypeName(base.definition))
+        baseOuterObjectClass = .named(try projection.toBindingTypeName(base.definition))
             .member(outerObjectClassName)
     } else {
-        baseOuterObject = SupportModules.WinRT.composableClass_outerObject
+        baseOuterObjectClass = SupportModules.WinRT.composableClass_outerObject
     }
+
+    let overridableInterfaces = try classDefinition.baseInterfaces.compactMap {
+        try $0.hasAttribute(OverridableAttribute.self) ? $0.interface : nil
+    }
+
+    // If nothing to override:
+    // public typealias OuterObject = SuperclassBinding.OuterObject
+    guard !overridableInterfaces.isEmpty else {
+        writer.writeTypeAlias(visibility: .public, name: outerObjectClassName, target: baseOuterObjectClass)
+        return
+    }
+
+    let classSwiftType: SwiftType = .named(try projection.toTypeName(classDefinition))
 
     try writer.writeClass(
             visibility: .open,
             name: outerObjectClassName,
-            base: baseOuterObject) { writer in
-        let overridableInterfaces = try classDefinition.baseInterfaces.compactMap {
-            try $0.hasAttribute(OverridableAttribute.self) ? $0.interface : nil
-        }
-        guard !overridableInterfaces.isEmpty else { return }
+            base: baseOuterObjectClass) { writer in
 
         // public override func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
         try writer.writeFunc(
@@ -315,9 +324,9 @@ fileprivate func writeComposableClassOuterObject(
                 writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                     let propertyName = SecondaryInterfaces.getPropertyName(interface)
 
-                    // _ifoo.initEmbedder(self)
+                    // _ifoo.initEmbedder(owner as! MyClass)
                     // return _ifoo.toCOM()
-                    writer.writeStatement("\(propertyName).initEmbedder(self)")
+                    writer.writeStatement("\(propertyName).initEmbedder(owner as! \(classSwiftType))")
                     writer.writeReturnStatement(value: "\(propertyName).toCOM()")
                 }
             }
