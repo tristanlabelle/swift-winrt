@@ -48,7 +48,7 @@ extension COMEmbedding {
         let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
         assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
 
-        let implementerObject: AnyObject?
+        let implementerObject: AnyObject
         if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
             // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
             implementerObject = Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue().implementer

@@ -134,14 +134,6 @@ fileprivate func writeClassMembers(
 
     // var _lazyFoo: COM.COMReference<SWRT_IFoo>.Optional = .none
     try writeSecondaryInterfaces(classDefinition, interfaces: interfaces, projection: projection, to: writer)
-
-    if !classDefinition.isSealed { // Composable
-        let overridableInterfaces = interfaces.secondary.compactMap { $0.overridable ? $0.interface : nil }
-        if !overridableInterfaces.isEmpty {
-            writer.writeMarkComment("Override support")
-            try writeOverrideSupport(classDefinition, interfaces: overridableInterfaces, projection: projection, to: writer)
-        }
-    }
 }
 
 fileprivate func writeInterfaceImplementations(
@@ -251,43 +243,6 @@ fileprivate func writeSecondaryInterfaces(
     }
 }
 
-fileprivate func writeOverrideSupport(
-        _ classDefinition: ClassDefinition, interfaces: [BoundInterface],
-        projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    let outerPropertySuffix = "outer"
-
-    for interface in interfaces {
-        // private var _ifoo_outer: COM.COMEmbedding = .init(
-        //     virtualTable: &SWRT_IStringable.VirtualTables.IStringable, embedder: nil)
-        let bindingTypeName = try projection.toBindingTypeName(classDefinition)
-        let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
-        writer.writeStoredProperty(
-            visibility: .private, declarator: .var,
-            name: SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix),
-            type: SupportModules.COM.comEmbedding,
-            initialValue: ".init(virtualTable: &\(bindingTypeName).VirtualTables.\(vtablePropertyName), embedder: nil)")
-    }
-
-    // public override func _queryOverridesInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference.Optional {
-    try writer.writeFunc(
-            visibility: .public, override: true, name: "_queryOverridesInterface",
-            params: [ .init(label: "_", name: "id", type: SupportModules.COM.comInterfaceID) ], throws: true,
-            returnType: SupportModules.COM.iunknownReference_Optional) { writer in
-        for interface in interfaces {
-            // if id == uuidof(SWRT_IFoo.self) {
-            let abiSwiftType = try projection.toABIType(interface.asBoundType)
-            writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
-                let outerPropertyName = SecondaryInterfaces.getPropertyName(interface, suffix: outerPropertySuffix)
-
-                // _ifoo_outer.initEmbedder(self)
-                // return .init(_ifoo_outer.toCOM())
-                writer.writeStatement("\(outerPropertyName).initEmbedder(self)")
-                writer.writeReturnStatement(value: ".init(\(outerPropertyName).toCOM())")
-            }
-        }
-        writer.writeReturnStatement(value: ".none")
-    }
-}
 
 fileprivate func writeMarkComment(forInterface interface: BoundInterface, to writer: SwiftTypeDefinitionWriter) throws {
     let interfaceName = try WinRTTypeName.from(type: interface.asBoundType).description
@@ -304,6 +259,7 @@ fileprivate func writeComposableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     let baseClassDefinition = try getRuntimeClassBase(classDefinition)
+    let outerObjectType: SwiftType = .named(try projection.toBindingTypeName(classDefinition)).member("OuterObject")
 
     for method in factoryInterface.methods {
         // Swift requires "override" on initializers iff the same initializer is defined in the direct base class
@@ -323,7 +279,7 @@ fileprivate func writeComposableInitializers(
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
                 throws: true) { writer in
             let output = writer.output
-            try output.writeLineBlock(header: "try super.init {", footer: "}") {
+            try output.writeLineBlock(header: "try super.init(_outer: \(outerObjectType).self) {", footer: "}") {
                 let outerObjectParamName = params[params.count - 2].name
                 let innerObjectParamName = params[params.count - 1].name
                 output.writeFullLine("(\(outerObjectParamName), \(innerObjectParamName): inout IInspectablePointer?) in")
@@ -449,12 +405,15 @@ fileprivate func writeDelegatingWrappingInitializer(
 
 fileprivate func writeDelegatingComposableInitializer(
         defaultInterface: BoundInterface, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    // public init<ABIStruct>(_factory: ComposableFactory<ABIStruct>) throws {
+    // public init<ABIStruct>(_outer: OuterObject.Type, _factory: ComposableFactory<ABIStruct>) throws {
     writer.writeInit(visibility: .public,
             override: true,
             genericParams: [ "ABIStruct" ],
-            params: [ SwiftParam(name: "_factory", type: .named("ComposableFactory", genericArgs: [.named("ABIStruct") ])) ],
+            params: [
+                SwiftParam(name: "_outer", type: .named("OuterObject").member("Type")),
+                SwiftParam(name: "_factory", type: .named("ComposableFactory", genericArgs: [ .named("ABIStruct") ]))
+            ],
             throws: true) { writer in
-        writer.writeStatement("try super.init(_factory: _factory)")
+        writer.writeStatement("try super.init(_outer: _outer, _factory: _factory)")
     }
 }
