@@ -57,7 +57,9 @@ extension COMEmbedding {
         }
 
         let implementer = implementerObject as? Implementer
-        assert(implementer != nil, "Bad COM object embedding. \(type(of: implementerObject)) does not provide the expected implementation of \(Implementer.self).")
+        // The use of "String(describing:)" is a workaround for a bogus compiler error on Swift 5.10
+        assert(implementer != nil, "Bad COM object embedding."
+            + " \(String(describing: type(of: implementerObject))) does not provide the expected implementation of \(Implementer.self).")
         return implementer!
     }
 
