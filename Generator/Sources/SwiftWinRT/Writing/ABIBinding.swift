@@ -324,9 +324,9 @@ fileprivate func writeComposableClassOuterObject(
                 writer.writeBracedBlock("if id == uuidof(\(abiSwiftType).self)") { writer in
                     let propertyName = SecondaryInterfaces.getPropertyName(interface)
 
-                    // _ifoo.initEmbedder(owner as! MyClass)
+                    // _ifoo.initOwner(owner as! MyClass)
                     // return _ifoo.toCOM()
-                    writer.writeStatement("\(propertyName).initEmbedder(owner as! \(classSwiftType))")
+                    writer.writeStatement("\(propertyName).initOwner(owner as! \(classSwiftType))")
                     writer.writeReturnStatement(value: "\(propertyName).toCOM()")
                 }
             }
@@ -335,13 +335,13 @@ fileprivate func writeComposableClassOuterObject(
         }
 
         for interface in overridableInterfaces {
-            // private var _ifoo: COM.COMEmbedding = .init(virtualTable: &OuterObject.istringable, embedder: nil)
+            // private var _ifoo: COM.COMEmbedding = .init(virtualTable: &OuterObject.istringable, owner: nil)
             let vtablePropertyName = Casing.pascalToCamel(interface.definition.nameWithoutGenericArity)
             writer.writeStoredProperty(
                 visibility: .private, declarator: .var,
                 name: SecondaryInterfaces.getPropertyName(interface),
                 type: SupportModules.COM.comEmbedding,
-                initialValue: ".init(virtualTable: &\(outerObjectClassName).\(vtablePropertyName), embedder: nil)")
+                initialValue: ".init(virtualTable: &\(outerObjectClassName).\(vtablePropertyName), owner: nil)")
         }
 
         for interface in overridableInterfaces {

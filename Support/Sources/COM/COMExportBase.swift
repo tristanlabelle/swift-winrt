@@ -13,7 +13,7 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
     public init() {}
 
     public func toCOM() -> PrimaryInterfaceBinding.ABIReference {
-        primaryImplements.toCOM(embedder: self)
+        primaryImplements.toCOM(owner: self)
     }
 
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {

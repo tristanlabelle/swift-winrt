@@ -5,9 +5,9 @@ public final class ExportedDelegate<Binding: DelegateBinding>: COMEmbedderEx, IU
     private var comEmbedding: COMEmbedding
 
     public init(_ closure: Binding.SwiftObject) {
-        self.comEmbedding = .init(virtualTable: Binding.virtualTablePointer, embedder: nil)
+        self.comEmbedding = .init(virtualTable: Binding.virtualTablePointer, owner: nil)
         super.init(implementer: closure as AnyObject)
-        self.comEmbedding.initEmbedder(self as COMEmbedderEx)
+        self.comEmbedding.initOwner(self as COMEmbedderEx)
     }
 
     public func toCOM() -> Binding.ABIReference {
