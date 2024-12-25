@@ -33,6 +33,11 @@ extension SupportModules.COM {
     public static var comBinding: SwiftType { moduleType.member("COMBinding") }
     public static var comTwoWayBinding: SwiftType { moduleType.member("COMTwoWayBinding") }
 
+    public static var comImport: SwiftType { moduleType.member("COMImport") }
+    public static func comImport(of type: SwiftType) -> SwiftType {
+        moduleType.member("COMImport", genericArgs: [type])
+    }
+
     public static var comEmbedding: SwiftType { moduleType.member("COMEmbedding") }
 
     public static var comReference: SwiftType { moduleType.member("COMReference") }

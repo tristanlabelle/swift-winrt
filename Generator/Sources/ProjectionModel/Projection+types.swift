@@ -3,28 +3,38 @@ import WindowsMetadata
 import CodeWriters
 
 extension Projection {
-    public func toType(_ type: TypeNode) throws -> SwiftType {
+    public func toTypeExpression(_ type: TypeNode, outerNullable: Bool = true) throws -> SwiftType {
         switch type {
-            case let .bound(type):
-                return try toType(type)
+            case let .bound(boundType):
+                if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
+                    if boundType.definition.namespace == "System", boundType.definition.name == "Object", !outerNullable {
+                        return specialTypeBinding.swiftType.unwrapOptional()
+                    }
+                    return specialTypeBinding.swiftType
+                }
+
+                let swiftType = try SwiftType.named(
+                    toTypeName(boundType.definition),
+                    genericArgs: boundType.genericArgs.map { try toTypeExpression($0) })
+                return boundType.definition.isReferenceType && outerNullable ? swiftType.optional() : swiftType
             case let .genericParam(param):
                 return .named(param.name)
             case let .array(of: element):
-                return .array(element: try toType(element))
+                return .array(element: try toTypeExpression(element))
             default:
                 fatalError("Not implemented: Swift representation of values of type \(type)")
         }
     }
 
-    public func toType(_ boundType: BoundType, nullable: Bool = true) throws -> SwiftType {
+    public func toTypeReference(_ boundType: BoundType) throws -> SwiftType {
+        // getSpecialTypeBinding returns a type expression, which includes the optional wrapping.
         if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
-            return specialTypeBinding.swiftType
+            return specialTypeBinding.swiftType.unwrapOptional()
         }
 
-        let swiftObjectType: SwiftType = .named(
+        return .named(
             try toTypeName(boundType.definition),
-            genericArgs: try boundType.genericArgs.map { try toType($0) })
-        return boundType.definition.isReferenceType && nullable ? swiftObjectType.optional() : swiftObjectType
+            genericArgs: try boundType.genericArgs.map { try toTypeExpression($0) })
     }
 
     public func isPODBinding(_ typeDefinition: TypeDefinition) throws -> Bool {
@@ -60,9 +70,8 @@ extension Projection {
         try enumDefinition.attributes.contains(where: { try $0.type.name == "SwiftEnumAttribute" }) && !enumDefinition.isFlags
     }
 
-    public func toReturnType(_ type: TypeNode, typeGenericArgs: [TypeNode]? = nil) throws -> SwiftType {
-        let swiftType = try toType(type.bindGenericParams(typeArgs: typeGenericArgs))
-        return isNullAsErrorEligible(type) ? swiftType.unwrapOptional() : swiftType
+    public func toReturnType(_ type: TypeNode) throws -> SwiftType {
+        try toTypeExpression(type, outerNullable: !isNullAsErrorEligible(type))
     }
 
     public func getTypeBinding(_ type: TypeNode) throws -> TypeProjection {
@@ -108,23 +117,12 @@ extension Projection {
             abiType = .unsafeMutablePointer(pointee: abiType).optional()
         }
 
-        let bindingType: SwiftType = try {
-            let bindingTypeName = try toBindingTypeName(type.definition)
-            if type.genericArgs.isEmpty {
-                return .named(bindingTypeName)
-            }
-            else {
-                return .named(bindingTypeName)
-                    .member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
-            }
-        }()
-
         return TypeProjection(
             abiType: abiType,
             abiDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
-            swiftType: try toType(type.asNode),
+            swiftType: try toTypeExpression(type.asNode),
             swiftDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
-            bindingType: bindingType,
+            bindingType: try toBindingType(type),
             kind: try isPODBinding(type.definition) ? .pod : .allocating)
     }
 

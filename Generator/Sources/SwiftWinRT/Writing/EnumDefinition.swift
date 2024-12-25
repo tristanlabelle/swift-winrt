@@ -30,7 +30,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
             name: structName,
             protocolConformances: [.named("CStyleEnum") ]) { writer throws in
 
-        let rawValueType = try projection.toType(enumDefinition.underlyingType.bindNode())
+        let rawValueType = try projection.toTypeExpression(enumDefinition.underlyingType.bindNode())
         writer.writeStoredProperty(visibility: .public, declarator: .var, name: "rawValue", type: rawValueType)
         writer.writeInit(visibility: .public,
             params: [ .init(name: "rawValue", type: rawValueType, defaultValue: "0") ]) {
@@ -90,7 +90,7 @@ fileprivate func writeClosedEnumDefinition(_ enumDefinition: EnumDefinition, pro
             documentation: projection.getDocumentationComment(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
-            rawValueType: try projection.toType(enumDefinition.underlyingType.bindNode()),
+            rawValueType: try projection.toTypeExpression(enumDefinition.underlyingType.bindNode()),
             protocolConformances: [.named("ClosedEnum") ]) { writer throws in
         for field in enumDefinition.fields.filter({ $0.visibility == .public && $0.isStatic }) {
             try writer.writeEnumCase(

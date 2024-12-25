@@ -53,7 +53,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             // For example, IVector<T> : IIterable<T>, so we don't generate "where T == T"
             if case .genericParam(let genericParamArg) = genericArg,
                 genericParamArg.name == genericParam.name { continue }
-            whereGenericConstraints[genericParam.name] = try projection.toType(genericArg)
+            whereGenericConstraints[genericParam.name] = try projection.toTypeExpression(genericArg)
         }
     }
 

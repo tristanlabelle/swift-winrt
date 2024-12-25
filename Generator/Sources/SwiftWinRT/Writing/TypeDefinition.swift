@@ -31,7 +31,7 @@ fileprivate func writeDelegateDefinition(_ delegateDefinition: DelegateDefinitio
         name: try projection.toTypeName(delegateDefinition),
         typeParams: delegateDefinition.genericParams.map { $0.name },
         target: .function(
-            params: delegateDefinition.invokeMethod.params.map { try projection.toType($0.type) },
+            params: delegateDefinition.invokeMethod.params.map { try projection.toTypeExpression($0.type) },
             throws: true,
             returnType: delegateDefinition.invokeMethod.hasReturnValue 
                 ? projection.toReturnType(delegateDefinition.invokeMethod.returnType)

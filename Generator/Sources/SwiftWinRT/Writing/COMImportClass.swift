@@ -9,17 +9,17 @@ internal func writeCOMImportClass(
         _ type: BoundType,
         visibility: SwiftVisibility,
         name: String,
-        projectionName: String,
+        bindingType: SwiftType,
         projection: Projection,
         to writer: SwiftTypeDefinitionWriter) throws {
-    let importBaseTypeName: String
+    let importBaseType: SwiftType
     let protocolConformances: [SwiftType]
     switch type.definition {
         case let interfaceDefinition as InterfaceDefinition:
-            importBaseTypeName = "WinRTImport"
+            importBaseType = SupportModules.WinRT.winRTImport(of: bindingType)
             protocolConformances = [.named(try projection.toProtocolName(interfaceDefinition)) ]
         case is DelegateDefinition:
-            importBaseTypeName = "COMImport"
+            importBaseType =  SupportModules.COM.comImport(of: bindingType)
             protocolConformances = []
         default: fatalError()
     }
@@ -27,7 +27,7 @@ internal func writeCOMImportClass(
     // private final class Import: WinRTImport<IFooBinding>, IFooProtocol {}
     try writer.writeClass(
         visibility: visibility, final: true, name: name,
-        base: .named(importBaseTypeName, genericArgs: [ .named(projectionName) ]),
+        base: importBaseType,
         protocolConformances: protocolConformances) { writer throws in
 
         let interfaces = try type.definition.baseInterfaces.map {
@@ -92,7 +92,7 @@ internal func writeGenericTypeAliases(interfaces: [BoundInterface], projection: 
         for (index, genericArg) in interface.genericArgs.enumerated() {
             let genericParamName = interface.definition.genericParams[index].name
             if typeAliases[genericParamName] == nil {
-                typeAliases[genericParamName] = try projection.toType(genericArg)
+                typeAliases[genericParamName] = try projection.toTypeExpression(genericArg)
             }
         }
     }

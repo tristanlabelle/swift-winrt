@@ -12,7 +12,7 @@ extension Projection {
 
     public func toParameter(label: String = "_", _ param: Param, genericTypeArgs: [TypeNode] = []) throws -> SwiftParam {
         SwiftParam(label: label, name: toParamName(param), `inout`: param.isByRef,
-            type: try genericTypeArgs.isEmpty ? toType(param.type) : toType(param.type.bindGenericParams(typeArgs: genericTypeArgs)))
+            type: try toTypeExpression(genericTypeArgs.isEmpty ? param.type : param.type.bindGenericParams(typeArgs: genericTypeArgs)))
     }
 
     public func getParamBinding(_ param: ParamBase, genericTypeArgs: [TypeNode] = []) throws -> ParamProjection {
