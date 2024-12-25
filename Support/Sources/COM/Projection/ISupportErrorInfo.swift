@@ -29,8 +29,9 @@ public enum ISupportErrorInfoBinding: COMTwoWayBinding {
         AddRef: { IUnknownVirtualTable.AddRef($0) },
         Release: { IUnknownVirtualTable.Release($0) },
         InterfaceSupportsErrorInfo: { this, riid in _implement(this) {
-            let riid = GUIDBinding.fromABI(riid)
-            try $0.guid.interfaceSupportsErrorInfo(riid)
+            guard let riid else { throw COMError.invalidArg }
+            let riid_swift = GUIDBinding.fromABI(riid.pointee)
+            try $0.guid.interfaceSupportsErrorInfo(riid_swift)
         } })
 }
 
