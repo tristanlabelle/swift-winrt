@@ -10,8 +10,8 @@ public final class COMDelegatingTearOff: COMEmbedderEx {
         comEmbedding.initOwner(self)
     }
 
-    public convenience init<Binding: COMTwoWayBinding>(binding: Binding.Type, owner: Binding.SwiftObject) {
-        self.init(virtualTable: Binding.virtualTablePointer, owner: owner as! IUnknown)
+    public convenience init<Binding: COMTwoWayBinding>(owner: Binding.SwiftObject, binding: Binding.Type) {
+        self.init(owner: owner as! IUnknown, virtualTable: Binding.virtualTablePointer)
     }
 
     public func toCOM() -> IUnknownReference { comEmbedding.toCOM() }
