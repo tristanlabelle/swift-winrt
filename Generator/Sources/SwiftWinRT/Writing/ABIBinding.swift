@@ -8,10 +8,11 @@ import struct Foundation.UUID
 /// Writes a type or extension providing the ABIBinding conformance for a given projected WinRT type.
 internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndBinding {
-        // The support module already defines a projection, just import and reexport it.
+        // The support module already defines a projection, just reexport it.
         if typeDefinition.isReferenceType {
-            let bindingTypeName = try projection.toBindingTypeName(typeDefinition)
-            writer.writeImport(exported: true, kind: .enum, module: SupportModules.WinRT.moduleName, symbolName: bindingTypeName)
+            writer.writeImport(exported: true, kind: .enum,
+                module: SupportModules.WinRT.moduleName,
+                symbolName: try projection.toBindingTypeName(typeDefinition))
         }
         else {
             // The struct conforms to ABIBinding itself, and we already imported it.
@@ -30,7 +31,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         let enumBindingProtocol = try projection.isSwiftEnumEligible(enumDefinition)
             ? SupportModules.WinRT.closedEnumBinding : SupportModules.WinRT.openEnumBinding
         try writer.writeExtension(
-                type: .named(projection.toTypeName(enumDefinition)),
+                type: projection.toTypeReference(enumDefinition.bindType()),
                 protocolConformances: [ enumBindingProtocol ]) { writer in
             // public static var typeName: String { "..." }
             try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
@@ -59,7 +60,8 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         // Non-generic type, create a standard projection type.
         // enum IVectorBinding: WinRTBinding... {}
         try writeInterfaceOrDelegateBindingType(typeDefinition.bindType(),
-            projectionName: try projection.toBindingTypeName(typeDefinition), projection: projection, to: writer)
+            name: try projection.toBindingTypeName(typeDefinition),
+            projection: projection, to: writer)
     }
     else if let genericArgs {
         // Generic type specialization. Create a projection for the specialization.
@@ -67,12 +69,11 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         //     internal final class Boolean: WinRTBinding... {}
         // }
         try writer.writeExtension(
-                type: .named(projection.toBindingTypeName(typeDefinition))) { writer in
+                type: projection.toBindingType(typeDefinition)) { writer in
             try writeInterfaceOrDelegateBindingType(
                 typeDefinition.bindType(genericArgs: genericArgs),
-                projectionName: try Projection.toBindingInstantiationTypeName(genericArgs: genericArgs),
-                projection: projection,
-                to: writer)
+                name: try Projection.toBindingInstantiationTypeName(genericArgs: genericArgs),
+                projection: projection, to: writer)
         }
     }
     else {
@@ -256,21 +257,19 @@ fileprivate func writeClassBindingType(
         to writer: SwiftSourceFileWriter) throws {
     assert(!classDefinition.isStatic)
 
-    let projectionProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
+    let bindingProtocol = try classDefinition.hasAttribute(ComposableAttribute.self)
         ? SupportModules.WinRT.composableClassBinding
         : SupportModules.WinRT.runtimeClassBinding
 
-    let bindingTypeName = try projection.toBindingTypeName(classDefinition)
     try writer.writeClass(
             visibility: Projection.toVisibility(classDefinition.visibility),
-            name: bindingTypeName, protocolConformances: [ projectionProtocol ]) { writer throws in
-        let typeName = try projection.toTypeName(classDefinition)
-
+            name: projection.toBindingTypeName(classDefinition),
+            protocolConformances: [ bindingProtocol ]) { writer throws in
         try writeReferenceTypeBindingConformance(
             apiType: classDefinition.bindType(),
             abiType: defaultInterface.asBoundType,
             wrapImpl: { writer, paramName in
-                writer.writeStatement("\(typeName)(_wrapping: consume \(paramName))")
+                writer.writeStatement(".init(_wrapping: consume \(paramName))")
             },
             projection: projection,
             to: writer)
@@ -289,8 +288,7 @@ fileprivate func writeComposableClassOuterObject(
 
     let baseOuterObjectClass: SwiftType
     if let base = try classDefinition.base, try base.definition.base != nil {
-        baseOuterObjectClass = .named(try projection.toBindingTypeName(base.definition))
-            .member(outerObjectClassName)
+        baseOuterObjectClass = try projection.toBindingType(base.definition).member(outerObjectClassName)
     } else {
         baseOuterObjectClass = SupportModules.WinRT.composableClass_outerObject
     }
@@ -305,8 +303,6 @@ fileprivate func writeComposableClassOuterObject(
         writer.writeTypeAlias(visibility: .public, name: outerObjectClassName, target: baseOuterObjectClass)
         return
     }
-
-    let classSwiftType: SwiftType = .named(try projection.toTypeName(classDefinition))
 
     try writer.writeClass(
             visibility: .open,
@@ -326,7 +322,7 @@ fileprivate func writeComposableClassOuterObject(
 
                     // _ifoo.initOwner(owner as! MyClass)
                     // return _ifoo.toCOM()
-                    writer.writeStatement("\(propertyName).initOwner(owner as! \(classSwiftType))")
+                    writer.writeStatement("\(propertyName).initOwner(owner as! SwiftObject)")
                     writer.writeReturnStatement(value: "\(propertyName).toCOM()")
                 }
             }
@@ -356,19 +352,19 @@ fileprivate func writeComposableClassOuterObject(
 
 fileprivate func writeInterfaceOrDelegateBindingType(
         _ type: BoundType,
-        projectionName: String,
+        name: String,
         projection: Projection,
         to writer: some SwiftDeclarationWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
-    let projectionProtocol = type.definition is InterfaceDefinition
+    let bindingProtocol = type.definition is InterfaceDefinition
         ? SupportModules.WinRT.interfaceBinding : SupportModules.WinRT.delegateBinding
 
     // Projections of generic instantiations are not owned by any specific module.
     // Making them internal avoids clashes between redundant definitions across modules.
     try writer.writeEnum(
             visibility: type.genericArgs.isEmpty ? Projection.toVisibility(type.definition.visibility) : .internal,
-            name: projectionName,
-            protocolConformances: [ projectionProtocol ]) { writer throws in
+            name: name,
+            protocolConformances: [ bindingProtocol ]) { writer throws in
 
         let importClassName = "Import"
 
@@ -397,7 +393,8 @@ fileprivate func writeInterfaceOrDelegateBindingType(
         }
 
         try writeCOMImportClass(
-            type, visibility: .private, name: importClassName, projectionName: projectionName,
+            type, visibility: .private, name: importClassName,
+            bindingType: .named(name),
             projection: projection, to: writer)
 
         // public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
@@ -426,7 +423,7 @@ internal func writeReferenceTypeBindingConformance(
         projection: Projection,
         to writer: SwiftTypeDefinitionWriter) throws {
     writer.writeTypeAlias(visibility: .public, name: "SwiftObject",
-        target: try projection.toType(apiType.asNode).unwrapOptional())
+        target: try projection.toTypeReference(apiType))
     writer.writeTypeAlias(visibility: .public, name: "ABIStruct",
         target: try projection.toABIType(abiType))
 

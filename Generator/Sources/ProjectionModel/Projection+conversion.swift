@@ -72,6 +72,17 @@ extension Projection {
         return result
     }
 
+    public func toBindingType(_ type: TypeDefinition) throws -> SwiftType {
+        .named(try toBindingTypeName(type))
+    }
+
+    public func toBindingType(_ type: BoundType) throws -> SwiftType {
+        let definitionBindingType = try toBindingType(type.definition)
+        return type.genericArgs.isEmpty
+            ? definitionBindingType
+            : definitionBindingType.member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
+    }
+
     public static func getSwiftAttributes(_ member: any Attributable) throws -> [SwiftAttribute] {
         // We recognize any attribute called SwiftAttribute and expect it has a field called Literal,
         // ideally that would be a positional argument, but IDL doesn't seem to have a syntax for that.

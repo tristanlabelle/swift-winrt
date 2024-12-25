@@ -90,6 +90,6 @@ fileprivate func writeShortNameTypeAlias(
         try writer.writeTypeAlias(
             visibility: Projection.toVisibility(typeDefinition.visibility),
             name: projection.toBindingTypeName(typeDefinition, namespaced: false),
-            target: .named(projection.toBindingTypeName(typeDefinition)))
+            target: projection.toBindingType(typeDefinition))
     }
 }

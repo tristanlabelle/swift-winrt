@@ -23,15 +23,13 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
         return
     }
 
-    let bindingTypeName = try projection.toBindingTypeName(classDefinition)
-
     // Both composable and activatable classes can have a base class
     let base: SwiftType
     if let baseClassDefinition = try getRuntimeClassBase(classDefinition) {
-        base = try projection.toType(baseClassDefinition.bindType(), nullable: false)
+        base = try projection.toTypeReference(baseClassDefinition.bindType())
     } else {
-        base = classDefinition.isSealed
-            ? SupportModules.WinRT.winRTImport(of: .named(bindingTypeName))
+        base = try classDefinition.isSealed
+            ? SupportModules.WinRT.winRTImport(of: projection.toBindingType(classDefinition))
             : SupportModules.WinRT.composableClass
     }
 
@@ -259,7 +257,7 @@ fileprivate func writeComposableInitializers(
     let propertyName = SecondaryInterfaces.getPropertyName(factoryInterface.bind())
 
     let baseClassDefinition = try getRuntimeClassBase(classDefinition)
-    let outerObjectType: SwiftType = .named(try projection.toBindingTypeName(classDefinition)).member("OuterObject")
+    let outerObjectType = try projection.toBindingType(classDefinition).member("OuterObject")
 
     for method in factoryInterface.methods {
         // Swift requires "override" on initializers iff the same initializer is defined in the direct base class
@@ -325,9 +323,9 @@ fileprivate func writeDefaultActivatableInitializer(
             override: isOverriding,
             throws: true) { writer in
         let propertyName = SecondaryInterfaces.getPropertyName(interfaceName: "IActivationFactory")
-        let projectionClassName = try projection.toBindingTypeName(classDefinition)
+        let bindingType = try projection.toBindingType(classDefinition)
         writer.writeStatement("let _instance = \(SupportModules.COM.comReference)(transferringRef: try Self.\(propertyName)"
-            + ".activateInstance(binding: \(projectionClassName).self))")
+            + ".activateInstance(binding: \(bindingType).self))")
         if try hasComposableBase(classDefinition) {
             writer.writeStatement("super.init(_wrapping: _instance.cast()) // Transitively casts down to IInspectable")
         }

@@ -34,7 +34,7 @@ fileprivate func writeStructFields(_ structDefinition: StructDefinition, project
         try writer.writeStoredProperty(
             documentation: projection.getDocumentationComment(field),
             visibility: .public, declarator: .var, name: Projection.toMemberName(field),
-            type: projection.toType(field.type))
+            type: projection.toTypeExpression(field.type))
     }
 }
 
@@ -72,7 +72,7 @@ fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, p
 fileprivate func writeFieldwiseInitializer(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     let params = try structDefinition.fields
         .filter { $0.visibility == .public && $0.isInstance }
-        .map { SwiftParam(name: Projection.toMemberName($0), type: try projection.toType($0.type)) }
+        .map { SwiftParam(name: Projection.toMemberName($0), type: try projection.toTypeExpression($0.type)) }
     guard !params.isEmpty else { return }
 
     writer.writeInit(visibility: .public, params: params) {
