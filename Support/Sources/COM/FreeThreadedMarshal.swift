@@ -4,7 +4,7 @@ import COM_ABI
 public final class FreeThreadedMarshal: COMTearOffBase<FreeThreadedMarshalBinding> {
     private let marshaler: COMReference<SWRT_IMarshal>
 
-    public override init(owner: IUnknown) throws {
+    public init(_ owner: IUnknown) throws {
         var marshalerUnknown: IUnknownPointer? = nil
         try COMError.fromABI(SWRT_CoCreateFreeThreadedMarshaler(/* pUnkOuter: */ nil, &marshalerUnknown))
         guard let marshalerUnknown else { throw COMError.noInterface }
