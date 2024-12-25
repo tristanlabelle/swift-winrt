@@ -111,7 +111,7 @@ open class ComposableClass: IInspectableProtocol {
 
             // Check for additional implemented interfaces.
             if let interfaceBinding = type(of: owner).queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, owner: owner).toCOM()
+                return COMDelegatingTearOff(owner: owner, virtualTable: interfaceBinding.virtualTablePointer).toCOM()
             }
 
             return try owner._queryInnerInterface(id)

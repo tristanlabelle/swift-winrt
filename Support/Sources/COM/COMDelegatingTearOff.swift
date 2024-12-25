@@ -4,7 +4,7 @@ import COM_ABI
 public final class COMDelegatingTearOff: COMEmbedderEx {
     private var comEmbedding: COMEmbedding
 
-    public init(virtualTable: UnsafeRawPointer, owner: IUnknown) {
+    public init(owner: IUnknown, virtualTable: UnsafeRawPointer) {
         comEmbedding = .init(virtualTable: virtualTable, owner: nil)
         super.init(implementer: owner)
         comEmbedding.initOwner(self)

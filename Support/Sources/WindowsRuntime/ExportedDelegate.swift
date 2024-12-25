@@ -20,7 +20,9 @@ public final class ExportedDelegate<Binding: DelegateBinding>: COMEmbedderEx, IU
             case Binding.interfaceID, IUnknownBinding.interfaceID, IAgileObjectBinding.interfaceID:
                 return toCOM().cast()
             case FreeThreadedMarshalBinding.interfaceID:
-                return try FreeThreadedMarshal(self).toCOM().cast()
+                return try FreeThreadedMarshal(owner: self).toCOM().cast()
+            case ISupportErrorInfoBinding.interfaceID:
+                return try SupportErrorInfoForAllInterfaces(owner: self).toCOM().cast()
             default:
                 throw COMError.noInterface
         }

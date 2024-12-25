@@ -24,12 +24,12 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
             case IAgileObjectBinding.interfaceID where Self.implementIAgileObject:
                 return toCOM().cast()
             case FreeThreadedMarshalBinding.interfaceID where Self.implementFreeThreadedMarshaling:
-                return try FreeThreadedMarshal(self).toCOM().cast()
+                return try FreeThreadedMarshal(owner: self).toCOM().cast()
             case ISupportErrorInfoBinding.interfaceID where Self.implementISupportErrorInfo:
-                return try SupportErrorInfoForAllInterfaces(self).toCOM().cast()
+                return try SupportErrorInfoForAllInterfaces(owner: self).toCOM().cast()
             default:
                 if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                    return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, owner: self).toCOM()
+                    return COMDelegatingTearOff(owner: self, virtualTable: interfaceBinding.virtualTablePointer).toCOM()
                 }
                 throw COMError.noInterface
         }
