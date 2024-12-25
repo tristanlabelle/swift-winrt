@@ -4,8 +4,8 @@ import COM
 open class WinRTExportBase<PrimaryInterfaceBinding: InterfaceBinding>: COMExportBase<PrimaryInterfaceBinding>, IInspectableProtocol {
     open class var _runtimeClassName: String { String(describing: Self.self) }
     open class var _trustLevel: TrustLevel { .base }
-    open class var implementIStringable: Bool { true }
     open class var implementIWeakReferenceSource: Bool { true }
+    open class var implementIStringable: Bool { true }
 
     open override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
         switch id {
@@ -27,6 +27,8 @@ open class WinRTExportBase<PrimaryInterfaceBinding: InterfaceBinding>: COMExport
     open func getIids() throws -> [COMInterfaceID] {
         var iids = Self.queriableInterfaces.map { $0.interfaceID }
         if Self.implementIAgileObject { iids.append(IAgileObjectBinding.interfaceID) }
+        if Self.implementFreeThreadedMarshaling { iids.append(FreeThreadedMarshalBinding.interfaceID) }
+        if Self.implementISupportErrorInfo { iids.append(ISupportErrorInfoBinding.interfaceID) }
         if Self.implementIWeakReferenceSource { iids.append(IWeakReferenceSourceBinding.interfaceID) }
         if Self.implementIStringable, self is CustomStringConvertible { iids.append(WindowsFoundation_IStringableBinding.interfaceID) }
         return iids
