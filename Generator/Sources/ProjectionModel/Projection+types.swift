@@ -5,15 +5,15 @@ import CodeWriters
 extension Projection {
     public func toTypeExpression(_ type: TypeNode, outerNullable: Bool = true) throws -> SwiftType {
         switch type {
-            case let .bound(type):
-                if let specialTypeBinding = try getSpecialTypeBinding(type) {
+            case let .bound(boundType):
+                if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
                     return specialTypeBinding.swiftType
                 }
 
-                let boundSwiftType = try SwiftType.named(
+                let swiftType = try SwiftType.named(
                     toTypeName(boundType.definition),
                     genericArgs: boundType.genericArgs.map { try toTypeExpression($0) })
-                return type.definition.isReferenceType && outerNullable ? boundSwiftType.optional() : boundSwiftType
+                return boundType.definition.isReferenceType && outerNullable ? swiftType.optional() : swiftType
             case let .genericParam(param):
                 return .named(param.name)
             case let .array(of: element):
