@@ -6,6 +6,7 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
     open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
     open class var implementIAgileObject: Bool { true }
     open class var implementFreeThreadedMarshaling: Bool { implementIAgileObject }
+    open class var implementISupportErrorInfo: Bool { true }
 
     /// The COM identity object exposing the implementation of the primary interface.
     private var primaryImplements: COMImplements<PrimaryInterfaceBinding> = .init()
@@ -24,6 +25,8 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
                 return toCOM().cast()
             case FreeThreadedMarshalBinding.interfaceID where Self.implementFreeThreadedMarshaling:
                 return try FreeThreadedMarshal(self).toCOM().cast()
+            case ISupportErrorInfoBinding.interfaceID where Self.implementISupportErrorInfo:
+                return try SupportErrorInfoForAllInterfaces(self).toCOM().cast()
             default:
                 if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
                     return COMDelegatingTearOff(virtualTable: interfaceBinding.virtualTablePointer, owner: self).toCOM()

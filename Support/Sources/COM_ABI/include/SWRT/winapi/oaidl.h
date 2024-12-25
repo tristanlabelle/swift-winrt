@@ -32,3 +32,14 @@ struct SWRT_IErrorInfo_VirtualTable {
     SWRT_HResult (__stdcall *GetHelpFile)(SWRT_IErrorInfo* _this, SWRT_BStr* helpFile);
     SWRT_HResult (__stdcall *GetHelpContext)(SWRT_IErrorInfo* _this, uint32_t* helpContext);
 };
+
+typedef struct SWRT_ISupportErrorInfo {
+    struct SWRT_ISupportErrorInfo_VirtualTable* VirtualTable;
+} SWRT_ISupportErrorInfo;
+
+struct SWRT_ISupportErrorInfo_VirtualTable {
+    SWRT_HResult (__stdcall *QueryInterface)(SWRT_ISupportErrorInfo* _this, SWRT_Guid* riid, void** ppvObject);
+    uint32_t (__stdcall *AddRef)(SWRT_ISupportErrorInfo* _this);
+    uint32_t (__stdcall *Release)(SWRT_ISupportErrorInfo* _this);
+    SWRT_HResult (__stdcall *InterfaceSupportsErrorInfo)(SWRT_ISupportErrorInfo* _this, SWRT_Guid* riid);
+};
