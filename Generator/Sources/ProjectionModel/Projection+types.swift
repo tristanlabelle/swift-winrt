@@ -6,7 +6,13 @@ extension Projection {
     public func toTypeExpression(_ type: TypeNode, outerNullable: Bool = true) throws -> SwiftType {
         switch type {
             case let .bound(type):
-                let boundSwiftType = try toTypeReference(type)
+                if let specialTypeBinding = try getSpecialTypeBinding(type) {
+                    return specialTypeBinding.swiftType
+                }
+
+                let boundSwiftType = try SwiftType.named(
+                    toTypeName(boundType.definition),
+                    genericArgs: boundType.genericArgs.map { try toTypeExpression($0) })
                 return type.definition.isReferenceType && outerNullable ? boundSwiftType.optional() : boundSwiftType
             case let .genericParam(param):
                 return .named(param.name)
@@ -18,13 +24,9 @@ extension Projection {
     }
 
     public func toTypeReference(_ boundType: BoundType) throws -> SwiftType {
-        // Workaround for getSpecialTypeBinding returning Optional<IInspectable> for System.Object.
-        if boundType.definition.namespace == "System", boundType.definition.name == "Object" {
-            return SupportModules.WinRT.iinspectable
-        }
-
+        // getSpecialTypeBinding returns a type expression, which includes the optional wrapping.
         if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
-            return specialTypeBinding.swiftType
+            return specialTypeBinding.swiftType.unwrapOptional()
         }
 
         return .named(
