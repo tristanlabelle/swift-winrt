@@ -31,7 +31,7 @@ public enum ISupportErrorInfoBinding: COMTwoWayBinding {
         InterfaceSupportsErrorInfo: { this, riid in _implement(this) {
             guard let riid else { throw COMError.invalidArg }
             let riid_swift = GUIDBinding.fromABI(riid.pointee)
-            try $0.guid.interfaceSupportsErrorInfo(riid_swift)
+            try $0.interfaceSupportsErrorInfo(riid_swift)
         } })
 }
 
