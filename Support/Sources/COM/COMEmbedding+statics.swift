@@ -2,16 +2,16 @@ import COM_ABI
 import COM_PrivateABI
 
 extension COMEmbedding {
-    fileprivate static func getEmbedderAndFlagsUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> UInt {
+    fileprivate static func getOwnerAndFlagsUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> UInt {
         this.withMemoryRebound(to: SWRT_COMEmbedding.self, capacity: 1) {
-            $0.pointee.swiftEmbedderAndFlags
+            $0.pointee.swiftOwnerAndFlags
         }
     }
 
     fileprivate static func getUnmanagedEmbedderUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> Unmanaged<AnyObject> {
-        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
-        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+        let ownerAndFlags = getOwnerAndFlagsUnsafe(this)
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: ownerAndFlags & ~SWRT_COMEmbedding_OwnerFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The Swift owner pointer is nil.")
         return Unmanaged<AnyObject>.fromOpaque(opaquePointer!)
     }
 
@@ -20,14 +20,14 @@ extension COMEmbedding {
     }
 
     fileprivate static func getIUnknownUnsafe<ABIStruct>(_ this: UnsafeMutablePointer<ABIStruct>) -> IUnknown {
-        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
+        let ownerAndFlags = getOwnerAndFlagsUnsafe(this)
 
-        // COMEmbedding/COMImplements should guarantee that the embedder is not null,
+        // COMEmbedding/COMImplements should guarantee that the Swift owner is not null,
         // and that it either implements IUnknown, or derives from COMEmbedderEx to provide an implementation.
-        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: ownerAndFlags & ~SWRT_COMEmbedding_OwnerFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The Swift owner pointer is nil.")
 
-        if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
+        if (ownerAndFlags & SWRT_COMEmbedding_OwnerFlags_Extended) != 0 {
             // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
             return Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue().unknown
         }
@@ -41,15 +41,15 @@ extension COMEmbedding {
     /// assuming that it is an embedded COM interface, and otherwise crashes.
     public static func getImplementerUnsafe<ABIStruct, Implementer>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementer.Type = Implementer.self) -> Implementer {
-        let embedderAndFlags = getEmbedderAndFlagsUnsafe(this)
+        let ownerAndFlags = getOwnerAndFlagsUnsafe(this)
 
-        // COMEmbedding/COMImplements should guarantee that the embedder is not null,
+        // COMEmbedding/COMImplements should guarantee that the Swift owner is not null,
         // and that it either implements IUnknown, or derives from COMEmbedderEx to provide an implementation.
-        let opaquePointer = UnsafeMutableRawPointer(bitPattern: embedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
-        assert(opaquePointer != nil, "Bad COM object embedding. The embedder pointer is nil.")
+        let opaquePointer = UnsafeMutableRawPointer(bitPattern: ownerAndFlags & ~SWRT_COMEmbedding_OwnerFlags_Mask)
+        assert(opaquePointer != nil, "Bad COM object embedding. The Swift owner pointer is nil.")
 
         let implementerObject: AnyObject
-        if (embedderAndFlags & SWRT_COMEmbeddingFlags_Extended) != 0 {
+        if (ownerAndFlags & SWRT_COMEmbedding_OwnerFlags_Extended) != 0 {
             // COMEmbedding asserted that we can reinterpret cast to COMEmbedderEx.
             implementerObject = Unmanaged<COMEmbedderEx>.fromOpaque(opaquePointer!).takeUnretainedValue().implementer
         } else {

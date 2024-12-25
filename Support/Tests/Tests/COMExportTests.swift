@@ -94,7 +94,7 @@ internal final class COMExportTests: XCTestCase {
             override func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {
                 switch id {
                 case ICOMTestBinding.interfaceID:
-                    return testImplements.toCOM(embedder: self).cast()
+                    return testImplements.toCOM(owner: self).cast()
                 default:
                     return try super._queryInterface(id)
                 }

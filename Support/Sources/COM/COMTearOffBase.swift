@@ -8,7 +8,7 @@ open class COMTearOffBase<InterfaceBinding: COMTwoWayBinding>: IUnknownProtocol 
     }
 
     public func toCOM() -> InterfaceBinding.ABIReference {
-        implements.toCOM(embedder: self)
+        implements.toCOM(owner: self)
     }
 
     open func _queryInterface(_ id: COMInterfaceID) throws -> IUnknownReference {

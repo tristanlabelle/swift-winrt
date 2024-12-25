@@ -14,48 +14,48 @@ public struct COMEmbedding: ~Copyable {
     }
 
     /// Initializes an instance with a virtual table,
-    /// but delays setting the embedder since "self" wouldn't be available yet.
+    /// but delays setting the owner since "self" would not be available yet.
     /// `Never?` forces the caller to explicitly say `nil`.
-    public init(virtualTable: UnsafeRawPointer, embedder: Never?) {
-        self.abi = .init(virtualTable: virtualTable, swiftEmbedderAndFlags: 0)
+    public init(virtualTable: UnsafeRawPointer, owner: Never?) {
+        self.abi = .init(virtualTable: virtualTable, swiftOwnerAndFlags: 0)
     }
 
     public var virtualTable: UnsafeRawPointer? {
         get { abi.virtualTable }
     }
 
-    public var embedder: AnyObject? {
+    public var owner: AnyObject? {
         get {
-            UnsafeMutableRawPointer(bitPattern: abi.swiftEmbedderAndFlags & ~SWRT_COMEmbeddingFlags_Mask)
+            UnsafeMutableRawPointer(bitPattern: abi.swiftOwnerAndFlags & ~SWRT_COMEmbedding_OwnerFlags_Mask)
                 .map { Unmanaged<AnyObject>.fromOpaque($0).takeUnretainedValue() }
         }
     }
 
-    /// Initializes the embedder when it directly implements `IUnknown`.
-    public mutating func initEmbedder(_ value: IUnknown) {
-        if abi.swiftEmbedderAndFlags != 0 {
-            assert(self.embedder === value, "COM object already embedded in a different object.")
+    /// Initializes the owner Swift object when it directly implements `IUnknown`.
+    public mutating func initOwner(_ value: IUnknown) {
+        if abi.swiftOwnerAndFlags != 0 {
+            assert(self.owner === value, "COM embedding already has a different owner.")
         } else {
-            abi.swiftEmbedderAndFlags = UInt(bitPattern: Unmanaged<AnyObject>.passUnretained(value).toOpaque())
+            abi.swiftOwnerAndFlags = UInt(bitPattern: Unmanaged<AnyObject>.passUnretained(value).toOpaque())
         }
     }
 
-    /// Initializes the embedder when it derives from `COMEmbedderEx`. 
-    public mutating func initEmbedder(_ value: COMEmbedderEx) {
-        if abi.swiftEmbedderAndFlags != 0 {
-            assert(self.embedder === value, "COM object already embedded in a different object.")
+    /// Initializes the owner Swift object when it derives from `COMEmbedderEx`. 
+    public mutating func initOwner(_ value: COMEmbedderEx) {
+        if abi.swiftOwnerAndFlags != 0 {
+            assert(self.owner === value, "COM embedding already has a different owner.")
         } else {
             // COMEmbedderEx provides the IUnknown implementation (directly or indirectly)
             // Verify that this property holds as we rely on it later.
             let opaquePointer = Unmanaged<COMEmbedderEx>.passUnretained(value).toOpaque()
             assert(opaquePointer == Unmanaged<AnyObject>.passUnretained(value).toOpaque(),
                 "Reintrpret casting between Unmanaged<AnyObject> and Unmanaged<COMEmbedderEx> is unsafe.")
-            abi.swiftEmbedderAndFlags = UInt(bitPattern: opaquePointer) | SWRT_COMEmbeddingFlags_Extended
+            abi.swiftOwnerAndFlags = UInt(bitPattern: opaquePointer) | SWRT_COMEmbedding_OwnerFlags_Extended
         }
     }
 
     public mutating func asUnknownPointer() -> IUnknownPointer {
-        assert(abi.swiftEmbedderAndFlags != 0, "Embedder must be initialized before using as a COM object.")
+        assert(abi.swiftOwnerAndFlags != 0, "Embedder must be initialized before using as a COM object.")
         return withUnsafeMutablePointer(to: &abi) { IUnknownPointer(OpaquePointer($0)) }
     }
 

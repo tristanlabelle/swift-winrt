@@ -44,9 +44,9 @@ extension COMExportTests {
         var comEmbedding: COMEmbedding
 
         init(_ closure: @escaping () throws -> Void) {
-            comEmbedding = .init(virtualTable: ICOMTestClosureBinding.virtualTablePointer, embedder: nil)
+            comEmbedding = .init(virtualTable: ICOMTestClosureBinding.virtualTablePointer, owner: nil)
             super.init(implementer: closure as AnyObject)
-            comEmbedding.initEmbedder(self as COMEmbedderEx)
+            comEmbedding.initOwner(self as COMEmbedderEx)
         }
 
         func toCOM() -> COMReference<SWRT_ICOMTest> {

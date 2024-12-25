@@ -92,15 +92,15 @@ open class ComposableClass: IInspectableProtocol {
 
     /// Base class for the outer object, which brokers QueryInterface calls to the inner object.
     open class OuterObject: IUnknownProtocol {
-        // The embedder pointer points to the owner ComposableClass object,
+        // The owner pointer points to the ComposableClass object,
         // which transitively keeps us alive.
         fileprivate var comEmbedding: COMEmbedding
 
-        public var owner: ComposableClass { comEmbedding.embedder as! ComposableClass }
+        public var owner: ComposableClass { comEmbedding.owner as! ComposableClass }
 
         public required init(owner: ComposableClass) {
-            self.comEmbedding = .init(virtualTable: IInspectableBinding.virtualTablePointer, embedder: nil)
-            self.comEmbedding.initEmbedder(owner)
+            self.comEmbedding = .init(virtualTable: IInspectableBinding.virtualTablePointer, owner: nil)
+            self.comEmbedding.initOwner(owner)
         }
 
         open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
