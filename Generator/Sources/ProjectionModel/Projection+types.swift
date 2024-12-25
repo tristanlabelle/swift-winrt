@@ -7,6 +7,9 @@ extension Projection {
         switch type {
             case let .bound(boundType):
                 if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
+                    if boundType.definition.namespace == "System", boundType.definition.name == "Object", !outerNullable {
+                        return specialTypeBinding.swiftType.unwrapOptional()
+                    }
                     return specialTypeBinding.swiftType
                 }
 
