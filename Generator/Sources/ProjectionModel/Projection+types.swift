@@ -18,6 +18,11 @@ extension Projection {
     }
 
     public func toTypeReference(_ boundType: BoundType) throws -> SwiftType {
+        // Workaround for getSpecialTypeBinding returning Optional<IInspectable> for System.Object.
+        if boundType.definition.namespace == "System", boundType.definition.name == "Object" {
+            return SupportModules.WinRT.iinspectable
+        }
+
         if let specialTypeBinding = try getSpecialTypeBinding(boundType) {
             return specialTypeBinding.swiftType
         }
