@@ -3,29 +3,10 @@ import COM_ABI
 import WindowsRuntime_ABI
 
 /// Base class for composable (unsealed) WinRT classes, implemented using COM aggregration.
-///
-/// There are three scenarios to support:
-/// - Wrapping an existing WinRT object pointer
-/// - Creating a new WinRT object, which does not need to support method overrides
-/// - Creating a derived Swift class that can override methods
-open class ComposableClass: IInspectableProtocol {
-    /// Return true to support overriding WinRT methods in Swift (incurs a size and perf overhead).
-    open class var supportsOverrides: Bool { true }
-
-    open class var queriableInterfaces: [any COMTwoWayBinding.Type] { [] }
-
-    /// The inner pointer, which comes from WinRT and implements the base behavior (without overriden methods).
-    private var innerObjectWithRef: IInspectablePointer // Strong ref'd (not a COMReference<> because of initialization order issues)
-
-    /// The outer object, if we are a composed object created from Swift.
-    private var outerObject: OuterObject?
-
-    /// Initializer for instances created in WinRT
+open class ComposableClass: COMAggregableBase {
+    /// Initializer for instances created in WinRT.
     public init(_wrapping innerObject: consuming IInspectableReference) {
-        innerObjectWithRef = innerObject.detach()
-        // The pointer comes from WinRT so we don't have any overrides and there is no outer object.
-        // All methods will delegate to the inner object (in this case the full object).
-        outerObject = nil
+        super.init(_wrapping: innerObject.cast())
     }
 
     public typealias ComposableFactory<ABIStruct> = (
@@ -36,85 +17,41 @@ open class ComposableClass: IInspectableProtocol {
     /// - Parameter _outer: The outer object, which brokers QueryInterface calls to the inner object.
     /// - Parameter _factory: A closure calling the WinRT composable activation factory method.
     public init<ABIStruct>(_outer: OuterObject.Type, _factory: ComposableFactory<ABIStruct>) throws {
-        if Self.supportsOverrides {
-            // Dummy initialization to satisfy Swift's initialization rules
-            self.outerObject = nil
-            self.innerObjectWithRef = IInspectablePointer(OpaquePointer(bitPattern: 0xDEADBEEF)!) // We need to assign inner to something, it doesn't matter what.
-
-            let outerObject = _outer.init(owner: self)
-
-            // Like C++/WinRT, discard the returned composed object and only use the inner object
-            // The composed object is useful only when not providing an outer object.
-            var innerObjectWithRef: IInspectablePointer? = nil
-            _ = try _factory(IInspectablePointer(OpaquePointer(outerObject.comEmbedding.asUnknownPointer())), &innerObjectWithRef)
-            guard let innerObjectWithRef else { throw COMError.fail }
-            self.innerObjectWithRef = innerObjectWithRef
-            self.outerObject = outerObject
-        }
-        else {
-            // We don't care about the inner object since WinRT provides us with the composed object.
-            var innerObjectWithRef: IInspectablePointer? = nil
-            defer { IInspectableBinding.release(&innerObjectWithRef) }
-            self.innerObjectWithRef = try _factory(nil, &innerObjectWithRef).cast().detach()
-
-            // We're not overriding any methods so we don't need to provide an outer object.
-            outerObject = nil
+        try super.init(_outer: _outer) {
+            var inner: IInspectablePointer? = nil
+            do {
+                let result = try _factory($0.map { IInspectablePointer(OpaquePointer($0)) }, &inner)
+                $1 = IUnknownPointer(OpaquePointer(inner))
+                return result
+            } catch {
+                $1 = IUnknownPointer(OpaquePointer(inner))
+                throw error
+            }
         }
     }
 
-    deinit {
-        COMInterop(innerObjectWithRef).release()
-    }
-
-    public func _queryInnerInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        try COMInterop(innerObjectWithRef).queryInterface(id)
-    }
-
-    open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
-        if let outerObject {
-            return try outerObject._queryInterface(id)
-        } else {
-            return try _queryInnerInterface(id)
-        }
-    }
+    private var _innerInspectable: COMInterop<SWRT_IInspectable> { .init(casting: _innerObject) }
 
     open func getIids() throws -> [COM.COMInterfaceID] {
-        try COMInterop(innerObjectWithRef).getIids() + Self.queriableInterfaces.map { $0.interfaceID }
+        try _innerInspectable.getIids() + Self.queriableInterfaces.map { $0.interfaceID }
     }
 
     open func getRuntimeClassName() throws -> String {
-        try COMInterop(innerObjectWithRef).getRuntimeClassName()
+        try _innerInspectable.getRuntimeClassName()
     }
 
     open func getTrustLevel() throws -> WindowsRuntime.TrustLevel {
-        try COMInterop(innerObjectWithRef).getTrustLevel()
+        try _innerInspectable.getTrustLevel()
     }
 
     /// Base class for the outer object, which brokers QueryInterface calls to the inner object.
-    open class OuterObject: IUnknownProtocol {
-        // The owner pointer points to the ComposableClass object,
-        // which transitively keeps us alive.
-        fileprivate var comEmbedding: COMEmbedding
+    open class OuterObject: COMAggregableBase.OuterObject {
+        open override class var virtualTable: UnsafeRawPointer { IInspectableBinding.virtualTablePointer }
 
-        public var owner: ComposableClass { comEmbedding.owner as! ComposableClass }
-
-        public required init(owner: ComposableClass) {
-            self.comEmbedding = .init(virtualTable: IInspectableBinding.virtualTablePointer, owner: nil)
-            self.comEmbedding.initOwner(owner)
-        }
-
-        open func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
+        open override func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
             // We own the identity, don't delegate to the inner object.
-            if id == IUnknownBinding.interfaceID || id == IInspectableBinding.interfaceID {
-                return comEmbedding.toCOM()
-            }
-
-            // Check for additional implemented interfaces.
-            if let interfaceBinding = type(of: owner).queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                return COMDelegatingTearOff(owner: owner, virtualTable: interfaceBinding.virtualTablePointer).toCOM()
-            }
-
-            return try owner._queryInnerInterface(id)
+            if id == IInspectableBinding.interfaceID { return toCOM() }
+            return try super._queryInterface(id)
         }
     }
 }
