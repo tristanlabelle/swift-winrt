@@ -21,6 +21,8 @@ public final class ExportedDelegate<Binding: DelegateBinding>: COMEmbedderEx, IU
                 return toCOM().cast()
             case FreeThreadedMarshalBinding.interfaceID:
                 return try FreeThreadedMarshal(self).toCOM().cast()
+            case ISupportErrorInfoBinding.interfaceID:
+                return SupportErrorInfoForAllInterfaces(owner: self).toCOM().cast()
             default:
                 throw COMError.noInterface
         }
