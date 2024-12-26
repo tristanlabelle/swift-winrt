@@ -3,7 +3,7 @@ import COM_ABI
 import WindowsRuntime_ABI
 
 /// Base class for composable (unsealed) WinRT classes, implemented using COM aggregration.
-open class ComposableClass: COMAggregableBase {
+open class ComposableClass: COMAggregableBase, IInspectableProtocol {
     /// Initializer for instances created in WinRT.
     public init(_wrapping innerObject: consuming IInspectableReference) {
         super.init(_wrapping: innerObject.cast())
