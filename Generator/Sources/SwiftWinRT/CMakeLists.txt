@@ -8,11 +8,10 @@ target_link_libraries(SwiftWinRT PRIVATE
     DotNetMetadata DotNetMetadataFormat WindowsMetadata
     CodeWriters ProjectionModel)
 
-if(DEFINED SWIFTWINRT_EXE_STAGING_DIR)
-    add_custom_command(TARGET SwiftWinRT
-        POST_BUILD
+if(DEFINED GENERATOR_STAGING_DIR)
+    add_custom_command(TARGET SwiftWinRT POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_CURRENT_BINARY_DIR}/SwiftWinRT.exe"
-            "${SWIFTWINRT_EXE_STAGING_DIR}/SwiftWinRT.exe"
-        BYPRODUCTS "${SWIFTWINRT_EXE_STAGING_DIR}/SwiftWinRT.exe")
+            "${GENERATOR_STAGING_DIR}/SwiftWinRT.exe"
+        BYPRODUCTS "${GENERATOR_STAGING_DIR}/SwiftWinRT.exe")
 endif()

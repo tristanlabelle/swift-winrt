@@ -8,8 +8,8 @@ endif()
 
 add_subdirectory(Dependencies)
 
-set(SWIFTWINRT_EXE_STAGING_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(GENERATOR_STAGING_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 add_subdirectory(Sources)
+add_subdirectory(mscorlib)
 
-include(mscorlib.cmake)
 add_subdirectory(NuGet)
