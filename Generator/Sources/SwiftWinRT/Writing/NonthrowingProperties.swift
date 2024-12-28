@@ -22,6 +22,7 @@ internal func writeNonthrowingPropertyImplementation(
 
     try writer.writeComputedProperty(
         documentation: documentation ? projection.getDocumentationComment(property, accessor: .nonthrowingGetterSetter, classDefinition: classDefinition) : nil,
+        attributes: Projection.getAttributes(property),
         visibility: .public,
         static: `static`,
         name: Projection.toMemberName(property) + "_", // Disambiguate from throwing accessors

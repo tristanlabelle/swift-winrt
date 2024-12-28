@@ -16,6 +16,7 @@ internal func writeStructDefinition(_ structDefinition: StructDefinition, projec
         ]
         try writer.writeStruct(
                 documentation: projection.getDocumentationComment(structDefinition),
+                attributes: Projection.getAttributes(structDefinition),
                 visibility: Projection.toVisibility(structDefinition.visibility),
                 name: try projection.toTypeName(structDefinition),
                 typeParams: structDefinition.genericParams.map { $0.name },
@@ -33,6 +34,7 @@ fileprivate func writeStructFields(_ structDefinition: StructDefinition, project
 
         try writer.writeStoredProperty(
             documentation: projection.getDocumentationComment(field),
+            attributes: Projection.getAttributes(field),
             visibility: .public, declarator: .var, name: Projection.toMemberName(field),
             type: projection.toTypeExpression(field.type))
     }

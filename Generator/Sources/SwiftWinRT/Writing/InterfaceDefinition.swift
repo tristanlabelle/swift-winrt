@@ -62,6 +62,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
             documentation: projection.getDocumentationComment(interfaceDefinition),
+            attributes: Projection.getAttributes(interfaceDefinition),
             visibility: Projection.toVisibility(interfaceDefinition.visibility),
             name: protocolName,
             typeParams: interfaceDefinition.genericParams.map { $0.name },
@@ -77,7 +78,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             guard method.nameKind == .regular else { continue }
             try writer.writeFunc(
                 documentation: projection.getDocumentationComment(method),
-                attributes: Projection.getSwiftAttributes(method),
+                attributes: Projection.getAttributes(method),
                 name: Projection.toMemberName(method),
                 typeParams: method.genericParams.map { $0.name },
                 params: method.params.map { try projection.toParameter($0) },
@@ -89,7 +90,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let addAccessor = try event.addAccessor {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(event),
-                    attributes: [ .discardableResult ],
+                    attributes: Projection.getAttributes(addAccessor, deprecator: event) + [ .discardableResult ],
                     name: Projection.toMemberName(event),
                     params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                     throws: true,
@@ -98,6 +99,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 
             if let removeAccessor = try event.removeAccessor {
                 try writer.writeFunc(
+                    attributes: Projection.getAttributes(removeAccessor, deprecator: event),
                     name: Projection.toMemberName(event),
                     params: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
                     throws: true)
@@ -111,6 +113,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let getter = try property.getter {
                 try writer.writeProperty(
                     documentation: projection.getDocumentationComment(property, accessor: .getter),
+                    attributes: Projection.getAttributes(getter, deprecator: property),
                     name: Projection.toMemberName(property),
                     type: projection.toReturnType(getter.returnType),
                     throws: true)
@@ -120,6 +123,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
                 try writer.writeFunc(
                     groupAsProperty: true,
                     documentation: projection.getDocumentationComment(property, accessor: .setter),
+                    attributes: Projection.getAttributes(setter, deprecator: property),
                     name: Projection.toMemberName(property),
                     params: setter.params.map { try projection.toParameter($0) },
                     throws: true)

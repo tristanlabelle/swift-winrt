@@ -45,6 +45,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
 
     public func writeProperty(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         static: Bool = false,
         name: String,
         type: SwiftType,
@@ -56,6 +57,7 @@ public struct SwiftProtocolBodyWriter: SwiftSyntaxWriter {
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .named("protocolProperty"))
+        writeAttributes(attributes)
         if `static` { output.write("static ") }
         output.write("var ")
         SwiftIdentifier.write(name, to: &output)

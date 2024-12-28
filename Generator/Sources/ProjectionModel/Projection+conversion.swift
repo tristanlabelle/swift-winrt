@@ -83,10 +83,12 @@ extension Projection {
             : definitionBindingType.member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
     }
 
-    public static func getSwiftAttributes(_ member: any Attributable) throws -> [SwiftAttribute] {
+    public static func getAttributes(
+            _ attributable: any Attributable,
+            deprecator: (any Attributable)? = nil) throws -> [SwiftAttribute] {
         // We recognize any attribute called SwiftAttribute and expect it has a field called Literal,
         // ideally that would be a positional argument, but IDL doesn't seem to have a syntax for that.
-        try member.attributes
+        var attributes = try attributable.attributes
             .filter { try $0.type.name == "SwiftAttribute" }
             .compactMap { attribute throws -> SwiftAttribute? in
                 let literalArgument = try attribute.namedArguments[0]
@@ -95,6 +97,16 @@ extension Projection {
                     case .constant(.string(let literalValue)) = literalArgument.value else { return nil }
                 return Optional(SwiftAttribute(literalValue))
             }
+
+        // Also add deprecation attributes
+        if let deprecatedAttribute = try attributable.findAttribute(WindowsMetadata.DeprecatedAttribute.self)
+                ?? deprecator?.findAttribute(WindowsMetadata.DeprecatedAttribute.self) {
+            // DeprecatedAttribute tells us the ContractVersion in which an attribute was deprecated,
+            // but since apps should run on any future OS version, we can mark it as unconditionally deprecated.
+            attributes.append(SwiftAttribute("available(*, deprecated, message: \"\(deprecatedAttribute.message)\")"))
+        }
+
+        return attributes
     }
 
     public static func toMemberName(_ member: Member) -> String {

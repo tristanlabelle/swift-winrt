@@ -1,6 +1,7 @@
 extension SwiftDeclarationWriter {
     public func writeStoredProperty(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         setVisibility: SwiftVisibility = .implicit,
         static: Bool = false,
@@ -16,6 +17,7 @@ extension SwiftDeclarationWriter {
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .named("storedProperty"))
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         if setVisibility != .implicit {
             setVisibility.write(to: &output, trailingSpace: false)
@@ -42,6 +44,7 @@ extension SwiftDeclarationWriter {
 
     public func writeComputedProperty(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         static: Bool = false,
         class: Bool = false,
@@ -57,6 +60,7 @@ extension SwiftDeclarationWriter {
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .alone)
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         if `static` { output.write("static ") }
         if `class` { output.write("class ") }
@@ -128,12 +132,14 @@ extension SwiftDeclarationWriter {
 
     public func writeEnumCase(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         name: String,
         rawValue: String? = nil) {
 
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .named("case"))
+        writeAttributes(attributes)
         output.write("case ")
         SwiftIdentifier.write(name, to: &output)
 
@@ -147,6 +153,7 @@ extension SwiftDeclarationWriter {
 
     public func writeInit(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         required: Bool = false,
         convenience: Bool = false,
@@ -160,6 +167,7 @@ extension SwiftDeclarationWriter {
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .alone)
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         if `required` { output.write("required ") }
         if `convenience` { output.write("convenience ") }
