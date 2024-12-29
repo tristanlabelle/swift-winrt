@@ -7,7 +7,7 @@ class DeprecationTests: XCTestCase {
         // We can't validate that they produce deprecated messages at compile-time,
         // but we can at least validate that the types have been generated.
         _ = DeprecatedEnum.one
-        _ = DeprecatedStruct().Field
+        _ = DeprecatedStruct().field
         _ = {} as DeprecatedDelegate
         _ = try (nil as IDeprecatedInterface?)?.property
         try (nil as IDeprecatedInterface?)?.method()
