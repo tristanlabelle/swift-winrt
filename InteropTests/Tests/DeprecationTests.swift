@@ -3,7 +3,7 @@ import WinRTComponent
 
 class DeprecationTests: XCTestCase {
     @available(*, deprecated, message: "Deprecated to allow using deprecated symbols without warnings.")
-    func testDeprecatedTypesExist() {
+    func testDeprecatedTypesExist() throws {
         // We can't validate that they produce deprecated messages at compile-time,
         // but we can at least validate that the types have been generated.
         _ = DeprecatedEnum.one
