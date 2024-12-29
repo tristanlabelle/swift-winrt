@@ -12,6 +12,6 @@ class DeprecationTests: XCTestCase {
         _ = try (nil as IDeprecatedInterface?)?.property
         try (nil as IDeprecatedInterface?)?.method()
         try (nil as IDeprecatedInterface?)?.event {}
-        DeprecatedClass(42).method()
+        try DeprecatedClass(42).method()
     }
 }
