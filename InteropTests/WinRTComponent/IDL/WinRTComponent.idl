@@ -4,6 +4,7 @@
 #include "ClassInheritance.idl"
 #include "Collections.idl"
 #include "DateTimes.idl"
+#include "Deprecation.idl"
 #include "DestructionCallback.idl"
 #include "DocumentationComments.idl"
 #include "Enums.idl"

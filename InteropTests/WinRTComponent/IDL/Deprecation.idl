@@ -1,0 +1,46 @@
+#include "MinimalTypes.idl"
+
+namespace WinRTComponent
+{
+    [deprecated("enum", deprecate, 1.0)]
+    enum DeprecatedEnum
+    {
+        [deprecated("enumerant", deprecate, 1.0)]
+        One = 1
+    };
+
+    [deprecated("struct", deprecate, 1.0)]
+    struct DeprecatedStruct
+    {
+        [deprecated("field", deprecate, 1.0)]
+        Int32 Field;
+    };
+
+    [deprecated("delegate", deprecate, 1.0)]
+    delegate void DeprecatedDelegate();
+
+    [deprecated("interface", deprecate, 1.0)]
+    interface IDeprecatedInterface
+    {
+        [deprecated("property", deprecate, 1.0)]
+        Int32 Property { get; set; };
+
+        [deprecated("method", deprecate, 1.0)]
+        void Method();
+
+        [deprecated("event", deprecate, 1.0)]
+        event MinimalDelegate Event;
+    }
+
+    [deprecated("class", deprecate, 1.0)]
+    runtimeclass DeprecatedClass
+    {
+        // WinMD (or idl?) does not support deprecating the default constructor,
+        // since it uses a shared definition from IActivationFactory.
+        [deprecated("constructor", deprecate, 1.0)]
+        DeprecatedClass(Int32 i);
+
+        [deprecated("classmethod", deprecate, 1.0)]
+        void Method();
+    }
+}

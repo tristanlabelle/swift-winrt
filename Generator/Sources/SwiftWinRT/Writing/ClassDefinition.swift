@@ -9,11 +9,12 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
     let interfaces = try ClassInterfaces(of: classDefinition)
     let typeName = try projection.toTypeName(classDefinition)
 
-    guard !classDefinition.isStatic else {
+    if classDefinition.isStatic {
         assert(classDefinition.baseInterfaces.isEmpty)
 
         try writer.writeEnum(
                 documentation: projection.getDocumentationComment(classDefinition),
+                attributes: Projection.getAttributes(classDefinition),
                 visibility: Projection.toVisibility(classDefinition.visibility),
                 name: typeName) { writer in
             try writeClassMembers(
@@ -47,6 +48,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 
     try writer.writeClass(
             documentation: projection.getDocumentationComment(classDefinition),
+            attributes: Projection.getAttributes(classDefinition),
             visibility: Projection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
             final: classDefinition.isSealed, name: typeName, base: base, protocolConformances: protocolConformances) { writer in
         try writeClassMembers(classDefinition, interfaces: interfaces, projection: projection, to: writer)
@@ -272,6 +274,7 @@ fileprivate func writeComposableInitializers(
 
         try writer.writeInit(
                 documentation: docs,
+                attributes: Projection.getAttributes(method),
                 visibility: .public,
                 override: `override`,
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
@@ -305,20 +308,15 @@ fileprivate func hasComposableConstructor(classDefinition: ClassDefinition, para
 fileprivate func writeDefaultActivatableInitializer(
         _ classDefinition: ClassDefinition,
         projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
-    let documentationComment: SwiftDocumentationComment?
-    if let constructor = classDefinition.findConstructor(arity: 0, inherited: false) {
-        documentationComment = try projection.getDocumentationComment(constructor)
-    } else {
-        documentationComment = nil
-    }
-
+    let constructor = classDefinition.findConstructor(arity: 0, inherited: false)
     let baseClassDefinition = try getRuntimeClassBase(classDefinition)
     let isOverriding = try baseClassDefinition.map {
             try hasComposableConstructor(classDefinition: $0, paramTypes: [])
         } ?? false
 
     try writer.writeInit(
-            documentation: documentationComment,
+            documentation: constructor.flatMap { try projection.getDocumentationComment($0) },
+            attributes: constructor.map { try Projection.getAttributes($0) } ?? [],
             visibility: .public,
             override: isOverriding,
             throws: true) { writer in
@@ -354,6 +352,7 @@ fileprivate func writeActivatableInitializers(
 
         try writer.writeInit(
                 documentation: docs,
+                attributes: Projection.getAttributes(method),
                 visibility: .public,
                 override: isOverriding,
                 params: params.map { $0.toSwiftParam() },

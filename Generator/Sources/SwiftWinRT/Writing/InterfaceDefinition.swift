@@ -62,6 +62,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
     let protocolName = try projection.toProtocolName(interfaceDefinition)
     try writer.writeProtocol(
             documentation: projection.getDocumentationComment(interfaceDefinition),
+            attributes: Projection.getAttributes(interfaceDefinition),
             visibility: Projection.toVisibility(interfaceDefinition.visibility),
             name: protocolName,
             typeParams: interfaceDefinition.genericParams.map { $0.name },
@@ -77,7 +78,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             guard method.nameKind == .regular else { continue }
             try writer.writeFunc(
                 documentation: projection.getDocumentationComment(method),
-                attributes: Projection.getSwiftAttributes(method),
+                attributes: Projection.getAttributes(method),
                 name: Projection.toMemberName(method),
                 typeParams: method.genericParams.map { $0.name },
                 params: method.params.map { try projection.toParameter($0) },
@@ -89,7 +90,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let addAccessor = try event.addAccessor {
                 try writer.writeFunc(
                     documentation: projection.getDocumentationComment(event),
-                    attributes: [ .discardableResult ],
+                    attributes: Projection.getAttributes(addAccessor, deprecator: event) + [ .discardableResult ],
                     name: Projection.toMemberName(event),
                     params: addAccessor.params.map { try projection.toParameter(label: "adding", $0) },
                     throws: true,
@@ -98,6 +99,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 
             if let removeAccessor = try event.removeAccessor {
                 try writer.writeFunc(
+                    attributes: Projection.getAttributes(removeAccessor, deprecator: event),
                     name: Projection.toMemberName(event),
                     params: removeAccessor.params.map { try projection.toParameter(label: "removing", $0) },
                     throws: true)
@@ -111,6 +113,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
             if let getter = try property.getter {
                 try writer.writeProperty(
                     documentation: projection.getDocumentationComment(property, accessor: .getter),
+                    attributes: Projection.getAttributes(getter, deprecator: property),
                     name: Projection.toMemberName(property),
                     type: projection.toReturnType(getter.returnType),
                     throws: true)
@@ -120,6 +123,7 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
                 try writer.writeFunc(
                     groupAsProperty: true,
                     documentation: projection.getDocumentationComment(property, accessor: .setter),
+                    attributes: Projection.getAttributes(setter, deprecator: property),
                     name: Projection.toMemberName(property),
                     params: setter.params.map { try projection.toParameter($0) },
                     throws: true)
@@ -132,13 +136,14 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 }
 
 fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
-    writer.writeTypeAlias(
+    try writer.writeTypeAlias(
         documentation: projection.getDocumentationComment(interfaceDefinition),
+        attributes: [ Projection.getAvailableAttribute(interfaceDefinition) ].compactMap { $0 },
         visibility: Projection.toVisibility(interfaceDefinition.visibility),
-        name: try projection.toTypeName(interfaceDefinition),
+        name: projection.toTypeName(interfaceDefinition),
         typeParams: interfaceDefinition.genericParams.map { $0.name },
         target: .named(
-            try projection.toProtocolName(interfaceDefinition),
+            projection.toProtocolName(interfaceDefinition),
             genericArgs: interfaceDefinition.genericParams.map {.named($0.name) }).existential())
 }
 
@@ -148,8 +153,10 @@ fileprivate func writeNonthrowingPropertiesExtension(
     let getSetProperties = try interfaceDefinition.properties.filter { try $0.getter != nil }
     guard !getSetProperties.isEmpty else { return }
 
-    let typeName: String = try projection.toProtocolName(interfaceDefinition)
-    try writer.writeExtension(type: .named(typeName)) { writer in
+    let protocolType = SwiftType.named(try projection.toProtocolName(interfaceDefinition))
+    try writer.writeExtension(
+            attributes: [ Projection.getAvailableAttribute(interfaceDefinition) ].compactMap { $0 },
+            type: protocolType) { writer in
         for property in getSetProperties {
             try writeNonthrowingPropertyImplementation(
                 property: property, static: false, projection: projection, to: writer)

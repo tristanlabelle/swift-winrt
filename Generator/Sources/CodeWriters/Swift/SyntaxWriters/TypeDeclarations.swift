@@ -85,6 +85,7 @@ extension SwiftDeclarationWriter {
 
     public func writeTypeAlias(
         documentation: SwiftDocumentationComment? = nil,
+        attributes: [SwiftAttribute] = [],
         visibility: SwiftVisibility = .implicit,
         name: String,
         typeParams: [String] = [],
@@ -93,6 +94,7 @@ extension SwiftDeclarationWriter {
         var output = output
         if let documentation { writeDocumentationComment(documentation) }
         output.beginLine(group: .named("typealias"))
+        writeAttributes(attributes)
         visibility.write(to: &output, trailingSpace: true)
         output.write("typealias ")
         SwiftIdentifier.write(name, to: &output)

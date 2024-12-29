@@ -24,6 +24,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
     }
 
     public func writeExtension(
+        attributes: [SwiftAttribute] = [],
         type: SwiftType,
         protocolConformances: [SwiftType] = [],
         whereClauses: [String] = [],
@@ -31,6 +32,7 @@ public struct SwiftSourceFileWriter: SwiftDeclarationWriter {
 
         var output = output
         output.beginLine(group: .alone)
+        writeAttributes(attributes)
         output.write("extension ")
         type.write(to: &output)
         writeInheritanceClause(protocolConformances)

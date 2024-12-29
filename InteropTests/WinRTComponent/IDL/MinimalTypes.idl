@@ -12,6 +12,8 @@ namespace WinRTComponent
         Int32 Field;
     };
 
+    delegate void MinimalDelegate();
+
     interface IMinimalInterface
     {
         void Method();
@@ -27,6 +29,4 @@ namespace WinRTComponent
         MinimalClass();
         void Method();
     }
-
-    delegate void MinimalDelegate();
 }
