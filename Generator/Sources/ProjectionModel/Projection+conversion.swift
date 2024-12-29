@@ -83,6 +83,16 @@ extension Projection {
             : definitionBindingType.member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
     }
 
+    public static func getAvailableAttribute(
+            _ attributable: any Attributable,
+            deprecator: (any Attributable)? = nil) throws -> SwiftAttribute? {
+        guard let deprecatedAttribute = try attributable.findAttribute(WindowsMetadata.DeprecatedAttribute.self)
+                ?? deprecator?.findAttribute(WindowsMetadata.DeprecatedAttribute.self) else { return nil }
+        // DeprecatedAttribute tells us the ContractVersion in which an attribute was deprecated,
+        // but since apps should run on any future OS version, we can mark it as unconditionally deprecated.
+        return SwiftAttribute("available(*, deprecated, message: \"\(deprecatedAttribute.message)\")")
+    }
+
     public static func getAttributes(
             _ attributable: any Attributable,
             deprecator: (any Attributable)? = nil) throws -> [SwiftAttribute] {
@@ -99,11 +109,8 @@ extension Projection {
             }
 
         // Also add deprecation attributes
-        if let deprecatedAttribute = try attributable.findAttribute(WindowsMetadata.DeprecatedAttribute.self)
-                ?? deprecator?.findAttribute(WindowsMetadata.DeprecatedAttribute.self) {
-            // DeprecatedAttribute tells us the ContractVersion in which an attribute was deprecated,
-            // but since apps should run on any future OS version, we can mark it as unconditionally deprecated.
-            attributes.append(SwiftAttribute("available(*, deprecated, message: \"\(deprecatedAttribute.message)\")"))
+        if let availableAttribute = try getAvailableAttribute(attributable, deprecator: deprecator) {
+            attributes.append(availableAttribute)
         }
 
         return attributes

@@ -28,18 +28,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
 
     if let enumDefinition = typeDefinition as? EnumDefinition {
         assert(genericArgs == nil)
-        let enumBindingProtocol = try projection.isSwiftEnumEligible(enumDefinition)
-            ? SupportModules.WinRT.closedEnumBinding : SupportModules.WinRT.openEnumBinding
-        try writer.writeExtension(
-                type: projection.toTypeReference(enumDefinition.bindType()),
-                protocolConformances: [ enumBindingProtocol ]) { writer in
-            // public static var typeName: String { "..." }
-            try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
-
-            // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
-            // public static var ireferenceArrayID: COM.COMInterfaceID { .init(...) }
-            try writeIReferenceIDProperties(boxableType: enumDefinition.bindType(), to: writer)
-        }
+        try writeEnumBindingExtension(enumDefinition, projection: projection, to: writer)
         return
     }
 
@@ -69,6 +58,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         //     internal final class Boolean: WinRTBinding... {}
         // }
         try writer.writeExtension(
+                attributes: [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
                 type: projection.toBindingType(typeDefinition)) { writer in
             try writeInterfaceOrDelegateBindingType(
                 typeDefinition.bindType(genericArgs: genericArgs),
@@ -80,8 +70,29 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         // Generic type definition. Create a namespace for projections of specializations.
         // public enum IVectorBinding {}
         try writer.writeEnum(
+            attributes: [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
             visibility: Projection.toVisibility(typeDefinition.visibility),
             name: projection.toBindingTypeName(typeDefinition)) { _ in }
+    }
+}
+
+/// Writes an extension to an enum to provide the ABIBinding conformance.
+fileprivate func writeEnumBindingExtension(
+        _ enumDefinition: EnumDefinition,
+        projection: Projection,
+        to writer: SwiftSourceFileWriter) throws {
+    let enumBindingProtocol = try projection.isSwiftEnumEligible(enumDefinition)
+        ? SupportModules.WinRT.closedEnumBinding : SupportModules.WinRT.openEnumBinding
+    try writer.writeExtension(
+            attributes: [ Projection.getAvailableAttribute(enumDefinition) ].compactMap { $0 },
+            type: projection.toTypeReference(enumDefinition.bindType()),
+            protocolConformances: [ enumBindingProtocol ]) { writer in
+        // public static var typeName: String { "..." }
+        try writeTypeNameProperty(type: enumDefinition.bindType(), to: writer)
+
+        // public static var ireferenceID: COM.COMInterfaceID { .init(...) }
+        // public static var ireferenceArrayID: COM.COMInterfaceID { .init(...) }
+        try writeIReferenceIDProperties(boxableType: enumDefinition.bindType(), to: writer)
     }
 }
 
@@ -99,6 +110,7 @@ fileprivate func writeStructBindingExtension(
 
     // extension <struct>: IReferenceableBinding[, PODBinding]
     try writer.writeExtension(
+            attributes: [ Projection.getAvailableAttribute(structDefinition) ].compactMap { $0 },
             type: .named(projection.toTypeName(structDefinition)),
             protocolConformances: protocolConformances) { writer in
 
@@ -261,7 +273,10 @@ fileprivate func writeClassBindingType(
         ? SupportModules.WinRT.composableClassBinding
         : SupportModules.WinRT.runtimeClassBinding
 
+    // Runtimeclass bindings are classes so they can be found using NSClassFromString,
+    // which allows supporting instantiating the most derived class wrapper when returned from WinRT. 
     try writer.writeClass(
+            attributes: [ Projection.getAvailableAttribute(classDefinition) ].compactMap { $0 },
             visibility: Projection.toVisibility(classDefinition.visibility),
             name: projection.toBindingTypeName(classDefinition),
             protocolConformances: [ bindingProtocol ]) { writer throws in
@@ -362,6 +377,7 @@ fileprivate func writeInterfaceOrDelegateBindingType(
     // Projections of generic instantiations are not owned by any specific module.
     // Making them internal avoids clashes between redundant definitions across modules.
     try writer.writeEnum(
+            attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
             visibility: type.genericArgs.isEmpty ? Projection.toVisibility(type.definition.visibility) : .internal,
             name: name,
             protocolConformances: [ bindingProtocol ]) { writer throws in

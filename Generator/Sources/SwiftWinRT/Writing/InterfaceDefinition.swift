@@ -136,13 +136,14 @@ fileprivate func writeProtocol(_ interfaceDefinition: InterfaceDefinition, proje
 }
 
 fileprivate func writeProtocolTypeAlias(_ interfaceDefinition: InterfaceDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
-    writer.writeTypeAlias(
+    try writer.writeTypeAlias(
         documentation: projection.getDocumentationComment(interfaceDefinition),
+        attributes: [ Projection.getAvailableAttribute(interfaceDefinition) ].compactMap { $0 },
         visibility: Projection.toVisibility(interfaceDefinition.visibility),
-        name: try projection.toTypeName(interfaceDefinition),
+        name: projection.toTypeName(interfaceDefinition),
         typeParams: interfaceDefinition.genericParams.map { $0.name },
         target: .named(
-            try projection.toProtocolName(interfaceDefinition),
+            projection.toProtocolName(interfaceDefinition),
             genericArgs: interfaceDefinition.genericParams.map {.named($0.name) }).existential())
 }
 
@@ -152,8 +153,10 @@ fileprivate func writeNonthrowingPropertiesExtension(
     let getSetProperties = try interfaceDefinition.properties.filter { try $0.getter != nil }
     guard !getSetProperties.isEmpty else { return }
 
-    let typeName: String = try projection.toProtocolName(interfaceDefinition)
-    try writer.writeExtension(type: .named(typeName)) { writer in
+    let protocolType = SwiftType.named(try projection.toProtocolName(interfaceDefinition))
+    try writer.writeExtension(
+            attributes: [ Projection.getAvailableAttribute(interfaceDefinition) ].compactMap { $0 },
+            type: protocolType) { writer in
         for property in getSetProperties {
             try writeNonthrowingPropertyImplementation(
                 property: property, static: false, projection: projection, to: writer)
