@@ -39,7 +39,7 @@ set(OUTPUT_XMLDOCS "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.xml")
 
 # Generate the WinMD
 add_custom_command(
-    OUTPUT "${OUTPUT_WINMD}.timestamped" "${OUTPUT_HEADER}"
+    OUTPUT "${OUTPUT_WINMD}" "${OUTPUT_HEADER}"
     DEPENDS ${IDL_SOURCES} ${FOUNDATIONCONTRACT_WINMD} ${UNIVERSALAPICONTRACT_WINMD}
     COMMAND "$<SHELL_PATH:${MIDLRT_EXE}>"
         /W1 /nologo /nomidl
@@ -49,15 +49,6 @@ add_custom_command(
         /winmd "$<SHELL_PATH:${OUTPUT_WINMD}>.timestamped"
         /header "$<SHELL_PATH:${OUTPUT_HEADER}>"
         "$<SHELL_PATH:${IDL_SOURCE}>")
-
-# Remove the timestamp from the generated WinRTComponent.winmd file for cachability
-# TODO: We also need to zero the random "mvid" (module version id) field of the module metadata table :/
-add_custom_command(
-    OUTPUT "${OUTPUT_WINMD}"
-    DEPENDS "${OUTPUT_WINMD}.timestamped"
-    COMMAND powershell.exe -File "${CMAKE_CURRENT_SOURCE_DIR}/Clear-PEDateTimeStamp.ps1"
-        -In "$<SHELL_PATH:${OUTPUT_WINMD}>.timestamped"
-        -Out "$<SHELL_PATH:${OUTPUT_WINMD}>")
 
 add_custom_command(
     OUTPUT "${OUTPUT_XMLDOCS}"
