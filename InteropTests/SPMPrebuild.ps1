@@ -53,7 +53,7 @@ switch ($SwiftBug72724) {
     default {}
 }
 & cmake.exe --preset $CMakePreset @Defines
-& cmake.exe --build --preset $CMakePreset --target WinRTComponent
+& cmake.exe --build --preset $CMakePreset --target WinRTComponentDll
 $WinRTComponentBinDir = "$(Get-Location)\build\$CMakePreset\Dll"
 Pop-Location
 

@@ -14,18 +14,18 @@ if(NOT DEFINED PROJECTION_DIR)
 endif()
 
 # Generate the WinRTComponent.winmd file
-set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinRTComponent.winmd")
-include(GenerateWinMD.cmake)
-generate_winrtcomponent_winmd(
-    IDL "${CMAKE_CURRENT_SOURCE_DIR}/IDL/WinRTComponent.idl"
-    WINMD "${WINRTCOMPONENT_WINMD}")
-
-# Copy the documentation xml file next to it
+message(STATUS "Building WinRTComponent.winmd as a subproject...")
 execute_process(
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.xml"
-        "${CMAKE_CURRENT_BINARY_DIR}/"
+    COMMAND ${CMAKE_COMMAND}
+        -S "${CMAKE_CURRENT_SOURCE_DIR}/WinMD"
+        -B "${CMAKE_CURRENT_BINARY_DIR}/WinMD"
+        -G "${CMAKE_GENERATOR}"
     COMMAND_ERROR_IS_FATAL ANY)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_CURRENT_BINARY_DIR}/WinMD"
+    COMMAND_ERROR_IS_FATAL ANY)
+
+set(WINRTCOMPONENT_WINMD "${CMAKE_CURRENT_BINARY_DIR}/WinMD/WinRTComponent.winmd")
 
 # Generate Swift projection
 message(STATUS "Generating Swift projection for WinRTComponent...")
@@ -38,10 +38,11 @@ generate_projection(
 
 # Define the dll build (requires cl.exe)
 include(ExternalProject)
-ExternalProject_Add(WinRTComponent
+ExternalProject_Add(WinRTComponentDll
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dll"
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/Dll"
     CMAKE_ARGS
+        -D "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         -D "WINRTCOMPONENT_WINMD=${WINRTCOMPONENT_WINMD}"
         -D "CMAKE_CXX_COMPILER=cl.exe"
         -D "CMAKE_CXX_FLAGS=/std:c++latest /W4 /EHsc"
