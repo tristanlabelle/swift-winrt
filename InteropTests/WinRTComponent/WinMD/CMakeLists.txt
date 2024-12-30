@@ -55,7 +55,7 @@ add_custom_command(
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.xml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/WinRTComponent.xml"
-        "${CMAKE_CURRENT_BINARY_DIR}/")
+        "${OUTPUT_XMLDOCS}")
 
 add_custom_target(WinRTComponentWinMD ALL
     DEPENDS "${OUTPUT_WINMD}" "${OUTPUT_HEADER}" "${OUTPUT_XMLDOCS}")
