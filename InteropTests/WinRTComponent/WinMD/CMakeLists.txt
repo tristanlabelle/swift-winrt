@@ -46,7 +46,7 @@ add_custom_command(
         /metadata_dir "$<SHELL_PATH:${FOUNDATIONCONTRACT_DIR}>"
         /reference "$<SHELL_PATH:${FOUNDATIONCONTRACT_WINMD}>"
         /reference "$<SHELL_PATH:${UNIVERSALAPICONTRACT_WINMD}>"
-        /winmd "$<SHELL_PATH:${OUTPUT_WINMD}>.timestamped"
+        /winmd "$<SHELL_PATH:${OUTPUT_WINMD}>"
         /header "$<SHELL_PATH:${OUTPUT_HEADER}>"
         "$<SHELL_PATH:${IDL_SOURCE}>")
 
