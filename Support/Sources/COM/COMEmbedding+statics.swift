@@ -64,12 +64,13 @@ extension COMEmbedding {
     public static func getImplementer<ABIStruct, Implementer>(
             _ this: UnsafeMutablePointer<ABIStruct>, type: Implementer.Type = Implementer.self) -> Implementer? {
         do {
-            _ = try COMInterop(this).queryInterface(uuidof(SWRT_COMEmbedding.self))
+            let comEmbeddingRefeference = try COMInterop(this).queryInterface(uuidof(SWRT_COMEmbedding.self))
+            // Use the resulting pointer and not "this" since in COM aggregation cases,
+            // "this" might be a non-Swift COM object.
+            return getImplementerUnsafe(comEmbeddingRefeference.pointer, type: type)
         } catch {
             return nil
         }
-
-        return getImplementerUnsafe(this, type: type)
     }
 }
 
