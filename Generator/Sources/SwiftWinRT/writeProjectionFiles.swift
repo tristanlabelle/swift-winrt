@@ -206,7 +206,7 @@ fileprivate func writeNamespaceModules(
     compactNamespaces.sort()
 
     try writeFlatNamespaceModule(
-        moduleName: module.name + "_Flat",
+        module: module,
         namespaceModuleNames: compactNamespaces.map { module.getNamespaceModuleName(namespace: $0) },
         cmakeOptions: cmakeOptions,
         directoryPath: "\(directoryPath)\\Flat")
