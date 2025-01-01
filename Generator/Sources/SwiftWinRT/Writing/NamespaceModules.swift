@@ -46,10 +46,10 @@ internal func writeFlatNamespaceModule(module: Module, namespaceModuleNames: [St
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        let flatModuleName = module.name + "Flat"
+        let flatModuleName = module.name + "_Flat"
         let targetName = cmakeOptions.getTargetName(moduleName: flatModuleName)
         writer.writeAddLibrary(targetName, .static, ["Flat.swift"])
-        if targetName != moduleName {
+        if targetName != flatModuleName {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(flatModuleName))
