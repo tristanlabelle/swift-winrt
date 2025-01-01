@@ -33,7 +33,7 @@ internal func writeNamespaceModule(moduleName: String, typeDefinitions: [TypeDef
 /// Writes the flat namespace module to a given directory.
 /// The flat namespace reexports the types from all namespace modules,
 /// provided unqualified name access to all types in the projection module.
-internal func writeFlatNamespaceModule(moduleName: String, namespaceModuleNames: [String], cmakeOptions: CMakeOptions?, directoryPath: String) throws {
+internal func writeFlatNamespaceModule(module: Module, namespaceModuleNames: [String], cmakeOptions: CMakeOptions?, directoryPath: String) throws {
     let writer = SwiftSourceFileWriter(
         output: FileTextOutputStream(path: "\(directoryPath)\\Flat.swift", directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
@@ -46,16 +46,17 @@ internal func writeFlatNamespaceModule(moduleName: String, namespaceModuleNames:
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        let targetName = cmakeOptions.getTargetName(moduleName: moduleName)
+        let flatModuleName = module.name + "Flat"
+        let targetName = cmakeOptions.getTargetName(moduleName: flatModuleName)
         writer.writeAddLibrary(targetName, .static, ["Flat.swift"])
         if targetName != moduleName {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
-                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(moduleName))
+                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(flatModuleName))
         }
         writer.writeTargetLinkLibraries(targetName, .public,
             // Workaround CMake bug that doesn't always transitively inherit link libraries.
-            [ "WindowsRuntime" ] + namespaceModuleNames.map { cmakeOptions.getTargetName(moduleName: $0) })
+            [ cmakeOptions.getTargetName(moduleName: module.name) ] + namespaceModuleNames.map { cmakeOptions.getTargetName(moduleName: $0) })
     }
 }
 
