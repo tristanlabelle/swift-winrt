@@ -130,17 +130,16 @@ fileprivate func writeSwiftModuleFiles(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         writer.writeSingleLineCommand("file", "GLOB_RECURSE", "SOURCES", "*.swift")
-        
-        let targetName = cmakeOptions.getTargetName(moduleName: module.name)
+
         writer.writeSingleLineCommand(
             "add_library",
-            .autoquote(targetName),
+            .autoquote(module.cmakeTargetName),
             .unquoted(cmakeOptions.dynamicLibraries ? "SHARED" : "STATIC"),
             .unquoted("${SOURCES}"))
-        
-        if targetName != module.name {
+
+        if module.cmakeTargetName != module.name {
             writer.writeSingleLineCommand(
-                "set_target_properties", .autoquote(targetName),
+                "set_target_properties", .autoquote(module.cmakeTargetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.name))
         }
 
@@ -152,14 +151,14 @@ fileprivate func writeSwiftModuleFiles(
             "PRIVATE", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
 
         var linkLibraries: [String] = [
-            cmakeOptions.getTargetName(moduleName: module.abiModuleName),
+            module.cmakeAbiTargetName,
             SupportModules.WinRT.moduleName
         ]
         for reference in module.references {
             guard !reference.isEmpty else { continue }
-            linkLibraries.append(cmakeOptions.getTargetName(moduleName: reference.name))
+            linkLibraries.append(reference.cmakeTargetName)
         }
-        writer.writeTargetLinkLibraries(targetName, .public, linkLibraries)
+        writer.writeTargetLinkLibraries(module.cmakeTargetName, .public, linkLibraries)
     }
 }
 

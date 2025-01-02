@@ -7,12 +7,16 @@
             "types": [
                 "Windows.Foundation.MemoryBuffer",
                 "Windows.Storage.Streams.Buffer"
-            ]
+            ],
+            "spmLibraryName": "SwiftUWP",
+            "cmakeTargetName": "SwiftUWP"
         },
         "WinRTComponent": {
             "assemblies": [
                 "WinRTComponent"
             ],
+            "spmLibraryName": "SwiftWinRTComponent",
+            "cmakeTargetName": "SwiftWinRTComponent",
             "flattenNamespaces": true,
             "fileNameInManifest": "WinRTComponent.dll"
         }

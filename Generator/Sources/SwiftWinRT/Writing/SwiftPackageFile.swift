@@ -33,7 +33,7 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
 
         // Define a product for the module
         var moduleProduct: SwiftPackage.Product = .library(
-            name: spmOptions.getLibraryName(moduleName: module.name),
+            name: module.spmLibraryName,
             type: spmOptions.dynamicLibraries ? .dynamic : nil,
             targets: [])
         moduleProduct.targets.append(projectionModuleTarget.name)
@@ -69,7 +69,7 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
         // Create products for the projections and the ABI
         package.products.append(moduleProduct)
         package.products.append(.library(
-            name: spmOptions.getLibraryName(moduleName: module.abiModuleName),
+            name: module.spmLibraryName + Module.abiModuleSuffix,
             type: .static, targets: [abiModuleTarget.name]))
     }
 

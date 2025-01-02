@@ -5,7 +5,7 @@ import ProjectionModel
 /// Writes a namespace module to a given directory.
 /// A namespace module contains short name typealiases for all types in the projection module,
 /// for example "public typealias MyType = MainModule.MyNamespace_MyType".
-internal func writeNamespaceModule(moduleName: String, typeDefinitions: [TypeDefinition], module: Module, cmakeOptions: CMakeOptions?, directoryPath: String) throws {
+internal func writeNamespaceModule(module: Module, namespace: String, typeDefinitions: [TypeDefinition], cmakeOptions: CMakeOptions?, directoryPath: String) throws {
     let writer = SwiftSourceFileWriter(
         output: FileTextOutputStream(path: "\(directoryPath)\\Aliases.swift", directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
@@ -19,35 +19,35 @@ internal func writeNamespaceModule(moduleName: String, typeDefinitions: [TypeDef
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        let targetName = cmakeOptions.getTargetName(moduleName: moduleName)
+        let targetName = module.cmakeTargetName + module.getNamespaceModuleSuffix(namespace: namespace)
         writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
-        if targetName != moduleName {
+        if module.cmakeTargetName != module.name {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(moduleName))
         }
-        writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
+        writer.writeTargetLinkLibraries(targetName, .public, [ module.cmakeTargetName ])
     }
 }
 
 /// Writes the flat namespace module to a given directory.
 /// The flat namespace reexports the types from all namespace modules,
 /// provided unqualified name access to all types in the projection module.
-internal func writeFlatNamespaceModule(module: Module, namespaceModuleNames: [String], cmakeOptions: CMakeOptions?, directoryPath: String) throws {
+internal func writeFlatNamespaceModule(module: Module, namespaces: [String], cmakeOptions: CMakeOptions?, directoryPath: String) throws {
     let writer = SwiftSourceFileWriter(
         output: FileTextOutputStream(path: "\(directoryPath)\\Flat.swift", directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
 
-    for namespaceModuleName in namespaceModuleNames {
-        writer.writeImport(exported: true, module: namespaceModuleName)
+    for namespace in namespaces {
+        writer.writeImport(exported: true, module: module.getNamespaceModuleName(namespace: namespace))
     }
 
     if let cmakeOptions {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        let flatModuleName = module.name + "_Flat"
-        let targetName = cmakeOptions.getTargetName(moduleName: flatModuleName)
+        let flatModuleName = module.name + Module.flatModuleSuffix
+        let targetName = module.cmakeTargetName + Module.flatModuleSuffix
         writer.writeAddLibrary(targetName, .static, ["Flat.swift"])
         if targetName != flatModuleName {
             writer.writeSingleLineCommand(
@@ -56,7 +56,7 @@ internal func writeFlatNamespaceModule(module: Module, namespaceModuleNames: [St
         }
         writer.writeTargetLinkLibraries(targetName, .public,
             // Workaround CMake bug that doesn't always transitively inherit link libraries.
-            [ cmakeOptions.getTargetName(moduleName: module.name) ] + namespaceModuleNames.map { cmakeOptions.getTargetName(moduleName: $0) })
+            [ module.cmakeTargetName ] + namespaces.map { module.cmakeTargetName + module.getNamespaceModuleSuffix(namespace: $0) })
     }
 }
 

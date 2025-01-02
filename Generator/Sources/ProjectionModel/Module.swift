@@ -3,9 +3,15 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 public final class Module {
+    public static let abiModuleSuffix: String = CAbi.moduleSuffix
+    public static let flatModuleSuffix: String = "_Flat"
+
     public unowned let projection: Projection
     public let name: String
+    public let spmLibraryName: String
+    public let cmakeTargetName: String
     public let abiModuleName: String
+    public var cmakeAbiTargetName: String { cmakeTargetName + Self.abiModuleSuffix }
     public let flattenNamespaces: Bool
     private var weakReferences: Set<Unowned<Module>> = []
 
@@ -15,10 +21,12 @@ public final class Module {
 
     public private(set) var genericInstantiationsByDefinition = [TypeDefinition: [[TypeNode]]]()
 
-    internal init(projection: Projection, name: String, flattenNamespaces: Bool = false) {
+    internal init(projection: Projection, name: String, spmLibraryName: String, cmakeTargetName: String, flattenNamespaces: Bool = false) {
         self.projection = projection
         self.name = name
-        self.abiModuleName = name + CAbi.moduleSuffix
+        self.spmLibraryName = spmLibraryName
+        self.cmakeTargetName = cmakeTargetName
+        self.abiModuleName = name + Self.abiModuleSuffix
         self.flattenNamespaces = flattenNamespaces
     }
 
@@ -90,6 +98,11 @@ public final class Module {
             let genericInstantiations = genericInstantiationsByDefinition[definition] ?? []
             return genericInstantiations.map { BoundType(definition, genericArgs: $0) }
         }
+    }
+
+    public func getNamespaceModuleSuffix(namespace: String) -> String {
+        precondition(!flattenNamespaces)
+        return "_\(Projection.toCompactNamespace(namespace))"
     }
 
     public func getNamespaceModuleName(namespace: String) -> String {
