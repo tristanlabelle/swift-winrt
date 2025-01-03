@@ -19,14 +19,17 @@ internal func writeNamespaceModule(module: Module, namespace: String, typeDefini
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
-        let targetName = module.cmakeTargetName + module.getNamespaceModuleSuffix(namespace: namespace)
+
+        let targetName = cmakeOptions.getTargetName(moduleName: module.name) + module.getNamespaceModuleSuffix(namespace: namespace)
+        let moduleName = module.name + module.getNamespaceModuleSuffix(namespace: namespace)
         writer.writeAddLibrary(targetName, .static, ["Aliases.swift"])
-        if module.cmakeTargetName != module.name {
+        if targetName != moduleName {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(moduleName))
         }
-        writer.writeTargetLinkLibraries(targetName, .public, [ module.cmakeTargetName ])
+
+        writer.writeTargetLinkLibraries(targetName, .public, [ cmakeOptions.getTargetName(moduleName: module.name) ])
     }
 }
 
@@ -46,17 +49,22 @@ internal func writeFlatNamespaceModule(module: Module, namespaces: [String], cma
         let writer = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
+
         let flatModuleName = module.name + Module.flatModuleSuffix
-        let targetName = module.cmakeTargetName + Module.flatModuleSuffix
+        let targetName = cmakeOptions.getTargetName(moduleName: module.name) + Module.flatModuleSuffix
         writer.writeAddLibrary(targetName, .static, ["Flat.swift"])
         if targetName != flatModuleName {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
                 "PROPERTIES", "Swift_MODULE_NAME", .autoquote(flatModuleName))
         }
+
+        let namespaceModuleTargetNames = namespaces.map {
+            cmakeOptions.getTargetName(moduleName: module.name) + module.getNamespaceModuleSuffix(namespace: $0)
+        }
         writer.writeTargetLinkLibraries(targetName, .public,
             // Workaround CMake bug that doesn't always transitively inherit link libraries.
-            [ module.cmakeTargetName ] + namespaces.map { module.cmakeTargetName + module.getNamespaceModuleSuffix(namespace: $0) })
+            [ cmakeOptions.getTargetName(moduleName: module.name) ] + namespaceModuleTargetNames)
     }
 }
 

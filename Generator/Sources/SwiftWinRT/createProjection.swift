@@ -24,8 +24,6 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         let module = projection.modulesByName[moduleName] 
             ?? projection.addModule(
                 name: moduleName,
-                spmLibraryName: moduleConfig.spmLibraryName,
-                cmakeTargetName: moduleConfig.cmakeTargetName,
                 flattenNamespaces: moduleConfig.flattenNamespaces)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
     }
