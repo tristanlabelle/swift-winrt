@@ -15,14 +15,20 @@ internal func writeABIModule(_ module: Module, cmakeOptions: CMakeOptions?, dire
     if let cmakeOptions {
         let cmakeListsWriter = CMakeListsWriter(output: FileTextOutputStream(
             path: "\(directoryPath)\\CMakeLists.txt", directoryCreation: .ancestors))
-        let targetName = cmakeOptions.getTargetName(moduleName: module.abiModuleName)
+        let targetName = cmakeOptions.getTargetName(moduleName: module.name) + Module.abiModuleSuffix
         cmakeListsWriter.writeAddLibrary(targetName, .interface)
         cmakeListsWriter.writeTargetIncludeDirectories(targetName, .interface, ["include"])
+
+        if targetName != module.abiModuleName {
+            cmakeListsWriter.writeSingleLineCommand(
+                "set_target_properties", .autoquote(targetName),
+                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.abiModuleName))
+        }
 
         var linkLibraries = [ SupportModules.WinRT.abiModuleName ]
         for reference in module.references {
             guard !reference.isEmpty else { continue }
-            linkLibraries.append(cmakeOptions.getTargetName(moduleName: reference.abiModuleName))
+            linkLibraries.append(cmakeOptions.getTargetName(moduleName: reference.name) + Module.abiModuleSuffix)
         }
         cmakeListsWriter.writeTargetLinkLibraries(targetName, .interface, linkLibraries)
     }

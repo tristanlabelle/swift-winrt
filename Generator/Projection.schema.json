@@ -25,6 +25,14 @@
                                 "type": "string"
                             }
                         },
+                        "spmLibraryName": {
+                            "title": "A name to use for the Swift Package Manager library exposing this module, when generating Package.swift. Defaults to the module name.",
+                            "type": "string"
+                        },
+                        "cmakeTargetName": {
+                            "title": "A name to use for the CMake target exposing this module, when generating CMakeLists.txt. Defaults to the module name.",
+                            "type": "string"
+                        },
                         "flattenNamespaces": {
                             "title": "Whether to ignore WinRT namespaces when generating Swift types.",
                             "type": "boolean"

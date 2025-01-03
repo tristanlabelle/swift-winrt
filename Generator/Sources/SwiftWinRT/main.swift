@@ -19,6 +19,9 @@ do {
         projectionConfig = ProjectionConfig()
     }
 
+    let spmOptions = SPMOptions(commandLineArguments: commandLineArguments, projectionConfig: projectionConfig)
+    let cmakeOptions = CMakeOptions(commandLineArguments: commandLineArguments, projectionConfig: projectionConfig)
+
     // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
     let context = WinMDLoadContext()
     guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else {
@@ -33,21 +36,11 @@ do {
 
     try writeProjectionFiles(projection,
         swiftBug72724: commandLineArguments.swiftBug72724.asBool,
-        cmakeOptions: !commandLineArguments.generateCMakeLists ? nil : CMakeOptions(
-            targetPrefix: commandLineArguments.cmakeTargetPrefix,
-            targetSuffix: commandLineArguments.cmakeTargetSuffix,
-            dynamicLibraries: commandLineArguments.dynamicLibraries),
+        cmakeOptions: cmakeOptions,
         directoryPath: commandLineArguments.outputDirectoryPath)
 
-    if commandLineArguments.generatePackageDotSwift {
-        writeSwiftPackageFile(
-            projection,
-            spmOptions: SPMOptions(
-                supportPackageReference: commandLineArguments.spmSupportPackageReference,
-                libraryPrefix: commandLineArguments.spmLibraryPrefix,
-                librarySuffix: commandLineArguments.spmLibrarySuffix,
-                dynamicLibraries: commandLineArguments.dynamicLibraries,
-                excludeCMakeLists: commandLineArguments.generateCMakeLists),
+    if let spmOptions {
+        writeSwiftPackageFile(projection, spmOptions: spmOptions,
             toPath: "\(commandLineArguments.outputDirectoryPath)\\Package.swift")
     }
 

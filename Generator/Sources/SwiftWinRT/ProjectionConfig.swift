@@ -11,6 +11,8 @@ struct ProjectionConfig: Codable {
     struct Module: Codable {
         var assemblies: [String] = []
         var types: [String]? = nil
+        var spmLibraryName: String? = nil
+        var cmakeTargetName: String? = nil
         var flattenNamespaces: Bool = false
         var fileNameInManifest: String? = nil
 
@@ -20,6 +22,8 @@ struct ProjectionConfig: Codable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             assemblies = try container.decodeIfPresent([String].self, forKey: .assemblies) ?? assemblies
             types = try container.decodeIfPresent([String]?.self, forKey: .types) ?? types
+            spmLibraryName = try container.decodeIfPresent(String?.self, forKey: .spmLibraryName) ?? spmLibraryName
+            cmakeTargetName = try container.decodeIfPresent(String?.self, forKey: .cmakeTargetName) ?? cmakeTargetName
             flattenNamespaces = try container.decodeIfPresent(Bool.self, forKey: .flattenNamespaces) ?? flattenNamespaces
             fileNameInManifest = try container.decodeIfPresent(String.self, forKey: .fileNameInManifest) ?? fileNameInManifest
         }

@@ -130,14 +130,14 @@ fileprivate func writeSwiftModuleFiles(
             path: "\(directoryPath)\\CMakeLists.txt",
             directoryCreation: .ancestors))
         writer.writeSingleLineCommand("file", "GLOB_RECURSE", "SOURCES", "*.swift")
-        
+
         let targetName = cmakeOptions.getTargetName(moduleName: module.name)
         writer.writeSingleLineCommand(
             "add_library",
             .autoquote(targetName),
             .unquoted(cmakeOptions.dynamicLibraries ? "SHARED" : "STATIC"),
             .unquoted("${SOURCES}"))
-        
+
         if targetName != module.name {
             writer.writeSingleLineCommand(
                 "set_target_properties", .autoquote(targetName),
@@ -152,7 +152,7 @@ fileprivate func writeSwiftModuleFiles(
             "PRIVATE", .unquoted("-driver-filelist-threshold=\(Int32.max)"))
 
         var linkLibraries: [String] = [
-            cmakeOptions.getTargetName(moduleName: module.abiModuleName),
+            cmakeOptions.getTargetName(moduleName: module.name) + Module.abiModuleSuffix,
             SupportModules.WinRT.moduleName
         ]
         for reference in module.references {
@@ -192,9 +192,9 @@ fileprivate func writeNamespaceModules(
 
         let compactNamespace = Projection.toCompactNamespace(namespace)
         try writeNamespaceModule(
-            moduleName: module.getNamespaceModuleName(namespace: namespace),
-            typeDefinitions: typeDefinitions,
             module: module,
+            namespace: namespace,
+            typeDefinitions: typeDefinitions,
             cmakeOptions: cmakeOptions,
             directoryPath: "\(directoryPath)\\\(compactNamespace)")
 
@@ -207,7 +207,7 @@ fileprivate func writeNamespaceModules(
 
     try writeFlatNamespaceModule(
         module: module,
-        namespaceModuleNames: compactNamespaces.map { module.getNamespaceModuleName(namespace: $0) },
+        namespaces: compactNamespaces,
         cmakeOptions: cmakeOptions,
         directoryPath: "\(directoryPath)\\Flat")
 

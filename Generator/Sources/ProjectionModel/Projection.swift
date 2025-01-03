@@ -15,7 +15,10 @@ public class Projection {
 
     public func addModule(name: String, flattenNamespaces: Bool = false) -> Module {
         precondition(modulesByName[name] == nil)
-        let module = Module(projection: self, name: name, flattenNamespaces: flattenNamespaces)
+        let module = Module(
+            projection: self,
+            name: name,
+            flattenNamespaces: flattenNamespaces)
         modulesByName[name] = module
         modulesByName.sort { $0.key < $1.key }
         return module

@@ -3,6 +3,9 @@ import DotNetMetadata
 import DotNetXMLDocs
 
 public final class Module {
+    public static let abiModuleSuffix: String = CAbi.moduleSuffix
+    public static let flatModuleSuffix: String = "_Flat"
+
     public unowned let projection: Projection
     public let name: String
     public let abiModuleName: String
@@ -18,7 +21,7 @@ public final class Module {
     internal init(projection: Projection, name: String, flattenNamespaces: Bool = false) {
         self.projection = projection
         self.name = name
-        self.abiModuleName = name + CAbi.moduleSuffix
+        self.abiModuleName = name + Self.abiModuleSuffix
         self.flattenNamespaces = flattenNamespaces
     }
 
@@ -90,6 +93,11 @@ public final class Module {
             let genericInstantiations = genericInstantiationsByDefinition[definition] ?? []
             return genericInstantiations.map { BoundType(definition, genericArgs: $0) }
         }
+    }
+
+    public func getNamespaceModuleSuffix(namespace: String) -> String {
+        precondition(!flattenNamespaces)
+        return "_\(Projection.toCompactNamespace(namespace))"
     }
 
     public func getNamespaceModuleName(namespace: String) -> String {

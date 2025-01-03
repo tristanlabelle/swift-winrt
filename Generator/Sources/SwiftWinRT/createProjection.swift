@@ -22,7 +22,9 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
             : try tryLoadDocumentation(assemblyPath: filePath, locales: commandLineArguments.locales)
         let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
         let module = projection.modulesByName[moduleName] 
-            ?? projection.addModule(name: moduleName, flattenNamespaces: moduleConfig.flattenNamespaces)
+            ?? projection.addModule(
+                name: moduleName,
+                flattenNamespaces: moduleConfig.flattenNamespaces)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
     }
 
