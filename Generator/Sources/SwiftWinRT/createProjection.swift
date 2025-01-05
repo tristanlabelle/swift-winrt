@@ -20,9 +20,8 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         let assembly = try winMDLoadContext.load(path: filePath)
         let assemblyDocumentation = commandLineArguments.noDocs ? nil
             : try tryLoadDocumentation(assemblyPath: filePath, locales: commandLineArguments.locales)
-        let (moduleName, moduleConfig) = projectionConfig.getModule(assemblyName: assembly.name)
-        let module = projection.modulesByName[moduleName] 
-            ?? projection.addModule(name: moduleName)
+        let (moduleName, _) = projectionConfig.getModule(assemblyName: assembly.name)
+        let module = projection.modulesByName[moduleName] ?? projection.addModule(name: moduleName)
         module.addAssembly(assembly, documentation: assemblyDocumentation)
     }
 
