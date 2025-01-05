@@ -7,7 +7,7 @@ class ErrorTests: WinRTTestCase {
     func testCatchErrorHResult() throws {
         let hresult = HResult(unsigned: 0xBAADF00D)
         do {
-            try Errors.failWith(hresult, "")
+            try WinRTComponent_Errors.failWith(hresult, "")
             XCTFail("Expected an error")
         } catch let error as COMErrorProtocol {
             XCTAssertEqual(error.hresult, hresult)
@@ -18,7 +18,7 @@ class ErrorTests: WinRTTestCase {
         let hresult = HResult(unsigned: 0xDEADBEEF)
         let message = "Hit some beef"
         do {
-            try Errors.failWith(hresult, message)
+            try WinRTComponent_Errors.failWith(hresult, message)
             XCTFail("Expected an error")
         } catch let error as WinRTError {
             XCTAssertEqual(error.description, message)
@@ -26,8 +26,8 @@ class ErrorTests: WinRTTestCase {
     }
 
     func testCallThrowingProperty() throws {
-        XCTAssertThrowsError(try Errors.notImplementedProperty)
-        XCTAssertThrowsError(try Errors.notImplementedProperty("foo"))
+        XCTAssertThrowsError(try WinRTComponent_Errors.notImplementedProperty)
+        XCTAssertThrowsError(try WinRTComponent_Errors.notImplementedProperty("foo"))
     }
 
     func testThrowWithHResult() throws {
@@ -35,7 +35,7 @@ class ErrorTests: WinRTTestCase {
             public var hresult: HResult { .init(unsigned: 0xCAFEBABE) }
         }
         let error = TestError()
-        XCTAssertEqual(try Errors.catchHResult { throw error }, error.hresult)
+        XCTAssertEqual(try WinRTComponent_Errors.catchHResult { throw error }, error.hresult)
     }
 
     func testThrowWithMessage() throws {
@@ -43,13 +43,13 @@ class ErrorTests: WinRTTestCase {
             public var description: String { "test" }
         }
         let error = TestError()
-        XCTAssertEqual(try Errors.catchMessage { throw error }, error.description)
+        XCTAssertEqual(try WinRTComponent_Errors.catchMessage { throw error }, error.description)
     }
 
     func testSwiftErrorPreserved() throws {
         struct SwiftError: Error {}
         do {
-            try Errors.call { throw SwiftError() }
+            try WinRTComponent_Errors.call { throw SwiftError() }
             XCTFail("Expected an error")
         }
         catch _ as SwiftError {} // Success

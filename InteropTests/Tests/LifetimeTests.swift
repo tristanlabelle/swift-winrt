@@ -5,7 +5,7 @@ import WinRTComponent
 class LifetimeTests: WinRTTestCase {
     func testActivatedObjectDestroyedWhenUnreferencedFromSwift() throws {
         var destroyed: Bool = false
-        withExtendedLifetime(try DestructionCallback { destroyed = true }) {
+        withExtendedLifetime(try WinRTComponent_DestructionCallback { destroyed = true }) {
             XCTAssertFalse(destroyed)
         }
         XCTAssertTrue(destroyed)
@@ -13,14 +13,14 @@ class LifetimeTests: WinRTTestCase {
 
     func testActivatedObjectDestroyedWhenUnreferencedFromWinRT() throws {
         var destroyed: Bool = false
-        let objectReferencer = try ObjectReferencer(
-            try DestructionCallback { destroyed = true })
+        let objectReferencer = try WinRTComponent_ObjectReferencer(
+            try WinRTComponent_DestructionCallback { destroyed = true })
         XCTAssertFalse(destroyed)
         try objectReferencer.clear()
         XCTAssertTrue(destroyed)
     }
 
-    class ComposedDestructionCallback: DestructionCallback, @unchecked Sendable {
+    class ComposedDestructionCallback: WinRTComponent_DestructionCallback, @unchecked Sendable {
         private let deinitCallback: () -> Void
 
         public init(winRT: @escaping () -> Void, swift: @escaping () -> Void) throws {
@@ -49,7 +49,7 @@ class LifetimeTests: WinRTTestCase {
     func testComposedObjectDestroyedWhenUnreferencedFromWinRT() throws {
         var destroyed: Bool = false
         var deinited: Bool = false
-        let objectReferencer = try ObjectReferencer(
+        let objectReferencer = try WinRTComponent_ObjectReferencer(
             try ComposedDestructionCallback(
                 winRT: { destroyed = true },
                 swift: { deinited = true }))

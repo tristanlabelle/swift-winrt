@@ -21,7 +21,7 @@ class ActivationFactoryResolutionTests: WinRTTestCase {
         defer { WindowsRuntime.activationFactoryResolver = originalResolver }
 
         // Trigger the activation factory resolution
-        try ForCustomActivationFactoryResolution.method()
+        try WinRTComponent_ForCustomActivationFactoryResolution.method()
 
         // Verify that the custom resolver was called
         XCTAssertEqual(resolver.lastRuntimeClass, "WinRTComponent.ForCustomActivationFactoryResolution")

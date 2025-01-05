@@ -48,9 +48,7 @@ fileprivate func writeModuleFiles(
         swiftBug72724: swiftBug72724, cmakeOptions: cmakeOptions,
         directoryPath: "\(directoryPath)\\Projection")
 
-    if !module.flattenNamespaces {
-        try writeNamespaceModules(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
-    }
+    try writeNamespaceModules(module, cmakeOptions: cmakeOptions, directoryPath: "\(directoryPath)\\Namespaces")
 
     if cmakeOptions != nil {
         let writer = CMakeListsWriter(output: FileTextOutputStream(
@@ -58,9 +56,7 @@ fileprivate func writeModuleFiles(
             directoryCreation: .ancestors))
         writer.writeAddSubdirectory("ABI")
         writer.writeAddSubdirectory("Projection")
-        if !module.flattenNamespaces {
-            writer.writeAddSubdirectory("Namespaces")
-        }
+        writer.writeAddSubdirectory("Namespaces")
     }
 }
 

@@ -5,7 +5,7 @@ import WinRTComponent
 
 class PropertyTests: WinRTTestCase {
     func testInstance() throws {
-        let wrapper = try Int32Wrapper()
+        let wrapper = try WinRTComponent_Int32Wrapper()
 
         func assertGet(expected: Int32) throws {
             XCTAssertEqual(try wrapper.getOnly, expected)
@@ -25,19 +25,19 @@ class PropertyTests: WinRTTestCase {
 
     func testStatic() throws {
         func assertGet(expected: Int32) throws {
-            XCTAssertEqual(try Int32Global.getOnly, expected)
-            XCTAssertEqual(Int32Global.getOnly_, expected)
-            XCTAssertEqual(try Int32Global.getSet, expected)
-            XCTAssertEqual(Int32Global.getSet_, expected)
+            XCTAssertEqual(try WinRTComponent_Int32Global.getOnly, expected)
+            XCTAssertEqual(WinRTComponent_Int32Global.getOnly_, expected)
+            XCTAssertEqual(try WinRTComponent_Int32Global.getSet, expected)
+            XCTAssertEqual(WinRTComponent_Int32Global.getSet_, expected)
         }
 
-        try Int32Global.getSet(0)
+        try WinRTComponent_Int32Global.getSet(0)
         try assertGet(expected: 0)
 
-        try Int32Global.getSet(1)
+        try WinRTComponent_Int32Global.getSet(1)
         try assertGet(expected: 1)
 
-        Int32Global.getSet_ = 2
+        WinRTComponent_Int32Global.getSet_ = 2
         try assertGet(expected: 2)
     }
 }

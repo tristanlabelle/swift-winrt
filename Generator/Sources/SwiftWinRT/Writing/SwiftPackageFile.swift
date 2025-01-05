@@ -40,31 +40,29 @@ func writeSwiftPackageFile(_ projection: Projection, spmOptions: SPMOptions, toP
         moduleProduct.targets.append(abiModuleTarget.name)
 
         // Namespace modules
-        if !module.flattenNamespaces {
-            var namespaces = OrderedSet<String>()
-            for typeDefinition in module.typeDefinitions {
-                guard let namespace = typeDefinition.namespace else { continue }
-                namespaces.append(namespace)
-            }
-
-            namespaces.sort()
-
-            for namespace in namespaces {
-                var namespaceModuleTarget: SwiftPackage.Target = .target(
-                    name: module.getNamespaceModuleName(namespace: namespace))
-                let compactNamespace = Projection.toCompactNamespace(namespace)
-                namespaceModuleTarget.path = "\(module.name)/Namespaces/\(compactNamespace)"
-                namespaceModuleTarget.dependencies.append(.target(name: module.name))
-                package.targets.append(namespaceModuleTarget)
-                moduleProduct.targets.append(namespaceModuleTarget.name)
-            }
-
-            var flatModuleTarget: SwiftPackage.Target = .target(name: module.name + Module.flatModuleSuffix)
-            flatModuleTarget.path = "\(module.name)/Namespaces/Flat"
-            flatModuleTarget.dependencies = namespaces.map { .target(name: module.getNamespaceModuleName(namespace: $0)) }
-            package.targets.append(flatModuleTarget)
-            moduleProduct.targets.append(flatModuleTarget.name)
+        var namespaces = OrderedSet<String>()
+        for typeDefinition in module.typeDefinitions {
+            guard let namespace = typeDefinition.namespace else { continue }
+            namespaces.append(namespace)
         }
+
+        namespaces.sort()
+
+        for namespace in namespaces {
+            var namespaceModuleTarget: SwiftPackage.Target = .target(
+                name: module.getNamespaceModuleName(namespace: namespace))
+            let compactNamespace = Projection.toCompactNamespace(namespace)
+            namespaceModuleTarget.path = "\(module.name)/Namespaces/\(compactNamespace)"
+            namespaceModuleTarget.dependencies.append(.target(name: module.name))
+            package.targets.append(namespaceModuleTarget)
+            moduleProduct.targets.append(namespaceModuleTarget.name)
+        }
+
+        var flatModuleTarget: SwiftPackage.Target = .target(name: module.name + Module.flatModuleSuffix)
+        flatModuleTarget.path = "\(module.name)/Namespaces/Flat"
+        flatModuleTarget.dependencies = namespaces.map { .target(name: module.getNamespaceModuleName(namespace: $0)) }
+        package.targets.append(flatModuleTarget)
+        moduleProduct.targets.append(flatModuleTarget.name)
 
         // Create products for the projections and the ABI
         package.products.append(moduleProduct)
