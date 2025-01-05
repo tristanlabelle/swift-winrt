@@ -371,13 +371,15 @@ fileprivate func writeInterfaceOrDelegateBindingType(
         name: String,
         projection: Projection,
         to writer: some SwiftDeclarationWriter) throws {
+    let attributes = try [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 }
+    // Generic specializations can exist in multiple modules, so they must be internal.
+    let visibility = type.genericArgs.isEmpty ? Projection.toVisibility(type.definition.visibility) : SwiftVisibility.internal
+
     if type.definition is InterfaceDefinition {
         // Implement binding as a class so it can be looked up using NSClassFromString.
         try writer.writeClass(
-                attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
-                visibility: Projection.toVisibility(type.definition.visibility),
-                name: name,
-                protocolConformances: [ SupportModules.WindowsRuntime.interfaceBinding ]) { writer throws in
+                attributes: attributes, visibility: visibility, name: name,
+                protocolConformances: [ SupportModules.WinRT.interfaceBinding ]) { writer throws in
             try writeInterfaceOrDelegateBindingMembers(
                 type, bindingType: .named(name),
                 projection: projection, to: writer)
@@ -385,10 +387,8 @@ fileprivate func writeInterfaceOrDelegateBindingType(
     }
     else {
         try writer.writeEnum(
-                attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
-                visibility: Projection.toVisibility(type.definition.visibility),
-                name: name,
-                protocolConformances: [ SupportModules.WindowsRuntime.delegateBinding ]) { writer throws in
+                attributes: attributes, visibility: visibility, name: name,
+                protocolConformances: [ SupportModules.WinRT.delegateBinding ]) { writer throws in
             try writeInterfaceOrDelegateBindingMembers(
                 type, bindingType: .named(name),
                 projection: projection, to: writer)
@@ -400,7 +400,7 @@ fileprivate func writeInterfaceOrDelegateBindingMembers(
         _ type: BoundType,
         bindingType: SwiftType,
         projection: Projection,
-        to writer: some SwiftTypeDefinitionWriter) throws {
+        to writer: SwiftTypeDefinitionWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
 
     let importClassName = "Import"
