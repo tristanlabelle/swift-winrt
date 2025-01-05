@@ -11,14 +11,17 @@ public var inspectableTypeBindingResolver: (any InspectableTypeBindingResolver)?
 public func wrapInspectable<StaticBinding: InspectableTypeBinding>(
         _ reference: consuming StaticBinding.ABIReference,
         staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject {
+    // The resolver can give us a more derived type so consult it first.
     let inspectablePointer = IInspectablePointer(OpaquePointer(reference.pointer))
     if let inspectableTypeBindingResolver,
             let typeName = try? COMInterop(inspectablePointer).getRuntimeClassName(),
-            let inspectableTypeBinding = inspectableTypeBindingResolver.resolve(typeName: typeName),
-            let wrapper = inspectableTypeBinding._wrapInspectable(COMReference(addingRef: inspectablePointer)) as? StaticBinding.SwiftObject {
-        return wrapper
+            let inspectableTypeBinding = inspectableTypeBindingResolver.resolve(typeName: typeName) {
+        if let wrapper = try? inspectableTypeBinding._wrapInspectable(COMReference(addingRef: inspectablePointer)) as? StaticBinding.SwiftObject {
+            return wrapper
+        }
+
+        assertionFailure("\(inspectableTypeBinding) failed to wrap a COM object to \(StaticBinding.SwiftObject.self)")
     }
-    else {
-        return StaticBinding._wrap(consume reference)
-    }
+
+    return StaticBinding._wrap(consume reference)
 }
