@@ -6,12 +6,12 @@ class DeprecationTests: XCTestCase {
     func testDeprecatedTypesExist() throws {
         // We can't validate that they produce deprecated messages at compile-time,
         // but we can at least validate that the types have been generated.
-        _ = DeprecatedEnum.one
-        _ = DeprecatedStruct().field
-        _ = {} as DeprecatedDelegate
-        _ = try (nil as IDeprecatedInterface?)?.property
-        try (nil as IDeprecatedInterface?)?.method()
-        try (nil as IDeprecatedInterface?)?.event {}
-        try DeprecatedClass(42).method()
+        _ = WinRTComponent_DeprecatedEnum.one
+        _ = WinRTComponent_DeprecatedStruct().field
+        _ = {} as WinRTComponent_DeprecatedDelegate
+        _ = try (nil as WinRTComponent_IDeprecatedInterface?)?.property
+        try (nil as WinRTComponent_IDeprecatedInterface?)?.method()
+        try (nil as WinRTComponent_IDeprecatedInterface?)?.event {}
+        try WinRTComponent_DeprecatedClass(42).method()
     }
 }

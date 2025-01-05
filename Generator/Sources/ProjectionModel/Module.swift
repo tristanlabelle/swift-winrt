@@ -9,7 +9,6 @@ public final class Module {
     public unowned let projection: Projection
     public let name: String
     public let abiModuleName: String
-    public let flattenNamespaces: Bool
     private var weakReferences: Set<Unowned<Module>> = []
 
     // OrderedSets are not sorted. Sort it lazily for stable iteration.
@@ -18,11 +17,10 @@ public final class Module {
 
     public private(set) var genericInstantiationsByDefinition = [TypeDefinition: [[TypeNode]]]()
 
-    internal init(projection: Projection, name: String, flattenNamespaces: Bool = false) {
+    internal init(projection: Projection, name: String) {
         self.projection = projection
         self.name = name
         self.abiModuleName = name + Self.abiModuleSuffix
-        self.flattenNamespaces = flattenNamespaces
     }
 
     public var typeDefinitions: OrderedSet<TypeDefinition> {
@@ -96,13 +94,11 @@ public final class Module {
     }
 
     public func getNamespaceModuleSuffix(namespace: String) -> String {
-        precondition(!flattenNamespaces)
-        return "_\(Projection.toCompactNamespace(namespace))"
+        "_\(Projection.toCompactNamespace(namespace))"
     }
 
     public func getNamespaceModuleName(namespace: String) -> String {
-        precondition(!flattenNamespaces)
-        return "\(name)_\(Projection.toCompactNamespace(namespace))"
+        "\(name)_\(Projection.toCompactNamespace(namespace))"
     }
 
     internal func getName(_ typeDefinition: TypeDefinition, namespaced: Bool = true) throws -> String {
@@ -114,7 +110,7 @@ public final class Module {
         if let enclosingType = try typeDefinition.enclosingType {
             result += try getName(enclosingType, namespaced: namespaced) + "_"
         }
-        else if namespaced && !flattenNamespaces {
+        else if namespaced {
             result += typeDefinition.namespace.flatMap { Projection.toCompactNamespace($0) + "_" } ?? ""
         }
 

@@ -4,25 +4,25 @@ import WinRTComponent
 
 class NullValueTests: WinRTTestCase {
     func testIsNull() throws {
-        let minimalClass = try MinimalClass()
-        let minimalInterface = try MinimalInterfaceFactory.create()
-        XCTAssertFalse(try NullValues.isObjectNull(minimalClass))
-        XCTAssertTrue(try NullValues.isObjectNull(nil))
-        XCTAssertFalse(try NullValues.isInterfaceNull(minimalInterface))
-        XCTAssertTrue(try NullValues.isInterfaceNull(nil))
-        XCTAssertFalse(try NullValues.isClassNull(minimalClass))
-        XCTAssertTrue(try NullValues.isClassNull(nil))
-        XCTAssertFalse(try NullValues.isDelegateNull({ fatalError() }));
-        XCTAssertTrue(try NullValues.isDelegateNull(nil));
-        XCTAssertFalse(try NullValues.isReferenceNull(42));
-        XCTAssertTrue(try NullValues.isReferenceNull(nil));
+        let minimalClass = try WinRTComponent_MinimalClass()
+        let minimalInterface = try WinRTComponent_MinimalInterfaceFactory.create()
+        XCTAssertFalse(try WinRTComponent_NullValues.isObjectNull(minimalClass))
+        XCTAssertTrue(try WinRTComponent_NullValues.isObjectNull(nil))
+        XCTAssertFalse(try WinRTComponent_NullValues.isInterfaceNull(minimalInterface))
+        XCTAssertTrue(try WinRTComponent_NullValues.isInterfaceNull(nil))
+        XCTAssertFalse(try WinRTComponent_NullValues.isClassNull(minimalClass))
+        XCTAssertTrue(try WinRTComponent_NullValues.isClassNull(nil))
+        XCTAssertFalse(try WinRTComponent_NullValues.isDelegateNull({ fatalError() }));
+        XCTAssertTrue(try WinRTComponent_NullValues.isDelegateNull(nil));
+        XCTAssertFalse(try WinRTComponent_NullValues.isReferenceNull(42));
+        XCTAssertTrue(try WinRTComponent_NullValues.isReferenceNull(nil));
     }
 
     func testGetNull() throws {
-        XCTAssertNil(try NullResult.catch(NullValues.getNullObject()))
-        XCTAssertNil(try NullResult.catch(NullValues.getNullInterface()))
-        XCTAssertNil(try NullResult.catch(NullValues.getNullDelegate()))
-        XCTAssertNil(try NullResult.catch(NullValues.getNullClass()))
-        XCTAssertNil(try NullValues.getNullReference())
+        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullObject()))
+        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullInterface()))
+        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullDelegate()))
+        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullClass()))
+        XCTAssertNil(try WinRTComponent_NullValues.getNullReference())
     }
 }

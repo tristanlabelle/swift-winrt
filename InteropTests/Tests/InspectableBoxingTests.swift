@@ -23,21 +23,21 @@ class InspectableBoxingTests: WinRTTestCase {
     }
 
     func testEnumRoundTrip() throws {
-        let original = MinimalEnum.one
-        XCTAssertEqual(try InspectableBoxing.boxMinimalEnum(original).unbox(MinimalEnum.self), original)
+        let original = WinRTComponent_MinimalEnum.one
+        XCTAssertEqual(try InspectableBoxing.boxMinimalEnum(original).unbox(WinRTComponent_MinimalEnum.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxMinimalEnum(createIReference(original)), original)
     }
 
     func testPODStructRoundTrip() throws {
-        let original = MinimalStruct(field: 42)
-        XCTAssertEqual(try InspectableBoxing.boxMinimalStruct(original).unbox(MinimalStruct.self), original)
+        let original = WinRTComponent_MinimalStruct(field: 42)
+        XCTAssertEqual(try InspectableBoxing.boxMinimalStruct(original).unbox(WinRTComponent_MinimalStruct.self), original)
         XCTAssertEqual(try InspectableBoxing.unboxMinimalStruct(createIReference(original)), original)
     }
 
     func testDelegateRoundTrip() throws {
-        func assertRoundTrip(roundtrip: (@escaping MinimalDelegate) throws -> MinimalDelegate) throws {
+        func assertRoundTrip(roundtrip: (@escaping WinRTComponent_MinimalDelegate) throws -> WinRTComponent_MinimalDelegate) throws {
             var invoked = false
-            let original: MinimalDelegate = { invoked = true }
+            let original: WinRTComponent_MinimalDelegate = { invoked = true }
             let roundtripped = try roundtrip(original)
             XCTAssertFalse(invoked)
             try roundtripped()
@@ -45,17 +45,17 @@ class InspectableBoxingTests: WinRTTestCase {
         }
 
         try assertRoundTrip {
-            let ireference = try createIReference($0, binding: MinimalDelegateBinding.self)
+            let ireference = try createIReference($0, binding: WinRTComponent_MinimalDelegateBinding.self)
             return try XCTUnwrap(ireference.value)
         }
 
         try assertRoundTrip {
             let iinspectable = try InspectableBoxing.boxMinimalDelegate($0)
-            return try XCTUnwrap(iinspectable.unbox(MinimalDelegateBinding.self))
+            return try XCTUnwrap(iinspectable.unbox(WinRTComponent_MinimalDelegateBinding.self))
         }
 
         try assertRoundTrip {
-            let ireference = try createIReference($0, binding: MinimalDelegateBinding.self)
+            let ireference = try createIReference($0, binding: WinRTComponent_MinimalDelegateBinding.self)
             return try InspectableBoxing.unboxMinimalDelegate(ireference)
         }
     }

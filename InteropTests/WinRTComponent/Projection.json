@@ -17,7 +17,6 @@
             ],
             "spmLibraryName": "SwiftWinRTComponent",
             "cmakeTargetName": "SwiftWinRTComponent",
-            "flattenNamespaces": true,
             "fileNameInManifest": "WinRTComponent.dll"
         }
     }

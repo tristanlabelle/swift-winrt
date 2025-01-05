@@ -3,16 +3,16 @@ import WinRTComponent
 
 class ArrayTests: WinRTTestCase {
     func testInput() throws {
-        XCTAssertEqual(try Arrays.getLast(["a", "b"]), "b")
+        XCTAssertEqual(try WinRTComponent_Arrays.getLast(["a", "b"]), "b")
     }
 
     func testReturn() throws {
-        XCTAssertEqual(try Arrays.make("a", "b"), ["a", "b"])
+        XCTAssertEqual(try WinRTComponent_Arrays.make("a", "b"), ["a", "b"])
     }
 
     func testOutParam() throws {
         var array = [String]()
-        try Arrays.output("a", "b", &array)
+        try WinRTComponent_Arrays.output("a", "b", &array)
         XCTAssertEqual(array, ["a", "b"])
     }
 

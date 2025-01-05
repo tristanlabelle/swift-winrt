@@ -15,7 +15,7 @@ class ActivationFactoryResolutionTests: WinRTTestCase {
         }
 
         // Temporarily install the new resolver (avoid affecting other tests)
-        let resolver = Resolver()
+        let resolver = WinRTComponent_Resolver()
         let originalResolver = WindowsRuntime.activationFactoryResolver
         WindowsRuntime.activationFactoryResolver = resolver
         defer { WindowsRuntime.activationFactoryResolver = originalResolver }

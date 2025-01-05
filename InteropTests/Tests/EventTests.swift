@@ -4,7 +4,7 @@ import WinRTComponent
 
 class EventTests: WinRTTestCase {
     func testImportedEvent() throws {
-        let eventSource = try XCTUnwrap(Events.createSource())
+        let eventSource = try XCTUnwrap(WinRTComponent_Events.createSource())
 
         var count = 0
         var registration = try eventSource.event { count += 1 }
@@ -19,8 +19,8 @@ class EventTests: WinRTTestCase {
     }
 
     func testExportedEvent() throws {
-        let eventSource = EventSource()
-        let counter = try XCTUnwrap(Events.createCounter(eventSource))
+        let eventSource = WinRTComponent_EventSource()
+        let counter = try XCTUnwrap(WinRTComponent_Events.createCounter(eventSource))
         XCTAssertEqual(try counter.count, 0)
         try eventSource.fire()
         XCTAssertEqual(try counter.count, 1)
@@ -29,10 +29,10 @@ class EventTests: WinRTTestCase {
         XCTAssertEqual(try counter.count, 1)
 
         class EventSource: WinRTExportBase<IEventSourceBinding>, IEventSourceProtocol {
-            private var invocationList: EventInvocationList<MinimalDelegate> = .init()
+            private var invocationList: EventInvocationList<WinRTComponent_MinimalDelegate> = .init()
 
             @discardableResult
-            func event(adding handler: MinimalDelegate?) throws -> EventRegistration {
+            func event(adding handler: WinRTComponent_MinimalDelegate?) throws -> EventRegistration {
                 try invocationList.add(handler)
             }
 
@@ -47,7 +47,7 @@ class EventTests: WinRTTestCase {
     }
 
     func testDiscardableResult() throws {
-        let eventSource = try XCTUnwrap(Events.createSource())
+        let eventSource = try XCTUnwrap(WinRTComponent_Events.createSource())
         try eventSource.event { } // Should not produce a warning/error
     }
 }

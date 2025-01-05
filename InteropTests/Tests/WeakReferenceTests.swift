@@ -4,17 +4,17 @@ import WinRTComponent
 
 class WeakReferenceTests: WinRTTestCase {
     func testNulledWhenUnreferencedFromSwift() throws {
-        var target: MinimalClass! = try MinimalClass()
-        let weakReference = try WeakReference<MinimalClassBinding>(target)
+        var target: WinRTComponent_MinimalClass! = try WinRTComponent_MinimalClass()
+        let weakReference = try WeakReference<WinRTComponent_MinimalClassBinding>(target)
         XCTAssertNotNil(try weakReference.resolve())
         target = nil
         XCTAssertNil(try weakReference.resolve())
     }
 
     func testNulledWhenUnreferencedFromWinRT() throws {
-        var target: MinimalClass! = try MinimalClass()
-        let strongReferencer = try ObjectReferencer(target)
-        let weakReference = try WeakReference<MinimalClassBinding>(target)
+        var target: WinRTComponent_MinimalClass! = try WinRTComponent_MinimalClass()
+        let strongReferencer = try WinRTComponent_ObjectReferencer(target)
+        let weakReference = try WeakReference<WinRTComponent_MinimalClassBinding>(target)
         target = nil
 
         XCTAssertNotNil(try NullResult.catch(strongReferencer.target))
@@ -27,8 +27,8 @@ class WeakReferenceTests: WinRTTestCase {
     }
 
     func testThroughIWeakReferenceSource() throws {
-        var target: MinimalClass! = try MinimalClass()
-        var weakReferenceSource: IWeakReferenceSource! = try target.queryInterface(IWeakReferenceSourceBinding.self)
+        var target: WinRTComponent_MinimalClass! = try WinRTComponent_MinimalClass()
+        var weakReferenceSource: WinRTComponent_IWeakReferenceSource! = try target.queryInterface(WinRTComponent_IWeakReferenceSourceBinding.self)
         let weakReference = try weakReferenceSource.getWeakReference()
         XCTAssertNotNil(try weakReference.resolve())
         target = nil

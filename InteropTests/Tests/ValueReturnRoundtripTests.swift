@@ -6,13 +6,13 @@ import WinRTComponent
 /// Tests that values can be passed without loss of information
 /// between Swift and WinRT as arguments and return values.
 class ValueReturnRoundtripTests: WinRTTestCase {
-    private var oneWay: IReturnArgument!
-    private var twoWay: IReturnArgument!
+    private var oneWay: WinRTComponent_IReturnArgument!
+    private var twoWay: WinRTComponent_IReturnArgument!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        oneWay = try XCTUnwrap(ReturnArgument.create())
-        twoWay = try XCTUnwrap(ReturnArgument.createProxy(ReturnArgumentImplementation()))
+        oneWay = try XCTUnwrap(WinRTComponent_ReturnArgument.create())
+        twoWay = try XCTUnwrap(WinRTComponent_ReturnArgument.createProxy(ReturnArgumentImplementation()))
     }
 
     override func tearDownWithError() throws {
@@ -30,7 +30,7 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     }
 
     func testObject() throws {
-        let original: IInspectable = try MinimalClass()
+        let original: IInspectable = try WinRTComponent_MinimalClass()
         assertCOMIdentical(try twoWay.object(original), original)
 
         XCTAssertNil(try NullResult.catch(twoWay.object(nil)))
@@ -41,19 +41,19 @@ class ValueReturnRoundtripTests: WinRTTestCase {
     }
 
     func testStruct() throws {
-        let original = MinimalStruct(field: 42)
+        let original = WinRTComponent_MinimalStruct(field: 42)
         XCTAssertEqual(try twoWay.struct(original), original)
     }
 
     func testInterface() throws {
-        let original: IMinimalInterface = try MinimalInterfaceFactory.create()
+        let original: WinRTComponent_IMinimalInterface = try WinRTComponent_MinimalInterfaceFactory.create()
         assertCOMIdentical(try twoWay.interface(original), original)
 
         XCTAssertNil(try NullResult.catch(twoWay.interface(nil)))
     }
 
     func testClass() throws {
-        let instance = try MinimalClass()
+        let instance = try WinRTComponent_MinimalClass()
         let roundtripped = try twoWay.class(instance)
         XCTAssertNotIdentical(roundtripped, instance)
         XCTAssertEqual(roundtripped._pointer, instance._pointer)
@@ -90,11 +90,11 @@ class ValueReturnRoundtripTests: WinRTTestCase {
         func int32(_ value: Int32) throws -> Int32 { value }
         func string(_ value: String) throws -> String { value }
         func object(_ value: WindowsRuntime.IInspectable?) throws -> WindowsRuntime.IInspectable { try NullResult.unwrap(value) }
-        func `enum`(_ value: WinRTComponent.MinimalEnum) throws -> WinRTComponent.MinimalEnum { value }
-        func `struct`(_ value: WinRTComponent.MinimalStruct) throws -> WinRTComponent.MinimalStruct { value }
-        func interface(_ value: WinRTComponent.IMinimalInterface?) throws -> WinRTComponent.IMinimalInterface { try NullResult.unwrap(value) }
-        func `class`(_ value: WinRTComponent.MinimalClass?) throws -> WinRTComponent.MinimalClass { try NullResult.unwrap(value) }
-        func delegate(_ value: WinRTComponent.MinimalDelegate?) throws -> WinRTComponent.MinimalDelegate { try NullResult.unwrap(value) }
+        func `enum`(_ value: WinRTComponent_MinimalEnum) throws -> WinRTComponent_MinimalEnum { value }
+        func `struct`(_ value: WinRTComponent_MinimalStruct) throws -> WinRTComponent_MinimalStruct { value }
+        func interface(_ value: WinRTComponent_IMinimalInterface?) throws -> WinRTComponent_IMinimalInterface { try NullResult.unwrap(value) }
+        func `class`(_ value: WinRTComponent_MinimalClass?) throws -> WinRTComponent_MinimalClass { try NullResult.unwrap(value) }
+        func delegate(_ value: WinRTComponent_MinimalDelegate?) throws -> WinRTComponent_MinimalDelegate { try NullResult.unwrap(value) }
         func array(_ value: [String]) throws -> [String] { value }
         func reference(_ value: Int32?) throws -> Int32? { value }
     }

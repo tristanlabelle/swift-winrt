@@ -4,7 +4,7 @@ import WinRTComponent
 
 class AsyncTests : XCTestCase {
     public func testAwaitAlreadyCompleted() async throws {
-        let asyncOperation = try ManualAsyncOperation(0)
+        let asyncOperation = try WinRTComponent_ManualAsyncOperation(0)
         XCTAssertEqual(try asyncOperation.status, .started)
         try asyncOperation.complete(42)
         XCTAssertEqual(try asyncOperation.status, .completed)
@@ -13,7 +13,7 @@ class AsyncTests : XCTestCase {
     }
 
     public func testAwaitAlreadyFailed() async throws {
-        let asyncOperation = try ManualAsyncOperation(0)
+        let asyncOperation = try WinRTComponent_ManualAsyncOperation(0)
         XCTAssertEqual(try asyncOperation.status, .started)
         try asyncOperation.completeWithError(HResult.outOfMemory)
         XCTAssertEqual(try asyncOperation.status, .error)
@@ -27,7 +27,7 @@ class AsyncTests : XCTestCase {
     }
 
     public func testAwaitNotYetCompleted() async throws {
-        let asyncOperation = try ManualAsyncOperation(0)
+        let asyncOperation = try WinRTComponent_ManualAsyncOperation(0)
         XCTAssertEqual(try asyncOperation.status, .started)
         Self.runAfter(delay: 0.05) { try? asyncOperation.complete(42) }
         let result = try await asyncOperation.get()
@@ -36,7 +36,7 @@ class AsyncTests : XCTestCase {
     }
 
     public func testAwaitNotYetFailed() async throws {
-        let asyncOperation = try ManualAsyncOperation(0)
+        let asyncOperation = try WinRTComponent_ManualAsyncOperation(0)
         XCTAssertEqual(try asyncOperation.status, .started)
         Self.runAfter(delay: 0.05) { try? asyncOperation.completeWithError(HResult.outOfMemory) }
         do {
@@ -50,7 +50,7 @@ class AsyncTests : XCTestCase {
     }
 
     public func testAwaitWithExistingCompletionHandler() async throws {
-        let asyncOperation = try ManualAsyncOperation(0)
+        let asyncOperation = try WinRTComponent_ManualAsyncOperation(0)
         try asyncOperation.completed { _, _ in }
         do {
             let _ = try await asyncOperation.get()
