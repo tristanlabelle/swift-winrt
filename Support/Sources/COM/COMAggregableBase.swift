@@ -80,7 +80,7 @@ open class COMAggregableBase: IUnknownProtocol {
 
     /// Base class for the outer object, which brokers QueryInterface calls to the inner object.
     open class OuterObject: IUnknownProtocol {
-        open class var virtualTable: UnsafeRawPointer { IUnknownBinding.virtualTablePointer }
+        open class var exportedVirtualTable: VirtualTablePointer { IUnknownBinding.exportedVirtualTable }
 
         // The owner pointer points to the ComposableClass object,
         // which transitively keeps us alive.
@@ -89,7 +89,7 @@ open class COMAggregableBase: IUnknownProtocol {
         public var owner: COMAggregableBase { comEmbedding.owner as! COMAggregableBase }
 
         public required init(owner: COMAggregableBase) {
-            self.comEmbedding = .init(virtualTable: Self.virtualTable, owner: nil)
+            self.comEmbedding = .init(virtualTable: Self.exportedVirtualTable, owner: nil)
             self.comEmbedding.initOwner(owner)
         }
 
@@ -105,7 +105,7 @@ open class COMAggregableBase: IUnknownProtocol {
 
             // Check for additional implemented interfaces.
             if let interfaceBinding = type(of: owner).queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                return COMDelegatingTearOff(owner: owner, virtualTable: interfaceBinding.virtualTablePointer).toCOM()
+                return COMDelegatingTearOff(owner: owner, virtualTable: interfaceBinding.exportedVirtualTable).toCOM()
             }
 
             return try owner._queryInnerInterface(id)

@@ -18,7 +18,7 @@ extension COMExportTests {
         public typealias ABIStruct = SWRT_ICOMTest
 
         public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
-        public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
+        public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
 
         public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
             Import(_wrapping: reference).invoke
@@ -44,7 +44,7 @@ extension COMExportTests {
         var comEmbedding: COMEmbedding
 
         init(_ closure: @escaping () throws -> Void) {
-            comEmbedding = .init(virtualTable: ICOMTestClosureBinding.virtualTablePointer, owner: nil)
+            comEmbedding = .init(virtualTable: ICOMTestClosureBinding.exportedVirtualTable, owner: nil)
             super.init(implementer: closure as AnyObject)
             comEmbedding.initOwner(self as COMEmbedderEx)
         }

@@ -46,7 +46,7 @@ open class ComposableClass: COMAggregableBase, IInspectableProtocol {
 
     /// Base class for the outer object, which brokers QueryInterface calls to the inner object.
     open class OuterObject: COMAggregableBase.OuterObject {
-        open override class var virtualTable: UnsafeRawPointer { IInspectableBinding.virtualTablePointer }
+        open override class var exportedVirtualTable: VirtualTablePointer { IInspectableBinding.exportedVirtualTable }
 
         open override func _queryInterface(_ id: COM.COMInterfaceID) throws -> COM.IUnknownReference {
             // We own the identity, don't delegate to the inner object.

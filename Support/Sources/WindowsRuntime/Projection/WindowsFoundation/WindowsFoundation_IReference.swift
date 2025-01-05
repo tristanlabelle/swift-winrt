@@ -35,7 +35,7 @@ public enum WindowsFoundation_IReferenceBinding<TBinding: IReferenceableBinding>
 
     public static var typeName: String { fatalError("Windows.Foundation.IReference`1<\(TBinding.typeName)>") }
     public static var interfaceID: COMInterfaceID { TBinding.ireferenceID }
-    public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
+    public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: consume reference)
