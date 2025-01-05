@@ -49,7 +49,7 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
         // Non-generic type, create a standard projection type.
         // enum IVectorBinding: WinRTBinding... {}
         try writeInterfaceOrDelegateBindingType(
-            typeDefinition.bindType(genericArgs: genericArgs),
+            typeDefinition.bindType(),
             name: try projection.toBindingTypeName(typeDefinition),
             projection: projection, to: writer)
     }
@@ -374,12 +374,12 @@ fileprivate func writeInterfaceOrDelegateBindingType(
     if type.definition is InterfaceDefinition {
         // Implement binding as a class so it can be looked up using NSClassFromString.
         try writer.writeClass(
-                attributes: [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
-                visibility: Projection.toVisibility(typeDefinition.visibility),
+                attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
+                visibility: Projection.toVisibility(type.definition.visibility),
                 name: name,
                 protocolConformances: [ SupportModules.WindowsRuntime.interfaceBinding ]) { writer throws in
             try writeInterfaceOrDelegateBindingMembers(
-                typeDefinition.bindType(), bindingType: .named(name),
+                type, bindingType: .named(name),
                 projection: projection, to: writer)
         }
     }
@@ -390,7 +390,7 @@ fileprivate func writeInterfaceOrDelegateBindingType(
                 name: name,
                 protocolConformances: [ SupportModules.WindowsRuntime.delegateBinding ]) { writer throws in
             try writeInterfaceOrDelegateBindingMembers(
-                typeDefinition.bindType(), bindingType: .named(name),
+                type, bindingType: .named(name),
                 projection: projection, to: writer)
         }
     }
@@ -400,7 +400,7 @@ fileprivate func writeInterfaceOrDelegateBindingMembers(
         _ type: BoundType,
         bindingType: SwiftType,
         projection: Projection,
-        to writer: some SwiftDeclarationWriter) throws {
+        to writer: some SwiftTypeDefinitionWriter) throws {
     precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
 
     let importClassName = "Import"
