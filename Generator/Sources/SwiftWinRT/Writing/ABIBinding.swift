@@ -415,7 +415,7 @@ fileprivate func writeInterfaceOrDelegateBindingType(
 
         // public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
         writer.writeComputedProperty(
-                visibility: .public, static: true, name: "virtualTablePointer",
+                visibility: .public, static: true, name: "exportedVirtualTable",
                 type: SupportModules.COM.virtualTablePointer) { writer in
             writer.writeStatement(".init(&virtualTable)")
         }
