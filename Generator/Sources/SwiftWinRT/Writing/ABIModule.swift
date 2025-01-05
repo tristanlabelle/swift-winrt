@@ -19,12 +19,6 @@ internal func writeABIModule(_ module: Module, cmakeOptions: CMakeOptions?, dire
         cmakeListsWriter.writeAddLibrary(targetName, .interface)
         cmakeListsWriter.writeTargetIncludeDirectories(targetName, .interface, ["include"])
 
-        if targetName != module.abiModuleName {
-            cmakeListsWriter.writeSingleLineCommand(
-                "set_target_properties", .autoquote(targetName),
-                "PROPERTIES", "Swift_MODULE_NAME", .autoquote(module.abiModuleName))
-        }
-
         var linkLibraries = [ SupportModules.WinRT.abiModuleName ]
         for reference in module.references {
             guard !reference.isEmpty else { continue }
