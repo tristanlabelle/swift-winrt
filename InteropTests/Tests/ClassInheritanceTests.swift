@@ -78,8 +78,7 @@ class ClassInheritanceTests : XCTestCase {
     public func testWithUpcasting() throws {
         let originalBindingResolver = WindowsRuntime.inspectableTypeBindingResolver
         WindowsRuntime.inspectableTypeBindingResolver = DefaultInspectableTypeBindingResolver(
-            namespacesToModuleNames: ["WinRTComponent": "WinRTComponent"],
-        )
+            namespacesToModuleNames: ["WinRTComponent": "WinRTComponent"])
         defer { WindowsRuntime.inspectableTypeBindingResolver = originalBindingResolver }
 
         XCTAssertNotNil(try WinRTComponent_MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? WinRTComponent_MinimalUnsealedDerivedClass)
