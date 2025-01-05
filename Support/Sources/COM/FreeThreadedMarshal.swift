@@ -47,7 +47,7 @@ public enum FreeThreadedMarshalBinding: COMTwoWayBinding {
     public typealias ABIStruct = COM_ABI.SWRT_IMarshal
 
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
-    public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
+    public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         fatalError("Not implemented")

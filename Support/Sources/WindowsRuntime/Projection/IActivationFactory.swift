@@ -13,7 +13,7 @@ public enum IActivationFactoryBinding: InterfaceBinding {
 
     public static var typeName: String { "IActivationFactory" }
     public static var interfaceID: COMInterfaceID { uuidof(ABIStruct.self) }
-    public static var virtualTablePointer: UnsafeRawPointer { fatalError("Not implemented: \(#function)") }
+    public static var exportedVirtualTable: VirtualTablePointer { fatalError("Not implemented: \(#function)") }
 
     public static func _wrap(_ reference: consuming ABIReference) -> SwiftObject {
         Import(_wrapping: reference)

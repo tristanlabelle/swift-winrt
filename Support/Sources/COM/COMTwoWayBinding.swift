@@ -3,7 +3,8 @@ import COM_ABI
 /// Protocol for COM interfaces projected into Swift both for consuming COM objects
 /// and for implementing the interface from Swift.
 public protocol COMTwoWayBinding: COMBinding {
-    static var virtualTablePointer: UnsafeRawPointer { get }
+    /// A pointer to a virtual table which implements the COM interface via a Swift object.
+    static var exportedVirtualTable: VirtualTablePointer { get }
 }
 
 extension COMTwoWayBinding {

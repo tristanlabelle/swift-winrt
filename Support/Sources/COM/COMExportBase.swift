@@ -29,7 +29,7 @@ open class COMExportBase<PrimaryInterfaceBinding: COMTwoWayBinding>: IUnknownPro
                 return SupportErrorInfoForAllInterfaces(owner: self).toCOM().cast()
             default:
                 if let interfaceBinding = Self.queriableInterfaces.first(where: { $0.interfaceID == id }) {
-                    return COMDelegatingTearOff(owner: self, virtualTable: interfaceBinding.virtualTablePointer).toCOM()
+                    return COMDelegatingTearOff(owner: self, virtualTable: interfaceBinding.exportedVirtualTable).toCOM()
                 }
                 throw COMError.noInterface
         }

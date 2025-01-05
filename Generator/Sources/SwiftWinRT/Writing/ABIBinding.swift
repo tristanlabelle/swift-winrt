@@ -413,11 +413,11 @@ fileprivate func writeInterfaceOrDelegateBindingType(
             bindingType: .named(name),
             projection: projection, to: writer)
 
-        // public static var virtualTablePointer: UnsafeRawPointer { .init(withUnsafePointer(to: &virtualTable) { $0 }) }
+        // public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
         writer.writeComputedProperty(
                 visibility: .public, static: true, name: "virtualTablePointer",
-                type: .named("UnsafeRawPointer")) { writer in
-            writer.writeStatement(".init(withUnsafePointer(to: &virtualTable) { $0 })")
+                type: SupportModules.COM.virtualTablePointer) { writer in
+            writer.writeStatement(".init(&virtualTable)")
         }
 
         // private static var virtualTable = SWRT_IFoo_VirtualTable(...)

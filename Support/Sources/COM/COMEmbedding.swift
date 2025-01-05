@@ -16,11 +16,11 @@ public struct COMEmbedding: ~Copyable {
     /// Initializes an instance with a virtual table,
     /// but delays setting the owner since "self" would not be available yet.
     /// `Never?` forces the caller to explicitly say `nil`.
-    public init(virtualTable: UnsafeRawPointer, owner: Never?) {
+    public init(virtualTable: VirtualTablePointer, owner: Never?) {
         self.abi = .init(virtualTable: virtualTable, swiftOwnerAndFlags: 0)
     }
 
-    public var virtualTable: UnsafeRawPointer? {
+    public var virtualTable: VirtualTablePointer? {
         get { abi.virtualTable }
     }
 

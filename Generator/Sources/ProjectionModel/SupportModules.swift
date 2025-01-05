@@ -15,6 +15,8 @@ extension SupportModules.COM {
 
     public static var guid: SwiftType { moduleType.member("GUID") }
 
+    public static var virtualTablePointer: SwiftType { moduleType.member("VirtualTablePointer") }
+
     public static var iunknownPointer: SwiftType { moduleType.member("IUnknownPointer") }
     public static var iunknownReference: SwiftType { moduleType.member("IUnknownReference") }
     public static var iunknownReference_Optional: SwiftType { iunknownReference.member("Optional") }

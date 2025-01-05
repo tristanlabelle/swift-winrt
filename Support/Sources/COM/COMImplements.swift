@@ -3,7 +3,7 @@ import COM_ABI
 /// Use as a stored property of a class to allow the object to be referenced
 /// as a COM object exposing a given interface.
 public struct COMImplements<InterfaceBinding: COMTwoWayBinding>: ~Copyable {
-    private var embedding: COMEmbedding = .init(virtualTable: InterfaceBinding.virtualTablePointer, owner: nil)
+    private var embedding: COMEmbedding = .init(virtualTable: InterfaceBinding.exportedVirtualTable, owner: nil)
 
     public init() {}
 
