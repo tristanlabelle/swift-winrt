@@ -2,7 +2,7 @@ import XCTest
 import WinRTComponent
 
 // Compile-time test that the type was generated as a Swift enum
-import enum WinRTComponent.SwiftEnum
+import enum WinRTComponent.WinRTComponent_SwiftEnum
 
 class EnumTests: WinRTTestCase {
     func testNonFlags() throws {
