@@ -13,8 +13,8 @@ public func wrapInspectable<StaticBinding: InspectableTypeBinding>(
         staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject {
     let inspectablePointer = IInspectablePointer(OpaquePointer(reference.pointer))
     if let inspectableTypeBindingResolver,
-            let typeName = COMInterop(inspectablePointer).getRuntimeClassName(),
-            let inspectableTypeBinding = inspectableTypeBindingResolver.resolve(typeName),
+            let typeName = try? COMInterop(inspectablePointer).getRuntimeClassName(),
+            let inspectableTypeBinding = inspectableTypeBindingResolver.resolve(typeName: typeName),
             let wrapper = inspectableTypeBinding._wrapInspectable(COMReference(addingRef: inspectablePointer)) as? StaticBinding.SwiftObject {
         return wrapper
     }

@@ -48,7 +48,8 @@ internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, gener
     if typeDefinition.genericArity == 0 {
         // Non-generic type, create a standard projection type.
         // enum IVectorBinding: WinRTBinding... {}
-        try writeInterfaceOrDelegateBindingType(typeDefinition.bindType(),
+        try writeInterfaceOrDelegateBindingType(
+            typeDefinition.bindType(genericArgs: genericArgs),
             name: try projection.toBindingTypeName(typeDefinition),
             projection: projection, to: writer)
     }
@@ -370,59 +371,76 @@ fileprivate func writeInterfaceOrDelegateBindingType(
         name: String,
         projection: Projection,
         to writer: some SwiftDeclarationWriter) throws {
-    precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
-    let bindingProtocol = type.definition is InterfaceDefinition
-        ? SupportModules.WinRT.interfaceBinding : SupportModules.WinRT.delegateBinding
-
-    // Projections of generic instantiations are not owned by any specific module.
-    // Making them internal avoids clashes between redundant definitions across modules.
-    try writer.writeEnum(
-            attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
-            visibility: type.genericArgs.isEmpty ? Projection.toVisibility(type.definition.visibility) : .internal,
-            name: name,
-            protocolConformances: [ bindingProtocol ]) { writer throws in
-
-        let importClassName = "Import"
-
-        if type.definition is InterfaceDefinition {
-            try writeReferenceTypeBindingConformance(
-                apiType: type, abiType: type,
-                wrapImpl: { writer, paramName in
-                    writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName))")
-                },
-                projection: projection,
-                to: writer)
+    if type.definition is InterfaceDefinition {
+        // Implement binding as a class so it can be looked up using NSClassFromString.
+        try writer.writeClass(
+                attributes: [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
+                visibility: Projection.toVisibility(typeDefinition.visibility),
+                name: name,
+                protocolConformances: [ SupportModules.WindowsRuntime.interfaceBinding ]) { writer throws in
+            try writeInterfaceOrDelegateBindingMembers(
+                typeDefinition.bindType(), bindingType: .named(name),
+                projection: projection, to: writer)
         }
-        else {
-            assert(type.definition is DelegateDefinition)
-            try writeReferenceTypeBindingConformance(
-                apiType: type, abiType: type,
-                wrapImpl: { writer, paramName in
-                    writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName)).invoke")
-                },
-                toCOMImpl: { writer, paramName in
-                    // Delegates have no identity, so create one for them
-                    writer.writeStatement("ExportedDelegate<Self>(\(paramName)).toCOM()")
-                },
-                projection: projection,
-                to: writer)
-        }
-
-        try writeCOMImportClass(
-            type, visibility: .private, name: importClassName,
-            bindingType: .named(name),
-            projection: projection, to: writer)
-
-        // public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
-        writer.writeComputedProperty(
-                visibility: .public, static: true, name: "exportedVirtualTable",
-                type: SupportModules.COM.virtualTablePointer) { writer in
-            writer.writeStatement(".init(&virtualTable)")
-        }
-
-        // private static var virtualTable = SWRT_IFoo_VirtualTable(...)
-        try writeVirtualTableProperty(name: "virtualTable", abiType: type, swiftType: type, projection: projection, to: writer)
     }
+    else {
+        try writer.writeEnum(
+                attributes: [ Projection.getAvailableAttribute(type.definition) ].compactMap { $0 },
+                visibility: Projection.toVisibility(type.definition.visibility),
+                name: name,
+                protocolConformances: [ SupportModules.WindowsRuntime.delegateBinding ]) { writer throws in
+            try writeInterfaceOrDelegateBindingMembers(
+                typeDefinition.bindType(), bindingType: .named(name),
+                projection: projection, to: writer)
+        }
+    }
+}
+
+fileprivate func writeInterfaceOrDelegateBindingMembers(
+        _ type: BoundType,
+        bindingType: SwiftType,
+        projection: Projection,
+        to writer: some SwiftDeclarationWriter) throws {
+    precondition(type.definition is InterfaceDefinition || type.definition is DelegateDefinition)
+
+    let importClassName = "Import"
+
+    if type.definition is InterfaceDefinition {
+        try writeReferenceTypeBindingConformance(
+            apiType: type, abiType: type,
+            wrapImpl: { writer, paramName in
+                writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName))")
+            },
+            projection: projection,
+            to: writer)
+    }
+    else {
+        assert(type.definition is DelegateDefinition)
+        try writeReferenceTypeBindingConformance(
+            apiType: type, abiType: type,
+            wrapImpl: { writer, paramName in
+                writer.writeStatement("\(importClassName)(_wrapping: consume \(paramName)).invoke")
+            },
+            toCOMImpl: { writer, paramName in
+                // Delegates have no identity, so create one for them
+                writer.writeStatement("ExportedDelegate<Self>(\(paramName)).toCOM()")
+            },
+            projection: projection,
+            to: writer)
+    }
+
+    try writeCOMImportClass(
+        type, visibility: .private, name: importClassName, bindingType: bindingType, projection: projection, to: writer)
+
+    // public static var exportedVirtualTable: VirtualTablePointer { .init(&virtualTable) }
+    writer.writeComputedProperty(
+            visibility: .public, static: true, name: "exportedVirtualTable",
+            type: SupportModules.COM.virtualTablePointer) { writer in
+        writer.writeStatement(".init(&virtualTable)")
+    }
+
+    // private static var virtualTable = SWRT_IFoo_VirtualTable(...)
+    try writeVirtualTableProperty(name: "virtualTable", abiType: type, swiftType: type, projection: projection, to: writer)
 }
 
 internal func writeTypeNameProperty(type: BoundType, to writer: SwiftTypeDefinitionWriter) throws {
