@@ -98,7 +98,7 @@ class ClassInheritanceTests : XCTestCase {
 
             func toBindingQualifiedName(runtimeClassName: String) -> String {
                 // Name.Space.ClassName -> WinRTComponent.NameSpace_ClassNameBinding
-                var result = runtimeClassName.replace(".", "_")
+                var result = runtimeClassName.replacingOccurrences(of: ".", with: "_")
                 if let lastDotIndex = runtimeClassName.lastIndex(of: ".") {
                     result = result.replacingCharacters(in: lastDotIndex...lastDotIndex, with: "_")
                 }

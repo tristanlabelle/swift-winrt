@@ -11,8 +11,8 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        oneWay = try XCTUnwrap(OutputArgument.create())
-        twoWay = try XCTUnwrap(OutputArgument.createProxy(OutputArgumentImplementation()))
+        oneWay = try XCTUnwrap(WinRTComponent_OutputArgument.create())
+        twoWay = try XCTUnwrap(WinRTComponent_OutputArgument.createProxy(OutputArgumentImplementation()))
     }
 
     override func tearDownWithError() throws {
@@ -107,7 +107,7 @@ class ValueOutParamRoundtripTests: WinRTTestCase {
         XCTAssertNil(roundtripped)
     }
 
-    class OutputArgumentImplementation: WinRTExportBase<IOutputArgumentBinding>, IOutputArgumentProtocol {
+    class OutputArgumentImplementation: WinRTExportBase<WinRTComponent_IOutputArgumentBinding>, WinRTComponent_IOutputArgumentProtocol {
         func int32(_ value: Int32, _ result: inout Int32) throws { result = value }
         func string(_ value: String, _ result: inout String) throws { result = value }
         func object(_ value: WindowsRuntime.IInspectable?, _ result: inout WindowsRuntime.IInspectable?) throws { result = value }

@@ -3,7 +3,8 @@ import WinRTComponent
 
 class StructTests: WinRTTestCase {
     func testAsReturnValue() throws {
-        let result = try WinRTComponent_Structs.make(1, "a", 11, LeafStruct(int32: 2, string: "b", reference: 22))
+        let result = try WinRTComponent_Structs.make(1, "a", 11,
+            WinRTComponent_LeafStruct(int32: 2, string: "b", reference: 22))
         XCTAssertEqual(result.int32, 1)
         XCTAssertEqual(result.string, "a")
         XCTAssertEqual(result.reference, 11)
@@ -13,7 +14,8 @@ class StructTests: WinRTTestCase {
     }
 
     func testAsArgument() throws {
-        let value = WinRTComponent_Struct(int32: 1, string: "a", reference: 11, nested: LeafStruct(int32: 2, string: "b", reference: 22))
+        let value = WinRTComponent_Struct(int32: 1, string: "a", reference: 11,
+            nested: WinRTComponent_LeafStruct(int32: 2, string: "b", reference: 22))
         XCTAssertEqual(try WinRTComponent_Structs.getInt32(value), 1)
         XCTAssertEqual(try WinRTComponent_Structs.getString(value), "a")
         XCTAssertEqual(try WinRTComponent_Structs.getReference(value), 11)
@@ -25,7 +27,8 @@ class StructTests: WinRTTestCase {
 
     func testAsOutParam() throws {
         var result: WinRTComponent_Struct = .init()
-        try WinRTComponent_Structs.output(1, "a", 11, LeafStruct(int32: 2, string: "b", reference: 22), &result)
+        try WinRTComponent_Structs.output(1, "a", 11,
+            WinRTComponent_LeafStruct(int32: 2, string: "b", reference: 22), &result)
         XCTAssertEqual(result.int32, 1)
         XCTAssertEqual(result.string, "a")
         XCTAssertEqual(result.reference, 11)
@@ -36,7 +39,8 @@ class StructTests: WinRTTestCase {
 
     func testAsConstByRefArgument() throws {
         // Currently "ref const" maps to in params
-        let value = WinRTComponent_Struct(int32: 1, string: "a", reference: 11, nested: LeafStruct(int32: 2, string: "b", reference: 22))
+        let value = WinRTComponent_Struct(int32: 1, string: "a", reference: 11,
+            nested: WinRTComponent_LeafStruct(int32: 2, string: "b", reference: 22))
         let roundtripped = try WinRTComponent_Structs.returnRefConstArgument(value)
         XCTAssertEqual(roundtripped.int32, 1)
         XCTAssertEqual(roundtripped.string, "a")
