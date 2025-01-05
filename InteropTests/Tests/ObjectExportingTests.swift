@@ -19,7 +19,7 @@ class ObjectExportingTests: WinRTTestCase {
         weak var weakObj = obj
         XCTAssertNotNil(weakObj)
 
-        var referencer: ObjectReferencer? = try WinRTComponent_ObjectReferencer(obj)
+        var referencer: WinRTComponent_ObjectReferencer? = try WinRTComponent_ObjectReferencer(obj)
         XCTAssertNotNil(weakObj)
 
         obj = withExtendedLifetime(obj) { nil } // We should now only be kept alive by WinRT
@@ -32,7 +32,7 @@ class ObjectExportingTests: WinRTTestCase {
     func testUnwrapping() throws {
         let obj: IInspectable = ExportedClass()
         let returnArgument = try XCTUnwrap(WinRTComponent_ReturnArgument.create())
-        let roundtripped = try XCTUnwrap(WinRTComponent_returnArgument.object(obj))
+        let roundtripped = try XCTUnwrap(returnArgument.object(obj))
         // We shouldn't get a WinRTImport wrapper back, but rather the original object
         XCTAssertIdentical(roundtripped, obj)
     }
@@ -46,9 +46,9 @@ class ObjectExportingTests: WinRTTestCase {
 
         var instance: Exported? = Exported()
         let weakReferencer = try WinRTComponent_WeakReferencer(XCTUnwrap(instance))
-        XCTAssertNotNil(try WinRTComponent_NullResult.catch(weakReferencer.target))
+        XCTAssertNotNil(try NullResult.catch(weakReferencer.target))
 
         instance = withExtendedLifetime(instance) { nil }
-        XCTAssertNil(try WinRTComponent_NullResult.catch(weakReferencer.target))
+        XCTAssertNil(try NullResult.catch(weakReferencer.target))
     }
 }

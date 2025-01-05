@@ -19,10 +19,10 @@ class NullValueTests: WinRTTestCase {
     }
 
     func testGetNull() throws {
-        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullObject()))
-        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullInterface()))
-        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullDelegate()))
-        XCTAssertNil(try WinRTComponent_NullResult.catch(WinRTComponent_NullValues.getNullClass()))
+        XCTAssertNil(try NullResult.catch(WinRTComponent_NullValues.getNullObject()))
+        XCTAssertNil(try NullResult.catch(WinRTComponent_NullValues.getNullInterface()))
+        XCTAssertNil(try NullResult.catch(WinRTComponent_NullValues.getNullDelegate()))
+        XCTAssertNil(try NullResult.catch(WinRTComponent_NullValues.getNullClass()))
         XCTAssertNil(try WinRTComponent_NullValues.getNullReference())
     }
 }

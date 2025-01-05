@@ -23,7 +23,7 @@ class InterfaceImplementationTests: WinRTTestCase {
 
         do {
             let exported = Exported()
-            let minimalInterface = try InterfaceCasting.asMinimalInterface(exported)
+            let minimalInterface = try WinRTComponent_InterfaceCasting.asMinimalInterface(exported)
             XCTAssertEqual(exported.callCount, 0)
             try minimalInterface.method()
             XCTAssertEqual(exported.callCount, 1)
@@ -50,7 +50,7 @@ class InterfaceImplementationTests: WinRTTestCase {
 
         do {
             let derived = try Derived()
-            let minimalInterface = try InterfaceCasting.asMinimalInterface(derived)
+            let minimalInterface = try WinRTComponent_InterfaceCasting.asMinimalInterface(derived)
             XCTAssertEqual(derived.callCount, 0)
             try minimalInterface.method()
             XCTAssertEqual(derived.callCount, 1)
