@@ -19,7 +19,7 @@ class EventTests: WinRTTestCase {
     }
 
     func testExportedEvent() throws {
-        let eventSource = WinRTComponent_EventSource()
+        let eventSource = EventSource()
         let counter = try XCTUnwrap(WinRTComponent_Events.createCounter(eventSource))
         XCTAssertEqual(try counter.count, 0)
         try eventSource.fire()
