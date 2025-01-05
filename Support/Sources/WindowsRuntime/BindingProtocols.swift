@@ -33,18 +33,23 @@ public protocol StructBinding: ValueTypeBinding {} // POD structs will also conf
 /// Protocol for bindings of WinRT reference types into Swift.
 public protocol ReferenceTypeBinding: WinRTBinding, COMBinding {}
 
-/// Protocol for bindings of WinRT interfaces into Swift.
-public protocol InterfaceBinding: ReferenceTypeBinding, COMTwoWayBinding {} // where SwiftObject: any IInspectable
-
 /// Protocol for bindings of WinRT delegates into Swift.
 public protocol DelegateBinding: ReferenceTypeBinding, IReferenceableBinding, COMTwoWayBinding {}
+
+/// Protocol for bindings of WinRT types implementing IInspectable into Swift (interfaces and runtime classes).
+/// Allows for dynamic instantiation of wrappers for WinRT objects.
+/// Conforms to AnyObject so that conforming types must be classes, which can be looked up using NSClassFromString.
+public protocol InspectableTypeBinding: ReferenceTypeBinding, AnyObject { // where SwiftObject: IInspectable
+    static func _wrapInspectable(_ reference: consuming IInspectableReference) throws -> IInspectable
+}
+
+/// Protocol for bindings of WinRT interfaces into Swift.
+public protocol InterfaceBinding: InspectableTypeBinding, COMTwoWayBinding {} // where SwiftObject: any IInspectable
 
 /// Protocol for bindings of non-static WinRT runtime classes into Swift.
 /// Allows for dynamic instantiation of wrappers for WinRT objects.
 /// Conforms to AnyObject so that conforming types must be classes, which can be looked up using NSClassFromString.
-public protocol RuntimeClassBinding: ReferenceTypeBinding, AnyObject { // where SwiftObject: IInspectable
-    static func _wrapObject(_ reference: consuming IInspectableReference) throws -> IInspectable
-}
+public protocol RuntimeClassBinding: InspectableTypeBinding {}
 
 /// Protocol for bindings of WinRT composable classes into Swift.
 public protocol ComposableClassBinding: RuntimeClassBinding {}

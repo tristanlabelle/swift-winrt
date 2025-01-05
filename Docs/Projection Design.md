@@ -74,7 +74,7 @@ Swift protocols generated for COM/WinRT interfaces have a "Protocol" suffix. The
 **Example**: `class CustomVector: IVectorProtocol { func getView() throws -> IVectorView }`
 
 ### Upcasting support
-Given a `getObject() -> Base` that actually returns a `Derived`, there is opt-in support for casting `Base` to `Derived` through implementing `SwiftObjectWrapperFactory`.
+Given a `getObject() -> Base` that actually returns a `Derived`, there is opt-in support for casting `Base` to `Derived` through setting up an `InspectableTypeBindingResolver`.
 
 **Rationale**: The C# projection supports this and it makes for a more natural use of projections, however it requires costly dynamic wrapper type lookup and instantiation on every method return. A built-in implementation would require lower-level assemblies to know about module names of higher-level assemblies.
 

@@ -115,7 +115,7 @@ extension SupportModules.WinRT {
     public static var iactivationFactoryBinding: SwiftType { moduleType.member("IActivationFactoryBinding") }
 
     public static var activationFactoryResolverGlobal: String { "\(moduleName).activationFactoryResolver" }
-    public static var swiftWrapperFactoryGlobal: String { "\(moduleName).swiftWrapperFactory" }
+    public static var wrapInspectableGlobal: String { "\(moduleName).wrapInspectable" }
 }
 
 public enum BuiltInTypeKind {

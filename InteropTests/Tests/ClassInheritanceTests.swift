@@ -76,42 +76,11 @@ class ClassInheritanceTests : XCTestCase {
     }
 
     public func testWithUpcasting() throws {
-        struct UpcastableSwiftWrapperFactory: SwiftWrapperFactory {
-            func create<StaticBinding: COMBinding>(
-                    _ reference: consuming StaticBinding.ABIReference,
-                    staticBinding: StaticBinding.Type) -> StaticBinding.SwiftObject {
-                // Try from the runtime type first, then fall back to the statically known binding
-                if let object: StaticBinding.SwiftObject = fromRuntimeType(
-                        inspectable: IInspectablePointer(OpaquePointer(reference.pointer))) {
-                    return object
-                } else {
-                    return StaticBinding._wrap(consume reference)
-                }
-            }
-
-            func fromRuntimeType<SwiftObject>(inspectable: IInspectablePointer) -> SwiftObject? {
-                guard let runtimeClassName = try? COMInterop(inspectable).getRuntimeClassName() else { return nil }
-                let swiftBindingQualifiedName = toBindingQualifiedName(runtimeClassName: consume runtimeClassName)
-                guard let bindingType = NSClassFromString(swiftBindingQualifiedName) as? any RuntimeClassBinding.Type else { return nil }
-                return try? bindingType._wrapObject(COMReference(addingRef: inspectable)) as? SwiftObject
-            }
-
-            func toBindingQualifiedName(runtimeClassName: String) -> String {
-                // Name.Space.ClassName -> WinRTComponent.NameSpace_ClassNameBinding
-                var result = runtimeClassName.replacingOccurrences(of: ".", with: "_")
-                if let lastDotIndex = runtimeClassName.lastIndex(of: ".") {
-                    result = result.replacingCharacters(in: lastDotIndex...lastDotIndex, with: "_")
-                }
-                result = result.replacingOccurrences(of: ".", with: "")
-                result.insert(contentsOf: "WinRTComponent.", at: result.startIndex)
-                result += "Binding"
-                return result
-            }
-        }
-
-        let originalFactory = WindowsRuntime.swiftWrapperFactory
-        WindowsRuntime.swiftWrapperFactory = UpcastableSwiftWrapperFactory()
-        defer { WindowsRuntime.swiftWrapperFactory = originalFactory }
+        let originalBindingResolver = WindowsRuntime.inspectableTypeBindingResolver
+        WindowsRuntime.inspectableTypeBindingResolver = DefaultInspectableTypeBindingResolver(
+            namespacesToModuleNames: ["WinRTComponent": "WinRTComponent"],
+        )
+        defer { WindowsRuntime.inspectableTypeBindingResolver = originalBindingResolver }
 
         XCTAssertNotNil(try WinRTComponent_MinimalBaseClassHierarchy.createUnsealedDerivedAsBase() as? WinRTComponent_MinimalUnsealedDerivedClass)
         XCTAssertNotNil(try WinRTComponent_MinimalBaseClassHierarchy.createSealedDerivedAsBase() as? WinRTComponent_MinimalSealedDerivedClass)
