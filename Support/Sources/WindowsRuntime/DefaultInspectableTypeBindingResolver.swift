@@ -31,10 +31,19 @@ public class DefaultInspectableTypeBindingResolver: InspectableTypeBindingResolv
 
     private func lookup(typeName: String) -> (any InspectableTypeBinding.Type)? {
         guard let lastDotIndex = typeName.lastIndex(of: ".") else { return nil }
-        guard var bindingClassName = toModuleName(namespace: typeName[..<lastDotIndex]) else { return nil }
+        guard let moduleName = toModuleName(namespace: typeName[..<lastDotIndex]) else { return nil }
+
+        // ModuleName.NamespaceSubnamespace_TypeNameBinding
+        var bindingClassName = moduleName
         bindingClassName += "."
+        for typeNameChar in typeName[..<lastDotIndex] {
+            guard typeNameChar != "." else { continue }
+            bindingClassName.append(typeNameChar)
+        }
+        bindingClassName += "_"
         bindingClassName += typeName[typeName.index(after: lastDotIndex)...]
         bindingClassName += "Binding"
+
         return NSClassFromString(bindingClassName) as? any InspectableTypeBinding.Type
     }
 
