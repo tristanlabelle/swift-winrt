@@ -35,7 +35,20 @@ extension ReferenceTypeBinding {
     }
 }
 
+extension InspectableTypeBinding {
+    public static func _wrapInspectable(_ reference: consuming IInspectableReference) throws -> IInspectable {
+        try _wrap(reference.queryInterface(interfaceID)) as! IInspectable
+    }
+}
+
 extension InterfaceBinding {
+    public static func fromABI(consuming value: inout ABIValue) -> SwiftValue {
+        guard let pointer = value else { return nil }
+        let reference = COMReference(transferringRef: pointer)
+        if let swiftObject = _unwrap(reference.pointer) { return swiftObject }
+        return wrapInspectable(reference, staticBinding: Self.self)
+    }
+
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
@@ -68,10 +81,6 @@ extension DelegateBinding {
 }
 
 extension RuntimeClassBinding {
-    public static func _wrapObject(_ reference: consuming IInspectableReference) throws -> IInspectable {
-        try _wrap(reference.queryInterface(interfaceID)) as! IInspectable
-    }
-
     // Shadow COMTwoWayBinding methods to use WinRTError instead of COMError
     public static func _implement<This>(_ this: UnsafeMutablePointer<This>?, _ body: (SwiftObject) throws -> Void) -> SWRT_HResult {
         guard let this else { return WinRTError.toABI(hresult: HResult.pointer, message: "WinRT 'this' pointer was null") }
@@ -92,7 +101,7 @@ extension ComposableClassBinding {
         guard let pointer = value else { return nil }
         let reference = COMReference(transferringRef: pointer)
         if let swiftObject = _unwrap(reference.pointer) { return swiftObject }
-        return swiftWrapperFactory.create(reference, staticBinding: Self.self)
+        return wrapInspectable(reference, staticBinding: Self.self)
     }
 
     public static func _unwrap(_ pointer: ABIPointer) -> SwiftObject? {

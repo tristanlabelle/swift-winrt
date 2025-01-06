@@ -17,13 +17,13 @@ public protocol COMBinding: ABIBinding where SwiftValue == SwiftObject?, ABIValu
     /// Gets the COM interface identifier.
     static var interfaceID: COMInterfaceID { get }
 
-    // Non-nullable overload
+    /// Converts a Swift object to its COM ABI representation.
     static func toCOM(_ object: SwiftObject) throws -> ABIReference
 
-    // Attempts un unwrap a COM pointer into an existing Swift object.
+    /// Attempts un unwrap a COM pointer into an existing Swift object.
     static func _unwrap(_ pointer: ABIPointer) -> SwiftObject?
 
-    // Wraps a COM object into a new Swift object, without attempting to unwrap it first.
+    /// Wraps a COM object into a new Swift object, without attempting to unwrap it first.
     static func _wrap(_ reference: consuming ABIReference) -> SwiftObject
 }
 

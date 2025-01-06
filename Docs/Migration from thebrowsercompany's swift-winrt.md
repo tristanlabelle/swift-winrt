@@ -52,7 +52,7 @@ E.g. when `getBase()` returns `IBase` and the application code wants to convert 
 
 **v2**: Optional. Pluggable.
 
-**Migration path (medium)**: Provide `swiftWrapperFactory` implementation.
+**Migration path (medium)**: Set up a `InspectableTypeBindingResolver`.
 
 ### Constructor error handling
 
