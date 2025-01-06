@@ -7,6 +7,9 @@ struct CommandLineArguments: ParsableCommand {
             abstract: "A WinRT projections generator for Swift.")
     }
 
+    @Option(name: .customLong("mscorlib"), help: .init("A path to the mscorlib.winmd/dll to use. Defaults to looking for mscorlib.winmd next to the exe.", valueName: "path"))
+    var mscorlibPath: String? = nil
+
     @Option(name: .customLong("reference"), help: .init("A path to a .winmd file with the APIs to project.", valueName: "file"))
     var references: [String] = []
 

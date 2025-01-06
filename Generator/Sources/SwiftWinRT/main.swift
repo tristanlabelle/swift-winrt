@@ -22,12 +22,8 @@ do {
     let spmOptions = SPMOptions(commandLineArguments: commandLineArguments, projectionConfig: projectionConfig)
     let cmakeOptions = CMakeOptions(commandLineArguments: commandLineArguments, projectionConfig: projectionConfig)
 
-    // Resolve the mscorlib dependency from the .NET Framework 4 machine installation
     let context = WinMDLoadContext()
-    guard let mscorlibPath = SystemAssemblies.DotNetFramework4.mscorlibPath else {
-        throw AssemblyLoadError.notFound(message: "mscorlib was not found on the machine.")
-    }
-    _ = try context.load(path: mscorlibPath)
+    _ = try context.load(path: commandLineArguments.mscorlibPath ?? getDefaultMscorlibPath())
 
     let projection = try createProjection(
         commandLineArguments: commandLineArguments,
@@ -52,4 +48,12 @@ catch let error {
     print(error)
     fflush(stdout)
     throw error
+}
+
+func getDefaultMscorlibPath() -> String {
+    Bundle.main.executableURL!
+        .deletingLastPathComponent()
+        .appendingPathComponent("mscorlib.winmd", isDirectory: false)
+        .path
+        .replacingOccurrences(of: "/", with: "\\")
 }
