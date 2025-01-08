@@ -26,7 +26,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
     let structName = try projection.toTypeName(enumDefinition)
     try writer.writeStruct(
             documentation: projection.getDocumentationComment(enumDefinition),
-            attributes: Projection.getAttributes(enumDefinition),
+            attributes: projection.getAttributes(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: structName,
             protocolConformances: [.named("CStyleEnum") ]) { writer throws in
@@ -44,7 +44,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
             let initializer = value == "0" ? "Self()" : "Self(rawValue: \(value))"
             try writer.writeStoredProperty(
                 documentation: projection.getDocumentationComment(field),
-                attributes: Projection.getAttributes(field),
+                attributes: projection.getAttributes(field),
                 visibility: .public, static: true, declarator: .let,
                 name: Projection.toMemberName(field),
                 initialValue: initializer)
@@ -90,7 +90,7 @@ fileprivate func writeOpenEnumDefinition(_ enumDefinition: EnumDefinition, proje
 fileprivate func writeClosedEnumDefinition(_ enumDefinition: EnumDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     try writer.writeEnum(
             documentation: projection.getDocumentationComment(enumDefinition),
-            attributes: Projection.getAttributes(enumDefinition),
+            attributes: projection.getAttributes(enumDefinition),
             visibility: Projection.toVisibility(enumDefinition.visibility),
             name: try projection.toTypeName(enumDefinition),
             rawValueType: try projection.toTypeExpression(enumDefinition.underlyingType.bindNode()),
