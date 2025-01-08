@@ -74,7 +74,10 @@ fileprivate func writeShortNameTypeAlias(
         _ typeDefinition: TypeDefinition,
         projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
+    let attributes = [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
+
     try writer.writeTypeAlias(
+        attributes: attributes,
         visibility: Projection.toVisibility(typeDefinition.visibility),
         name: projection.toTypeName(typeDefinition, namespaced: false),
         typeParams: typeDefinition.genericParams.map { $0.name },
@@ -89,6 +92,7 @@ fileprivate func writeShortNameTypeAlias(
         // - When using `any IFooProtocol`, we are using an incompatible type from `any MyNamespace_IFooProtocol`,
         //   however, the code should be using `IFoo`, which avoids this issue.
         try writer.writeProtocol(
+            attributes: attributes,
             visibility: Projection.toVisibility(interface.visibility),
             name: projection.toProtocolName(interface, namespaced: false),
             typeParams: interface.genericParams.map { $0.name },
@@ -97,6 +101,7 @@ fileprivate func writeShortNameTypeAlias(
 
     if typeDefinition is InterfaceDefinition || typeDefinition is DelegateDefinition {
         try writer.writeTypeAlias(
+            attributes: attributes,
             visibility: Projection.toVisibility(typeDefinition.visibility),
             name: projection.toBindingTypeName(typeDefinition, namespaced: false),
             target: projection.toBindingType(typeDefinition))
