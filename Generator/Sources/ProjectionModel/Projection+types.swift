@@ -74,7 +74,7 @@ extension Projection {
         try toTypeExpression(type, outerNullable: !isNullAsErrorEligible(type))
     }
 
-    public func getTypeBinding(_ type: TypeNode) throws -> TypeProjection {
+    public func getTypeBinding(_ type: TypeNode) throws -> TypeBinding {
         switch type {
             case let .bound(type):
                 return try getTypeBinding(type)
@@ -83,7 +83,7 @@ extension Projection {
             case let .array(of: element):
                 let elementBinding = try getTypeBinding(element)
                 let swiftType = SwiftType.array(element: elementBinding.swiftType)
-                return TypeProjection(
+                return TypeBinding(
                     abiType: SupportModules.COM.comArray(of: elementBinding.abiType),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: swiftType,
@@ -96,7 +96,7 @@ extension Projection {
         }
     }
 
-    private func getTypeBinding(_ type: BoundType) throws -> TypeProjection {
+    private func getTypeBinding(_ type: BoundType) throws -> TypeBinding {
         if let specialTypeBinding = try getSpecialTypeBinding(type) {
             return specialTypeBinding
         }
@@ -117,7 +117,7 @@ extension Projection {
             abiType = .unsafeMutablePointer(pointee: abiType).optional()
         }
 
-        return TypeProjection(
+        return TypeBinding(
             abiType: abiType,
             abiDefaultValue: type.definition.isReferenceType ? "nil" : .defaultInitializer,
             swiftType: try toTypeExpression(type.asNode),
@@ -126,23 +126,23 @@ extension Projection {
             kind: try isPODBinding(type.definition) ? .pod : .allocating)
     }
 
-    private func getSpecialTypeBinding(_ type: BoundType) throws -> TypeProjection? {
+    private func getSpecialTypeBinding(_ type: BoundType) throws -> TypeBinding? {
         if type.definition.namespace == "System" {
-            guard let typeProjection = try getCoreLibraryTypeBinding(type) else {
+            guard let typeBinding = try getCoreLibraryTypeBinding(type) else {
                 throw UnexpectedTypeError(type.description, context: "Not a valid WinRT System type.")
             }
-            return typeProjection
+            return typeBinding
         }
         else if type.definition.namespace == "Windows.Foundation",
-                let typeProjection = try getWindowsFoundationTypeBinding(type) {
-            return typeProjection
+                let typeBinding = try getWindowsFoundationTypeBinding(type) {
+            return typeBinding
         }
         else {
             return nil
         }
     }
 
-    private func getCoreLibraryTypeBinding(_ type: BoundType) throws -> TypeProjection? {
+    private func getCoreLibraryTypeBinding(_ type: BoundType) throws -> TypeBinding? {
         guard type.definition.namespace == "System" else { return nil }
 
         if type.definition.name == "Object" {
@@ -163,7 +163,7 @@ extension Projection {
                 let swiftType: SwiftType = primitiveType == .boolean ? .bool
                     : primitiveType == .float(double: false) ? .float
                     : .swift(primitiveType.name)
-                return TypeProjection(
+                return TypeBinding(
                     abiType: swiftType,
                     abiDefaultValue: primitiveType == .boolean ? .`false` : .zero,
                     swiftType: swiftType,
@@ -171,7 +171,7 @@ extension Projection {
                     bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .identity)
             case .char16:
-                return TypeProjection(
+                return TypeBinding(
                     abiType: .swift("UInt16"),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.WinRT.char16,
@@ -179,7 +179,7 @@ extension Projection {
                     bindingType: SupportModules.WinRT.primitiveBinding(of: primitiveType),
                     kind: .pod)
             case .guid:
-                return TypeProjection(
+                return TypeBinding(
                     abiType: .named(CAbi.guidName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.COM.guid,
@@ -197,7 +197,7 @@ extension Projection {
         }
     }
 
-    private func getWindowsFoundationTypeBinding(_ type: BoundType) throws -> TypeProjection? {
+    private func getWindowsFoundationTypeBinding(_ type: BoundType) throws -> TypeBinding? {
         guard type.definition.namespace == "Windows.Foundation" else { return nil }
         switch type.definition.name {
             case "IReference`1":
@@ -205,7 +205,7 @@ extension Projection {
                 return try getIReferenceTypeBinding(of: type)
 
             case "EventRegistrationToken":
-                return TypeProjection(
+                return TypeBinding(
                     abiType: .named(CAbi.eventRegistrationTokenName),
                     abiDefaultValue: .defaultInitializer,
                     swiftType: SupportModules.WinRT.eventRegistrationToken,
@@ -214,7 +214,7 @@ extension Projection {
                     kind: .pod)
 
             case "HResult":
-                return TypeProjection(
+                return TypeBinding(
                     abiType: .named(CAbi.hresultName),
                     abiDefaultValue: .zero,
                     swiftType: SupportModules.COM.hresult,
@@ -227,24 +227,24 @@ extension Projection {
         }
     }
 
-    private func getIReferenceTypeBinding(of type: BoundType) throws -> TypeProjection? {
-        let typeProjection = try getTypeBinding(type.asNode)
+    private func getIReferenceTypeBinding(of type: BoundType) throws -> TypeBinding? {
+        let typeBinding = try getTypeBinding(type.asNode)
         let bindingType: SwiftType
         if type.definition.namespace == "System",
                 let primitiveType = WinRTPrimitiveType(fromSystemNamespaceType: type.definition.name) {
             bindingType = SupportModules.WinRT.ireferenceToOptionalBinding(of: primitiveType)
         }
         else if type.definition is EnumDefinition || type.definition is StructDefinition || type.definition is DelegateDefinition {
-            bindingType = SupportModules.WinRT.ireferenceToOptionalBinding(of: typeProjection.bindingType)
+            bindingType = SupportModules.WinRT.ireferenceToOptionalBinding(of: typeBinding.bindingType)
         }
         else {
             return nil
         }
 
-        return TypeProjection(
+        return TypeBinding(
             abiType: .unsafeMutablePointer(pointee: .named(CAbi.ireferenceName)).optional(),
             abiDefaultValue: .nil,
-            swiftType: typeProjection.swiftType.optional(),
+            swiftType: typeBinding.swiftType.optional(),
             swiftDefaultValue: .nil,
             bindingType: bindingType,
             kind: .allocating)

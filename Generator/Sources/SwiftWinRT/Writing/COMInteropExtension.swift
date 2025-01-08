@@ -72,7 +72,7 @@ fileprivate func writeCOMInteropMethod(
             visibility: visibility,
             name: Projection.toInteropMethodName(method),
             params: paramBindings.map { $0.toSwiftParam() },
-            throws: true, returnType: returnBinding.map { $0.typeProjection.swiftType }) { writer in
+            throws: true, returnType: returnBinding.map { $0.typeBinding.swiftType }) { writer in
         try writeSwiftToABICall(
             abiMethodName: abiMethodName,
             params: paramBindings,
@@ -84,8 +84,8 @@ fileprivate func writeCOMInteropMethod(
 
 fileprivate func writeSwiftToABICall(
         abiMethodName: String,
-        params: [ParamProjection],
-        returnParam: ParamProjection?,
+        params: [ParamBinding],
+        returnParam: ParamBinding?,
         returnCOMReference: Bool,
         to writer: SwiftStatementWriter) throws {
 
@@ -104,40 +104,40 @@ fileprivate func writeSwiftToABICall(
 
     // Prologue: convert arguments from the Swift to the ABI representation
     for param in params {
-        let typeProjection = param.typeProjection
-        if param.typeProjection.kind == .identity {
+        let typeBinding = param.typeBinding
+        if param.typeBinding.kind == .identity {
             addAbiArg(param.name, byRef: param.passBy != .value, array: false)
             continue
         }
 
-        let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeProjection.kind != .pod ? .var : .let
+        let declarator: SwiftVariableDeclarator = param.passBy.isReference || typeBinding.kind != .pod ? .var : .let
         if param.passBy.isOutput { needsOutParamsEpilogue = true }
 
         if param.passBy.isOutput && !param.passBy.isInput {
-            writer.writeStatement("\(declarator) \(param.abiBindingName): \(typeProjection.abiType) = \(typeProjection.abiDefaultValue)")
+            writer.writeStatement("\(declarator) \(param.abiBindingName): \(typeBinding.abiType) = \(typeBinding.abiDefaultValue)")
         }
         else {
-            let tryPrefix = typeProjection.kind == .pod ? "" : "try "
+            let tryPrefix = typeBinding.kind == .pod ? "" : "try "
             writer.writeStatement("\(declarator) \(param.abiBindingName) = "
-                + "\(tryPrefix)\(typeProjection.bindingType).toABI(\(param.name))")
+                + "\(tryPrefix)\(typeBinding.bindingType).toABI(\(param.name))")
         }
 
-        if typeProjection.kind != .pod {
-            writer.writeStatement("defer { \(typeProjection.bindingType).release(&\(param.abiBindingName)) }")
+        if typeBinding.kind != .pod {
+            writer.writeStatement("defer { \(typeBinding.bindingType).release(&\(param.abiBindingName)) }")
         }
 
-        addAbiArg(param.abiBindingName, byRef: param.passBy.isReference, array: typeProjection.kind == .array)
+        addAbiArg(param.abiBindingName, byRef: param.passBy.isReference, array: typeBinding.kind == .array)
     }
 
     func writeOutParamsEpilogue() throws {
         for param in params {
-            let typeProjection = param.typeProjection
-            if typeProjection.kind != .identity && param.passBy.isOutput {
-                if typeProjection.kind == .pod {
-                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).fromABI(\(param.abiBindingName))")
+            let typeBinding = param.typeBinding
+            if typeBinding.kind != .identity && param.passBy.isOutput {
+                if typeBinding.kind == .pod {
+                    writer.writeStatement("\(param.name) = \(typeBinding.bindingType).fromABI(\(param.abiBindingName))")
                 }
                 else {
-                    writer.writeStatement("\(param.name) = \(typeProjection.bindingType).fromABI(consuming: &\(param.abiBindingName))")
+                    writer.writeStatement("\(param.name) = \(typeBinding.bindingType).fromABI(consuming: &\(param.abiBindingName))")
                 }
             }
         }
@@ -156,7 +156,7 @@ fileprivate func writeSwiftToABICall(
     }
 
     // Value-returning functions
-    let returnTypeBinding = returnParam.typeProjection
+    let returnTypeBinding = returnParam.typeBinding
     writer.writeStatement("var \(returnParam.name): \(returnTypeBinding.abiType) = \(returnTypeBinding.abiDefaultValue)")
     addAbiArg(returnParam.name, byRef: true, array: returnTypeBinding.kind == .array)
     try writeCall()

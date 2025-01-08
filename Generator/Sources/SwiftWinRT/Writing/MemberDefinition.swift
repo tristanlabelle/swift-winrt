@@ -167,7 +167,7 @@ fileprivate func writeMethodDefinition(
 }
 
 internal func writeInteropMethodCall(
-        name: String, params: [ParamProjection], returnParam: ParamProjection?, thisPointer: ThisPointer,
+        name: String, params: [ParamBinding], returnParam: ParamBinding?, thisPointer: ThisPointer,
         projection: Projection, to output: LineBasedTextOutputStream) throws {
 
     let nullReturnAsError = {
