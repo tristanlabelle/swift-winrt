@@ -74,7 +74,7 @@ fileprivate func writeShortNameTypeAlias(
         _ typeDefinition: TypeDefinition,
         projection: Projection,
         to writer: SwiftSourceFileWriter) throws {
-    let attributes = [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
+    let attributes = try [ Projection.getAvailableAttribute(typeDefinition) ].compactMap { $0 },
 
     try writer.writeTypeAlias(
         attributes: attributes,
