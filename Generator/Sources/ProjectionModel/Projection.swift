@@ -13,7 +13,9 @@ public class Projection {
     internal var assembliesToModules = [Assembly: AssemblyEntry]()
     public let deprecations: Bool
 
-    public init(deprecations: Bool = true) {}
+    public init(deprecations: Bool = true) {
+        self.deprecations = deprecations
+    }
 
     public func addModule(name: String) -> Module {
         precondition(modulesByName[name] == nil)
