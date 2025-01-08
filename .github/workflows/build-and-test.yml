@@ -41,6 +41,11 @@ jobs:
       shell: pwsh
       run: swift build --verbose --build-tests
 
+    - name: Build mscorlib.winmd
+      working-directory: Generator
+      shell: pwsh
+      run: .\SPMPostBuild.ps1 -Config debug
+
     - name: Test code generator
       working-directory: Generator
       shell: pwsh
@@ -49,8 +54,7 @@ jobs:
     - name: Build WinRTComponent
       working-directory: InteropTests
       shell: pwsh
-      run: |
-        & .\SPMPrebuild.ps1 -SwiftWinRT "$Env:GITHUB_WORKSPACE\Generator\.build\debug\SwiftWinRT.exe"
+      run: .\SPMPrebuild.ps1 -SwiftWinRT "$Env:GITHUB_WORKSPACE\Generator\.build\debug\SwiftWinRT.exe"
 
     - name: Build InteropTests
       working-directory: InteropTests

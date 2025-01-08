@@ -18,15 +18,17 @@ $ErrorActionPreference = "Stop"
 
 if (-not $SwiftWinRT) {
     Write-Host -ForegroundColor Cyan "Building SwiftWinRT.exe with SPM..."
-    $SwiftConfiguration = "debug"
+    $BuildConfig = "debug"
     $RepoRoot = (& git.exe -C "$PSScriptRoot" rev-parse --path-format=absolute --show-toplevel).Trim()
     $GeneratorProjectDir = "$RepoRoot\Generator"
 
     & swift.exe build `
         --package-path $GeneratorProjectDir `
-        --configuration $SwiftConfiguration `
+        --configuration $BuildConfig `
         --build-path "$GeneratorProjectDir\.build"
     if ($LASTEXITCODE -ne 0) { throw "Failed to build SwiftWinRT.exe" }
+
+    & "$GeneratorProjectDir\SPMPostBuild.ps1" -Config $BuildConfig
 
     $TargetTripleArch = switch ($Env:PROCESSOR_ARCHITECTURE) {
         "amd64" { "x86_64" }
@@ -34,7 +36,8 @@ if (-not $SwiftWinRT) {
         "x86" { "i686" }
         default { throw "Unsupported architecture: $Env:PROCESSOR_ARCHITECTURE" }
     }
-    $SwiftWinRT = "$GeneratorProjectDir\.build\$TargetTripleArch-unknown-windows-msvc\$SwiftConfiguration\SwiftWinRT.exe"
+
+    $SwiftWinRT = "$GeneratorProjectDir\.build\$TargetTripleArch-unknown-windows-msvc\$BuildConfig\SwiftWinRT.exe"
 }
 else {
     $SwiftWinRT = [IO.Path]::GetFullPath($SwiftWinRT)
