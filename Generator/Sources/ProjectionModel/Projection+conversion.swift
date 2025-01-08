@@ -83,9 +83,10 @@ extension Projection {
             : definitionBindingType.member(try Projection.toBindingInstantiationTypeName(genericArgs: type.genericArgs))
     }
 
-    public static func getAvailableAttribute(
+    public func getAvailableAttribute(
             _ attributable: any Attributable,
             deprecator: (any Attributable)? = nil) throws -> SwiftAttribute? {
+        guard self.deprecations else { return nil }
         guard let deprecatedAttribute = try attributable.findAttribute(WindowsMetadata.DeprecatedAttribute.self)
                 ?? deprecator?.findAttribute(WindowsMetadata.DeprecatedAttribute.self) else { return nil }
         // DeprecatedAttribute tells us the ContractVersion in which an attribute was deprecated,
@@ -93,7 +94,7 @@ extension Projection {
         return SwiftAttribute("available(*, deprecated, message: \"\(deprecatedAttribute.message)\")")
     }
 
-    public static func getAttributes(
+    public func getAttributes(
             _ attributable: any Attributable,
             deprecator: (any Attributable)? = nil) throws -> [SwiftAttribute] {
         // We recognize any attribute called SwiftAttribute and expect it has a field called Literal,

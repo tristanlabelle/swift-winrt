@@ -11,7 +11,8 @@ internal func createProjection(commandLineArguments: CommandLineArguments, proje
         winMDFilePaths.formUnion(try getWindowsSdkWinMDPaths(sdkVersion: windowsSdkVersion))
     }
 
-    let projection = Projection()
+    let projection = Projection(
+        deprecations: !commandLineArguments.noDeprecations)
 
     // Preload assemblies and create modules
     for filePath in winMDFilePaths.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {

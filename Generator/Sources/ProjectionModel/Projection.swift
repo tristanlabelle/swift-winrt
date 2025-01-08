@@ -2,6 +2,7 @@ import Collections
 import DotNetMetadata
 import DotNetXMLDocs
 
+/// Describes how to project a collection of Windows metadata assemblies into Swift modules.
 public class Projection {
     internal struct AssemblyEntry {
         var module: Module
@@ -10,8 +11,11 @@ public class Projection {
 
     public private(set) var modulesByName = OrderedDictionary<String, Module>()
     internal var assembliesToModules = [Assembly: AssemblyEntry]()
+    public let deprecations: Bool
 
-    public init() {}
+    public init(deprecations: Bool = true) {
+        self.deprecations = deprecations
+    }
 
     public func addModule(name: String) -> Module {
         precondition(modulesByName[name] == nil)

@@ -14,7 +14,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 
         try writer.writeEnum(
                 documentation: projection.getDocumentationComment(classDefinition),
-                attributes: Projection.getAttributes(classDefinition),
+                attributes: projection.getAttributes(classDefinition),
                 visibility: Projection.toVisibility(classDefinition.visibility),
                 name: typeName) { writer in
             try writeClassMembers(
@@ -48,7 +48,7 @@ internal func writeClassDefinition(_ classDefinition: ClassDefinition, projectio
 
     try writer.writeClass(
             documentation: projection.getDocumentationComment(classDefinition),
-            attributes: Projection.getAttributes(classDefinition),
+            attributes: projection.getAttributes(classDefinition),
             visibility: Projection.toVisibility(classDefinition.visibility, inheritableClass: !classDefinition.isSealed),
             final: classDefinition.isSealed, name: typeName, base: base, protocolConformances: protocolConformances) { writer in
         try writeClassMembers(classDefinition, interfaces: interfaces, projection: projection, to: writer)
@@ -274,7 +274,7 @@ fileprivate func writeComposableInitializers(
 
         try writer.writeInit(
                 documentation: docs,
-                attributes: Projection.getAttributes(method),
+                attributes: projection.getAttributes(method),
                 visibility: .public,
                 override: `override`,
                 params: params.dropLast(2).map { $0.toSwiftParam() }, // Drop inner and outer pointer params
@@ -316,7 +316,7 @@ fileprivate func writeDefaultActivatableInitializer(
 
     try writer.writeInit(
             documentation: constructor.flatMap { try projection.getDocumentationComment($0) },
-            attributes: constructor.map { try Projection.getAttributes($0) } ?? [],
+            attributes: constructor.map { try projection.getAttributes($0) } ?? [],
             visibility: .public,
             override: isOverriding,
             throws: true) { writer in
@@ -352,7 +352,7 @@ fileprivate func writeActivatableInitializers(
 
         try writer.writeInit(
                 documentation: docs,
-                attributes: Projection.getAttributes(method),
+                attributes: projection.getAttributes(method),
                 visibility: .public,
                 override: isOverriding,
                 params: params.map { $0.toSwiftParam() },

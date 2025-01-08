@@ -52,7 +52,7 @@ fileprivate func writePropertyDefinition(
         let returnParamBinding = try projection.getParamBinding(getter.returnParam, genericTypeArgs: typeGenericArgs)
         try writer.writeComputedProperty(
                 documentation: documentation ? projection.getDocumentationComment(property, accessor: .getter, classDefinition: classDefinition) : nil,
-                attributes: Projection.getAttributes(getter, deprecator: property),
+                attributes: projection.getAttributes(getter, deprecator: property),
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: Projection.toMemberName(property),
@@ -72,7 +72,7 @@ fileprivate func writePropertyDefinition(
         let newValueParamBinding = try projection.getParamBinding(newValueParam, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(property, accessor: .setter, classDefinition: classDefinition) : nil,
-                attributes: Projection.getAttributes(setter, deprecator: property),
+                attributes: projection.getAttributes(setter, deprecator: property),
                 visibility: .public,
                 static: `static`,
                 name: Projection.toMemberName(property),
@@ -109,7 +109,7 @@ fileprivate func writeEventDefinition(
         let eventRegistrationType = SupportModules.WinRT.eventRegistration
         try writer.writeFunc(
                 documentation: documentation ? projection.getDocumentationComment(event, classDefinition: classDefinition) : nil,
-                attributes: Projection.getAttributes(addAccessor, deprecator: event) + [ .discardableResult ],
+                attributes: projection.getAttributes(addAccessor, deprecator: event) + [ .discardableResult ],
                 visibility: overridable ? .open : .public, static: `static`,
                 name: name,
                 params: [ handlerParamBinding.toSwiftParam(label: "adding") ], throws: true,
@@ -131,7 +131,7 @@ fileprivate func writeEventDefinition(
     if let removeAccessor = try event.removeAccessor, let tokenParameter = try removeAccessor.params.first {
         let tokenParamBinding = try projection.getParamBinding(tokenParameter, genericTypeArgs: typeGenericArgs)
         try writer.writeFunc(
-                attributes: Projection.getAttributes(removeAccessor, deprecator: event),
+                attributes: projection.getAttributes(removeAccessor, deprecator: event),
                 visibility: overridable ? .open : .public,
                 static: `static`,
                 name: name,
@@ -152,7 +152,7 @@ fileprivate func writeMethodDefinition(
     let (params, returnParam) = try projection.getParamBindings(method: method, genericTypeArgs: typeGenericArgs)
     try writer.writeFunc(
             documentation: documentation ? projection.getDocumentationComment(method, classDefinition: classDefinition) : nil,
-            attributes: Projection.getAttributes(method),
+            attributes: projection.getAttributes(method),
             visibility: overridable ? .open : .public,
             static: `static`,
             name: Projection.toMemberName(method),

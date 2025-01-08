@@ -25,6 +25,9 @@ struct CommandLineArguments: ParsableCommand {
     @Flag(name: .customLong("no-docs"), help: "Don't generate documentation comments.")
     var noDocs: Bool = false
 
+    @Flag(name: .customLong("no-deprecations"), help: "Don't generate @available attributes for deprecated APIs.")
+    var noDeprecations: Bool = false
+
     @Option(name: .customLong("out"), help: .init("A path to the output directory.", valueName: "dir"))
     var outputDirectoryPath: String
 

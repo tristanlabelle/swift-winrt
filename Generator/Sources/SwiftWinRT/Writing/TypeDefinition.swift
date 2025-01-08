@@ -27,7 +27,7 @@ internal func writeTypeDefinition(
 fileprivate func writeDelegateDefinition(_ delegateDefinition: DelegateDefinition, projection: Projection, to writer: SwiftSourceFileWriter) throws {
     try writer.writeTypeAlias(
         documentation: projection.getDocumentationComment(delegateDefinition),
-        attributes: Projection.getAttributes(delegateDefinition),
+        attributes: projection.getAttributes(delegateDefinition),
         visibility: Projection.toVisibility(delegateDefinition.visibility),
         name: try projection.toTypeName(delegateDefinition),
         typeParams: delegateDefinition.genericParams.map { $0.name },
