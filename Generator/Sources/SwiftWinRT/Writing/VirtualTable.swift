@@ -59,7 +59,7 @@ fileprivate func writeVirtualTable(
     }
 }
 
-fileprivate func getABIParamNames(_ params: [ParamProjection], returnParam: ParamProjection?) -> [String] {
+fileprivate func getABIParamNames(_ params: [ParamBinding], returnParam: ParamBinding?) -> [String] {
     var abiParamNames = [String]()
     for param in params {
         if param.isArray { abiParamNames.append(param.arrayLengthName) }
@@ -73,7 +73,7 @@ fileprivate func getABIParamNames(_ params: [ParamProjection], returnParam: Para
 }
 
 fileprivate func writeVirtualTableFunc(
-        params: [ParamProjection], returnParam: ParamProjection?,
+        params: [ParamBinding], returnParam: ParamBinding?,
         swiftMemberName: String, methodKind: WinRTMethodKind, to output: LineBasedTextOutputStream) throws {
     // Ensure non-optional by reference params are non-null pointers
     for param in params {
@@ -87,8 +87,8 @@ fileprivate func writeVirtualTableFunc(
     // Declare the Swift representation of params
     var epilogueOutParamWithCleanupCount = 0
     for param in params {
-        guard param.typeProjection.kind != .identity else { continue }
-        if param.passBy.isOutput, param.typeProjection.kind != .pod {
+        guard param.typeBinding.kind != .identity else { continue }
+        if param.passBy.isOutput, param.typeBinding.kind != .pod {
             epilogueOutParamWithCleanupCount += 1
         }
         try writePrologueForParam(param, to: output)
@@ -96,11 +96,11 @@ fileprivate func writeVirtualTableFunc(
 
     // Set up the return value
     if let returnParam {
-        if returnParam.typeProjection.kind == .identity {
+        if returnParam.typeBinding.kind == .identity {
             output.write("\(returnParam.name).pointee = ")
         }
         else {
-            if returnParam.typeProjection.kind != .pod {
+            if returnParam.typeBinding.kind != .pod {
                 epilogueOutParamWithCleanupCount += 1
             }
             output.write("let \(returnParam.swiftBindingName) = ")
@@ -124,7 +124,7 @@ fileprivate func writeVirtualTableFunc(
         for (index, param) in params.enumerated() {
             if index > 0 { output.write(", ") }
             if param.passBy != .value { output.write("&") }
-            if param.typeProjection.kind == .identity {
+            if param.typeBinding.kind == .identity {
                 output.write(param.name)
                 if param.passBy != .value { output.write(".pointee") }
             } else {
@@ -145,11 +145,11 @@ fileprivate func writeVirtualTableFunc(
     if epilogueRequiresCleanup { output.writeFullLine("var _success = false") }
 
     for param in params {
-        guard param.passBy.isOutput, param.typeProjection.kind != .identity else { continue }
+        guard param.passBy.isOutput, param.typeBinding.kind != .identity else { continue }
         try writeEpilogueForOutParam(param, skipCleanup: !epilogueRequiresCleanup, to: output)
     }
 
-    if let returnParam, returnParam.typeProjection.kind != .identity {
+    if let returnParam, returnParam.typeBinding.kind != .identity {
         try writeEpilogueForOutParam(returnParam, skipCleanup: !epilogueRequiresCleanup, to: output)
     }
 
@@ -167,11 +167,11 @@ fileprivate func writeVirtualTableFuncImplementation(name: String, paramNames: [
     output.write("} }")
 }
 
-fileprivate func writePrologueForParam(_ param: ParamProjection, to output: LineBasedTextOutputStream) throws {
+fileprivate func writePrologueForParam(_ param: ParamBinding, to output: LineBasedTextOutputStream) throws {
     if param.passBy.isInput {
         let declarator: SwiftVariableDeclarator = param.passBy.isOutput ? .var : .let
         output.write("\(declarator) \(param.swiftBindingName) = \(param.bindingType).fromABI")
-        switch param.typeProjection.kind {
+        switch param.typeBinding.kind {
             case .identity: fatalError("Case should have been ignored earlier.")
             case .pod, .allocating:
                 output.write("(\(param.name))")
@@ -179,16 +179,16 @@ fileprivate func writePrologueForParam(_ param: ParamProjection, to output: Line
                 output.write("(pointer: \(param.name), count: \(param.arrayLengthName))")
         }
     } else {
-        output.write("var \(param.swiftBindingName): \(param.typeProjection.swiftType)"
-            + " = \(param.typeProjection.swiftDefaultValue)")
+        output.write("var \(param.swiftBindingName): \(param.typeBinding.swiftType)"
+            + " = \(param.typeBinding.swiftDefaultValue)")
     }
     output.endLine()
 }
 
-fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup: Bool, to output: LineBasedTextOutputStream) throws {
+fileprivate func writeEpilogueForOutParam(_ param: ParamBinding, skipCleanup: Bool, to output: LineBasedTextOutputStream) throws {
     precondition(param.passBy.isOutput)
 
-    if param.typeProjection.kind == .array {
+    if param.typeBinding.kind == .array {
         output.writeFullLine(#"fatalError("Not implemented: out arrays")"#)
     }
     else {
@@ -202,10 +202,10 @@ fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup:
         if isOptional { output.write("if let \(param.name) { ") }
 
         output.write("\(param.name).pointee = ")
-        if param.typeProjection.kind == .identity {
+        if param.typeBinding.kind == .identity {
             output.write(param.swiftBindingName)
         } else {
-            if param.typeProjection.kind == .allocating { output.write ("try ") }
+            if param.typeBinding.kind == .allocating { output.write ("try ") }
             output.write("\(param.bindingType).toABI(\(param.swiftBindingName))")
         }
 
@@ -213,7 +213,7 @@ fileprivate func writeEpilogueForOutParam(_ param: ParamProjection, skipCleanup:
         
         output.endLine()
 
-        if param.typeProjection.kind == .allocating, !skipCleanup {
+        if param.typeBinding.kind == .allocating, !skipCleanup {
             output.write("defer { ")
             output.write("if !_success { ")
             output.write("\(param.bindingType).release(&\(param.name).pointee)")

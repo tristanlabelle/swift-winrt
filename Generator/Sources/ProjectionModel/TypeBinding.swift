@@ -1,7 +1,7 @@
 import CodeWriters
 
 /// Describes a type's Swift and ABI representation, and how to project between the two.
-public struct TypeProjection {
+public struct TypeBinding {
     public enum DefaultValue: ExpressibleByStringLiteral, CustomStringConvertible {
         case defaultInitializer // .init()
         case expression(String)
@@ -57,8 +57,8 @@ public struct TypeProjection {
         self.kind = kind
     }
 
-    public static func numeric(_ type: SwiftType) -> TypeProjection {
-        TypeProjection(
+    public static func numeric(_ type: SwiftType) -> TypeBinding {
+        TypeBinding(
             abiType: type,
             abiDefaultValue: "0",
             swiftType: type,

@@ -153,7 +153,7 @@ fileprivate func writeStructBindingExtension(
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructABIToSwiftInitializerParam(
                         abiValueName: "value", abiFieldName: field.name, swiftFieldName: Projection.toMemberName(field),
-                        typeProjection: projection.getTypeBinding(field.type), to: output)
+                        typeBinding: projection.getTypeBinding(field.type), to: output)
                 }
             }
             output.write(")", endLine: true)
@@ -176,7 +176,7 @@ fileprivate func writeStructBindingExtension(
                     if index > 0 { output.write(",", endLine: true) }
                     try writeStructSwiftToABIInitializerParam(
                         swiftValueName: "value", swiftFieldName: Projection.toMemberName(field), abiFieldName: field.name,
-                        typeProjection: projection.getTypeBinding(field.type), to: output)
+                        typeBinding: projection.getTypeBinding(field.type), to: output)
                 }
             }
             output.write(")", endLine: true)
@@ -188,9 +188,9 @@ fileprivate func writeStructBindingExtension(
                     visibility: .public, static: true, name: "release",
                     params: [.init(label: "_", name: "value", `inout`: true, type: abiType)]) { writer in
                 for field in fields {
-                    let typeProjection = try projection.getTypeBinding(field.type)
-                    if typeProjection.kind == .allocating {
-                        writer.writeStatement("\(typeProjection.bindingType).release(&value.\(field.name))")
+                    let typeBinding = try projection.getTypeBinding(field.type)
+                    if typeBinding.kind == .allocating {
+                        writer.writeStatement("\(typeBinding.bindingType).release(&value.\(field.name))")
                     }
                 }
             }
@@ -200,13 +200,13 @@ fileprivate func writeStructBindingExtension(
 
 fileprivate func writeStructABIToSwiftInitializerParam(
         abiValueName: String, abiFieldName: String, swiftFieldName: String,
-        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
+        typeBinding: TypeBinding, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(swiftFieldName, to: &output)
     output.write(": ")
 
-    if typeProjection.kind != .identity {
-        typeProjection.bindingType.write(to: &output)
+    if typeBinding.kind != .identity {
+        typeBinding.bindingType.write(to: &output)
         output.write(".fromABI(")
     }
 
@@ -214,21 +214,21 @@ fileprivate func writeStructABIToSwiftInitializerParam(
     output.write(".")
     SwiftIdentifier.write(abiFieldName, to: &output)
 
-    if typeProjection.kind != .identity {
+    if typeBinding.kind != .identity {
         output.write(")")
     }
 }
 
 fileprivate func writeStructSwiftToABIInitializerParam(
         swiftValueName: String, swiftFieldName: String, abiFieldName: String,
-        typeProjection: TypeProjection, to output: LineBasedTextOutputStream) throws {
+        typeBinding: TypeBinding, to output: LineBasedTextOutputStream) throws {
     var output = output
     SwiftIdentifier.write(abiFieldName, to: &output)
     output.write(": ")
 
-    if typeProjection.kind != .identity {
-        if typeProjection.kind != .pod { output.write("try ") }
-        typeProjection.bindingType.write(to: &output)
+    if typeBinding.kind != .identity {
+        if typeBinding.kind != .pod { output.write("try ") }
+        typeBinding.bindingType.write(to: &output)
         output.write(".toABI(")
     }
 
@@ -236,7 +236,7 @@ fileprivate func writeStructSwiftToABIInitializerParam(
     output.write(".")
     SwiftIdentifier.write(swiftFieldName, to: &output)
 
-    if typeProjection.kind != .identity {
+    if typeBinding.kind != .identity {
         output.write(")")
     }
 }

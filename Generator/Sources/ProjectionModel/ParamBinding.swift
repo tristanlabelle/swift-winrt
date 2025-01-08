@@ -1,7 +1,8 @@
 import CodeWriters
 import DotNetMetadata
 
-public struct ParamProjection {
+/// Describes how a WinMD function parameter gets mapped to a Swift function parameter and vice-versa.
+public struct ParamBinding {
     public enum PassBy: Equatable {
         case value
         case reference(in: Bool, out: Bool, optional: Bool)
@@ -9,36 +10,36 @@ public struct ParamProjection {
     }
 
     public let name: String
-    public let typeProjection: TypeProjection
+    public let typeBinding: TypeBinding
     public let passBy: PassBy
 
-    public init(name: String, typeProjection: TypeProjection, passBy: PassBy) {
+    public init(name: String, typeBinding: TypeBinding, passBy: PassBy) {
         self.name = name
-        self.typeProjection = typeProjection
+        self.typeBinding = typeBinding
         self.passBy = passBy
     }
 
-    public var bindingType: SwiftType { typeProjection.bindingType }
+    public var bindingType: SwiftType { typeBinding.bindingType }
 
     public var swiftType: SwiftType {
-        if case .return(nullAsError: true) = passBy { return typeProjection.swiftType.unwrapOptional() }
-        return typeProjection.swiftType
+        if case .return(nullAsError: true) = passBy { return typeBinding.swiftType.unwrapOptional() }
+        return typeBinding.swiftType
     }
 
     public var abiBindingName: String { name + "_abi" }
     public var swiftBindingName: String { name + "_swift" }
-    public var isArray: Bool { typeProjection.kind == .array }
+    public var isArray: Bool { typeBinding.kind == .array }
     public var arrayLengthName: String {
         precondition(isArray)
         return name + "Length"
     }
 
     public func toSwiftParam(label: String = "_") -> SwiftParam {
-        SwiftParam(label: label, name: name, `inout`: passBy.isOutput, type: typeProjection.swiftType)
+        SwiftParam(label: label, name: name, `inout`: passBy.isOutput, type: typeBinding.swiftType)
     }
 }
 
-extension ParamProjection.PassBy {
+extension ParamBinding.PassBy {
     public var isInput: Bool {
         switch self {
             case .value, .reference(in: true, out: _, optional: _): return true

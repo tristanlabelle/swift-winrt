@@ -15,8 +15,8 @@ extension Projection {
             type: try toTypeExpression(genericTypeArgs.isEmpty ? param.type : param.type.bindGenericParams(typeArgs: genericTypeArgs)))
     }
 
-    public func getParamBinding(_ param: ParamBase, genericTypeArgs: [TypeNode] = []) throws -> ParamProjection {
-        let passBy: ParamProjection.PassBy = switch param {
+    public func getParamBinding(_ param: ParamBase, genericTypeArgs: [TypeNode] = []) throws -> ParamBinding {
+        let passBy: ParamBinding.PassBy = switch param {
             case is ReturnParam: .return(nullAsError: isNullAsErrorEligible(try param.type))
             case let param as Param:
                 param.isByRef
@@ -25,14 +25,14 @@ extension Projection {
             default: fatalError("Unexpected parameter class")
         }
 
-        return ParamProjection(
+        return ParamBinding(
             name: toParamName(param),
-            typeProjection: try getTypeBinding(
+            typeBinding: try getTypeBinding(
                 param.type.bindGenericParams(typeArgs: genericTypeArgs)),
             passBy: passBy)
     }
 
-    public func getParamBindings(method: Method, genericTypeArgs: [TypeNode], abiKind: ABIMethodKind? = nil) throws -> (params: [ParamProjection], return: ParamProjection?) {
+    public func getParamBindings(method: Method, genericTypeArgs: [TypeNode], abiKind: ABIMethodKind? = nil) throws -> (params: [ParamBinding], return: ParamBinding?) {
         let abiKind = try abiKind ?? ABIMethodKind.forABITypeMethods(definition: method.definingType)
 
         var paramBindings = try method.params.map { try getParamBinding($0, genericTypeArgs: genericTypeArgs) }
@@ -41,22 +41,22 @@ extension Projection {
             // The last two parameters are the outer and inner objects,
             // which should not be projected to Swift.
             for i in paramBindings.count-2..<paramBindings.count {
-                let paramProjection = paramBindings[i]
-                let abiType = paramProjection.typeProjection.abiType
-                paramBindings[i] = ParamProjection(
-                    name: paramProjection.name,
-                    typeProjection: TypeProjection(
+                let paramBinding = paramBindings[i]
+                let abiType = paramBinding.typeBinding.abiType
+                paramBindings[i] = ParamBinding(
+                    name: paramBinding.name,
+                    typeBinding: TypeBinding(
                         abiType: abiType,
                         abiDefaultValue: .`nil`,
                         swiftType: abiType,
                         swiftDefaultValue: .`nil`,
                         bindingType: .void, // No projection needed
                         kind: .identity),
-                    passBy: paramProjection.passBy)
+                    passBy: paramBinding.passBy)
             }
         }
 
-        let returnBinding: ParamProjection?
+        let returnBinding: ParamBinding?
         switch abiKind {
             case .activationFactory, .composableFactory:
                 // Factory method. Preserve the ABI and return it as COMReference
@@ -64,9 +64,9 @@ extension Projection {
                     fatalError("ABI factory methods are expected to return a bound type.")
                 }
                 let abiType = try toABIType(objectType)
-                returnBinding = ParamProjection(
+                returnBinding = ParamBinding(
                     name: "_result",
-                    typeProjection: TypeProjection(
+                    typeBinding: TypeBinding(
                         abiType: .unsafeMutablePointer(pointee: abiType).optional(),
                         abiDefaultValue: .`nil`,
                         swiftType: SupportModules.COM.comReference(to: abiType),
