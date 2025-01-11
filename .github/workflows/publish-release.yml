@@ -37,6 +37,10 @@ jobs:
         write # Create tag and release
 
     steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.git-ref }}
+
     - name: Determine release info
       id: release-info
       shell: pwsh
@@ -86,10 +90,6 @@ jobs:
         Append-Output "version=$VersionString" >> $Env:GITHUB_OUTPUT
         Append-Output "release-name=$VersionString" >> $Env:GITHUB_OUTPUT
         Append-Output "tag-name=v$VersionString" >> $Env:GITHUB_OUTPUT
-
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.inputs.git-ref }}
 
     - uses: ./.github/actions/setup-swift
 
