@@ -1,0 +1,151 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: 'Git ref'
+        type: string
+        required: false
+        default: 'main'
+      version-bump-type:
+        description: 'Version bump type (major, minor, patch)'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        required: true
+      can-release:
+        description: 'Can graduate from prerelease to release'
+        type: boolean
+        required: false
+        default: false
+      dry-run:
+        description: 'Dry run'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  create-tag:
+    name: Create Tag
+    runs-on: windows-2022
+    timeout-minutes: 5
+    permissions:
+      contents:
+        write # Create tag and release
+
+    steps:
+    - name: Determine release info
+      id: release-info
+      shell: pwsh
+      env:
+        CAN_RELEASE: ${{ github.event.inputs.can-release }}
+        VERSION_BUMP_TYPE: ${{ github.event.inputs.version-bump-type }}
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        # Parse the latest version number from the release tag
+        $LatestReleaseTag = & gh release list --limit 1 --json tagName --jq ".[0].tagName" | Out-String
+        if (!($LatestReleaseTag -match "^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>\w+))?$")) {
+          throw "Unexpected release tag format: $LatestReleaseTag"
+        }
+
+        [int]$LatestVersionMajor = $Matches["major"]
+        [int]$LatestVersionMinor = $Matches["minor"]
+        [int]$LatestVersionPatch = $Matches["patch"]
+
+        switch ($Env:VERSION_BUMP_TYPE) {
+          "major" {
+            if ($LatestVersionMajor -eq 0 -and $Env:CAN_RELEASE -eq "false") {
+              throw "Not allowed to graduate from prerelease to release."
+            }
+            $VersionMajor = $LatestVersionMajor + 1
+            $VersionMinor = 0
+            $VersionPatch = 0
+          }
+          "minor" {
+            $VersionMajor = $LatestVersionMajor
+            $VersionMinor = $LatestVersionMinor + 1
+            $VersionPatch = 0
+          }
+          "patch" {
+            $VersionMajor = $LatestVersionMajor
+            $VersionMinor = $LatestVersionMinor
+            $VersionPatch = $LatestVersionPatch + 1
+          }
+          default {
+            throw "Unexpected bump type: $Env:BUMP_TYPE"
+          }
+        }
+
+        $VersionString = "$VersionMajor.$VersionMinor.$VersionPatch"
+
+        Append-Output "version=$VersionString" >> $Env:GITHUB_OUTPUT
+        Append-Output "release-name=$VersionString" >> $Env:GITHUB_OUTPUT
+        Append-Output "tag-name=v$VersionString" >> $Env:GITHUB_OUTPUT
+
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.git-ref }}
+
+    - uses: ./.github/actions/setup-swift
+
+    - name: Build x64
+      shell: pwsh
+      working-directory: Generator
+      run: |
+        cmake --preset release `
+          -D CMAKE_SYSTEM_PROCESSOR=amd64 `
+          -D CMAKE_BINARY_DIR=build/release-x64 `
+          -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
+        cmake --build build/release-x64
+
+    - name: Build arm64
+      shell: pwsh
+      working-directory: Generator
+      run: |
+        cmake --preset release `
+          -D CMAKE_SYSTEM_PROCESSOR=arm64 `
+          -D CMAKE_BINARY_DIR=build/release-arm64 `
+          -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
+        cmake --build build/release-arm64
+
+    - name: Create NuGet package
+      shell: pwsh
+      working-directory: Generator
+      env:
+        PACKAGE_VERSION: ${{ steps.release-info.outputs.version }}
+      run: |
+        & .\Create-Package.ps1 `
+          -X64Exe "build\release-x64\SwiftWinRT.exe" `
+          -Arm64Exe "build\release-arm64\SwiftWinRT.exe" `
+          -Version $Env:PACKAGE_VERSION `
+          -OutputPath "TristanLabelle.SwiftWinRT.$Env:PACKAGE_VERSION.nupkg"
+
+    - name: Create git tag
+      if: github.event.inputs.dry-run != 'true'
+      shell: pwsh
+      env:
+        TAG_NAME: ${{ steps.release-info.outputs.tag-name }}
+      run: |
+        & git tag $Env:TAG_NAME
+        & git push origin $Env:TAG_NAME
+
+    - name: Create GitHub release
+      if: github.event.inputs.dry-run != 'true'
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ steps.release-info.outputs.version }}
+        RELEASE_NAME: ${{ steps.release-info.outputs.release-name }}
+        TAG_NAME: ${{ steps.release-info.outputs.tag-name }}
+        REPO_URL: ${{ github.repository }}
+      run: |
+        # Create Release
+        $ExtraArgs = @()
+        if ($Env:VERSION.StartsWith("0.") -or $Env:VERSION.Contains("-")) { $ExtraArgs += "--prerelease" }
+        & gh release create $Env:TAG_NAME --repo $Env:REPO_URL --title $Env:RELEASE_NAME --generate-notes @ExtraArgs
+        & gh release upload $Env:TAG_NAME SwiftWinRT.nupkg --repo $Env:REPO_URL
+        & gh release upload $Env:TAG_NAME SwiftWinRT.nupkg.sha256 --repo $Env:REPO_URL
