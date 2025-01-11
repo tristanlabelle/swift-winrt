@@ -28,8 +28,8 @@ on:
         default: false
 
 jobs:
-  create-tag:
-    name: Create Tag
+  build-package:
+    name: Build NuGet package
     runs-on: windows-2022
     timeout-minutes: 5
     permissions:
@@ -37,16 +37,22 @@ jobs:
         write # Create tag and release
 
     steps:
-    # Frankenstein checkout so the .github directory matches the workflow version.
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.inputs.git-ref }}
 
-    - name: Sync the .github directory with the workflow version
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.ref }}
+        path: .git-workflow
+        sparse-checkout: .github
+
+    - name: Sync .github with workflows version
       shell: cmd
       run: |
-        git fetch origin ${{ github.event.ref }}
-        git checkout ${{ github.event.ref }} -- .github
+        rmdir /s /q .github
+        move /Y .git-workflow\.github .github
+        rmdir /s /q .git-workflow
 
     - name: Determine release info
       id: release-info
