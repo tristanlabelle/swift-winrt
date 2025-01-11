@@ -52,9 +52,9 @@ jobs:
         $ErrorActionPreference = "Stop"
 
         # Parse the latest version number from the release tag
-        $LatestReleaseTag = & gh release list --limit 1 --json tagName --jq ".[0].tagName" | Out-String
-        if (!($LatestReleaseTag -match "^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>\w+))?$")) {
-          throw "Unexpected release tag format: $LatestReleaseTag"
+        $LatestReleaseTag = (& gh release list --limit 1 --json tagName --jq ".[0].tagName" | Out-String).Trim()
+        if (!($LatestReleaseTag -match "^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>\S+))?$")) {
+          throw "Unexpected latest release tag format: $LatestReleaseTag"
         }
 
         [int]$LatestVersionMajor = $Matches["major"]
