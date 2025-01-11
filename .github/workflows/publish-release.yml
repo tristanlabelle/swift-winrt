@@ -41,8 +41,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.inputs.git-ref }}
-    - shell: cmd
-      run: git restore --source "${{ github.event.ref }}" -- .github
+
+    - name: Sync the .github directory with the workflow version
+      shell: cmd
+      run: |
+        git fetch "${{ github.event.ref }}"
+        git checkout "${{ github.event.ref }}" -- .github
 
     - name: Determine release info
       id: release-info
