@@ -41,6 +41,7 @@ jobs:
       id: release-info
       shell: pwsh
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CAN_RELEASE: ${{ github.event.inputs.can-release }}
         VERSION_BUMP_TYPE: ${{ github.event.inputs.version-bump-type }}
       run: |
