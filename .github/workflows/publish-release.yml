@@ -42,10 +42,7 @@ jobs:
       with:
         ref: ${{ github.event.inputs.git-ref }}
     - shell: cmd
-      run: rmdir /s /q .github
-    - uses: actions/checkout@v4
-      with:
-        sparse-checkout: .github
+      run: git checkout "${{ github.event.ref }}" .github
 
     - name: Determine release info
       id: release-info
