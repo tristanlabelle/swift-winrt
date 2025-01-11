@@ -39,7 +39,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        path: workflow
+        sparse-checkout: .github
+    - uses: actions/checkout@v4
+      with:
         ref: ${{ github.event.inputs.git-ref }}
+        sparse-checkout: '!.github'
 
     - name: Determine release info
       id: release-info
