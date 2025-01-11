@@ -91,7 +91,7 @@ jobs:
           "release-name" = $VersionString
           "tag-name" = "v$VersionString"
         }
-        foreach ($Entry in $Output) {
+        foreach ($Entry in $Output.GetEnumerator()) {
           Add-Content -Path $Env:GITHUB_OUTPUT -Value "$($Entry.Key)=$($Entry.Value)" -Encoding utf8
         }
 
