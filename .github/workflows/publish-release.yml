@@ -28,10 +28,10 @@ on:
         default: false
 
 jobs:
-  build-package:
-    name: Build NuGet package
+  build-publish:
+    name: Build and publish
     runs-on: windows-2022
-    timeout-minutes: 5
+    timeout-minutes: 20
     permissions:
       contents:
         write # Create tag and release
@@ -47,7 +47,7 @@ jobs:
         path: .git-workflow
         sparse-checkout: .github
 
-    - name: Sync .github with workflows version
+    - name: Overwrite .github with version from workflow
       shell: cmd
       run: |
         rmdir /s /q .github
