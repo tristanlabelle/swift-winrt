@@ -37,14 +37,15 @@ jobs:
         write # Create tag and release
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        path: workflow
-        sparse-checkout: .github
+    # Frankenstein checkout so the .github directory matches the workflow version.
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.inputs.git-ref }}
-        sparse-checkout: '!.github'
+    - shell: cmd
+      run: rmdir /s /q .github
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: .github
 
     - name: Determine release info
       id: release-info
