@@ -86,10 +86,14 @@ jobs:
         }
 
         $VersionString = "$VersionMajor.$VersionMinor.$VersionPatch"
-
-        Append-Output "version=$VersionString" >> $Env:GITHUB_OUTPUT
-        Append-Output "release-name=$VersionString" >> $Env:GITHUB_OUTPUT
-        Append-Output "tag-name=v$VersionString" >> $Env:GITHUB_OUTPUT
+        $Output = @{
+          "version" = $VersionString
+          "release-name" = $VersionString
+          "tag-name" = "v$VersionString"
+        }
+        foreach ($Entry in $Output) {
+          Add-Content -Path $Env:GITHUB_OUTPUT -Value "$($Entry.Key)=$($Entry.Value)" -Encoding utf8
+        }
 
     - uses: ./.github/actions/setup-swift
 
