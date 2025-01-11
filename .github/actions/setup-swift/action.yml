@@ -1,10 +1,16 @@
 name: Setup Swift
 description: Installs dependencies and setups the environment for building Swift code on Windows.
+inputs:
+  vsdevenv: 
+    description: Setup a Visual Studio Development Environment
+    required: false
+    default: 'true'
 runs:
   using: "composite"
 
   steps:
   - name: Setup Visual Studio Development Environment
+    if: inputs.vsdevenv == 'true'
     uses: compnerd/gha-setup-vsdevenv@main
 
   - name: Install Swift

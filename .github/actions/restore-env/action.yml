@@ -1,0 +1,31 @@
+name: Restore Environment Variables
+description: Restore all previously saved environment variables.
+inputs:
+  json:
+    description: The json dictionary from which to restore environment variables.
+    required: true
+runs:
+  using: "composite"
+
+  steps:
+  - name: Restore variables
+    shell: pwsh
+    env:
+      JSON_INPUT: ${{ inputs.json }}
+    run: |
+      $ErrorActionPreference = "Stop"
+      $SavedVars = $Env:JSON_INPUT | ConvertFrom-Json
+
+      # Delete variables that did not previously exist
+      foreach ($VarName in [Environment]::GetEnvironmentVariables().Keys) {
+        if (!$SavedVars.ContainsKey($VarName)) {
+          Add-Content -Path $Env:GITHUB_ENV -Value "$VarName=" -Encoding utf8
+        }
+      }
+
+      # Overwrite variables that have changed
+      foreach ($Entry in $SavedVars.GetEnumerator()) {
+        if ([Environment]::GetEnvironmentVariable($Entry.Key) -ne $Entry.Value) {
+          Add-Content -Path $Env:GITHUB_ENV -Value "$($Entry.Key)=$($Entry.Value)" -Encoding utf8
+        }
+      }
