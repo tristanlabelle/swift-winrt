@@ -28,28 +28,34 @@ on:
         default: false
 
 jobs:
-  create-tag:
-    name: Create Tag
-    runs-on: windows-2022
+  release-info:
+    name: Determine release info
+    runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents:
-        write # Create tag and release
-
+    outputs:
+      version: ${{ steps.release-info.outputs.version }}
+      release-name: ${{ steps.release-info.outputs.release-name }}
+      tag-name: ${{ steps.release-info.outputs.tag-name }}
+      nupkg-filename: ${{ steps.release-info.outputs.nupkg-filename }}
+    defaults:
+      run:
+        shell: pwsh
     steps:
+    - uses: actions/checkout@v4
+
     - name: Determine release info
       id: release-info
-      shell: pwsh
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CAN_RELEASE: ${{ github.event.inputs.can-release }}
         VERSION_BUMP_TYPE: ${{ github.event.inputs.version-bump-type }}
       run: |
         $ErrorActionPreference = "Stop"
 
         # Parse the latest version number from the release tag
-        $LatestReleaseTag = & gh release list --limit 1 --json tagName --jq ".[0].tagName" | Out-String
-        if (!($LatestReleaseTag -match "^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>\w+))?$")) {
-          throw "Unexpected release tag format: $LatestReleaseTag"
+        $LatestReleaseTag = (& gh release list --limit 1 --json tagName --jq ".[0].tagName" | Out-String).Trim()
+        if (!($LatestReleaseTag -match "^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>\S+))?$")) {
+          throw "Unexpected latest release tag format: $LatestReleaseTag"
         }
 
         [int]$LatestVersionMajor = $Matches["major"]
@@ -81,71 +87,126 @@ jobs:
         }
 
         $VersionString = "$VersionMajor.$VersionMinor.$VersionPatch"
+        $Output = @{
+          "version" = $VersionString
+          "release-name" = $VersionString
+          "tag-name" = "v$VersionString"
+          "nupkg-filename" = "TristanLabelle.SwiftWinRT.$VersionString.nupkg"
+        }
+        foreach ($Entry in $Output.GetEnumerator()) {
+          Add-Content -Path $Env:GITHUB_OUTPUT -Value "$($Entry.Key)=$($Entry.Value)" -Encoding utf8
+        }
 
-        Append-Output "version=$VersionString" >> $Env:GITHUB_OUTPUT
-        Append-Output "release-name=$VersionString" >> $Env:GITHUB_OUTPUT
-        Append-Output "tag-name=v$VersionString" >> $Env:GITHUB_OUTPUT
+  build-generator:
+    name: Build generator (${{ matrix.arch }})
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            msarch: amd64
+          - arch: arm64
+            msarch: arm64
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git-ref }}
 
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.inputs.git-ref }}
+      - uses: ./.github/actions/setup-swift
+        with:
+          arch: ${{ matrix.msarch }}
 
-    - uses: ./.github/actions/setup-swift
+      - name: CMake generate
+        working-directory: Generator
+        run: |
+          cmake --preset release `
+            -B build/release-${{ matrix.arch }} `
+            -D CMAKE_SYSTEM_PROCESSOR=${{ matrix.msarch }} `
+            -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
 
-    - name: Build x64
-      shell: pwsh
-      working-directory: Generator
-      run: |
-        cmake --preset release `
-          -D CMAKE_SYSTEM_PROCESSOR=amd64 `
-          -D CMAKE_BINARY_DIR=build/release-x64 `
-          -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
-        cmake --build build/release-x64
+      - name: CMake build
+        working-directory: Generator
+        run: cmake --build build/release-${{ matrix.arch }}
 
-    - name: Build arm64
-      shell: pwsh
-      working-directory: Generator
-      run: |
-        cmake --preset release `
-          -D CMAKE_SYSTEM_PROCESSOR=arm64 `
-          -D CMAKE_BINARY_DIR=build/release-arm64 `
-          -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
-        cmake --build build/release-arm64
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: |
+            Generator\build\release-${{ matrix.arch }}\SwiftWinRT.exe
+            Generator\build\release-${{ matrix.arch }}\mscorlib.winmd
+          name: SwiftWinRT.${{ matrix.arch }}.zip
 
-    - name: Create NuGet package
-      shell: pwsh
-      working-directory: Generator
-      env:
-        PACKAGE_VERSION: ${{ steps.release-info.outputs.version }}
-      run: |
-        & .\Create-Package.ps1 `
-          -X64Exe "build\release-x64\SwiftWinRT.exe" `
-          -Arm64Exe "build\release-arm64\SwiftWinRT.exe" `
-          -Version $Env:PACKAGE_VERSION `
-          -OutputPath "TristanLabelle.SwiftWinRT.$Env:PACKAGE_VERSION.nupkg"
+  create-release-package:
+    name: Create package, tag and release
+    needs: [ release-info, build-generator ]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    permissions:
+      contents:
+        write # Create tag and release
+    steps:
+      # Use sources from the merge commit so Create-Package.ps1 is in sync with this workflow.
+      - uses: actions/checkout@v4
 
-    - name: Create git tag
-      if: github.event.inputs.dry-run != 'true'
-      shell: pwsh
-      env:
-        TAG_NAME: ${{ steps.release-info.outputs.tag-name }}
-      run: |
-        & git tag $Env:TAG_NAME
-        & git push origin $Env:TAG_NAME
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SwiftWinRT.x64.zip
+          path: build\release-x64
 
-    - name: Create GitHub release
-      if: github.event.inputs.dry-run != 'true'
-      shell: pwsh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VERSION: ${{ steps.release-info.outputs.version }}
-        RELEASE_NAME: ${{ steps.release-info.outputs.release-name }}
-        TAG_NAME: ${{ steps.release-info.outputs.tag-name }}
-        REPO_URL: ${{ github.repository }}
-      run: |
-        # Create Release
-        $ExtraArgs = @()
-        if ($Env:VERSION.StartsWith("0.") -or $Env:VERSION.Contains("-")) { $ExtraArgs += "--prerelease" }
-        & gh release create $Env:TAG_NAME --repo $Env:REPO_URL --title $Env:RELEASE_NAME --generate-notes @ExtraArgs
-        & gh release upload $Env:TAG_NAME SwiftWinRT.nupkg --repo $Env:REPO_URL
-        & gh release upload $Env:TAG_NAME SwiftWinRT.nupkg.sha256 --repo $Env:REPO_URL
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SwiftWinRT.arm64.zip
+          path: build\release-arm64
+
+      - name: Install Swift for the runtime redistributables
+        uses: ./.github/actions/setup-swift
+        with:
+          vsdevenv: false
+
+      - name: Create NuGet package
+        env:
+          PACKAGE_VERSION: ${{ needs.release-info.outputs.version }}
+          NUPKG_FILENAME: ${{ needs.release-info.outputs.nupkg-filename }}
+        run: |
+          & .\Generator\NuGet\Create-Package.ps1 `
+            -X64Exe "build\release-x64\SwiftWinRT.exe" `
+            -Arm64Exe "build\release-arm64\SwiftWinRT.exe" `
+            -Version $Env:PACKAGE_VERSION `
+            -OutputPath "build\$Env:NUPKG_FILENAME"
+
+          $Sha256 = Get-FileHash -Path "build\$Env:NUPKG_FILENAME" -Algorithm SHA256
+          [IO.File]::WriteAllText("build\$Env:NUPKG_FILENAME.sha256", $Sha256.Hash)
+
+      - name: Create git tag
+        if: github.event.inputs.dry-run != 'true'
+        env:
+          TAG_NAME: ${{ needs.release-info.outputs.tag-name }}
+        run: |
+          & git tag $Env:TAG_NAME
+          & git push origin $Env:TAG_NAME
+
+      - name: Create GitHub release
+        if: github.event.inputs.dry-run != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.release-info.outputs.version }}
+          RELEASE_NAME: ${{ needs.release-info.outputs.release-name }}
+          TAG_NAME: ${{ needs.release-info.outputs.tag-name }}
+          NUPKG_FILENAME: ${{ needs.release-info.outputs.nupkg-filename }}
+          REPO_URL: ${{ github.repository }}
+        run: |
+          # Create Release
+          $ExtraArgs = @()
+          if ($Env:VERSION.StartsWith("0.") -or $Env:VERSION.Contains("-")) { $ExtraArgs += "--prerelease" }
+          & gh release create $Env:TAG_NAME --repo $Env:REPO_URL --title $Env:RELEASE_NAME --generate-notes @ExtraArgs
+          & gh release upload $Env:TAG_NAME "build\$Env:NUPKG_FILENAME" --repo $Env:REPO_URL
+          & gh release upload $Env:TAG_NAME "build\$Env:NUPKG_FILENAME.sha256" --repo $Env:REPO_URL

@@ -196,15 +196,15 @@ function Main {
         Write-Host "Creating NuGet package..."
         $PackageFile = CreatePackage
 
-        Write-Host "Copying package to $OutputPath..."
-        $OutputPath = (Resolve-Path $OutputPath).Path
+        $OutputPath = [IO.Path]::GetFullPath($OutputPath)
         if ($OutputPath -ne $PackageFile) {
+            Write-Host "Copying package to $OutputPath..."
             Copy-Item -Path $PackageFile -Destination $OutputPath -Force | Out-Null
         }
     }
     finally {
         if ($OwnIntermediateDir) {
-            Write-Host "Cleaning up staged files..."
+            Write-Host "Cleaning up intermediate files..."
             Remove-Item -Path $IntermediateDir -Force -Recurse | Out-Null
         }
     }
