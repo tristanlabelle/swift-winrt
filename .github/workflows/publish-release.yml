@@ -37,13 +37,14 @@ jobs:
       release-name: ${{ steps.release-info.outputs.release-name }}
       tag-name: ${{ steps.release-info.outputs.tag-name }}
       nupkg-filename: ${{ steps.release-info.outputs.nupkg-filename }}
-
+    defaults:
+      run:
+        shell: pwsh
     steps:
     - uses: actions/checkout@v4
 
     - name: Determine release info
       id: release-info
-      shell: pwsh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CAN_RELEASE: ${{ github.event.inputs.can-release }}
@@ -107,6 +108,9 @@ jobs:
             msarch: amd64
           - arch: arm64
             msarch: arm64
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,7 +121,6 @@ jobs:
           arch: ${{ matrix.msarch }}
 
       - name: CMake generate
-        shell: pwsh
         working-directory: Generator
         run: |
           cmake --preset release `
@@ -126,7 +129,6 @@ jobs:
             -D CMAKE_EXPORT_COMPILE_COMMANDS=OFF
 
       - name: CMake build
-        shell: pwsh
         working-directory: Generator
         run: cmake --build build/release-${{ matrix.arch }}
 
@@ -142,6 +144,10 @@ jobs:
     name: Create package, tag and release
     needs: [ release-info, build-generator ]
     runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
     permissions:
       contents:
         write # Create tag and release
@@ -154,22 +160,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: SwiftWinRT.x64.zip
-          path: Generator\build\release-x64
+          path: build\release-x64
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: SwiftWinRT.arm64.zip
-          path: Generator\build\release-arm64
+          path: build\release-arm64
 
       - name: Create NuGet package
-        shell: pwsh
-        working-directory: Generator
         env:
           PACKAGE_VERSION: ${{ needs.release-info.outputs.version }}
           NUPKG_FILENAME: ${{ needs.release-info.outputs.nupkg-filename }}
         run: |
-          & .\Create-Package.ps1 `
+          & .\Generator\NuGet\Create-Package.ps1 `
             -X64Exe "build\release-x64\SwiftWinRT.exe" `
             -Arm64Exe "build\release-arm64\SwiftWinRT.exe" `
             -Version $Env:PACKAGE_VERSION `
@@ -180,7 +184,6 @@ jobs:
 
       - name: Create git tag
         if: github.event.inputs.dry-run != 'true'
-        shell: pwsh
         env:
           TAG_NAME: ${{ needs.release-info.outputs.tag-name }}
         run: |
@@ -189,8 +192,6 @@ jobs:
 
       - name: Create GitHub release
         if: github.event.inputs.dry-run != 'true'
-        shell: pwsh
-        working-directory: Generator
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.release-info.outputs.version }}
