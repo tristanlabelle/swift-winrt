@@ -13,11 +13,25 @@ runs:
   using: "composite"
 
   steps:
+  - name: Figure out arch
+    id: arch
+    if: inputs.vsdevenv == 'true'
+    shell: pwsh
+    env:
+      INPUT_ARCH: ${{ inputs.arch }}
+    run: |
+      $HostArch = $Env:PROCESSOR_ARCHITECTURE
+      $TargetArch = $Env:INPUT_ARCH
+      if (!$TargetArch) { $TargetArch = $HostArch }
+      Add-Content -Path $Env:GITHUB_OUTPUT -Value "host=$HostArch" -Encoding utf8
+      Add-Content -Path $Env:GITHUB_OUTPUT -Value "target=$TargetArch" -Encoding utf8
+
   - name: Setup Visual Studio Development Environment
     if: inputs.vsdevenv == 'true'
     uses: compnerd/gha-setup-vsdevenv@main
     with:
-      arch: ${{ inputs.arch }}
+      host_arch: ${{ steps.arch.outputs.host }}
+      arch: ${{ steps.arch.outputs.target }}
 
   - name: Install Swift
     uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
