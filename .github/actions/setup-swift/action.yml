@@ -1,6 +1,10 @@
 name: Setup Swift
 description: Installs dependencies and setups the environment for building Swift code on Windows.
 inputs:
+  arch: 
+    description: The architecture to build for
+    required: false
+    default: ''
   vsdevenv: 
     description: Setup a Visual Studio Development Environment
     required: false
@@ -12,6 +16,8 @@ runs:
   - name: Setup Visual Studio Development Environment
     if: inputs.vsdevenv == 'true'
     uses: compnerd/gha-setup-vsdevenv@main
+    with:
+      arch: ${{ inputs.arch }}
 
   - name: Install Swift
     uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
