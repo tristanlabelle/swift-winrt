@@ -168,6 +168,11 @@ jobs:
           name: SwiftWinRT.arm64.zip
           path: build\release-arm64
 
+      - name: Install Swift for the runtime redistributables
+        uses: ./.github/actions/setup-swift
+        with:
+          vsdevenv: false
+
       - name: Create NuGet package
         env:
           PACKAGE_VERSION: ${{ needs.release-info.outputs.version }}
