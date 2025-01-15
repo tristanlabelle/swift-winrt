@@ -7,19 +7,6 @@ import struct Foundation.UUID
 
 /// Writes a type or extension providing the ABIBinding conformance for a given projected WinRT type.
 internal func writeABIBindingConformance(_ typeDefinition: TypeDefinition, genericArgs: [TypeNode]?, projection: Projection, to writer: SwiftSourceFileWriter) throws {
-    if SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndBinding {
-        // The support module already defines a projection, just reexport it.
-        if typeDefinition.isReferenceType {
-            writer.writeImport(exported: true, kind: .enum,
-                module: SupportModules.WinRT.moduleName,
-                symbolName: try projection.toBindingTypeName(typeDefinition))
-        }
-        else {
-            // The struct conforms to ABIBinding itself, and we already imported it.
-        }
-        return
-    }
-
     if let structDefinition = typeDefinition as? StructDefinition {
         assert(genericArgs == nil)
         try writeStructBindingExtension(structDefinition, projection: projection, to: writer)

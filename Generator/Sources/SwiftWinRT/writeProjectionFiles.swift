@@ -240,11 +240,36 @@ fileprivate func writeTypeDefinitionFile(
 }
 
 fileprivate func writeABIBindingConformanceFile(_ typeDefinition: TypeDefinition, module: Module, toPath path: String) throws {
+    let bindingDefinedInSupportModule = SupportModules.WinRT.getBuiltInTypeKind(typeDefinition) == .definitionAndBinding
+    if bindingDefinedInSupportModule { 
+        if !module.hasTypeDefinition(typeDefinition) {
+            // This is a generic instantiation of a type that is defined in the support module.
+            // Since the support module defines the binding, it must be defined in a way that
+            // covers all generic instantiations, e.g. WindowsFoundation_IReferenceBinding.
+            return
+        }
+        if typeDefinition.isValueType {
+            // We're generating the module for WindowsFoundation and this type is a value type,
+            // like WindowsFoundation_Point. We're reexporting the type from the support module
+            // elsewhere, and it implements ABIBinding itself, so we don't need to generate it again.
+            return
+        }
+    }
+
     let writer = SwiftSourceFileWriter(output: FileTextOutputStream(path: path, directoryCreation: .ancestors))
     writeGeneratedCodePreamble(to: writer)
     writeModulePreamble(module, to: writer)
 
     if module.hasTypeDefinition(typeDefinition) {
+        if bindingDefinedInSupportModule {
+            // We're generating the module for WindowsFoundation and this type's binding is defined in the support module,
+            // like WindowsFoundation_IStringableBinding. Just reexport the binding here.
+            writer.writeImport(exported: true, kind: .enum,
+                module: SupportModules.WinRT.moduleName,
+                symbolName: try module.projection.toBindingTypeName(typeDefinition))
+            return
+        }
+
         try writeABIBindingConformance(typeDefinition, genericArgs: nil, projection: module.projection, to: writer)
     }
 
