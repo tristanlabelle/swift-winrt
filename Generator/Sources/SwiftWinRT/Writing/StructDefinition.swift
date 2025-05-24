@@ -43,7 +43,9 @@ fileprivate func writeStructFields(_ structDefinition: StructDefinition, project
 fileprivate func writeDefaultInitializer(_ structDefinition: StructDefinition, projection: Projection, to writer: SwiftTypeDefinitionWriter) throws {
     func getInitializer(type: TypeNode) -> String {
         switch type {
-            case .array(_): return "[]"
+            case .array(_, let shape):
+                assert(shape == .vector)
+                return "[]"
             case .pointer(_): return "nil"
             case .genericParam(_): fatalError()
             case .bound(let type):

@@ -19,7 +19,8 @@ extension Projection {
                 return boundType.definition.isReferenceType && outerNullable ? swiftType.optional() : swiftType
             case let .genericParam(param):
                 return .named(param.name)
-            case let .array(of: element):
+            case let .array(of: element, shape):
+                assert(shape == .vector)
                 return .array(element: try toTypeExpression(element))
             default:
                 fatalError("Not implemented: Swift representation of values of type \(type)")
@@ -80,7 +81,8 @@ extension Projection {
                 return try getTypeBinding(type)
             case let .genericParam(param):
                 throw UnexpectedTypeError(param.name, context: "Generic params have no binding.")
-            case let .array(of: element):
+            case let .array(of: element, shape: shape):
+                assert(shape == .vector)
                 let elementBinding = try getTypeBinding(element)
                 let swiftType = SwiftType.array(element: elementBinding.swiftType)
                 return TypeBinding(

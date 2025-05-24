@@ -74,7 +74,7 @@ public struct WinRTTypeDiscoverer {
         switch type {
             case let .bound(bound):
                 try enqueue(bound, genericContext: genericContext, owningAssembly: owningAssembly)
-            case let .array(element):
+            case let .array(element, shape: _):
                 try enqueue(element, genericContext: genericContext, owningAssembly: owningAssembly)
             case let .pointer(element):
                 if let element { try enqueue(element, genericContext: genericContext, owningAssembly: owningAssembly) }
