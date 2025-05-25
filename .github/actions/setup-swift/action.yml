@@ -32,6 +32,7 @@ runs:
     with:
       host_arch: ${{ steps.arch.outputs.host }}
       arch: ${{ steps.arch.outputs.target }}
+      winsdk: 10.0.22621.0 # GitHub runners have 10.0.26100.0 which regresses Swift's ucrt module
 
   - name: Install Swift
     uses: compnerd/gha-setup-swift@81f383b35a86e6e966de139be25b451d4f7dd953 # The next main commit breaks our %Path%
