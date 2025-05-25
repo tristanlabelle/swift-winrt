@@ -1,7 +1,7 @@
 FetchContent_Declare(
     swift-dotnetmetadata
     GIT_REPOSITORY https://github.com/tristanlabelle/swift-dotnetmetadata.git
-    GIT_TAG b4870688be31d889ed51da9beac466ede9f366dd
+    GIT_TAG 606bf2b2be7f4cc1d82e4512517f0099bb1c27e3
     SOURCE_SUBDIR "don't use cmakelists")
 FetchContent_MakeAvailable(swift-dotnetmetadata)
 

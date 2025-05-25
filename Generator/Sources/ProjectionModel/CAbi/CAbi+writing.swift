@@ -85,7 +85,8 @@ extension CAbi {
 
     private static func appendCOMParams(name: String?, type: TypeNode, genericArgs: [TypeNode], isByRef: Bool, to comParams: inout [CParamDecl]) throws {
         let paramType = type.bindGenericParams(typeArgs: genericArgs)
-        if case .array(let element) = paramType {
+        if case .array(let element, let shape) = paramType {
+            assert(shape == .vector)
             var arrayLengthParamCType = CType.reference(name: "uint32_t")
             if isByRef { arrayLengthParamCType = arrayLengthParamCType.makePointer() }
             comParams.append(.init(type: arrayLengthParamCType, name: name.map { $0 + "Length" }))
